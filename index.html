@@ -269,6 +269,17 @@ table.grille tr.cur td { background: var(--brass-soft); font-weight: 700; }
 table.grille td.neg { color: var(--bad); }
 
 .note { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+
+/* bandeau d'alertes (changements de taux détectés à l'ouverture) */
+.alerts { max-width: 1340px; margin: 12px auto 0; padding: 0 24px; display: flex; flex-direction: column; gap: 6px; }
+.alert-item {
+  background: var(--warn-soft); color: var(--warn); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 12px; font-size: 13px; display: flex; gap: 10px; align-items: baseline;
+}
+.alert-item .dismiss { margin-left: auto; background: none; border: 0; color: var(--warn); font-weight: 700; cursor: pointer; font-size: 14px; }
+.conf-warn { color: var(--bad); font-weight: 600; }
+.chip.below { border-color: var(--bad); color: var(--bad); }
+.chip.below b { color: var(--bad); }
 .aide p { font-size: 12.5px; margin: 6px 0; }
 .aide h3 { font-size: 13px; margin: 12px 0 2px; }
 
@@ -320,6 +331,8 @@ table.grille td.neg { color: var(--bad); }
   <span id="mbar-ca">—</span><span class="go">Résultats ↓</span>
 </div>
 
+<div id="alerts" class="alerts" hidden></div>
+
 <div class="wrap">
   <!-- ================= INPUTS ================= -->
   <div class="col">
@@ -338,6 +351,7 @@ table.grille td.neg { color: var(--bad); }
           <div class="field"><label for="in-hferie">… dont heures férié</label><input type="number" id="in-hferie" step="0.5" min="0"></div>
         </div>
         <div id="dept-hint" class="hint"></div>
+        <p class="hint" id="conf-hint" hidden></p>
         <div class="grid" style="margin-top:10px">
           <div class="field"><label for="in-majodim">Majoration dimanche</label><select id="in-majodim"></select></div>
           <div class="field"><label for="in-majoferie">Majoration férié</label><select id="in-majoferie"></select></div>
@@ -1545,6 +1559,21 @@ function render(r) {
   $("gs-tx-apply").dataset.coeff = cTx == null ? "" : cTx;
   $("gs-marge-apply").dataset.coeff = cMg == null ? "" : cMg;
 
+  /* conformité : taux horaire brut sous le SMIC en vigueur (revalorisations en cours d'année) */
+  const conf = $("conf-hint");
+  if (official && official.smic && inp.thBrut > 0 && inp.thBrut < official.smic.value - 1e-9) {
+    conf.hidden = false;
+    conf.innerHTML = '<span class="conf-warn">⚠ Taux horaire brut (' + N2.format(inp.thBrut) +
+      " €) inférieur au SMIC en vigueur (" + N2.format(official.smic.value) + " € depuis le " +
+      official.smic.date.split("-").reverse().join("/") + ").</span> " +
+      '<button class="btn" id="conf-fix">Rehausser au SMIC</button>';
+    const b = $("conf-fix");
+    if (b) b.addEventListener("click", () => { $("in-thbrut").value = official.smic.value; onChange(); });
+  } else {
+    conf.hidden = true;
+    conf.innerHTML = "";
+  }
+
   renderPaie(m); renderCotis(m); renderFact(m); renderHidden(h, m); renderGrille(); renderChart();
   renderDeptHint();
 }
@@ -1742,9 +1771,13 @@ function renderDeptHint() {
   if (!d) { el.innerHTML = ""; return; }
   const lg = DB.logement.find(x => d.dept.startsWith(x.dept + " "));
   let chips = "";
+  const smicNow = (typeof official !== "undefined" && official && official.smic) ? official.smic.value : null;
   for (const [k, v] of Object.entries(d.rates)) {
     if (v == null || k === "AUTRE") continue;
-    chips += '<button class="chip" data-rate="' + v + '" title="Appliquer au taux horaire brut">' + k + " <b>" + N2.format(v) + "</b></button>";
+    const below = smicNow != null && v < smicNow - 1e-9;
+    chips += '<button class="chip' + (below ? " below" : "") + '" data-rate="' + v +
+      '" title="' + (below ? "Grille sous le SMIC en vigueur (" + N2.format(smicNow) + " €) — sera rehaussée" : "Appliquer au taux horaire brut") + '">' +
+      k + " <b>" + N2.format(v) + "</b>" + (below ? " ⚠" : "") + "</button>";
   }
   el.innerHTML = "Grille " + esc(d.dept) + " — panier " + (d.panier != null ? N2.format(d.panier) + " €" : "n.c.") +
     (d.panierNonSoumis != null ? " (non soumis " + N2.format(d.panierNonSoumis) + " €)" : "") +
@@ -1869,6 +1902,52 @@ function valueAt(values, isoDate) {
   return d ? { value: values[d], date: d } : null;
 }
 
+/* alertes visibles quand un paramètre officiel a changé depuis la dernière visite
+ * (idée reprise du module « alerte et synchronisation à l'ouverture ») */
+function showAlerts(list) {
+  if (!list.length) return;
+  const box = $("alerts");
+  box.hidden = false;
+  box.innerHTML = "";
+  for (const msg of list) {
+    const div = document.createElement("div");
+    div.className = "alert-item";
+    div.innerHTML = "<span>⚠️</span><span>" + msg + '</span><button class="dismiss" aria-label="Fermer">×</button>';
+    div.querySelector(".dismiss").addEventListener("click", () => {
+      div.remove();
+      if (!box.children.length) box.hidden = true;
+    });
+    box.appendChild(div);
+  }
+}
+function diffOfficial(prev, next) {
+  if (!prev) return [];
+  const dd = s => s ? s.split("-").reverse().join("/") : "";
+  const alerts = [];
+  const items = [
+    ["smic", "SMIC horaire en vigueur", v => N2.format(v) + " €", false],
+    ["smicJan", "SMIC de référence RGDU (1ᵉʳ janvier)", v => N2.format(v) + " €", true],
+    ["pss", "Plafond de sécurité sociale mensuel", v => EUR0.format(v), false],
+    ["tdeltaP", "RGDU Tdelta (< 50 salariés)", v => N4.format(v), true],
+    ["tdeltaG", "RGDU Tdelta (≥ 50 salariés)", v => N4.format(v), true],
+    ["tmin", "RGDU Tmin", v => N4.format(v), true],
+    ["puissance", "RGDU puissance P", v => N2.format(v), true],
+    ["plafond", "RGDU plafond (× SMIC)", v => N2.format(v), true],
+    ["todeTot", "Seuil TO-DE exonération totale (× SMIC)", v => N2.format(v), true],
+    ["todeMax", "Seuil TO-DE maximal (× SMIC)", v => N2.format(v), true]
+  ];
+  for (const [k, label, fmt, auto] of items) {
+    const a = prev[k], b = next[k];
+    if (a && b && a.value !== b.value) {
+      alerts.push("<b>" + label + "</b> : " + fmt(a.value) + " → <b>" + fmt(b.value) + "</b>" +
+                  (b.date ? " (depuis le " + dd(b.date) + ")" : "") +
+                  (auto ? " — appliqué automatiquement au droit courant."
+                        : " — bouton « Appliquer au classeur » dans Paramètres officiels."));
+    }
+  }
+  return alerts;
+}
+
 async function fetchOfficial() {
   const cacheKey = "simulateur-official-v1";
   let cached = null;
@@ -1885,6 +1964,7 @@ async function fetchOfficial() {
     official = { fetchedAt: new Date().toISOString(), fromCache: false };
     for (const k of Object.keys(OF_IDS)) official[k] = latestValue(vals[k]);
     official.smicJan = valueAt(vals.smic, jan1);
+    showAlerts(diffOfficial(cached, official));   // changements depuis la dernière visite
     try { localStorage.setItem(cacheKey, JSON.stringify(official)); } catch (_) {}
   } catch (e) {
     if (cached) { official = cached; official.fromCache = true; }
