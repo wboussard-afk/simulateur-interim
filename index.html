@@ -187,8 +187,8 @@ header.top {
 .btn.primary { background: var(--brass); border-color: var(--brass); color: var(--card); font-weight: 600; }
 .btn.primary:hover { background: var(--brass-deep); border-color: var(--brass-deep); }
 
-/* rows of prime/indemnité */
-.rowline { display: grid; grid-template-columns: 1fr 84px 92px 86px; gap: 8px; align-items: center; margin-bottom: 6px; }
+/* rows of prime/indemnité (nom · nombre · coef fact · montant · total) */
+.rowline { display: grid; grid-template-columns: 1fr 62px 68px 84px 78px; gap: 8px; align-items: center; margin-bottom: 6px; }
 .rowline input { width: 100%; padding: 5px 7px; border: 1px solid var(--line); border-radius: 7px; background: var(--card2); color: var(--ink); font-size: 13px; }
 .rowline .amt { text-align: right; font-size: 13px; color: var(--muted); }
 .rowhead { font-size: 10.5px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 600; }
@@ -201,7 +201,7 @@ header.top {
   }
   .check input { width: 19px; height: 19px; }
   .check { padding: 8px 0; }
-  .rowline { grid-template-columns: 1fr 62px 82px 70px; gap: 6px; }
+  .rowline { grid-template-columns: 1fr 52px 56px 72px 64px; gap: 5px; }
   .seg button { min-height: 42px; }
 }
 
@@ -359,6 +359,7 @@ table.grille td.neg { color: var(--bad); }
           <div class="field"><label for="in-hsup">Heures supplémentaires</label><select id="in-hsup"></select></div>
           <div class="field"><label for="in-majonorm">Majo heures normales</label><select id="in-majonorm"></select></div>
           <div class="field"><label for="in-majonormq">Nb heures majo normales</label><input type="number" id="in-majonormq" step="0.5" min="0"></div>
+          <div class="field"><label for="in-atmp">Taux AT-MP (%)</label><input type="number" id="in-atmp" step="0.01" min="0" title="Taux accident du travail notifié par la CARSAT — pèse directement sur la marge. Défaut : valeur moyenne."></div>
         </div>
         <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:8px">
           <label class="check only-tarifaire"><input type="checkbox" id="in-ifm-toggle"> IFM (10&nbsp;%)</label>
@@ -401,14 +402,11 @@ table.grille td.neg { color: var(--bad); }
     <section class="card">
       <div class="card-h"><h2>Primes &amp; indemnités</h2><span class="eyebrow">Éléments contractuels</span></div>
       <div class="card-b">
-        <div class="rowline rowhead"><span>Prime (soumise à cotisations)</span><span>Nombre</span><span>Montant (€)</span><span style="text-align:right">Total</span></div>
+        <div class="rowline rowhead"><span>Prime (soumise à cotisations)</span><span>Nombre</span><span>Coef fact.</span><span>Montant (€)</span><span style="text-align:right">Total</span></div>
         <div id="primes"></div>
-        <div class="rowline rowhead" style="margin-top:10px"><span>Indemnité (non soumise)</span><span>Nombre</span><span>Montant (€)</span><span style="text-align:right">Total</span></div>
+        <div class="rowline rowhead" style="margin-top:10px"><span>Indemnité (non soumise)</span><span>Nombre</span><span>Coef fact.</span><span>Montant (€)</span><span style="text-align:right">Total</span></div>
         <div id="indems"></div>
-        <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:2px">
-          <label class="check"><input type="checkbox" id="in-refind1"> Indemnité 1 refacturée</label>
-          <label class="check"><input type="checkbox" id="in-refind2"> Indemnité 2 refacturée</label>
-        </div>
+        <p class="hint">Coef fact. = coefficient de facturation de la ligne. Primes : vide = coefficient de la mission ; indemnités : défaut 1 (à l'identique) ; <b>0 = non refacturée</b> ; toute autre valeur possible.</p>
         <div class="grid" style="margin-top:10px">
           <div class="field"><label for="in-part">Participation logement salarié</label>
             <select id="in-part">
@@ -435,7 +433,7 @@ table.grille td.neg { color: var(--bad); }
           <div class="field"><label for="in-remise">Remise fin d'année (%)</label><input type="number" id="in-remise" step="0.1" min="0"></div>
         </div>
         <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:8px">
-          <label class="check"><input type="checkbox" id="in-refprimes"> Primes refacturées</label>
+          <label class="check"><input type="checkbox" id="in-refprimes" title="Coefficient appliqué aux primes automatiques (repas/transport/AN) et aux lignes de prime dont le coef fact. est vide"> Primes refacturées au coefficient</label>
           <label class="check"><input type="checkbox" id="in-refdim"> Dimanche refacturé</label>
           <label class="check"><input type="checkbox" id="in-refferie"> Férié refacturé</label>
           <label class="check"><input type="checkbox" id="in-refnuit"> Nuit refacturée</label>
@@ -458,7 +456,7 @@ table.grille td.neg { color: var(--bad); }
           <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-rgduinterim"> Majoration intérim ×1,1</label></div>
         </div>
         <table class="kv" id="tbl-exo" style="margin-top:8px"></table>
-        <p class="note">RGDU 2026 : coefficient = Tmin + Tdelta × [½ × (3 × SMIC réf / rémunération − 1)]^P, plafonné à Tmin+Tdelta, <b>nul dès 3 SMIC</b>, arrondi à 4 décimales. Paramètres du décret <b>actualisés automatiquement depuis OpenFisca</b> (au 01/01/2026 : Tmin 0,02 · Tdelta 0,3781 / 0,3821 selon la taille · P 1,75). La majoration intérim ×1,1 reprend la règle de l'ancien Fillon — à confirmer avec votre éditeur de paie. Proratisation hebdomadaire : SMIC réf × heures travaillées, comme le Fillon du classeur.</p>
+        <p class="note">RGDU 2026 : coefficient = Tmin + Tdelta × [½ × (3 × SMIC réf / rémunération − 1)]^P, plafonné à Tmin+Tdelta, <b>nul dès 3 SMIC</b>, arrondi à 4 décimales. Paramètres du décret <b>actualisés automatiquement depuis OpenFisca</b> (au 01/01/2026 : Tmin 0,02 · Tdelta 0,3781 / 0,3821 selon la taille · P 1,75). Majoration intérim ×1,1 <b>confirmée</b> (art. D.241-10 III CSS, hors CDI intérimaire). Proratisation hebdomadaire : SMIC réf × heures travaillées, comme le Fillon du classeur.</p>
       </div>
     </section>
 
@@ -482,7 +480,16 @@ table.grille td.neg { color: var(--bad); }
           <div class="field"><label for="in-plafondss">Plafond SS mensuel (€)</label><input type="number" id="in-plafondss" step="1" min="0"></div>
           <div class="field"><label for="in-todetot">Seuil TO-DE exo totale (× SMIC)</label><input type="number" id="in-todetot" step="0.01" min="0"></div>
           <div class="field"><label for="in-todemax">Seuil TO-DE maximal (× SMIC)</label><input type="number" id="in-todemax" step="0.01" min="0"></div>
+          <div class="field"><label for="in-pasmode">Retenue à la source</label>
+            <select id="in-pasmode">
+              <option value="grille">Grille taux neutre BOFiP (05/2026)</option>
+              <option value="classeur">Formule linéaire du classeur</option>
+            </select>
+          </div>
+          <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-pascc" title="Missions ≤ 2 mois : abattement de 766 €/mois (converti en hebdomadaire) sur la base du taux neutre — BOFiP"> Abattement contrat court (766 €)</label></div>
+          <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-tauxreduits" title="Taux réduits maladie 7 % / famille 3,45 % sous seuils — supprimés au 01/01/2026 (RGDU) mais maintenus à titre résiduel pour les contrats TO-DE (agricole)"> Taux réduits maladie/famille (TO-DE)</label></div>
         </div>
+        <p class="note">Taux 2026 vérifiés multi-sources le 19/08/2026 (Légifrance · Unédic · LégiSocial). Le taux AT-MP (champ « Mission ») et les « autres contributions » (CSA, FNAL, formation ETT 1,30 %, apprentissage…) sont <b>à personnaliser</b> selon votre agence. Prévoyance (comp. IID) : taux de branche du classeur.</p>
         <div class="grid" id="rates-grid"></div>
       </div>
     </details>
@@ -655,8 +662,33 @@ const RGDU_DEFAULTS = {
   tdeltaGrande: 0.3821,   // t_delta_grandes_entreprises (≥ 50 salariés) → Tmax 0,4021
   p: 1.75,                // puissance
   plafondSmic: 3,         // plafond (nul dès 3 SMIC)
-  interimMajoration: 1.1  // majoration intérim (comme l'ancien Fillon) — à confirmer par l'éditeur de paie
+  interimMajoration: 1.1  // CONFIRMÉ : art. D.241-10 III CSS (b = 1,1, intérimaires hors CDI-I ; Légifrance)
 };
+
+/* Grille du taux neutre du prélèvement à la source (BOFiP BOI-BAREME-000037-20260407,
+ * mensuel métropole, en vigueur depuis le 01/05/2026). Le moteur convertit les
+ * limites en hebdomadaire (× 12/52). Au-delà de la dernière tranche modélisée,
+ * le taux 9,9 % est conservé avec un indicateur `pasHorsGrille`. */
+const PAS_GRILLE_2026 = [
+  [1635, 0], [1698, 0.5], [1807, 1.3], [1928, 2.1], [2060, 2.9],
+  [2170, 3.5], [2315, 4.1], [2738, 5.3], [3135, 7.5], [3571, 9.9]
+];
+const PAS_ABAT_CONTRAT_COURT = 766; // €/mois — CDD/missions ≤ 2 mois (BOI-IR-PAS-20-20-30-10 §230/260, au 01/06/2026)
+
+/* Panier de cotisations exonérées TO-DE (MSA) :
+ * [maladie, CSA, vieillesse plaf., vieillesse déplaf., AT éligible, famille, FNAL, chômage] + [retraite T1, CEG] */
+const TODE_RATES_CLASSEUR = { msa: [7, 0.3, 8.55, 2.02, 0.46, 3.45, 0.1, 4.05], retraite: [4.72, 1.29] };
+const TODE_RATES_2026 = { msa: [7, 0.3, 8.55, 2.11, 0.49, 3.45, 0.1, 4.00], retraite: [4.72, 1.29] };
+// 2026 (décret 2025-1446 + Unédic) : vieillesse déplaf. 2,02→2,11 ; AT éligible 0,46→0,49 ; chômage 4,05→4,00.
+// Les taux réduits maladie 7 % / famille 3,45 % restent applicables « à titre résiduel » aux contrats TO-DE.
+
+/* Divergences constatées entre sources lors de la vérification du 19/08/2026 —
+ * affichées à l'utilisateur pour contrôle manuel (la source officielle prime) : */
+const BAKED_CONTRADICTIONS = [
+  "Vieillesse déplafonnée patronale : <b>2,11 %</b> retenu (Légifrance, décret 2025-1446) — PayFit affichait encore 2,02 % (page non à jour).",
+  "Grille du taux neutre PAS janv.–avril 2026 : bornes fiche-paie.fr ≠ BOFiP. Retenu : <b>BOFiP</b> (grille de mai 2026 appliquée).",
+  "Majoration RGDU intérim ×1,1 : <b>confirmée</b> (art. D.241-10 III, Légifrance) — la documentation Sage évoquait sa suppression (état antérieur du projet de réforme)."
+];
 
 /* Taux de cotisations par défaut — secteur AGRI (E = salarial, G = patronal) */
 const RATES_AGRI = {
@@ -692,6 +724,18 @@ const RATES_AGRI = {
   redPatHSupParH: -1.5    // G82 (€ par heure sup)
 };
 
+/* Taux 2026 vérifiés multi-sources (Légifrance / Unédic / LégiSocial concordants,
+ * 19/08/2026) — DÉFAUTS de l'interface. Les taux de branche/prévoyance et le taux
+ * AT restent « à personnaliser » (spécifiques à l'entreprise). */
+const RATES_2026_AGRI = Object.assign({}, RATES_AGRI, {
+  atPat: 2.08,            // taux AT-MP net moyen national 2026 (arrêté 30/12/2025) — À PERSONNALISER
+  ssDeplafPat: 2.11,      // vieillesse déplafonnée patronale (décret 2025-1446 ; classeur : 2,02)
+  cetPat: 0.21,           // CET patronal réel (classeur : 0,14)
+  chomagePat: 4.03,       // chômage 4,00 (Unédic, depuis 01/05/2025) + AGS ETT 0,03 (classeur : 4,3)
+  autresPat: 0.30 + 0.10 + 0.016 + 1.30 + 0.68 + 0.42
+  // CSA 0,30 + FNAL <50 0,10 + dialogue social 0,016 + formation ETT 1,30 + apprentissage 0,68 + SST MSA 0,42 — À PERSONNALISER
+});
+
 /* Taux — secteur TARIFAIRE 11/2024 */
 const RATES_TARIFAIRE = Object.assign({}, RATES_AGRI, {
   compIIDT1Sal: 0.554,    // E63
@@ -710,11 +754,23 @@ const RATES_TARIFAIRE = Object.assign({}, RATES_AGRI, {
   statutairesPat: 0.15    // G78
 });
 
+const RATES_2026_TARIFAIRE = Object.assign({}, RATES_TARIFAIRE, {
+  atPat: 2.08,            // moyenne nationale 2026 — À PERSONNALISER
+  ssDeplafPat: 2.11,      // décret 2025-1446 (classeur : 2,02)
+  cetPat: 0.21,           // classeur : 0,14
+  chomagePat: 4.03,       // 4,00 + AGS ETT 0,03 (classeur : 4,08 = 4,05 + 0,03)
+  mutuelleSal: 0.0874,    // Intérimaires Santé, tarif 01/01/2026 (€/h ; classeur : 0,0661)
+  mutuellePat: 0.0874,
+  autresPat: 0.30 + 0.10 + 0.016 + 1.30 + 0.68
+  // CSA + FNAL <50 + dialogue social + formation ETT + apprentissage — À PERSONNALISER (classeur : 3,766)
+});
+
 /* Configuration par secteur */
 const SECTORS = {
   agri: {
     label: "Agricole — MSA · TO-DE",
-    rates: RATES_AGRI,
+    rates: RATES_2026_AGRI,
+    ratesClasseur: RATES_AGRI,
     plafondSSMois: 3925,        // D107 = 3925/30*jours
     retenueJour: 55,            // F43
     dfsFactor: 0.8,             // D101 = brut × 0,8 (abattement DFS 20 %)
@@ -737,7 +793,8 @@ const SECTORS = {
   },
   tarifaire: {
     label: "Tarifaire — Industrie · BTP",
-    rates: RATES_TARIFAIRE,
+    rates: RATES_2026_TARIFAIRE,
+    ratesClasseur: RATES_TARIFAIRE,
     plafondSSMois: 3864,        // D107 = 3864/30*jours (2024)
     retenueJour: 54,            // F43
     dfsFactor: 0.9,             // D101 = brut × 0,9 (abattement DFS 10 %)
@@ -789,7 +846,6 @@ function defaultInputs(DB, sector) {
     refactDim: true, refactFerie: true, refactNuit: true,
     annualisation: false,
     heuresFactNormal: 35,       // L24
-    refactIndem2: 1,            // M48
     cibleMargePct: 15,          // L17
     logementHeures: 43,         // multiplicateur F92 (classeur tarifaire : ×43 en dur)
     exoFormule: "fillon",       // secteur tarifaire : "fillon" (classeur) ou "rgdu" (2026)
@@ -798,7 +854,14 @@ function defaultInputs(DB, sector) {
     plafondSSMois: BAKED_OFFICIAL.pss.value, // plafond SS mensuel (D107) — défaut = droit courant ; classeur : 3925/3864
     todeSeuilTot: 1.25,         // seuil TO-DE exonération intégrale (× SMIC)
     todeSeuilMax: 1.6,          // seuil TO-DE maximal (× SMIC)
-    rates: Object.assign({}, cfg.rates)
+    todeRates: TODE_RATES_2026, // panier de cotisations exonérées TO-DE
+    /* taux réduits maladie 7 % / famille 3,45 % : supprimés au 01/01/2026 (RGDU),
+     * mais maintenus « à titre résiduel » pour les contrats TO-DE (agri) */
+    tauxReduits: sector === "agri",
+    pasMode: "grille",          // retenue à la source : grille BOFiP 2026 ("classeur" = formule linéaire du classeur)
+    pasContratCourt: true,      // abattement contrats courts 766 €/mois (missions ≤ 2 mois)
+    rates: Object.assign({}, cfg.rates),
+    ratesBase: Object.assign({}, cfg.rates) // littéraux de la feuille cachée (non liés aux éditions)
   };
   if (sector === "agri") {
     return Object.assign(common, {
@@ -814,13 +877,15 @@ function defaultInputs(DB, sector) {
       majoDimLabel: "MAJO DIMANCHE 10 %",
       majoNormLabel: "MAJO NORMALES 40 %",
       baseIFM: 0,               // D32 (saisie, scénario IFM)
-      primes: [ {q:5, r:0, name:"Prime 1"}, {q:0, r:0, name:"Prime 2"}, {q:0, r:0, name:"Prime 3"},
-                {q:0, r:0, name:"Prime 4"}, {q:0, r:0, name:"Prime 5"} ],
-      indemnites: [ {q:5, r:6, name:"Indemnité 1"}, {q:0, r:0, name:"Indemnité 2"} ],
+      /* fc = coefficient de facturation par ligne : null/"coef" = coefficient de la
+       * mission (via le réglage global « primes refacturées »), 0 = non facturée,
+       * toute autre valeur = coefficient spécifique. Indemnités : défaut 1. */
+      primes: [ {q:5, r:0, name:"Prime 1", fc:null}, {q:0, r:0, name:"Prime 2", fc:null}, {q:0, r:0, name:"Prime 3", fc:null},
+                {q:0, r:0, name:"Prime 4", fc:null}, {q:0, r:0, name:"Prime 5", fc:null} ],
+      indemnites: [ {q:5, r:6, name:"Indemnité 1", fc:0}, {q:0, r:0, name:"Indemnité 2", fc:1} ], // M47=0, M48=1 (classeur agri)
       participationLibre: -50,  // F19
       coutLogementFacture: 70,  // M52 (€ / semaine)
       refactPrimes: true,       // L18
-      refactIndem1: 0,          // M47
       cibleTauxFact: 17.45      // L14
     });
   }
@@ -837,13 +902,12 @@ function defaultInputs(DB, sector) {
     majoDimLabel: "MAJO DIMANCHE 80 %",
     majoNormLabel: "MAJO NORMALES 50 %",
     baseIFM: 0,
-    primes: [ {q:5, r:0, name:"Prime 1"}, {q:0, r:0, name:"Prime 2"}, {q:0, r:0, name:"Prime 3"},
-              {q:0, r:0, name:"Prime 4"}, {q:0, r:0, name:"Prime 5"} ],
-    indemnites: [ {q:0, r:0, name:"Indemnité 1"}, {q:0, r:0, name:"Indemnité 2"} ],
+    primes: [ {q:5, r:0, name:"Prime 1", fc:null}, {q:0, r:0, name:"Prime 2", fc:null}, {q:0, r:0, name:"Prime 3", fc:null},
+              {q:0, r:0, name:"Prime 4", fc:null}, {q:0, r:0, name:"Prime 5", fc:null} ],
+    indemnites: [ {q:0, r:0, name:"Indemnité 1", fc:1}, {q:0, r:0, name:"Indemnité 2", fc:1} ], // M47=M48=1 (classeur tarifaire)
     participationLibre: -80,    // F19
     coutLogementFacture: 0,     // M52 (€ / heure facturé)
     refactPrimes: true,         // L18
-    refactIndem1: 1,            // M47
     cibleTauxFact: 22.6         // L14
   });
 }
@@ -859,13 +923,14 @@ function lookupValue(table, label) {
 
 /* TO-DE (exonération travailleurs occasionnels / demandeurs d'emploi — agri)
  * seuils 1,25 / 1,6 SMIC (OpenFisca : agricole.tode.plafond_exoneration_integrale / plafond) */
-function computeTODE(hours, brut, brutHorsHS, smic, seuilTot, seuilMax) {
+function computeTODE(hours, brut, brutHorsHS, smic, seuilTot, seuilMax, basket) {
   const B1 = smic || CONST.SMIC, B2 = hours;
   const B3 = B1 * B2 * (seuilTot || 1.25);
   const B4 = B1 * B2 * (seuilMax || 1.6);
   const B8 = brutHorsHS < B3 ? "TOTALE" : (brutHorsHS > B3 && brutHorsHS < B4 ? "PARTIELLE" : "NON");
-  const msa = [7, 0.3, 8.55, 2.02, 0.46, 3.45, 0.1, 4.05].reduce((s, t) => s + brut * t / 100, 0);
-  const retraite = brut * 4.72 / 100 + brut * 1.29 / 100;
+  const bk = basket || TODE_RATES_2026;
+  const msa = bk.msa.reduce((s, t) => s + brut * t / 100, 0);
+  const retraite = bk.retraite.reduce((s, t) => s + brut * t / 100, 0);
   let B21 = 0, B22 = 0, B23 = 0, B24 = 0;
   if (B8 === "TOTALE") { B21 = msa; B22 = retraite; }
   if (B8 === "PARTIELLE") {
@@ -959,7 +1024,9 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   /* --- Cotisations (lignes 62-82) : F = salarial, H = patronal --- */
   const att = i.attestation; // F13
   S.F62 = att ? S.D62 * R.maladieSal / 100 : 0;
-  S.G62 = (S.D62 <= S.D108) ? 7 : 13;
+  /* maladie patronale : taux réduit 7 % supprimé au 01/01/2026 (RGDU) sauf
+   * résiduel TO-DE — piloté par i.tauxReduits (classeur : seuil 2,5 SMIC figé) */
+  S.G62 = (i.tauxReduits === false) ? 13 : ((S.D62 <= S.D108) ? 7 : 13);
   S.H62 = S.D62 * S.G62 / 100;
   S.D63 = Math.min(S.D62, S.D107);
   S.F63 = S.D63 * R.compIIDT1Sal / 100;  S.H63 = S.D63 * R.compIIDT1Pat / 100;
@@ -986,7 +1053,7 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   S.F72 = S.D72 * R.compT2Sal / 100;     S.H72 = S.D72 * R.compT2Pat / 100;
   S.D73 = (S.D72 > 0) ? S.D62 : 0;
   S.F73 = S.D73 * R.cetSal / 100;        S.H73 = S.D73 * R.cetPat / 100;
-  S.G74 = (S.D62 <= S.D109) ? 3.45 : 5.25;
+  S.G74 = (i.tauxReduits === false) ? 5.25 : ((S.D62 <= S.D109) ? 3.45 : 5.25);
   S.H74 = S.D62 * S.G74 / 100;
   S.H75 = S.D62 * R.chomagePat / 100;
   S.D76 = S.F42 ? (S.F28 + S.F29) * (S.D62 / S.F42) : 0;
@@ -1040,7 +1107,7 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   }
 
   /* --- Exonération (H83) : TO-DE (agri) ou allègement Fillon / RGDU (tarifaire) --- */
-  S.tode = computeTODE(S.D24, S.F42, S.F42 - S.F28 - S.F29, SMIC_C, i.todeSeuilTot, i.todeSeuilMax);
+  S.tode = computeTODE(S.D24, S.F42, S.F42 - S.F28 - S.F29, SMIC_C, i.todeSeuilTot, i.todeSeuilMax, i.todeRates);
   if (cfg.exo === "tode") {
     S.H83 = S.tode.total;
   } else {
@@ -1061,7 +1128,23 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
 
   /* --- Net imposable & retenue à la source (F14, F43) --- */
   S.F14 = S.F42 + S.H67 + S.F80 + S.F81 - S.F88 - S.F28 - S.F29;
-  S.F43 = ((S.F14 * 0.9) - (cfg.retenueJour * i.jours)) * 0.12;
+  /* Retenue à la source :
+   * - "grille" (défaut) : barème du taux neutre BOFiP mai 2026, limites mensuelles
+   *   converties en hebdomadaire (× 12/52), abattement contrats courts optionnel ;
+   * - "classeur" : formule linéaire du classeur ((F14 × 0,9) − retenueJour × j) × 12 %. */
+  if (i.pasMode === "classeur") {
+    S.F43 = ((S.F14 * 0.9) - (cfg.retenueJour * i.jours)) * 0.12;
+    S.pasHorsGrille = false;
+  } else {
+    const w = 12 / 52;
+    const base = Math.max(0, S.F14 - (i.pasContratCourt === false ? 0 : PAS_ABAT_CONTRAT_COURT * w));
+    let rate = PAS_GRILLE_2026[PAS_GRILLE_2026.length - 1][1];
+    S.pasHorsGrille = true;
+    for (const [lim, r] of PAS_GRILLE_2026) {
+      if (base < lim * w) { rate = r; S.pasHorsGrille = false; break; }
+    }
+    S.F43 = base * rate / 100;
+  }
 
   /* --- Indemnités (lignes 47-51) --- */
   S.F47 = i.indemnites[0].q * i.indemnites[0].r;
@@ -1157,15 +1240,19 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   S.L34 = S.F34; S.O34 = S.L34 * S.M34; P(S, 34);
   S.L35 = S.F35; S.O35 = S.L35 * S.M34; P(S, 35);
   S.L36 = S.F36; S.O36 = S.L36 * S.M34; P(S, 36);
-  S.L37 = S.F37; S.O37 = S.L37 * S.M34; P(S, 37);
-  S.L38 = S.F38; S.O38 = S.L38 * S.M34; P(S, 38);
-  S.L39 = S.F39; S.O39 = S.L39 * S.M34; P(S, 39);
-  S.L40 = S.F40; S.O40 = S.L40 * S.M34; P(S, 40);
-  S.L41 = S.F41; S.O41 = S.L41 * S.M34; P(S, 41);
+  /* primes 1-5 : coefficient de facturation par ligne (null/"coef" = M34) */
+  const fcPrime = fc => (fc == null || fc === "" || fc === "coef" || isNaN(Number(fc))) ? S.M34 : Number(fc);
+  const fcIndem = fc => (fc == null || fc === "" || isNaN(Number(fc))) ? 1 : Number(fc);
+  for (let k = 0; k < 5; k++) {
+    const r = 37 + k;
+    S["L" + r] = S["F" + r];
+    S["O" + r] = S["F" + r] * fcPrime(i.primes[k].fc);
+    P(S, r);
+  }
   S.O45 = S.F45 * 1;              P(S, 45);
   S.O46 = S.F46 * 1;              P(S, 46);
-  S.O47 = S.F47 * i.refactIndem1; P(S, 47);
-  S.O48 = S.F48 * i.refactIndem2; P(S, 48);
+  S.O47 = S.F47 * fcIndem(i.indemnites[0].fc); P(S, 47);
+  S.O48 = S.F48 * fcIndem(i.indemnites[1].fc); P(S, 48);
   S.O49 = S.F49 * 1;              P(S, 49);
   S.O50 = S.F50 * 1;              P(S, 50);
   if (cfg.o52Mode === "flat") {
@@ -1215,7 +1302,8 @@ function P(S, row) { S["P" + row] = S["O" + row]; }
 function compute(i) {
   const cfg = SECTORS[i.sector || "agri"];
   const pre = computeSheet(i, "main", { F55: 0, F56: 0 });
-  const hiddenRates = Object.assign({}, cfg.rates);
+  // littéraux de la feuille cachée : millésime des défauts (ratesBase), pas les éditions utilisateur
+  const hiddenRates = Object.assign({}, i.ratesBase || cfg.rates);
   for (const k of cfg.hiddenLinkedRates) hiddenRates[k] = i.rates[k];
   const hidden = computeSheet(Object.assign({}, i, { rates: hiddenRates }), "hidden", null,
                               cfg.f77Cross ? pre.F77 : null);
@@ -1258,6 +1346,8 @@ function coeffPourTauxSecteur(i, tauxCible) {
 
 if (typeof module !== "undefined") {
   module.exports = { compute, computeSheet, computeTODE, defaultInputs, SECTORS, CONST, RGDU_DEFAULTS, BAKED_OFFICIAL,
+                     RATES_2026_AGRI, RATES_2026_TARIFAIRE, TODE_RATES_CLASSEUR, TODE_RATES_2026,
+                     PAS_GRILLE_2026, PAS_ABAT_CONTRAT_COURT, BAKED_CONTRADICTIONS,
                      RATES_AGRI, RATES_TARIFAIRE,
                      coeffPourTauxFact, coeffPourMarge, coeffPourTauxFactAvecLogement,
                      coeffPourTauxSecteur, solveCoeff };
@@ -1320,12 +1410,15 @@ const indemNames = ["Indemnité 1", "Indemnité 2"];
 function buildRows(containerId, names, arr, prefix, kind) {
   const c = $(containerId);
   c.innerHTML = "";
+  const fcPlaceholder = kind === "prime" ? "coef" : "1";
   names.forEach((name, k) => {
     const div = document.createElement("div");
     div.className = "rowline";
     const label = arr[k].name || name;
+    const fcVal = (arr[k].fc == null || arr[k].fc === "coef") ? "" : arr[k].fc;
     div.innerHTML = '<input type="text" id="' + prefix + 'n' + k + '" value="' + esc(label) + '" aria-label="Nom ' + kind + ' ' + (k + 1) + '">' +
       '<input type="number" step="0.5" min="0" id="' + prefix + 'q' + k + '" value="' + arr[k].q + '" aria-label="Nombre ' + kind + ' ' + (k + 1) + '">' +
+      '<input type="number" step="0.0001" min="0" id="' + prefix + 'f' + k + '" value="' + fcVal + '" placeholder="' + fcPlaceholder + '" aria-label="Coefficient de facturation ' + kind + ' ' + (k + 1) + '" title="Vide = ' + (kind === "prime" ? "coefficient de la mission" : "1 (à l’identique)") + ' ; 0 = non refacturée">' +
       '<input type="number" step="0.01" id="' + prefix + 'r' + k + '" value="' + arr[k].r + '" aria-label="Montant ' + kind + ' ' + (k + 1) + '">' +
       '<span class="amt" id="' + prefix + 'a' + k + '">—</span>';
     c.appendChild(div);
@@ -1340,7 +1433,7 @@ const RATE_DEFS = [
   ["nonCsgT1Pat", "Comp. IID non-CSG T1 pat. % (G64)"],
   ["compIIDT2Sal", "Comp. IID T2 sal. % (E65)"], ["compIIDT2Pat", "Comp. IID T2 pat. % (G65)"],
   ["nonCsgT2Sal", "Comp. IID non-CSG T2 sal. % (E66)"], ["nonCsgT2Pat", "Comp. IID non-CSG T2 pat. % (G66)"],
-  ["mutuelleSal", "Mutuelle sal. (E67)"], ["mutuellePat", "Mutuelle pat. (G67)"], ["atPat", "AT-MP pat. % (G68)"],
+  ["mutuelleSal", "Mutuelle sal. (E67)"], ["mutuellePat", "Mutuelle pat. (G67)"],
   ["ssPlafSal", "SS plafonnée sal. % (E69)"], ["ssPlafPat", "SS plafonnée pat. % (G69)"],
   ["ssDeplafSal", "SS déplafonnée sal. % (E70)"], ["ssDeplafPat", "SS déplafonnée pat. % (G70)"],
   ["compT1Sal", "Complémentaire T1 sal. % (E71)"], ["compT1Pat", "Complémentaire T1 pat. % (G71)"],
@@ -1414,6 +1507,7 @@ function setFormFromInputs() {
   $("in-majodim").value = inp.majoDimLabel; $("in-majoferie").value = inp.majoFerieLabel;
   $("in-majonuit").value = inp.majoNuitLabel; $("in-hsup").value = inp.hSupLabel;
   $("in-majonorm").value = inp.majoNormLabel; $("in-majonormq").value = inp.majoNormQty;
+  $("in-atmp").value = inp.rates.atPat;
   $("in-ifm-toggle").checked = !!inp.ifm;
   $("in-iccp").checked = inp.iccp; $("in-attest").checked = inp.attestation; $("in-annu").checked = inp.annualisation;
   $("in-log").checked = inp.logement; $("in-loghebdo").value = inp.logementHebdo;
@@ -1424,9 +1518,10 @@ function setFormFromInputs() {
   $("in-baremepd").value = inp.baremeRepasPD; $("in-baremegd").value = inp.baremeRepasGD;
   $("in-tickq").value = inp.ticketsQty; $("in-tickv").value = inp.ticketsVal;
   $("in-anconso").checked = inp.anRepasConsomme; $("in-anretrait").checked = inp.retraitANRepas;
-  inp.primes.forEach((p, k) => { $("prq" + k).value = p.q; $("prr" + k).value = p.r; $("prn" + k).value = p.name || primeNames[k]; });
-  inp.indemnites.forEach((p, k) => { $("inq" + k).value = p.q; $("inr" + k).value = p.r; $("inn" + k).value = p.name || indemNames[k]; });
-  $("in-refind1").checked = !!inp.refactIndem1; $("in-refind2").checked = !!inp.refactIndem2;
+  inp.primes.forEach((p, k) => { $("prq" + k).value = p.q; $("prr" + k).value = p.r; $("prn" + k).value = p.name || primeNames[k];
+                                 $("prf" + k).value = (p.fc == null || p.fc === "coef") ? "" : p.fc; });
+  inp.indemnites.forEach((p, k) => { $("inq" + k).value = p.q; $("inr" + k).value = p.r; $("inn" + k).value = p.name || indemNames[k];
+                                     $("inf" + k).value = (p.fc == null) ? "" : p.fc; });
   $("in-part").value = inp.participationChoice; $("in-partlibre").value = inp.participationLibre;
   $("in-ifm").value = inp.baseIFM; $("in-decouche").value = inp.indemDecoucheRate;
   $("in-coeff").value = inp.coeff; $("in-coeffhdn").value = inp.coeffHDN;
@@ -1441,6 +1536,9 @@ function setFormFromInputs() {
   $("in-plafondss").value = inp.plafondSSMois;
   $("in-todetot").value = inp.todeSeuilTot;
   $("in-todemax").value = inp.todeSeuilMax;
+  $("in-pasmode").value = inp.pasMode || "grille";
+  $("in-pascc").checked = inp.pasContratCourt !== false;
+  $("in-tauxreduits").checked = inp.tauxReduits !== false;
   $("exo-fillon").setAttribute("aria-pressed", inp.exoFormule !== "rgdu" ? "true" : "false");
   $("exo-rgdu").setAttribute("aria-pressed", inp.exoFormule === "rgdu" ? "true" : "false");
   for (const [key] of RATE_DEFS) { const el = $("rate-" + key); if (el) el.value = inp.rates[key]; }
@@ -1469,10 +1567,9 @@ function readInputsFromForm() {
   inp.baremeRepasPD = num($("in-baremepd")); inp.baremeRepasGD = num($("in-baremegd"));
   inp.ticketsQty = num($("in-tickq")); inp.ticketsVal = num($("in-tickv"));
   inp.anRepasConsomme = $("in-anconso").checked; inp.retraitANRepas = $("in-anretrait").checked;
-  inp.primes = inp.primes.map((p, k) => ({ q: num($("prq" + k)), r: num($("prr" + k)), name: $("prn" + k).value }));
-  inp.indemnites = inp.indemnites.map((p, k) => ({ q: num($("inq" + k)), r: num($("inr" + k)), name: $("inn" + k).value }));
-  inp.refactIndem1 = $("in-refind1").checked ? 1 : 0;
-  inp.refactIndem2 = $("in-refind2").checked ? 1 : 0;
+  const readFc = id => { const raw = $(id).value.trim(); if (raw === "") return null; const v = parseFloat(raw.replace(",", ".")); return isFinite(v) ? v : null; };
+  inp.primes = inp.primes.map((p, k) => ({ q: num($("prq" + k)), r: num($("prr" + k)), name: $("prn" + k).value, fc: readFc("prf" + k) }));
+  inp.indemnites = inp.indemnites.map((p, k) => ({ q: num($("inq" + k)), r: num($("inr" + k)), name: $("inn" + k).value, fc: readFc("inf" + k) }));
   inp.participationChoice = $("in-part").value; inp.participationLibre = num($("in-partlibre"));
   inp.baseIFM = num($("in-ifm")); inp.indemDecoucheRate = num($("in-decouche"));
   inp.coeff = num($("in-coeff")); inp.coeffHDN = num($("in-coeffhdn"));
@@ -1488,7 +1585,11 @@ function readInputsFromForm() {
   inp.plafondSSMois = num($("in-plafondss")) || SECTORS[inp.sector].plafondSSMois;
   inp.todeSeuilTot = num($("in-todetot")) || 1.25;
   inp.todeSeuilMax = num($("in-todemax")) || 1.6;
+  inp.pasMode = $("in-pasmode").value;
+  inp.pasContratCourt = $("in-pascc").checked;
+  inp.tauxReduits = $("in-tauxreduits").checked;
   for (const [key] of RATE_DEFS) { const el = $("rate-" + key); if (el) inp.rates[key] = num(el); }
+  inp.rates.atPat = num($("in-atmp"));
 }
 
 /* ================= RENDER ================= */
@@ -1680,7 +1781,11 @@ function renderFact(m) {
   if (m.O30) s += kvRow("Majo heures normales", "O30", fmtE(m.O30));
   for (const r of [34, 35, 36, 37, 38, 39, 40, 41]) if (m["O" + r]) s += kvRow("Prime refacturée (ligne " + r + ")", "O" + r, fmtE(m["O" + r]));
   s += kvRow("CA HT soumis à coefficient", "O42", fmtE(m.O42), "total");
-  for (const [l, ref] of [["Indemnité transport refacturée", "O45"], ["Indemnité repas refacturée", "O46"], ["Indemnité 1 refacturée", "O47"], ["Indemnité 2 refacturée", "O48"], ["Repas GD refacturé", "O49"], ["Découché GD refacturé", "O50"]])
+  const inn2 = k => esc($("inn" + k) ? $("inn" + k).value : indemNames[k]);
+  for (const [l, ref] of [["Indemnité transport refacturée", "O45"], ["Indemnité repas refacturée", "O46"],
+                          [inn2(0) + " refacturée (coef " + N2.format(m.O47 && m.F47 ? m.O47 / m.F47 : 0) + ")", "O47"],
+                          [inn2(1) + " refacturée (coef " + N2.format(m.O48 && m.F48 ? m.O48 / m.F48 : 0) + ")", "O48"],
+                          ["Repas GD refacturé", "O49"], ["Découché GD refacturé", "O50"]])
     if (m[ref]) s += kvRow(l, ref, fmtE(m[ref]));
   if (m.O52) s += kvRow(inp.sector === "agri" ? "Logement facturé" : "Logement facturé — " + N2.format(m.L52) + " h × " + fmtE(inp.coutLogementFacture), "O52", fmtE(m.O52));
   if (m.O54) s += kvRow("Retrait AN repas", "O54", fmtE(m.O54));
@@ -1856,13 +1961,22 @@ $("btn-reset").addEventListener("click", () => {
 /* constantes du classeur d'origine (comparabilité Excel) */
 $("btn-classeur").addEventListener("click", () => {
   const agri = inp.sector === "agri";
-  $("in-smicclasseur").value = 11.88;
-  $("in-plafondss").value = agri ? 3925 : 3864;
-  $("in-baremepd").value = agri ? 7.4 : 7.3;
-  $("in-baremegd").value = agri ? 21.1 : 20.7;
-  $("in-thbrut").value = 11.88;
-  $("in-todetot").value = 1.25; $("in-todemax").value = 1.6;
-  onChange();
+  readInputsFromForm();
+  /* millésime complet du classeur : taux, panier TO-DE, taux réduits, formule PAS, constantes */
+  inp.rates = Object.assign({}, SECTORS[inp.sector].ratesClasseur);
+  inp.ratesBase = Object.assign({}, SECTORS[inp.sector].ratesClasseur);
+  inp.tauxReduits = true;
+  inp.todeRates = TODE_RATES_CLASSEUR;
+  inp.pasMode = "classeur";
+  inp.pasContratCourt = false;
+  inp.smicClasseur = 11.88;
+  inp.plafondSSMois = agri ? 3925 : 3864;
+  inp.baremeRepasPD = agri ? 7.4 : 7.3;
+  inp.baremeRepasGD = agri ? 21.1 : 20.7;
+  inp.thBrut = 11.88;
+  inp.todeSeuilTot = 1.25; inp.todeSeuilMax = 1.6;
+  setFormFromInputs();
+  render(compute(inp));
 });
 $("btn-share").addEventListener("click", async () => {
   readInputsFromForm();
@@ -2068,7 +2182,9 @@ function renderOfficial() {
   s += kvRow("Nuitée GD Paris/92/93/94 · province (3 premiers mois)", "",
              N2.format(BAKED_OFFICIAL.nuiteeGDParis.value) + " € · " + N2.format(BAKED_OFFICIAL.nuiteeGDProvince.value) + " €");
   s += kvRow("Zones petits déplacements BTP (transport/j)", "", "inchangées 2026 — identiques au classeur (confirmé BOSS 30/04/2026)");
-  s += kvRow("Contradictions entre sources", "", "aucune au " + BAKED_OFFICIAL.asOf.split("-").reverse().join("/"));
+  s += "<tr class='sub'><td colspan='2'><b>Divergences constatées entre sources</b> (" +
+       BAKED_OFFICIAL.asOf.split("-").reverse().join("/") + ") — à vérifier manuellement, la source officielle a été retenue :</td></tr>";
+  for (const c of BAKED_CONTRADICTIONS) s += "<tr><td colspan='2'>⚠ " + c + "</td></tr>";
   $("tbl-official").innerHTML = s;
   const wire = (id, fn) => { const b = $(id); if (b) b.addEventListener("click", fn); };
   wire("of-apply-smic", () => { $("in-smicclasseur").value = official.smic.value; onChange(); });
@@ -2086,6 +2202,12 @@ let restored = null;
     restored = Object.assign(defaultInputs(DB, sector), obj);
     restored.sector = sector;
     restored.rates = Object.assign({}, SECTORS[sector].rates, obj.rates || {});
+    /* compat liens anciens : refactIndem1/2 → coefficient par ligne */
+    if (restored.indemnites) restored.indemnites.forEach((p, k) => {
+      if (p.fc === undefined) p.fc = (k === 0 ? obj.refactIndem1 : obj.refactIndem2) != null
+        ? (k === 0 ? obj.refactIndem1 : obj.refactIndem2) : 1;
+    });
+    if (restored.primes) restored.primes.forEach(p => { if (p.fc === undefined) p.fc = null; });
   } catch (_) { /* hash invalide : valeurs par défaut */ }
 })();
 applySector(restored ? restored.sector : "agri", restored || undefined);
