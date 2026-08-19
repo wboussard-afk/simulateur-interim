@@ -429,6 +429,25 @@ table.grille td.neg { color: var(--bad); }
       </div>
     </section>
 
+    <section class="card only-tarifaire">
+      <div class="card-h"><h2>Allègement patronal</h2><span class="eyebrow">Fillon · RGDU 2026</span></div>
+      <div class="card-b">
+        <div class="field" style="max-width:420px"><label id="lbl-exoformule">Formule appliquée au calcul</label>
+          <div class="seg" role="group" aria-labelledby="lbl-exoformule">
+            <button type="button" id="exo-fillon" aria-pressed="true">Fillon (classeur 11/2024)</button>
+            <button type="button" id="exo-rgdu" aria-pressed="false">RGDU 2026</button>
+          </div>
+        </div>
+        <div class="grid" style="margin-top:10px">
+          <div class="field"><label for="in-rgdusmic">SMIC réf. RGDU (€/h, 01/01/2026)</label><input type="number" id="in-rgdusmic" step="0.01" min="0"></div>
+          <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-rgdufnal"> ≥ 50 salariés (FNAL 0,50 %)</label></div>
+          <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-rgduinterim"> Majoration intérim ×1,1</label></div>
+        </div>
+        <table class="kv" id="tbl-exo" style="margin-top:8px"></table>
+        <p class="note">RGDU 2026 : coefficient = 0,02 + Tdelta × [½ × (3 × SMIC réf / rémunération − 1)]^1,75, plafonné à Tmin+Tdelta, <b>nul dès 3 SMIC</b>, arrondi à 4 décimales (Tdelta 0,3773 / 0,3813 selon FNAL). La majoration intérim ×1,1 reprend la règle de l'ancien Fillon — à confirmer avec votre éditeur de paie. Proratisation hebdomadaire : SMIC réf × heures travaillées, comme le Fillon du classeur.</p>
+      </div>
+    </section>
+
     <details class="acc">
       <summary>Taux de cotisations &amp; constantes (avancé)</summary>
       <div class="card-b">
@@ -575,6 +594,19 @@ const CONST = {
   FILLON_T: 0.3194        // D98
 };
 
+/* RGDU 2026 (réduction générale dégressive unique, remplace Fillon au 01/01/2026)
+ * Coefficient = Tmin + Tdelta × [½ × (3 × SMIC réf / rémunération − 1)]^P,
+ * plafonné à Tmin+Tdelta, nul dès 3 SMIC, arrondi à 4 décimales.
+ * Paramètres décret (sources concordantes paie-rh/nibelis, 2026) : */
+const RGDU_DEFAULTS = {
+  smicRef: 12.02,         // SMIC horaire au 01/01/2026 (figé pour l'année)
+  tmin: 0.02,
+  tdeltaFnal010: 0.3773,  // FNAL 0,10 % (< 50 salariés) → Tmax 0,3973
+  tdeltaFnal050: 0.3813,  // FNAL 0,50 % (≥ 50 salariés) → Tmax 0,4013
+  p: 1.75,
+  interimMajoration: 1.1  // majoration intérim (comme l'ancien Fillon) — à confirmer par l'éditeur de paie
+};
+
 /* Taux de cotisations par défaut — secteur AGRI (E = salarial, G = patronal) */
 const RATES_AGRI = {
   maladieSal: 5.5,        // E62 (si attestation fiscale = OUI)
@@ -709,6 +741,8 @@ function defaultInputs(DB, sector) {
     refactIndem2: 1,            // M48
     cibleMargePct: 15,          // L17
     logementHeures: 43,         // multiplicateur F92 (classeur tarifaire : ×43 en dur)
+    exoFormule: "fillon",       // secteur tarifaire : "fillon" (classeur) ou "rgdu" (2026)
+    rgdu: { smicRef: RGDU_DEFAULTS.smicRef, fnal050: false, interim: true },
     rates: Object.assign({}, cfg.rates)
   };
   if (sector === "agri") {
@@ -927,12 +961,30 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   S.D105 = S.D104 * 1.3;
   S.E105 = S.E104;
 
-  /* --- Exonération (H83) : TO-DE (agri) ou allègement Fillon (tarifaire) --- */
+  /* --- RGDU 2026 (calculée dans tous les cas, à titre de comparaison) ---
+   * Proratisation hebdomadaire cohérente avec la convention Fillon du classeur :
+   * paramètre SMIC = SMIC réf × heures travaillées (D31, heures sup incluses). */
+  {
+    const rg = i.rgdu || {};
+    const smicParam = (rg.smicRef || RGDU_DEFAULTS.smicRef) * S.D31;
+    const tdelta = rg.fnal050 ? RGDU_DEFAULTS.tdeltaFnal050 : RGDU_DEFAULTS.tdeltaFnal010;
+    let coeff = 0;
+    if (S.F42 > 0 && S.F42 < 3 * smicParam) {
+      const t = Math.min(1, 0.5 * (3 * smicParam / S.F42 - 1));
+      coeff = RGDU_DEFAULTS.tmin + tdelta * Math.pow(t, RGDU_DEFAULTS.p);
+      coeff = Math.round(Math.min(coeff, RGDU_DEFAULTS.tmin + tdelta) * 10000) / 10000;
+    }
+    S.rgduCoeff = coeff;
+    S.rgduAmount = coeff * S.F42 * (rg.interim === false ? 1 : RGDU_DEFAULTS.interimMajoration);
+  }
+
+  /* --- Exonération (H83) : TO-DE (agri) ou allègement Fillon / RGDU (tarifaire) --- */
   S.tode = computeTODE(S.D24, S.F42, S.F42 - S.F28 - S.F29);
   if (cfg.exo === "tode") {
     S.H83 = S.tode.total;
   } else {
-    S.H83 = (mode === "SIMULATEUR BTP GRAND D") ? Math.min(S.D105, S.E105) : S.D104;
+    S.H83_fillon = (mode === "SIMULATEUR BTP GRAND D") ? Math.min(S.D105, S.E105) : S.D104;
+    S.H83 = (i.exoFormule === "rgdu") ? S.rgduAmount : S.H83_fillon;
   }
 
   /* --- Provision CET (ligne 85) --- */
@@ -1144,7 +1196,7 @@ function coeffPourTauxSecteur(i, tauxCible) {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { compute, computeSheet, computeTODE, defaultInputs, SECTORS, CONST,
+  module.exports = { compute, computeSheet, computeTODE, defaultInputs, SECTORS, CONST, RGDU_DEFAULTS,
                      RATES_AGRI, RATES_TARIFAIRE,
                      coeffPourTauxFact, coeffPourMarge, coeffPourTauxFactAvecLogement,
                      coeffPourTauxSecteur, solveCoeff };
@@ -1318,6 +1370,11 @@ function setFormFromInputs() {
   $("in-refprimes").checked = inp.refactPrimes; $("in-refdim").checked = inp.refactDim;
   $("in-refferie").checked = inp.refactFerie; $("in-refnuit").checked = inp.refactNuit;
   $("in-cibletx").value = inp.cibleTauxFact; $("in-ciblemarge").value = inp.cibleMargePct;
+  $("in-rgdusmic").value = inp.rgdu.smicRef;
+  $("in-rgdufnal").checked = !!inp.rgdu.fnal050;
+  $("in-rgduinterim").checked = inp.rgdu.interim !== false;
+  $("exo-fillon").setAttribute("aria-pressed", inp.exoFormule !== "rgdu" ? "true" : "false");
+  $("exo-rgdu").setAttribute("aria-pressed", inp.exoFormule === "rgdu" ? "true" : "false");
   for (const [key] of RATE_DEFS) { const el = $("rate-" + key); if (el) el.value = inp.rates[key]; }
   $("in-mode").value = inp.mode;
 }
@@ -1355,6 +1412,9 @@ function readInputsFromForm() {
   inp.refactPrimes = $("in-refprimes").checked; inp.refactDim = $("in-refdim").checked;
   inp.refactFerie = $("in-refferie").checked; inp.refactNuit = $("in-refnuit").checked;
   inp.cibleTauxFact = num($("in-cibletx")); inp.cibleMargePct = num($("in-ciblemarge"));
+  inp.rgdu = { smicRef: num($("in-rgdusmic")) || RGDU_DEFAULTS.smicRef,
+               fnal050: $("in-rgdufnal").checked,
+               interim: $("in-rgduinterim").checked };
   for (const [key] of RATE_DEFS) { const el = $("rate-" + key); if (el) inp.rates[key] = num(el); }
 }
 
@@ -1387,9 +1447,27 @@ function render(r) {
   if (cfg.exo === "tode") {
     const [bc, bt] = badgeFor(m.tode.eligibilite);
     badge.className = "badge " + bc; badge.textContent = bt;
+  } else if (inp.exoFormule === "rgdu") {
+    $("tile-exo-label").textContent = "Allègement RGDU 2026";
+    badge.className = "badge info";
+    badge.textContent = "coeff " + N4.format(m.rgduCoeff) + (inp.rgdu.interim !== false ? " ×1,1" : "");
   } else {
+    $("tile-exo-label").textContent = "Allègement Fillon";
     badge.className = "badge info";
     badge.textContent = (inp.mode === "SIMULATEUR BTP GRAND D") ? "Fillon min(×1,3 ; DFS)" : "Fillon ×1,1 intérim";
+  }
+
+  /* comparaison Fillon / RGDU (secteur tarifaire) */
+  if (cfg.exo === "fillon") {
+    const other = compute(Object.assign({}, inp, { exoFormule: inp.exoFormule === "rgdu" ? "fillon" : "rgdu" }));
+    const cur = { label: inp.exoFormule === "rgdu" ? "RGDU 2026" : "Fillon (classeur)", exo: m.H83, mb: m.O64, pct: m.H17 };
+    const alt = { label: inp.exoFormule === "rgdu" ? "Fillon (classeur)" : "RGDU 2026", exo: other.main.H83, mb: other.main.O64, pct: other.main.H17 };
+    let s = "<tr class='sub'><td></td><td class='n'>Allègement · Marge · Taux</td></tr>";
+    s += kvRow("<b>" + cur.label + "</b> (appliquée)", "", fmtE(cur.exo) + " · " + fmtE(cur.mb) + " · " + fmtP(cur.pct));
+    s += kvRow(alt.label, "", fmtE(alt.exo) + " · " + fmtE(alt.mb) + " · " + fmtP(alt.pct));
+    const d = cur.mb - alt.mb;
+    s += kvRow("Écart de marge (appliquée − autre)", "", "<span class='delta " + (d >= 0 ? "good" : "bad") + "'>" + (d >= 0 ? "+" : "") + N2.format(d) + " €</span>", "total");
+    $("tbl-exo").innerHTML = s;
   }
   $("out-txh").textContent = inp.heures ? fmtE(m.O62) + "/h" : "—";
   $("out-txhorslog").textContent = inp.heures ? "hors logement " + fmtE(m.O66) + "/h" : "—";
@@ -1490,9 +1568,12 @@ function renderCotis(m) {
   for (const [l, ref, v] of prows) if (Math.abs(v) > 1e-9) s += kvRow(l, ref, fmtE(v));
   if (SECTORS[inp.sector].exo === "tode") {
     s += kvRow("TO-DE : exonération <b>" + m.tode.eligibilite + "</b> (seuils " + fmtE(m.tode.seuilTotale) + " / " + fmtE(m.tode.seuilMax) + ")", "H83", "−" + EUR.format(m.H83).replace("-", ""));
+  } else if (inp.exoFormule === "rgdu") {
+    s += kvRow("Allègement RGDU 2026 (coeff " + N4.format(m.rgduCoeff) + " × brut" +
+               (inp.rgdu.interim !== false ? " × 1,1" : "") + ") — Fillon classeur : " + fmtE(m.H83_fillon), "H83", "−" + EUR.format(m.H83).replace("-", ""));
   } else {
     s += kvRow("Allègement Fillon (coeff " + N4.format(m.D100) + " × brut × 1,1" +
-               (inp.mode === "SIMULATEUR BTP GRAND D" ? ", plafonné BTP GD" : "") + ")", "H83", "−" + EUR.format(m.H83).replace("-", ""));
+               (inp.mode === "SIMULATEUR BTP GRAND D" ? ", plafonné BTP GD" : "") + ") — RGDU 2026 : " + fmtE(m.rgduAmount), "H83", "−" + EUR.format(m.H83).replace("-", ""));
   }
   if (m.D85) s += kvRow("Provision CET 21 % (ni IFM ni ICCP) + charges 45 %", "D85/H85", fmtE(m.D85 + m.H85));
   s += kvRow("Total patronal (après exonération)", "H88", fmtE(m.H88), "total");
@@ -1658,6 +1739,16 @@ $("in-dept").addEventListener("change", () => {
 });
 $("sector-agri").addEventListener("click", () => { if (inp.sector !== "agri") applySector("agri"); });
 $("sector-tarifaire").addEventListener("click", () => { if (inp.sector !== "tarifaire") applySector("tarifaire"); });
+$("exo-fillon").addEventListener("click", () => {
+  inp.exoFormule = "fillon";
+  $("exo-fillon").setAttribute("aria-pressed", "true"); $("exo-rgdu").setAttribute("aria-pressed", "false");
+  render(compute(inp));
+});
+$("exo-rgdu").addEventListener("click", () => {
+  inp.exoFormule = "rgdu";
+  $("exo-fillon").setAttribute("aria-pressed", "false"); $("exo-rgdu").setAttribute("aria-pressed", "true");
+  render(compute(inp));
+});
 $("gs-tx-apply").addEventListener("click", e => {
   const c = parseFloat(e.currentTarget.dataset.coeff);
   if (isFinite(c)) { $("in-coeff").value = Math.round(c * 10000) / 10000; onChange(); }
