@@ -444,14 +444,29 @@ table.grille td.neg { color: var(--bad); }
           <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-rgduinterim"> Majoration intérim ×1,1</label></div>
         </div>
         <table class="kv" id="tbl-exo" style="margin-top:8px"></table>
-        <p class="note">RGDU 2026 : coefficient = 0,02 + Tdelta × [½ × (3 × SMIC réf / rémunération − 1)]^1,75, plafonné à Tmin+Tdelta, <b>nul dès 3 SMIC</b>, arrondi à 4 décimales (Tdelta 0,3773 / 0,3813 selon FNAL). La majoration intérim ×1,1 reprend la règle de l'ancien Fillon — à confirmer avec votre éditeur de paie. Proratisation hebdomadaire : SMIC réf × heures travaillées, comme le Fillon du classeur.</p>
+        <p class="note">RGDU 2026 : coefficient = Tmin + Tdelta × [½ × (3 × SMIC réf / rémunération − 1)]^P, plafonné à Tmin+Tdelta, <b>nul dès 3 SMIC</b>, arrondi à 4 décimales. Paramètres du décret <b>actualisés automatiquement depuis OpenFisca</b> (au 01/01/2026 : Tmin 0,02 · Tdelta 0,3781 / 0,3821 selon la taille · P 1,75). La majoration intérim ×1,1 reprend la règle de l'ancien Fillon — à confirmer avec votre éditeur de paie. Proratisation hebdomadaire : SMIC réf × heures travaillées, comme le Fillon du classeur.</p>
       </div>
     </section>
+
+    <details class="acc" id="acc-official">
+      <summary>Paramètres officiels — actualisation automatique</summary>
+      <div class="card-b">
+        <p class="note" id="official-status">Chargement des paramètres officiels…</p>
+        <table class="kv" id="tbl-official"></table>
+        <p class="note">Source : <b>OpenFisca France</b> (codification du droit par la DINUM, api.fr.openfisca.org). Les paramètres de droit courant (RGDU, seuils TO-DE) sont appliqués automatiquement ; les constantes du classeur (SMIC des formules, plafond SS) ne changent qu'avec le bouton « Appliquer », pour rester comparable à l'Excel d'origine.</p>
+      </div>
+    </details>
 
     <details class="acc">
       <summary>Taux de cotisations &amp; constantes (avancé)</summary>
       <div class="card-b">
         <p class="note" id="const-note"></p>
+        <div class="grid" style="margin-bottom:10px">
+          <div class="field"><label for="in-smicclasseur">SMIC des formules du classeur (€/h)</label><input type="number" id="in-smicclasseur" step="0.01" min="0"></div>
+          <div class="field"><label for="in-plafondss">Plafond SS mensuel (€)</label><input type="number" id="in-plafondss" step="1" min="0"></div>
+          <div class="field"><label for="in-todetot">Seuil TO-DE exo totale (× SMIC)</label><input type="number" id="in-todetot" step="0.01" min="0"></div>
+          <div class="field"><label for="in-todemax">Seuil TO-DE maximal (× SMIC)</label><input type="number" id="in-todemax" step="0.01" min="0"></div>
+        </div>
         <div class="grid" id="rates-grid"></div>
       </div>
     </details>
@@ -595,15 +610,18 @@ const CONST = {
 };
 
 /* RGDU 2026 (réduction générale dégressive unique, remplace Fillon au 01/01/2026)
- * Coefficient = Tmin + Tdelta × [½ × (3 × SMIC réf / rémunération − 1)]^P,
- * plafonné à Tmin+Tdelta, nul dès 3 SMIC, arrondi à 4 décimales.
- * Paramètres décret (sources concordantes paie-rh/nibelis, 2026) : */
+ * Coefficient = Tmin + Tdelta × [½ × (plafond × SMIC réf / rémunération − 1)]^P,
+ * plafonné à Tmin+Tdelta, nul dès `plafond` SMIC, arrondi à 4 décimales.
+ * Paramètres du décret tels que codifiés par OpenFisca France (DINUM),
+ * `allegement_general.ensemble_des_entreprises`, valeurs au 01/01/2026 —
+ * actualisables en direct par l'application : */
 const RGDU_DEFAULTS = {
-  smicRef: 12.02,         // SMIC horaire au 01/01/2026 (figé pour l'année)
-  tmin: 0.02,
-  tdeltaFnal010: 0.3773,  // FNAL 0,10 % (< 50 salariés) → Tmax 0,3973
-  tdeltaFnal050: 0.3813,  // FNAL 0,50 % (≥ 50 salariés) → Tmax 0,4013
-  p: 1.75,
+  smicRef: 12.02,         // SMIC horaire au 01/01/2026 (figé pour l'année RGDU)
+  tmin: 0.02,             // t_min
+  tdeltaPetite: 0.3781,   // t_delta_petites_entreprises (< 50 salariés) → Tmax 0,3981
+  tdeltaGrande: 0.3821,   // t_delta_grandes_entreprises (≥ 50 salariés) → Tmax 0,4021
+  p: 1.75,                // puissance
+  plafondSmic: 3,         // plafond (nul dès 3 SMIC)
   interimMajoration: 1.1  // majoration intérim (comme l'ancien Fillon) — à confirmer par l'éditeur de paie
 };
 
@@ -743,6 +761,10 @@ function defaultInputs(DB, sector) {
     logementHeures: 43,         // multiplicateur F92 (classeur tarifaire : ×43 en dur)
     exoFormule: "fillon",       // secteur tarifaire : "fillon" (classeur) ou "rgdu" (2026)
     rgdu: { smicRef: RGDU_DEFAULTS.smicRef, fnal050: false, interim: true },
+    smicClasseur: CONST.SMIC,   // SMIC des formules du classeur (Fillon, TO-DE, assiette mini)
+    plafondSSMois: cfg.plafondSSMois, // plafond SS mensuel (D107)
+    todeSeuilTot: 1.25,         // seuil TO-DE exonération intégrale (× SMIC)
+    todeSeuilMax: 1.6,          // seuil TO-DE maximal (× SMIC)
     rates: Object.assign({}, cfg.rates)
   };
   if (sector === "agri") {
@@ -802,11 +824,12 @@ function lookupValue(table, label) {
   return row ? row.value : 0;
 }
 
-/* TO-DE (exonération travailleurs occasionnels / demandeurs d'emploi — agri) */
-function computeTODE(hours, brut, brutHorsHS) {
-  const B1 = CONST.SMIC, B2 = hours;
-  const B3 = B1 * B2 * 1.25;
-  const B4 = B1 * B2 * 1.6;
+/* TO-DE (exonération travailleurs occasionnels / demandeurs d'emploi — agri)
+ * seuils 1,25 / 1,6 SMIC (OpenFisca : agricole.tode.plafond_exoneration_integrale / plafond) */
+function computeTODE(hours, brut, brutHorsHS, smic, seuilTot, seuilMax) {
+  const B1 = smic || CONST.SMIC, B2 = hours;
+  const B3 = B1 * B2 * (seuilTot || 1.25);
+  const B4 = B1 * B2 * (seuilMax || 1.6);
   const B8 = brutHorsHS < B3 ? "TOTALE" : (brutHorsHS > B3 && brutHorsHS < B4 ? "PARTIELLE" : "NON");
   const msa = [7, 0.3, 8.55, 2.02, 0.46, 3.45, 0.1, 4.05].reduce((s, t) => s + brut * t / 100, 0);
   const retraite = brut * 4.72 / 100 + brut * 1.29 / 100;
@@ -884,14 +907,15 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   S.F42 = rowsSum + S.F32 + S.F33;
 
   /* --- Plafonds (lignes 107-109) --- */
-  S.D107 = cfg.plafondSSMois / 30 * i.jours;
+  const SMIC_C = i.smicClasseur || CONST.SMIC;   // SMIC des formules du classeur
+  S.D107 = (i.plafondSSMois || cfg.plafondSSMois) / 30 * i.jours;
   S.D108 = CONST.SMIC_FIGE * S.D31 * 2.5;
   S.D109 = CONST.SMIC_FIGE * S.D31 * 3.5;
 
   /* --- Assiette de cotisations (D62) --- */
   S.D101 = S.F42 * cfg.dfsFactor;
-  S.D102 = (S.D24 * CONST.SMIC) + (S.D29 * CONST.SMIC * 1.5) +
-           (S.D28 * CONST.SMIC * (S.E24 ? S.E28 / S.E24 : 0)) + S.F32 + S.F33;
+  S.D102 = (S.D24 * SMIC_C) + (S.D29 * SMIC_C * 1.5) +
+           (S.D28 * SMIC_C * (S.E24 ? S.E28 / S.E24 : 0)) + S.F32 + S.F33;
   const dfsApplies = isMain ? cfg.dfsOnMain : true;
   if (!dfsApplies) {
     S.D62 = S.F42;
@@ -950,10 +974,10 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   S.H44 = i.ticketsQty * i.ticketsVal * 0.6;
 
   /* --- Fillon (lignes 97-105) --- */
-  S.D98 = S.F42 ? (CONST.FILLON_T / 0.6) * ((1.6 * (CONST.SMIC * S.D31) / S.F42) - 1) : 0;
+  S.D98 = S.F42 ? (CONST.FILLON_T / 0.6) * ((1.6 * (SMIC_C * S.D31) / S.F42) - 1) : 0;
   S.D99 = Math.min(S.D98, CONST.FILLON_T);
   S.D100 = Math.max(S.D99, 0);
-  S.E98 = S.D62 ? (CONST.FILLON_T / 0.6) * ((1.6 * (CONST.SMIC * S.D31) / S.D62) - 1) : 0;
+  S.E98 = S.D62 ? (CONST.FILLON_T / 0.6) * ((1.6 * (SMIC_C * S.D31) / S.D62) - 1) : 0;
   S.E99 = Math.min(S.E98, CONST.FILLON_T);
   S.E100 = Math.max(S.E99, 0);
   S.D104 = (S.D100 * S.F42) * 1.1;
@@ -967,19 +991,23 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   {
     const rg = i.rgdu || {};
     const smicParam = (rg.smicRef || RGDU_DEFAULTS.smicRef) * S.D31;
-    const tdelta = rg.fnal050 ? RGDU_DEFAULTS.tdeltaFnal050 : RGDU_DEFAULTS.tdeltaFnal010;
+    const tdelta = rg.fnal050 ? (rg.tdeltaGrande || RGDU_DEFAULTS.tdeltaGrande)
+                              : (rg.tdeltaPetite || RGDU_DEFAULTS.tdeltaPetite);
+    const tmin = (rg.tmin != null) ? rg.tmin : RGDU_DEFAULTS.tmin;
+    const p = rg.p || RGDU_DEFAULTS.p;
+    const plaf = rg.plafondSmic || RGDU_DEFAULTS.plafondSmic;
     let coeff = 0;
-    if (S.F42 > 0 && S.F42 < 3 * smicParam) {
-      const t = Math.min(1, 0.5 * (3 * smicParam / S.F42 - 1));
-      coeff = RGDU_DEFAULTS.tmin + tdelta * Math.pow(t, RGDU_DEFAULTS.p);
-      coeff = Math.round(Math.min(coeff, RGDU_DEFAULTS.tmin + tdelta) * 10000) / 10000;
+    if (S.F42 > 0 && S.F42 < plaf * smicParam) {
+      const t = Math.min(1, 0.5 * (plaf * smicParam / S.F42 - 1));
+      coeff = tmin + tdelta * Math.pow(t, p);
+      coeff = Math.round(Math.min(coeff, tmin + tdelta) * 10000) / 10000;
     }
     S.rgduCoeff = coeff;
     S.rgduAmount = coeff * S.F42 * (rg.interim === false ? 1 : RGDU_DEFAULTS.interimMajoration);
   }
 
   /* --- Exonération (H83) : TO-DE (agri) ou allègement Fillon / RGDU (tarifaire) --- */
-  S.tode = computeTODE(S.D24, S.F42, S.F42 - S.F28 - S.F29);
+  S.tode = computeTODE(S.D24, S.F42, S.F42 - S.F28 - S.F29, SMIC_C, i.todeSeuilTot, i.todeSeuilMax);
   if (cfg.exo === "tode") {
     S.H83 = S.tode.total;
   } else {
@@ -1207,6 +1235,7 @@ if (typeof module !== "undefined") {
 /* ================= HELPERS ================= */
 const $ = id => document.getElementById(id);
 const EUR = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
+const EUR0 = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 const N2 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const N4 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
 const fmtE = v => isFinite(v) ? EUR.format(v) : "—";
@@ -1335,6 +1364,8 @@ function applySector(sector, preset) {
   buildRatesGrid();
   setFormFromInputs();
   render(compute(inp));
+  // ré-applique le droit courant (RGDU, TO-DE) après un changement de secteur
+  if (typeof official !== "undefined" && official) applyOfficialLawParams();
 }
 
 /* ================= INPUT WIRING ================= */
@@ -1373,6 +1404,10 @@ function setFormFromInputs() {
   $("in-rgdusmic").value = inp.rgdu.smicRef;
   $("in-rgdufnal").checked = !!inp.rgdu.fnal050;
   $("in-rgduinterim").checked = inp.rgdu.interim !== false;
+  $("in-smicclasseur").value = inp.smicClasseur;
+  $("in-plafondss").value = inp.plafondSSMois;
+  $("in-todetot").value = inp.todeSeuilTot;
+  $("in-todemax").value = inp.todeSeuilMax;
   $("exo-fillon").setAttribute("aria-pressed", inp.exoFormule !== "rgdu" ? "true" : "false");
   $("exo-rgdu").setAttribute("aria-pressed", inp.exoFormule === "rgdu" ? "true" : "false");
   for (const [key] of RATE_DEFS) { const el = $("rate-" + key); if (el) el.value = inp.rates[key]; }
@@ -1412,9 +1447,14 @@ function readInputsFromForm() {
   inp.refactPrimes = $("in-refprimes").checked; inp.refactDim = $("in-refdim").checked;
   inp.refactFerie = $("in-refferie").checked; inp.refactNuit = $("in-refnuit").checked;
   inp.cibleTauxFact = num($("in-cibletx")); inp.cibleMargePct = num($("in-ciblemarge"));
-  inp.rgdu = { smicRef: num($("in-rgdusmic")) || RGDU_DEFAULTS.smicRef,
-               fnal050: $("in-rgdufnal").checked,
-               interim: $("in-rgduinterim").checked };
+  inp.rgdu = Object.assign({}, inp.rgdu, {
+    smicRef: num($("in-rgdusmic")) || RGDU_DEFAULTS.smicRef,
+    fnal050: $("in-rgdufnal").checked,
+    interim: $("in-rgduinterim").checked });
+  inp.smicClasseur = num($("in-smicclasseur")) || CONST.SMIC;
+  inp.plafondSSMois = num($("in-plafondss")) || SECTORS[inp.sector].plafondSSMois;
+  inp.todeSeuilTot = num($("in-todetot")) || 1.25;
+  inp.todeSeuilMax = num($("in-todemax")) || 1.6;
   for (const [key] of RATE_DEFS) { const el = $("rate-" + key); if (el) inp.rates[key] = num(el); }
 }
 
@@ -1803,6 +1843,99 @@ const APPLE_ICON = "iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAP30lEQVR42u2d
 $("mbar").addEventListener("click", () => document.querySelector(".rail").scrollIntoView({ behavior: "smooth" }));
 $("mbar").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("mbar").click(); } });
 
+/* ================= PARAMÈTRES OFFICIELS (OpenFisca France) ================= */
+const OF_BASE = "https://api.fr.openfisca.org/latest/parameter/";
+const OF_IDS = {
+  smic: "marche_travail.salaire_minimum.smic.smic_b_horaire",
+  pss: "prelevements_sociaux.pss.plafond_securite_sociale_mensuel",
+  tmin: "prelevements_sociaux.reductions_cotisations_sociales.allegement_general.ensemble_des_entreprises.t_min",
+  tdeltaG: "prelevements_sociaux.reductions_cotisations_sociales.allegement_general.ensemble_des_entreprises.t_delta_grandes_entreprises",
+  tdeltaP: "prelevements_sociaux.reductions_cotisations_sociales.allegement_general.ensemble_des_entreprises.t_delta_petites_entreprises",
+  puissance: "prelevements_sociaux.reductions_cotisations_sociales.allegement_general.ensemble_des_entreprises.puissance",
+  plafond: "prelevements_sociaux.reductions_cotisations_sociales.allegement_general.ensemble_des_entreprises.plafond",
+  todeMax: "prelevements_sociaux.reductions_cotisations_sociales.agricole.tode.plafond",
+  todeTot: "prelevements_sociaux.reductions_cotisations_sociales.agricole.tode.plafond_exoneration_integrale"
+};
+let official = null;   // { key: {value, date}, smicJan: {value, date}, fetchedAt }
+
+function latestValue(values) {
+  const dates = Object.keys(values).sort();
+  const d = dates[dates.length - 1];
+  return { value: values[d], date: d };
+}
+function valueAt(values, isoDate) {
+  const dates = Object.keys(values).sort().filter(d => d <= isoDate);
+  const d = dates[dates.length - 1];
+  return d ? { value: values[d], date: d } : null;
+}
+
+async function fetchOfficial() {
+  const cacheKey = "simulateur-official-v1";
+  let cached = null;
+  try { cached = JSON.parse(localStorage.getItem(cacheKey) || "null"); } catch (_) {}
+  try {
+    const entries = await Promise.all(Object.entries(OF_IDS).map(async ([k, id]) => {
+      const r = await fetch(OF_BASE + id, { mode: "cors" });
+      if (!r.ok) throw new Error(id + " HTTP " + r.status);
+      const j = await r.json();
+      return [k, j.values];
+    }));
+    const vals = Object.fromEntries(entries);
+    const jan1 = new Date().getFullYear() + "-01-01";
+    official = { fetchedAt: new Date().toISOString(), fromCache: false };
+    for (const k of Object.keys(OF_IDS)) official[k] = latestValue(vals[k]);
+    official.smicJan = valueAt(vals.smic, jan1);
+    try { localStorage.setItem(cacheKey, JSON.stringify(official)); } catch (_) {}
+  } catch (e) {
+    if (cached) { official = cached; official.fromCache = true; }
+    else {
+      $("official-status").innerHTML = "Flux OpenFisca indisponible ici (hors ligne ou restriction réseau de la page). " +
+        "Valeurs intégrées à la publication : SMIC 12,31 € (01/06/2026), plafond SS 4 005 € (2026), RGDU Tmin 0,02 · Tdelta 0,3781/0,3821 · P 1,75.";
+      return;
+    }
+  }
+  applyOfficialLawParams();
+  renderOfficial();
+}
+
+/* paramètres de droit courant : appliqués automatiquement */
+function applyOfficialLawParams() {
+  if (!official) return;
+  if (official.smicJan) inp.rgdu.smicRef = official.smicJan.value;   // RGDU : SMIC au 1er janvier
+  if (official.tmin) inp.rgdu.tmin = official.tmin.value;
+  if (official.tdeltaP) inp.rgdu.tdeltaPetite = official.tdeltaP.value;
+  if (official.tdeltaG) inp.rgdu.tdeltaGrande = official.tdeltaG.value;
+  if (official.puissance) inp.rgdu.p = official.puissance.value;
+  if (official.plafond) inp.rgdu.plafondSmic = official.plafond.value;
+  if (official.todeTot) inp.todeSeuilTot = official.todeTot.value;
+  if (official.todeMax) inp.todeSeuilMax = official.todeMax.value;
+  $("in-rgdusmic").value = inp.rgdu.smicRef;
+  $("in-todetot").value = inp.todeSeuilTot;
+  $("in-todemax").value = inp.todeSeuilMax;
+  render(compute(inp));
+}
+
+function renderOfficial() {
+  if (!official) return;
+  const dd = s => s ? s.split("-").reverse().join("/") : "—";
+  $("official-status").innerHTML = (official.fromCache ? "Valeurs en cache (dernier chargement " : "Valeurs chargées en direct (") +
+    dd((official.fetchedAt || "").slice(0, 10)) + "). Droit courant appliqué automatiquement.";
+  let s = "";
+  s += kvRow("SMIC horaire en vigueur", "", "<b>" + N2.format(official.smic.value) + " €</b> (depuis " + dd(official.smic.date) + ")" +
+             ' <button class="btn" id="of-apply-smic">Appliquer au classeur</button>');
+  s += kvRow("SMIC au 1ᵉʳ janvier (référence RGDU)", "", "<b>" + N2.format(official.smicJan.value) + " €</b> — appliqué");
+  s += kvRow("Plafond sécurité sociale mensuel", "", "<b>" + EUR0.format(official.pss.value) + "</b> (" + dd(official.pss.date) + ")" +
+             ' <button class="btn" id="of-apply-pss">Appliquer au classeur</button>');
+  s += kvRow("RGDU — Tmin · Tdelta (<50 / ≥50) · P · plafond", "",
+             N4.format(official.tmin.value) + " · " + N4.format(official.tdeltaP.value) + " / " + N4.format(official.tdeltaG.value) +
+             " · " + N2.format(official.puissance.value) + " · " + N2.format(official.plafond.value) + " SMIC — appliqués");
+  s += kvRow("TO-DE — seuils exo totale / max", "", N2.format(official.todeTot.value) + " / " + N2.format(official.todeMax.value) + " × SMIC — appliqués");
+  $("tbl-official").innerHTML = s;
+  const wire = (id, fn) => { const b = $(id); if (b) b.addEventListener("click", fn); };
+  wire("of-apply-smic", () => { $("in-smicclasseur").value = official.smic.value; onChange(); });
+  wire("of-apply-pss", () => { $("in-plafondss").value = official.pss.value; onChange(); });
+}
+
 /* restauration éventuelle depuis un lien partagé */
 let restored = null;
 (function restoreFromHash() {
@@ -1818,6 +1951,7 @@ let restored = null;
 })();
 applySector(restored ? restored.sector : "agri", restored || undefined);
 window.addEventListener("resize", () => renderChart());
+fetchOfficial();
 </script>
 </body>
 </html>
