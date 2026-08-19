@@ -1,0 +1,1732 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulateur Intérim</title>
+<style>
+/* ================= TOKENS ================= */
+:root {
+  --paper: #F6F1E4;
+  --card: #FDFBF2;
+  --card2: #F2ECDA;
+  --ink: #26291D;
+  --muted: #6E6A54;
+  --line: #DFD7BC;
+  --line-soft: #EBE4CD;
+  --brass: #96711D;
+  --brass-deep: #7A5A16;
+  --brass-soft: #EFE3C2;
+  --good: #47713E;
+  --good-soft: #E3EBDB;
+  --warn: #93660F;
+  --warn-soft: #F1E6C8;
+  --bad: #A8432A;
+  --bad-soft: #F3E0D8;
+  --info: #45647D;
+  --info-soft: #E0E7EC;
+  --chart-line: #7A5A16;
+  --chart-grid: #E7DfC8;
+  --focus: #45647D;
+  --shadow: 0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #191A11;
+    --card: #22241A;
+    --card2: #2A2C20;
+    --ink: #EAE4CD;
+    --muted: #A59F85;
+    --line: #3C3E2D;
+    --line-soft: #333526;
+    --brass: #D2A94E;
+    --brass-deep: #E4C273;
+    --brass-soft: #3A351F;
+    --good: #93BD82;
+    --good-soft: #2A331F;
+    --warn: #D9B45E;
+    --warn-soft: #383018;
+    --bad: #E08A6B;
+    --bad-soft: #3B241B;
+    --info: #93B1C9;
+    --info-soft: #263039;
+    --chart-line: #D2A94E;
+    --chart-grid: #333526;
+    --focus: #93B1C9;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #191A11;
+  --card: #22241A;
+  --card2: #2A2C20;
+  --ink: #EAE4CD;
+  --muted: #A59F85;
+  --line: #3C3E2D;
+  --line-soft: #333526;
+  --brass: #D2A94E;
+  --brass-deep: #E4C273;
+  --brass-soft: #3A351F;
+  --good: #93BD82;
+  --good-soft: #2A331F;
+  --warn: #D9B45E;
+  --warn-soft: #383018;
+  --bad: #E08A6B;
+  --bad-soft: #3B241B;
+  --info: #93B1C9;
+  --info-soft: #263039;
+  --chart-line: #D2A94E;
+  --chart-grid: #333526;
+  --focus: #93B1C9;
+  --shadow: 0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3);
+}
+
+/* ================= BASE ================= */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font: 14px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, .hero-num, .brand {
+  font-family: Cambria, "Iowan Old Style", Georgia, "Times New Roman", serif;
+}
+.num, td.n, .tile-num, input[type=number], .gs-out, .hero-num, .hero-pct {
+  font-variant-numeric: tabular-nums;
+}
+button { font: inherit; cursor: pointer; }
+:is(button, input, select):focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* visibilité par secteur */
+body:not(.sector-tarifaire) .only-tarifaire { display: none !important; }
+body.sector-tarifaire .only-agri { display: none !important; }
+
+/* ================= HEADER ================= */
+header.top {
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+  padding: 18px 24px 14px;
+}
+.top-inner { max-width: 1340px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: flex-end; }
+.brand { display: flex; align-items: baseline; gap: 12px; }
+.brand h1 { font-size: 26px; margin: 0; letter-spacing: .2px; text-wrap: balance; }
+.brand .wheat { color: var(--brass); }
+.brand .sub { color: var(--muted); font-size: 12.5px; font-family: "Segoe UI", system-ui, sans-serif; }
+.top-fields { display: flex; gap: 14px; flex-wrap: wrap; margin-left: auto; align-items: flex-end; }
+.top-fields .field { min-width: 150px; }
+.top-actions { display: flex; gap: 8px; }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { flex: 1; padding: 6px 12px; background: var(--card2); border: 0; color: var(--muted); font-size: 13px; white-space: nowrap; }
+.seg button[aria-pressed="true"] { background: var(--brass); color: var(--card); font-weight: 600; }
+
+/* ================= LAYOUT ================= */
+.wrap { max-width: 1340px; margin: 0 auto; padding: 20px 24px 80px; display: grid; grid-template-columns: minmax(430px, 1fr) 430px; gap: 20px; align-items: start; }
+
+/* barre résumé mobile (masquée sur desktop) */
+#mbar { display: none; }
+
+@media (max-width: 1020px) {
+  .wrap { grid-template-columns: 1fr; padding: 14px 14px 60px;
+          padding-left: calc(14px + env(safe-area-inset-left)); padding-right: calc(14px + env(safe-area-inset-right)); }
+  .rail { position: static !important; max-height: none; overflow: visible; padding-right: 0; }
+  #mbar {
+    position: sticky; top: 0; z-index: 30; display: flex; gap: 10px; align-items: baseline;
+    background: var(--card); border-bottom: 1px solid var(--line); box-shadow: var(--shadow);
+    padding: 9px 16px; padding-left: calc(16px + env(safe-area-inset-left)); padding-right: calc(16px + env(safe-area-inset-right));
+    cursor: pointer; font-size: 13px; color: var(--muted);
+  }
+  #mbar b { font-family: Cambria, "Iowan Old Style", Georgia, serif; font-size: 19px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  #mbar .pct { color: var(--brass-deep); font-weight: 600; }
+  #mbar.neg b, #mbar.neg .pct { color: var(--bad); }
+  #mbar .go { margin-left: auto; color: var(--brass-deep); font-weight: 600; }
+  .hero-num { font-size: 36px; }
+  header.top { padding-left: calc(24px + env(safe-area-inset-left)); padding-right: calc(24px + env(safe-area-inset-right)); }
+  body { padding-bottom: env(safe-area-inset-bottom); }
+}
+.rail { position: sticky; top: 14px; display: flex; flex-direction: column; gap: 14px; max-height: calc(100vh - 28px); overflow-y: auto; padding-right: 2px; }
+.col { display: flex; flex-direction: column; gap: 14px; }
+
+/* ================= CARDS ================= */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+.card > .card-h {
+  padding: 10px 16px; border-bottom: 1px solid var(--line-soft);
+  display: flex; align-items: center; gap: 10px;
+}
+.card > .card-h h2 { font-size: 16px; margin: 0; }
+.card > .card-h .eyebrow { margin-left: auto; }
+.card-b { padding: 14px 16px 16px; }
+.eyebrow { font-size: 10.5px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 600; }
+
+/* ================= FORMS ================= */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 12px; }
+.grid .wide { grid-column: 1 / -1; }
+.field label:not(.check) { display: block; font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
+.field input[type=text], .field input[type=number], .field select {
+  width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 7px;
+  background: var(--card2); color: var(--ink); font-size: 13.5px;
+}
+.field input[readonly] { opacity: .6; }
+.check { display: flex; align-items: center; gap: 7px; font-size: 13px; padding: 5px 0; }
+.check input { width: 15px; height: 15px; accent-color: var(--brass); }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.chip {
+  border: 1px solid var(--line); background: var(--card2); border-radius: 20px;
+  font-size: 11.5px; padding: 2px 9px; color: var(--ink);
+}
+.chip b { color: var(--brass-deep); }
+.chip:hover { border-color: var(--brass); }
+.hint { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+.btn {
+  border: 1px solid var(--line); background: var(--card2); color: var(--ink);
+  border-radius: 7px; padding: 6px 12px; font-size: 13px;
+}
+.btn:hover { border-color: var(--brass); }
+.btn.primary { background: var(--brass); border-color: var(--brass); color: var(--card); font-weight: 600; }
+.btn.primary:hover { background: var(--brass-deep); border-color: var(--brass-deep); }
+
+/* rows of prime/indemnité */
+.rowline { display: grid; grid-template-columns: 1fr 84px 92px 86px; gap: 8px; align-items: center; margin-bottom: 6px; }
+.rowline input { width: 100%; padding: 5px 7px; border: 1px solid var(--line); border-radius: 7px; background: var(--card2); color: var(--ink); font-size: 13px; }
+.rowline .amt { text-align: right; font-size: 13px; color: var(--muted); }
+.rowhead { font-size: 10.5px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 600; }
+
+/* mobile : 16px minimum (sinon Safari iOS zoome au focus) ; cibles tactiles 42px.
+   Placé APRÈS les règles de base .field/.rowline/.btn pour gagner la cascade. */
+@media (max-width: 1020px) {
+  .field input[type=text], .field input[type=number], .field select, .rowline input, .btn {
+    font-size: 16px; min-height: 42px;
+  }
+  .check input { width: 19px; height: 19px; }
+  .check { padding: 8px 0; }
+  .rowline { grid-template-columns: 1fr 62px 82px 70px; gap: 6px; }
+  .seg button { min-height: 42px; }
+}
+
+/* ================= RESULTS ================= */
+.hero { background: linear-gradient(160deg, var(--brass-soft), var(--card)); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); padding: 16px 18px 14px; }
+.hero .eyebrow { color: var(--brass-deep); }
+.hero-num { font-size: 44px; font-weight: 700; line-height: 1.05; letter-spacing: -.5px; margin: 2px 0 0; }
+.hero-pct { font-size: 19px; font-weight: 600; color: var(--brass-deep); }
+.hero-sub { display: flex; gap: 16px; margin-top: 8px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+.hero-sub b { color: var(--ink); font-weight: 600; }
+.hero.neg { background: linear-gradient(160deg, var(--bad-soft), var(--card)); }
+.hero.neg .hero-pct, .hero.neg .eyebrow { color: var(--bad); }
+
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; box-shadow: var(--shadow); }
+.tile .eyebrow { display: block; margin-bottom: 3px; }
+.tile-num { font-size: 19px; font-weight: 700; }
+.tile-sub { font-size: 11.5px; color: var(--muted); }
+.badge { display: inline-block; border-radius: 20px; font-size: 10.5px; font-weight: 700; padding: 1px 9px; letter-spacing: .05em; }
+.badge.good { background: var(--good-soft); color: var(--good); }
+.badge.warn { background: var(--warn-soft); color: var(--warn); }
+.badge.bad  { background: var(--bad-soft);  color: var(--bad); }
+.badge.info { background: var(--info-soft); color: var(--info); }
+.delta.good { color: var(--good); font-weight: 600; }
+.delta.bad { color: var(--bad); font-weight: 600; }
+
+/* key-value tables */
+table.kv { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.kv td { padding: 4px 2px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+table.kv tr:last-child td { border-bottom: 0; }
+table.kv td.n { text-align: right; white-space: nowrap; font-weight: 600; }
+table.kv td .ref { color: var(--muted); font-weight: 400; font-size: 10.5px; margin-left: 5px; }
+table.kv tr.total td { border-top: 1.5px solid var(--line); font-weight: 700; }
+table.kv tr.sub td { color: var(--muted); }
+
+/* accordions */
+details.acc { border: 1px solid var(--line); border-radius: 10px; background: var(--card); box-shadow: var(--shadow); }
+details.acc > summary {
+  cursor: pointer; padding: 9px 14px; font-weight: 600; font-size: 13.5px;
+  list-style: none; display: flex; align-items: center; gap: 8px;
+}
+details.acc > summary::-webkit-details-marker { display: none; }
+details.acc > summary::after { content: "+"; margin-left: auto; color: var(--muted); font-size: 15px; }
+details.acc[open] > summary::after { content: "–"; }
+details.acc[open] > summary { border-bottom: 1px solid var(--line-soft); }
+details.acc .card-b { overflow-x: auto; }
+
+/* goal seek */
+.gs { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: end; margin-bottom: 8px; }
+.gs .gs-out { align-self: center; font-size: 15px; font-weight: 700; color: var(--brass-deep); min-width: 74px; text-align: right; padding-bottom: 6px; }
+
+/* chart */
+.chart-box { position: relative; }
+.chart-tip {
+  position: absolute; pointer-events: none; background: var(--card); border: 1px solid var(--line);
+  border-radius: 7px; padding: 4px 8px; font-size: 11.5px; box-shadow: var(--shadow); display: none; white-space: nowrap;
+}
+/* grille de prix */
+table.grille { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.grille th { text-align: right; font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 4px 6px; border-bottom: 1px solid var(--line); }
+table.grille th:first-child { text-align: left; }
+table.grille td { padding: 3px 6px; text-align: right; border-bottom: 1px solid var(--line-soft); font-variant-numeric: tabular-nums; }
+table.grille td:first-child { text-align: left; font-weight: 600; }
+table.grille tr.cur td { background: var(--brass-soft); font-weight: 700; }
+table.grille td.neg { color: var(--bad); }
+
+.note { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+.aide p { font-size: 12.5px; margin: 6px 0; }
+.aide h3 { font-size: 13px; margin: 12px 0 2px; }
+
+@media print {
+  /* palette claire forcée quel que soit le thème actif */
+  :root, :root:not([data-theme="light"]), :root[data-theme="dark"] {
+    --paper: #fff; --card: #fff; --card2: #fff; --ink: #1a1a1a; --muted: #555;
+    --line: #ccc; --line-soft: #ddd; --brass: #7A5A16; --brass-deep: #5c4410;
+    --brass-soft: #f3ecd8; --good: #2e5e28; --good-soft: #eee; --warn: #7a5a16;
+    --warn-soft: #eee; --bad: #8a2f1a; --bad-soft: #eee; --info: #2f4b63;
+    --info-soft: #eee; --chart-line: #5c4410; --chart-grid: #ddd; --shadow: none;
+  }
+  header.top .top-actions, .col, .gs, .btn, #mbar { display: none !important; }
+  .wrap { grid-template-columns: 1fr; }
+  .rail { position: static; max-height: none; overflow: visible; }
+  body { background: #fff; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <h1><span class="wheat">Simulateur</span> Intérim</h1>
+      <span class="sub" id="brand-sub">Marge brute intérim · Agricole & Tarifaire</span>
+    </div>
+    <div class="top-fields">
+      <div class="field"><label id="lbl-sector">Secteur</label>
+        <div class="seg" role="group" aria-labelledby="lbl-sector">
+          <button type="button" id="sector-agri" aria-pressed="true">Agricole · TO-DE</button>
+          <button type="button" id="sector-tarifaire" aria-pressed="false">Tarifaire · Fillon</button>
+        </div>
+      </div>
+      <div class="field"><label for="in-client">Client</label><input type="text" id="in-client" placeholder="Nom du client"></div>
+      <div class="field"><label for="in-dept">Département de mission</label><select id="in-dept"><option value="">—</option></select></div>
+      <div class="field"><label for="in-mode">Type de simulateur</label>
+        <select id="in-mode"></select>
+      </div>
+      <div class="top-actions">
+        <button class="btn" id="btn-share" title="Copier un lien qui restaure ce scénario">Partager</button>
+        <button class="btn" id="btn-reset">Réinitialiser</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div id="mbar" role="button" tabindex="0" aria-label="Aller aux résultats">
+  Marge&nbsp;<b id="mbar-mb">—</b><span class="pct" id="mbar-pct">—</span>
+  <span id="mbar-ca">—</span><span class="go">Résultats ↓</span>
+</div>
+
+<div class="wrap">
+  <!-- ================= INPUTS ================= -->
+  <div class="col">
+
+    <section class="card">
+      <div class="card-h"><h2>Mission &amp; salarié</h2><span class="eyebrow">Heures · taux</span></div>
+      <div class="card-b">
+        <div class="grid">
+          <div class="field"><label for="in-thbrut">Taux horaire brut (€)</label><input type="number" id="in-thbrut" step="0.01" min="0"></div>
+          <div class="field"><label for="in-net">Taux horaire net attendu (€)</label><input type="number" id="in-net" step="0.01" min="0"></div>
+          <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-nonet"> Pas de net attendu</label></div>
+          <div class="field"><label for="in-jours">Jours travaillés / sem</label><input type="number" id="in-jours" step="1" min="0"></div>
+          <div class="field"><label for="in-heures">Heures travaillées / sem</label><input type="number" id="in-heures" step="0.5" min="0"></div>
+          <div class="field"><label for="in-hnuit">… dont heures de nuit</label><input type="number" id="in-hnuit" step="0.5" min="0"></div>
+          <div class="field"><label for="in-hdim">… dont heures dimanche</label><input type="number" id="in-hdim" step="0.5" min="0"></div>
+          <div class="field"><label for="in-hferie">… dont heures férié</label><input type="number" id="in-hferie" step="0.5" min="0"></div>
+        </div>
+        <div id="dept-hint" class="hint"></div>
+        <div class="grid" style="margin-top:10px">
+          <div class="field"><label for="in-majodim">Majoration dimanche</label><select id="in-majodim"></select></div>
+          <div class="field"><label for="in-majoferie">Majoration férié</label><select id="in-majoferie"></select></div>
+          <div class="field"><label for="in-majonuit">Majoration nuit</label><select id="in-majonuit"></select></div>
+          <div class="field"><label for="in-hsup">Heures supplémentaires</label><select id="in-hsup"></select></div>
+          <div class="field"><label for="in-majonorm">Majo heures normales</label><select id="in-majonorm"></select></div>
+          <div class="field"><label for="in-majonormq">Nb heures majo normales</label><input type="number" id="in-majonormq" step="0.5" min="0"></div>
+        </div>
+        <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:8px">
+          <label class="check only-tarifaire"><input type="checkbox" id="in-ifm-toggle"> IFM (10&nbsp;%)</label>
+          <label class="check"><input type="checkbox" id="in-iccp"> ICCP (10&nbsp;%)</label>
+          <label class="check"><input type="checkbox" id="in-attest"> Attestation fiscale</label>
+          <label class="check"><input type="checkbox" id="in-annu"> Annualisation</label>
+        </div>
+        <p class="hint">Attestation fiscale <b>OUI</b> : maladie salariale 5,5&nbsp;% et pas de CSG/CRDS. <b>NON</b> : CSG/CRDS, pas de maladie salariale.
+        <span class="only-tarifaire">Sans IFM ni ICCP, le classeur provisionne un CET de 21&nbsp;% de la base (D85).</span></p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h"><h2>Logement &amp; frais</h2><span class="eyebrow">Repas · transport</span></div>
+      <div class="card-b">
+        <div class="grid">
+          <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-log"> Logement payé par l'agence</label></div>
+          <div class="field only-agri"><label for="in-loghebdo">Coût du logement hebdo (€)</label><input type="number" id="in-loghebdo" step="1" min="0"></div>
+          <div class="field only-tarifaire"><label for="in-loghoraire">Coût du logement (€/heure)</label><input type="number" id="in-loghoraire" step="0.01" min="0"></div>
+          <div class="field only-tarifaire"><label for="in-logheures">Heures logement / sem</label><input type="number" id="in-logheures" step="1" min="0"></div>
+          <div class="field"><label for="in-redevance">Redevance logement client (€)</label><input type="number" id="in-redevance" step="1" min="0"></div>
+          <div class="field"><label for="in-logfact" id="lbl-logfact">Logement facturé au client (€/sem)</label><input type="number" id="in-logfact" step="0.01" min="0"></div>
+          <div class="field wide"><label for="in-zone">Zone kilométrique PD (exonération transport)</label><select id="in-zone"></select></div>
+          <div class="field"><label for="in-transp">Transport donné par client (€/j)</label><input type="number" id="in-transp" step="0.01" min="0"></div>
+          <div class="field"><label for="in-repas">Montant repas client (€/j)</label><input type="number" id="in-repas" step="0.01" min="0"></div>
+          <div class="field"><label for="in-anrepas">Avantage nature repas (€/j)</label><input type="number" id="in-anrepas" step="0.01" min="0"></div>
+          <div class="field"><label for="in-baremepd">Barème URSSAF repas PD (€)</label><input type="number" id="in-baremepd" step="0.1" min="0"></div>
+          <div class="field"><label for="in-baremegd">Barème URSSAF repas GD (€)</label><input type="number" id="in-baremegd" step="0.1" min="0"></div>
+          <div class="field"><label for="in-tickq">Tickets restaurant (nb)</label><input type="number" id="in-tickq" step="1" min="0"></div>
+          <div class="field"><label for="in-tickv">Valeur ticket (€)</label><input type="number" id="in-tickv" step="0.01" min="0"></div>
+        </div>
+        <p class="hint only-tarifaire">Coût logement = €/h × heures logement (43 dans le classeur). Facturation logement = min(heures&nbsp;; 35) × prix €/h. Le coût €/h se préremplit depuis le département de mission.</p>
+        <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:8px">
+          <label class="check"><input type="checkbox" id="in-anconso"> AN repas consommé</label>
+          <label class="check"><input type="checkbox" id="in-anretrait"> Retrait AN repas de la facturation</label>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h"><h2>Primes &amp; indemnités</h2><span class="eyebrow">Éléments contractuels</span></div>
+      <div class="card-b">
+        <div class="rowline rowhead"><span>Prime (soumise à cotisations)</span><span>Nombre</span><span>Montant (€)</span><span style="text-align:right">Total</span></div>
+        <div id="primes"></div>
+        <div class="rowline rowhead" style="margin-top:10px"><span>Indemnité (non soumise)</span><span>Nombre</span><span>Montant (€)</span><span style="text-align:right">Total</span></div>
+        <div id="indems"></div>
+        <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:2px">
+          <label class="check"><input type="checkbox" id="in-refind1"> Indemnité 1 refacturée</label>
+          <label class="check"><input type="checkbox" id="in-refind2"> Indemnité 2 refacturée</label>
+        </div>
+        <div class="grid" style="margin-top:10px">
+          <div class="field"><label for="in-part">Participation logement salarié</label>
+            <select id="in-part">
+              <option value="PARTICIPATION FORFAIT">Forfait (−25 €)</option>
+              <option value="PARTICIPATION FACTURE">Égale au coût du logement</option>
+              <option value="PARTICIPATION ANNULATION GD">Annulation découché GD</option>
+              <option value="PARTICIPATION LIBRE">Montant libre</option>
+            </select>
+          </div>
+          <div class="field"><label for="in-partlibre">Montant libre (€, négatif = retenue)</label><input type="number" id="in-partlibre" step="1"></div>
+          <div class="field only-agri"><label for="in-ifm">Base IFM (€, scénario IFM+CP)</label><input type="number" id="in-ifm" step="0.01" min="0"></div>
+          <div class="field"><label for="in-decouche">Indemnité découché GD (€/nuit)</label><input type="number" id="in-decouche" step="0.01" min="0"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h"><h2>Facturation &amp; commercial</h2><span class="eyebrow">Coefficients · refacturation</span></div>
+      <div class="card-b">
+        <div class="grid">
+          <div class="field"><label for="in-coeff">Coefficient</label><input type="number" id="in-coeff" step="0.0001" min="0"></div>
+          <div class="field"><label for="in-coeffhdn">Coefficient heures de nuit</label><input type="number" id="in-coeffhdn" step="0.01" min="0"></div>
+          <div class="field"><label for="in-hfact">Heures facturées au taux normal</label><input type="number" id="in-hfact" step="0.5" min="0"></div>
+          <div class="field"><label for="in-remise">Remise fin d'année (%)</label><input type="number" id="in-remise" step="0.1" min="0"></div>
+        </div>
+        <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:8px">
+          <label class="check"><input type="checkbox" id="in-refprimes"> Primes refacturées</label>
+          <label class="check"><input type="checkbox" id="in-refdim"> Dimanche refacturé</label>
+          <label class="check"><input type="checkbox" id="in-refferie"> Férié refacturé</label>
+          <label class="check"><input type="checkbox" id="in-refnuit"> Nuit refacturée</label>
+        </div>
+      </div>
+    </section>
+
+    <details class="acc">
+      <summary>Taux de cotisations &amp; constantes (avancé)</summary>
+      <div class="card-b">
+        <p class="note" id="const-note"></p>
+        <div class="grid" id="rates-grid"></div>
+      </div>
+    </details>
+
+    <details class="acc aide">
+      <summary>Aide &amp; règles (documentation du classeur)</summary>
+      <div class="card-b">
+        <h3>La règle « tout compris garanti »</h3>
+        <p>Taux horaire : … euros net = (SMIC français + indemnités — fin de mission, congés payés, découchés, repas, voyage détente − acompte) / nombre d'heures travaillées.</p>
+        <h3>Grands déplacements (GD)</h3>
+        <p>Découché : ne jamais dépasser le barème URSSAF de 51,60&nbsp;€ par découché (206,40&nbsp;€ / 4 nuits). Au-delà, passage en prime découché. Le barème diminue après 3 mois de mission sur le même chantier.</p>
+        <p>Participation frais de logement max 170&nbsp;€ (150&nbsp;€ loyer + 25&nbsp;€ franchise de frais / semaine). Remboursement voyage sur justificatifs, max 250&nbsp;€.</p>
+        <h3>Autres règles</h3>
+        <p>Jours fériés payés sur une base de 64&nbsp;€ net/jour. Intempéries payées à partir de la 2ᵉ heure. Mutuelle « Intérimaires Santé » prise en charge au bout de 414&nbsp;h de mission. Prise en charge de 4 à 6&nbsp;% des impôts prélevés à la source. Prime parrainage 75&nbsp;€ (+150&nbsp;h de mission).</p>
+        <h3>Net promis</h3>
+        <p>La paie compense chaque mois la différence avec le net promis (avance sur salaire), reprise ensuite en cas de dépassement.</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- ================= RESULTS RAIL ================= -->
+  <div class="rail">
+    <div class="hero" id="hero">
+      <span class="eyebrow">Marge brute standard (après remise)</span>
+      <div style="display:flex; align-items:baseline; gap:14px; flex-wrap:wrap">
+        <div class="hero-num" id="out-mb">—</div>
+        <div class="hero-pct" id="out-mbpct">—</div>
+      </div>
+      <div class="hero-sub">
+        <span>CA HT <b id="out-ca">—</b></span>
+        <span>Coût global <b id="out-cout">—</b></span>
+        <span>Marge horaire <b id="out-mbh">—</b></span>
+      </div>
+    </div>
+
+    <div class="tiles">
+      <div class="tile"><span class="eyebrow">Marge si coeff nuit</span>
+        <div class="tile-num" id="out-mbhdn">—</div><div class="tile-sub" id="out-mbhdnpct">—</div></div>
+      <div class="tile"><span class="eyebrow">Scénario IFM + ICCP</span>
+        <div class="tile-num" id="out-mbifm">—</div><div class="tile-sub" id="out-mbifmpct">—</div></div>
+      <div class="tile"><span class="eyebrow" id="tile-exo-label">TO-DE (exonération)</span>
+        <div class="tile-num" id="out-tode">—</div><div class="tile-sub"><span class="badge" id="out-todebadge">—</span></div></div>
+      <div class="tile"><span class="eyebrow">Taux facturé / h</span>
+        <div class="tile-num" id="out-txh">—</div><div class="tile-sub" id="out-txhorslog">—</div></div>
+    </div>
+
+    <section class="card">
+      <div class="card-h"><h2>Salarié</h2><span class="eyebrow">Contrôle du net</span></div>
+      <div class="card-b">
+        <table class="kv">
+          <tr><td>Salaire brut total<span class="ref">F42</span></td><td class="n" id="out-brut">—</td></tr>
+          <tr><td>Net réel avant régul / h<span class="ref">D14</span></td><td class="n" id="out-neth">—</td></tr>
+          <tr><td>Net attendu / h<span class="ref">D12</span></td><td class="n" id="out-netatt">—</td></tr>
+          <tr><td>Écart net réel − attendu</td><td class="n" id="out-netdelta">—</td></tr>
+          <tr><td>Net / h avec IFM + ICCP<span class="ref">D15</span></td><td class="n" id="out-netifm">—</td></tr>
+          <tr><td>Retenue à la source<span class="ref">F43</span></td><td class="n" id="out-ras">—</td></tr>
+          <tr><td>Avance sur salaire (régul)<span class="ref">F57/F58</span></td><td class="n" id="out-avance">—</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h"><h2>Pilotage du coefficient</h2><span class="eyebrow">Objectifs</span></div>
+      <div class="card-b">
+        <div class="gs">
+          <div class="field"><label for="in-cibletx" id="lbl-cibletx">Taux facturé cible hors logement (€/h)</label><input type="number" id="in-cibletx" step="0.01" min="0"></div>
+          <div class="gs-out" id="gs-tx">—</div>
+          <button class="btn primary" id="gs-tx-apply">Appliquer</button>
+        </div>
+        <div class="gs">
+          <div class="field"><label for="in-ciblemarge">Taux de marge cible (%)</label><input type="number" id="in-ciblemarge" step="0.1"></div>
+          <div class="gs-out" id="gs-marge">—</div>
+          <button class="btn primary" id="gs-marge-apply">Appliquer</button>
+        </div>
+        <p class="note">Le coefficient résolu donne exactement la cible (le classeur affichait seulement l'écart). Coût salarié indépendant du coefficient.</p>
+        <div class="chart-box">
+          <svg id="chart" width="100%" height="180" role="img" aria-label="Taux de marge en fonction du coefficient"></svg>
+          <div class="chart-tip" id="chart-tip"></div>
+        </div>
+      </div>
+    </section>
+
+    <details class="acc" open>
+      <summary>Grille de prix</summary>
+      <div class="card-b">
+        <table class="grille" id="grille"></table>
+        <p class="note">Ligne dorée : coefficient actuel. Taux HN = taux horaire facturé heure normale.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Décomposition de la paie</summary>
+      <div class="card-b"><table class="kv" id="tbl-paie"></table></div>
+    </details>
+
+    <details class="acc">
+      <summary id="sum-cotis">Cotisations &amp; exonération</summary>
+      <div class="card-b"><table class="kv" id="tbl-cotis"></table></div>
+    </details>
+
+    <details class="acc">
+      <summary>Facturation détaillée</summary>
+      <div class="card-b"><table class="kv" id="tbl-fact"></table></div>
+    </details>
+
+    <details class="acc">
+      <summary>Scénario IFM + ICCP (feuille cachée)</summary>
+      <div class="card-b"><table class="kv" id="tbl-hidden"></table>
+      <p class="note" id="hidden-note"></p></div>
+    </details>
+  </div>
+</div>
+
+<script>
+// généré par build_db_js.py — tables extraites des classeurs AGRI / TARIFAIRE (identiques)
+var DB = {"zonesKmPD": [{"label": "5 km et 10 km", "value": 3}, {"label": "10 km et 20 km", "value": 6.1}, {"label": "20 km et 30 km", "value": 9.1}, {"label": "30 km et 40 km", "value": 12.1}, {"label": "40 km et 50 km", "value": 15.2}, {"label": "50 km et 60 km", "value": 18.2}, {"label": "60 km et 70 km", "value": 21.2}, {"label": "70 km et 80 km", "value": 24.2}, {"label": "80 km et 90 km", "value": 27.3}, {"label": "90 km et 100 km", "value": 30.3}, {"label": "100 km et 110 km", "value": 33.3}, {"label": "110 km et 120 km", "value": 36.4}, {"label": "120 km et 130 km", "value": 39.4}, {"label": "130 km et 140 km", "value": 42.4}, {"label": "140 km et 150 km", "value": 45.5}, {"label": "150 km et 160 km", "value": 48.5}, {"label": "160 km et 170 km", "value": 51.5}, {"label": "170 km et 180 km", "value": 54.5}, {"label": "180 km et 190 km", "value": 57.6}, {"label": "190 km et 200 km", "value": 60.6}, {"label": "PAS DE TRANSPORT PD", "value": 0}], "majoNuit": [{"label": "MAJO DE NUIT 10%", "mult": 0.1, "raw": null}, {"label": "MAJO DE NUIT 15%", "mult": 0.15, "raw": null}, {"label": "MAJO DE NUIT 20%", "mult": 0.2, "raw": null}, {"label": "MAJO DE NUIT 25%", "mult": 0.25, "raw": null}, {"label": "MAJO DE NUIT 28%", "mult": 0.28, "raw": null}, {"label": "MAJO DE NUIT 30%", "mult": 0.3, "raw": null}, {"label": "MAJO DE NUIT 35%", "mult": 0.35, "raw": null}, {"label": "MAJO DE NUIT 40%", "mult": 0.4, "raw": null}, {"label": "MAJO DE NUIT 45%", "mult": 0.45, "raw": null}], "heuresSup": [{"label": "HEURES SUPPLEMENTAIRES 0%", "mult": 1.0, "raw": null}, {"label": "HEURES SUPPLEMENTAIRES 10%", "mult": 1.1, "raw": null}, {"label": "HEURES SUPPLEMENTAIRES 15%", "mult": 1.15, "raw": null}, {"label": "HEURES SUPPLEMENTAIRES 20%", "mult": 1.2, "raw": null}, {"label": "HEURES SUPPLEMENTAIRES 25%", "mult": 1.25, "raw": null}, {"label": "HEURES SUPPLEMENTAIRES 30%", "mult": 1.3, "raw": null}, {"label": "HEURES SUPPLEMENTAIRES 35%", "mult": 1.35, "raw": null}, {"label": "HEURES SUPPLEMENTAIRES 40%", "mult": 1.4, "raw": null}, {"label": "HEURES SUPPLEMENTAIRES 45%", "mult": 1.45, "raw": null}], "majoDimanche": [{"label": "MAJO DIMANCHE 10 %", "mult": 0.1, "raw": null}, {"label": "MAJO DIMANCHE 15 %", "mult": 0.15, "raw": null}, {"label": "MAJO DIMANCHE 20 %", "mult": 0.2, "raw": null}, {"label": "MAJO DIMANCHE 25 %", "mult": 0.25, "raw": null}, {"label": "MAJO DIMANCHE 30 %", "mult": 0.3, "raw": null}, {"label": "MAJO DIMANCHE 35 %", "mult": 0.35, "raw": null}, {"label": "MAJO DIMANCHE 40 %", "mult": 0.4, "raw": null}, {"label": "MAJO DIMANCHE 45 %", "mult": 0.45, "raw": null}, {"label": "MAJO DIMANCHE 50 %", "mult": 0.5, "raw": null}, {"label": "MAJO DIMANCHE 55 %", "mult": 0.55, "raw": null}, {"label": "MAJO DIMANCHE 60 %", "mult": 0.6, "raw": null}, {"label": "MAJO DIMANCHE 65 %", "mult": 0.65, "raw": null}, {"label": "MAJO DIMANCHE 70 %", "mult": 0.7, "raw": null}, {"label": "MAJO DIMANCHE 75 %", "mult": 0.75, "raw": null}, {"label": "MAJO DIMANCHE 80 %", "mult": 0.8, "raw": null}, {"label": "MAJO DIMANCHE 85 %", "mult": 0.85, "raw": null}, {"label": "MAJO DIMANCHE 90 %", "mult": 0.9, "raw": null}, {"label": "MAJO DIMANCHE 95 %", "mult": 0.95, "raw": null}, {"label": "MAJO DIMANCHE 100 %", "mult": 1.0, "raw": null}], "majoFerie": [{"label": "MAJO FERIE 10 %", "mult": 0.1, "raw": null}, {"label": "MAJO FERIE 15 %", "mult": 0.15, "raw": null}, {"label": "MAJO FERIE 20 %", "mult": 0.2, "raw": null}, {"label": "MAJO FERIE 25 %", "mult": 0.25, "raw": null}, {"label": "MAJO FERIE 30 %", "mult": 0.3, "raw": null}, {"label": "MAJO FERIE 35 %", "mult": 0.35, "raw": null}, {"label": "MAJO FERIE 40 %", "mult": 0.4, "raw": null}, {"label": "MAJO FERIE 45 %", "mult": 0.45, "raw": null}, {"label": "MAJO FERIE 50 %", "mult": 0.5, "raw": null}, {"label": "MAJO FERIE 55 %", "mult": 0.55, "raw": null}, {"label": "MAJO FERIE 60 %", "mult": 0.6, "raw": null}, {"label": "MAJO FERIE 65 %", "mult": 0.65, "raw": null}, {"label": "MAJO FERIE 70 %", "mult": 0.7, "raw": null}, {"label": "MAJO FERIE 75 %", "mult": 0.75, "raw": null}, {"label": "MAJO FERIE 80 %", "mult": 0.8, "raw": null}, {"label": "MAJO FERIE 85 %", "mult": 0.85, "raw": null}, {"label": "MAJO FERIE 90 %", "mult": 0.9, "raw": null}, {"label": "MAJO FERIE 95 %", "mult": 0.95, "raw": null}, {"label": "MAJO FERIE 100 %", "mult": 1.0, "raw": null}], "majoNormales": [{"label": "MAJO NORMALES 10 %", "mult": 0.1, "raw": null}, {"label": "MAJO NORMALES 15 %", "mult": 0.15, "raw": null}, {"label": "MAJO NORMALES 20 %", "mult": 0.2, "raw": null}, {"label": "MAJO NORMALES 25 %", "mult": 0.25, "raw": null}, {"label": "MAJO NORMALES 30 %", "mult": 0.3, "raw": null}, {"label": "MAJO NORMALES 35 %", "mult": 0.35, "raw": null}, {"label": "MAJO NORMALES 40 %", "mult": 0.4, "raw": null}, {"label": "MAJO NORMALES 45 %", "mult": 0.45, "raw": null}, {"label": "MAJO NORMALES 50 %", "mult": 0.5, "raw": null}, {"label": "MAJO NORMALES 55 %", "mult": 0.55, "raw": null}, {"label": "MAJO NORMALES 60 %", "mult": 0.6, "raw": null}, {"label": "MAJO NORMALES 65 %", "mult": 0.65, "raw": null}, {"label": "MAJO NORMALES 70 %", "mult": 0.7, "raw": null}, {"label": "MAJO NORMALES 75 %", "mult": 0.75, "raw": null}, {"label": "MAJO NORMALES 80 %", "mult": 0.8, "raw": null}, {"label": "MAJO NORMALES 85 %", "mult": 0.85, "raw": null}, {"label": "MAJO NORMALES 90 %", "mult": 0.9, "raw": null}, {"label": "MAJO NORMALES 95 %", "mult": 0.95, "raw": null}, {"label": "MAJO NORMALES 100 %", "mult": 1.0, "raw": null}], "departments": [{"dept": "01 Ain", "region": "Auvergne-Rhône-Alpes / RA", "panier": 10.2, "panierNonSoumis": 9.5, "panierSoumis": 0.6999999999999993, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.98246192391376, "N3P1": 12.33289378255423, "N3P2": 13.41524362101932, "N4P1": 14.493637502472474, "N4P2": 15.574009362431598, "AUTRE": 10.57}}, {"dept": "02 Aisne", "region": "Hauts-de-France / PICARDIE", "panier": 12, "panierNonSoumis": 9.5, "panierSoumis": 2.5, "rates": {"N1P1": 10.604931759741545, "N1P2": 10.84321223709369, "N2": 11.149205511966771, "N3P1": 11.79138920023736, "N3P2": 12.70383068503989, "N4P1": 13.708841563921672, "N4P2": 14.76877431265247, "AUTRE": 10.57}}, {"dept": "03 Allier", "region": "Auvergne-Rhône-Alpes / AUVERGNE", "panier": 10.11, "panierNonSoumis": 9.5, "panierSoumis": 0.6099999999999994, "rates": {"N1P1": 10.584558581130086, "N1P2": 10.610008571240193, "N2": 11.365464495285819, "N3P1": 12.767257862464563, "N3P2": 13.711347003362564, "N4P1": 14.706336124480783, "N4P2": 15.624447814333754, "AUTRE": 10.57}}, {"dept": "04 Alpes-de-Haute-Provence", "region": "Provence-Alpes-Côte d'Azur", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.294916595239666, "N3P1": 12.610272301707655, "N3P2": 13.662556866882046, "N4P1": 14.71484143205644, "N4P2": 15.767125997230831, "AUTRE": 10.57}}, {"dept": "05 Hautes-Alpes", "region": "Provence-Alpes-Côte d'Azur", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.294916595239666, "N3P1": 12.610272301707655, "N3P2": 13.662556866882046, "N4P1": 14.71484143205644, "N4P2": 15.767125997230831, "AUTRE": 10.57}}, {"dept": "06 Alpes-Maritimes", "region": "Provence-Alpes-Côte d'Azur", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.294916595239666, "N3P1": 12.610272301707655, "N3P2": 13.662556866882046, "N4P1": 14.71484143205644, "N4P2": 15.767125997230831, "AUTRE": 10.57}}, {"dept": "07 Ardèche", "region": "Auvergne-Rhône-Alpes / RA", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.98246192391376, "N3P1": 12.33289378255423, "N3P2": 13.41524362101932, "N4P1": 14.493637502472474, "N4P2": 15.574009362431598, "AUTRE": 10.57}}, {"dept": "08 Ardennes", "region": "Grand-Est / CHAMPAGNE ARDENNE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}}, {"dept": "09 Ariège", "region": "Occitanie / MP", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}}, {"dept": "10 Aube", "region": "Grand-Est / CHAMPAGNE ARDENNE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}}, {"dept": "11 Aude", "region": "Occitanie / L ROUSSILLON", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}}, {"dept": "12 Aveyron", "region": "Occitanie / MP", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}}, {"dept": "13 Bouches-du-Rhône", "region": "Provence-Alpes-Côte d'Azur", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.294916595239666, "N3P1": 12.610272301707655, "N3P2": 13.662556866882046, "N4P1": 14.71484143205644, "N4P2": 15.767125997230831, "AUTRE": 10.57}}, {"dept": "14 Calvados", "region": "Normandie / BASSE", "panier": 10.15, "panierNonSoumis": 9.5, "panierSoumis": 0.6500000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.7589503527395, "N3P1": 11.862200830750973, "N3P2": 12.745631964132658, "N4P1": 13.775565372189625, "N4P2": 14.668424869783085, "AUTRE": 10.57}}, {"dept": "15 Cantal", "region": "Auvergne-Rhône-Alpes / AUVERGNE", "panier": 10.11, "panierNonSoumis": 9.5, "panierSoumis": 0.6099999999999994, "rates": {"N1P1": 10.584558581130086, "N1P2": 10.610008571240193, "N2": 11.365464495285819, "N3P1": 12.767257862464563, "N3P2": 13.711347003362564, "N4P1": 14.706336124480783, "N4P2": 15.624447814333754, "AUTRE": 10.57}}, {"dept": "16 Charente", "region": "Nouvelle-Aquitaine / POITOU C", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}}, {"dept": "17 Charente-Maritime", "region": "Nouvelle-Aquitaine / POITOU C", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}}, {"dept": "18 Cher", "region": "Centre-Val de Loire", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.73, "N2": 11.26, "N3P1": 12.14, "N3P2": 12.84, "N4P1": 13.55, "N4P2": 14.25, "AUTRE": 10.57}}, {"dept": "19 Corrèze", "region": "Nouvelle-Aquitaine / LIMOUSIN", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}}, {"dept": "2A Corse-du-Sud", "region": "Corse", "panier": 9.5, "panierNonSoumis": 9.5, "panierSoumis": 0, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.29, "N3P1": 12.61, "N3P2": 13.66, "N4P1": 14.71, "N4P2": 15.77, "AUTRE": 10.57}}, {"dept": "2B Haute-Corse", "region": "Corse", "panier": 9.5, "panierNonSoumis": 9.5, "panierSoumis": 0, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.29, "N3P1": 12.61, "N3P2": 13.66, "N4P1": 14.71, "N4P2": 15.77, "AUTRE": 10.57}}, {"dept": "21 Côte-d'Or", "region": "Bourgogne-Franche-Comté / BOURGOGNE", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.5756, "N2": 11.1888, "N3P1": 12.2107, "N3P2": 13.0283, "N4P1": 13.8458, "N4P2": 14.6634, "AUTRE": 10.57}}, {"dept": "22 Côtes-d'Armor", "region": "Bretagne", "panier": 10.6, "panierNonSoumis": 9.5, "panierSoumis": 1.0999999999999996, "rates": {"N1P1": 10.63, "N1P2": 10.78, "N2": 11.13, "N3P1": 12.39, "N3P2": 13.4, "N4P1": 14.41, "N4P2": 15.41, "AUTRE": 10.57}}, {"dept": "23 Creuse", "region": "Nouvelle-Aquitaine / LIMOUSIN", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}}, {"dept": "24 Dordogne", "region": "Nouvelle-Aquitaine / AQUITAINE", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}}, {"dept": "25 Doubs", "region": "Bourgogne-Franche-Comté / FC", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.5756, "N2": 11.1888, "N3P1": 12.2107, "N3P2": 13.0283, "N4P1": 13.8458, "N4P2": 14.6634, "AUTRE": 10.57}}, {"dept": "26 Drôme", "region": "Auvergne-Rhône-Alpes / RA", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.98246192391376, "N3P1": 12.33289378255423, "N3P2": 13.41524362101932, "N4P1": 14.493637502472474, "N4P2": 15.574009362431598, "AUTRE": 10.57}}, {"dept": "27 Eure", "region": "Normandie / HAUTE", "panier": 10.15, "panierNonSoumis": 9.5, "panierSoumis": 0.6500000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.76, "N3P1": 11.86, "N3P2": 12.74, "N4P1": 13.77, "N4P2": 14.67, "AUTRE": 10.57}}, {"dept": "28 Eure-et-Loir", "region": "Centre-Val de Loire", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.73, "N2": 11.26, "N3P1": 12.14, "N3P2": 12.84, "N4P1": 13.55, "N4P2": 14.25, "AUTRE": 10.57}}, {"dept": "29 Finistère", "region": "Bretagne", "panier": 10.6, "panierNonSoumis": 9.5, "panierSoumis": 1.0999999999999996, "rates": {"N1P1": 10.63, "N1P2": 10.78, "N2": 11.13, "N3P1": 12.39, "N3P2": 13.4, "N4P1": 14.41, "N4P2": 15.41, "AUTRE": 10.57}}, {"dept": "30 Gard", "region": "Occitanie / L ROUSSILLON", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}}, {"dept": "31 Haute-Garonne", "region": "Occitanie / MP", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}}, {"dept": "32 Gers", "region": "Occitanie / MP", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.772202808729478, "N3P1": 11.448012131601503, "N3P2": 12.394013318388607, "N4P1": 13.374497263796401, "N4P2": 14.408584426715898, "AUTRE": 10.57}}, {"dept": "33 Gironde", "region": "Nouvelle-Aquitaine / AQUITAINE", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}}, {"dept": "34 Hérault", "region": "Occitanie / L ROUSSILLON", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}}, {"dept": "35 Ille-et-Vilaine", "region": "Bretagne", "panier": 10.6, "panierNonSoumis": 9.5, "panierSoumis": 1.0999999999999996, "rates": {"N1P1": 10.63, "N1P2": 10.78, "N2": 11.13, "N3P1": 12.39, "N3P2": 13.4, "N4P1": 14.41, "N4P2": 15.41, "AUTRE": 10.57}}, {"dept": "36 Indre", "region": "Centre-Val de Loire", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.73, "N2": 11.26, "N3P1": 12.14, "N3P2": 12.84, "N4P1": 13.55, "N4P2": 14.25, "AUTRE": 10.57}}, {"dept": "37 Indre-et-Loire", "region": "Centre-Val de Loire", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.73, "N2": 11.26, "N3P1": 12.14, "N3P2": 12.84, "N4P1": 13.55, "N4P2": 14.25, "AUTRE": 10.57}}, {"dept": "38 Isère", "region": "Auvergne-Rhône-Alpes / RA", "panier": 10.3, "panierNonSoumis": 9.5, "panierSoumis": 0.8000000000000007, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.98246192391376, "N3P1": 12.33289378255423, "N3P2": 13.41524362101932, "N4P1": 14.493637502472474, "N4P2": 15.574009362431598, "AUTRE": 10.57}}, {"dept": "39 Jura", "region": "Bourgogne-Franche-Comté / FC", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.5756, "N2": 11.1888, "N3P1": 12.2107, "N3P2": 13.0283, "N4P1": 13.8458, "N4P2": 14.6634, "AUTRE": 10.57}}, {"dept": "40 Landes", "region": "Nouvelle-Aquitaine / AQUITAINE", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}}, {"dept": "41 Loir-et-Cher", "region": "Centre-Val de Loire", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.73, "N2": 11.26, "N3P1": 12.14, "N3P2": 12.84, "N4P1": 13.55, "N4P2": 14.25, "AUTRE": 10.57}}, {"dept": "42 Loire", "region": "Auvergne-Rhône-Alpes / RA", "panier": 10.35, "panierNonSoumis": 9.5, "panierSoumis": 0.8499999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.98246192391376, "N3P1": 12.33289378255423, "N3P2": 13.41524362101932, "N4P1": 14.493637502472474, "N4P2": 15.574009362431598, "AUTRE": 10.57}}, {"dept": "43 Haute-Loire", "region": "Auvergne-Rhône-Alpes / AUVERGNE", "panier": 10.11, "panierNonSoumis": 9.5, "panierSoumis": 0.6099999999999994, "rates": {"N1P1": 10.584558581130086, "N1P2": 10.610008571240193, "N2": 11.365464495285819, "N3P1": 12.767257862464563, "N3P2": 13.711347003362564, "N4P1": 14.706336124480783, "N4P2": 15.624447814333754, "AUTRE": 10.57}}, {"dept": "44 Loire-Atlantique", "region": "Pays de la Loire", "panier": 9.5, "panierNonSoumis": 9.5, "panierSoumis": 0, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.85, "N3P1": 12.14, "N3P2": 13.2, "N4P1": 14.25, "N4P2": 15.31, "AUTRE": 10.57}}, {"dept": "45 Loiret", "region": "Centre-Val de Loire", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.73, "N2": 11.26, "N3P1": 12.14, "N3P2": 12.84, "N4P1": 13.55, "N4P2": 14.25, "AUTRE": 10.57}}, {"dept": "46 Lot", "region": "Occitanie / MP", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}}, {"dept": "47 Lot-et-Garonne", "region": "Nouvelle-Aquitaine / AQUITAINE", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}}, {"dept": "48 Lozère", "region": "Occitanie / L ROUSSILLON", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}}, {"dept": "49 Maine-et-Loire", "region": "Pays de la Loire", "panier": 9.5, "panierNonSoumis": 9.5, "panierSoumis": 0, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.85, "N3P1": 12.14, "N3P2": 13.2, "N4P1": 14.25, "N4P2": 15.31, "AUTRE": 10.57}}, {"dept": "50 Manche", "region": "Normandie / BASSE", "panier": 10.15, "panierNonSoumis": 9.5, "panierSoumis": 0.6500000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.76, "N3P1": 11.86, "N3P2": 12.74, "N4P1": 13.77, "N4P2": 14.67, "AUTRE": 10.57}}, {"dept": "51 Marne", "region": "Grand-Est / CHAMPAGNE ARDENNE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}}, {"dept": "52 Haute-Marne", "region": "Grand-Est / CHAMPAGNE ARDENNE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}}, {"dept": "53 Mayenne", "region": "Pays de la Loire", "panier": 9.5, "panierNonSoumis": 9.5, "panierSoumis": 0, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.85, "N3P1": 12.14, "N3P2": 13.2, "N4P1": 14.25, "N4P2": 15.31, "AUTRE": 10.57}}, {"dept": "54 Meurthe-et-Moselle", "region": "Grand-Est / LORRAINE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}}, {"dept": "55 Meuse", "region": "Grand-Est / LORRAINE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}}, {"dept": "56 Morbihan", "region": "Bretagne", "panier": 10.6, "panierNonSoumis": 9.5, "panierSoumis": 1.0999999999999996, "rates": {"N1P1": 10.63, "N1P2": 10.78, "N2": 11.13, "N3P1": 12.39, "N3P2": 13.4, "N4P1": 14.41, "N4P2": 15.41, "AUTRE": 10.57}}, {"dept": "57 Moselle", "region": "Grand-Est / LORRAINE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}}, {"dept": "58 Nièvre", "region": "Bourgogne-Franche-Comté / BOURGOGNE", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.5756, "N2": 11.1888, "N3P1": 12.2107, "N3P2": 13.0283, "N4P1": 13.8458, "N4P2": 14.6634, "AUTRE": 10.57}}, {"dept": "59 Nord", "region": "Hauts-de-France / NPDC", "panier": 12, "panierNonSoumis": 9.5, "panierSoumis": 2.5, "rates": {"N1P1": 10.604931759741545, "N1P2": 10.84321223709369, "N2": 11.149205511966771, "N3P1": 11.79138920023736, "N3P2": 12.70383068503989, "N4P1": 13.708841563921672, "N4P2": 14.76877431265247, "AUTRE": 10.57}}, {"dept": "60 Oise", "region": "Hauts-de-France / PICARDIE", "panier": 12, "panierNonSoumis": 9.5, "panierSoumis": 2.5, "rates": {"N1P1": 10.604931759741545, "N1P2": 10.84321223709369, "N2": 11.149205511966771, "N3P1": 11.79138920023736, "N3P2": 12.70383068503989, "N4P1": 13.708841563921672, "N4P2": 14.76877431265247, "AUTRE": 10.57}}, {"dept": "61 Orne", "region": "Normandie / BASSE", "panier": 10.15, "panierNonSoumis": 9.5, "panierSoumis": 0.6500000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.76, "N3P1": 11.86, "N3P2": 12.74, "N4P1": 13.77, "N4P2": 14.67, "AUTRE": 10.57}}, {"dept": "62 Pas-de-Calais", "region": "Hauts-de-France / NPDC", "panier": 12, "panierNonSoumis": 9.5, "panierSoumis": 2.5, "rates": {"N1P1": 10.604931759741545, "N1P2": 10.84321223709369, "N2": 11.149205511966771, "N3P1": 11.79138920023736, "N3P2": 12.70383068503989, "N4P1": 13.708841563921672, "N4P2": 14.76877431265247, "AUTRE": 10.57}}, {"dept": "63 Puy-de-Dôme", "region": "Auvergne-Rhône-Alpes / AUVERGNE", "panier": 10.11, "panierNonSoumis": 9.5, "panierSoumis": 0.6099999999999994, "rates": {"N1P1": 10.584558581130086, "N1P2": 10.610008571240193, "N2": 11.365464495285819, "N3P1": 12.767257862464563, "N3P2": 13.711347003362564, "N4P1": 14.706336124480783, "N4P2": 15.624447814333754, "AUTRE": 10.57}}, {"dept": "64 Pyrénées-Atlantiques", "region": "Nouvelle-Aquitaine / AQUITAINE", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}}, {"dept": "65 Hautes-Pyrénées", "region": "Occitanie / MP", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.010021757763568, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}}, {"dept": "66 Pyrénées-Orientales", "region": "Occitanie / L ROUSSILLON", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}}, {"dept": "67 Bas-Rhin", "region": "Grand-Est / ALSACE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}}, {"dept": "68 Haut-Rhin", "region": "Grand-Est / ALSACE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}}, {"dept": "69 Rhône", "region": "Auvergne-Rhône-Alpes / RA", "panier": 10.6, "panierNonSoumis": 9.5, "panierSoumis": 1.0999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.98246192391376, "N3P1": 12.33289378255423, "N3P2": 13.41524362101932, "N4P1": 14.493637502472474, "N4P2": 15.574009362431598, "AUTRE": 10.57}}, {"dept": "70 Haute-Saône", "region": "Bourgogne-Franche-Comté / FC", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.5756, "N2": 11.1888, "N3P1": 12.2107, "N3P2": 13.0283, "N4P1": 13.8458, "N4P2": 14.6634, "AUTRE": 10.57}}, {"dept": "71 Saône-et-Loire", "region": "Bourgogne-Franche-Comté / BOURGOGNE", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.5756, "N2": 11.1888, "N3P1": 12.2107, "N3P2": 13.0283, "N4P1": 13.8458, "N4P2": 14.6634, "AUTRE": 10.57}}, {"dept": "72 Sarthe", "region": "Pays de la Loire", "panier": 9.5, "panierNonSoumis": 9.5, "panierSoumis": 0, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.85, "N3P1": 12.14, "N3P2": 13.2, "N4P1": 14.25, "N4P2": 15.31, "AUTRE": 10.57}}, {"dept": "73 Savoie", "region": "Auvergne-Rhône-Alpes / RA", "panier": 9.7, "panierNonSoumis": 9.5, "panierSoumis": 0.1999999999999993, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.04, "N3P1": 12.4, "N3P2": 13.48, "N4P1": 14.57, "N4P2": 15.65, "AUTRE": 10.57}}, {"dept": "74 Haute-Savoie", "region": "Auvergne-Rhône-Alpes / RA", "panier": 10.81, "panierNonSoumis": 9.5, "panierSoumis": 1.3100000000000005, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 10.944814399683525, "N3P2": 11.821718203995518, "N4P1": 12.922792905650427, "N4P2": 13.812883233335532, "AUTRE": 10.57}}, {"dept": "75 Paris", "region": "Île-de-France", "panier": 10.3, "panierNonSoumis": 9.5, "panierSoumis": 0.8000000000000007, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.779982857519617, "N3P1": 11.736005802070284, "N3P2": 12.659062438188172, "N4P1": 13.450253840574934, "N4P2": 14.73593986945342, "AUTRE": 10.57}}, {"dept": "76 Seine-Maritime", "region": "Normandie / HAUTE", "panier": 10.15, "panierNonSoumis": 9.5, "panierSoumis": 0.6500000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.76, "N3P1": 11.86, "N3P2": 12.74, "N4P1": 13.77, "N4P2": 14.67, "AUTRE": 10.57}}, {"dept": "77 Seine-et-Marne", "region": "Île-de-France", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.91, "N3P1": 11.82, "N3P2": 12.75, "N4P1": 13.55, "N4P2": 14.85, "AUTRE": 10.57}}, {"dept": "78 Yvelines", "region": "Île-de-France", "panier": 10.3, "panierNonSoumis": 9.5, "panierSoumis": 0.8000000000000007, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.779982857519617, "N3P1": 11.736005802070284, "N3P2": 12.659062438188172, "N4P1": 13.450253840574934, "N4P2": 14.73593986945342, "AUTRE": 10.57}}, {"dept": "79 Deux-Sèvres", "region": "Nouvelle-Aquitaine / POITOU C", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}}, {"dept": "80 Somme", "region": "Hauts-de-France / PICARDIE", "panier": 12, "panierNonSoumis": 9.5, "panierSoumis": 2.5, "rates": {"N1P1": 10.604931759741545, "N1P2": 10.84321223709369, "N2": 11.149205511966771, "N3P1": 11.79138920023736, "N3P2": 12.70383068503989, "N4P1": 13.708841563921672, "N4P2": 14.76877431265247, "AUTRE": 10.57}}, {"dept": "81 Tarn", "region": "Occitanie / MP", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}}, {"dept": "82 Tarn-et-Garonne", "region": "Occitanie / MP", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}}, {"dept": "83 Var", "region": "Provence-Alpes-Côte d'Azur", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.294916595239666, "N3P1": 12.610272301707655, "N3P2": 13.662556866882046, "N4P1": 14.71484143205644, "N4P2": 15.767125997230831, "AUTRE": 10.57}}, {"dept": "84 Vaucluse", "region": "Provence-Alpes-Côte d'Azur", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.294916595239666, "N3P1": 12.610272301707655, "N3P2": 13.662556866882046, "N4P1": 14.71484143205644, "N4P2": 15.767125997230831, "AUTRE": 10.57}}, {"dept": "85 Vendée", "region": "Pays de la Loire", "panier": 9.5, "panierNonSoumis": 9.5, "panierSoumis": 0, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.85, "N3P1": 12.14, "N3P2": 13.2, "N4P1": 14.25, "N4P2": 15.31, "AUTRE": 10.57}}, {"dept": "86 Vienne", "region": "Nouvelle-Aquitaine / POITOU C", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}}, {"dept": "87 Haute-Vienne", "region": "Nouvelle-Aquitaine / LIMOUSIN", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}}, {"dept": "88 Vosges", "region": "Grand-Est / LORRAINE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}}, {"dept": "89 Yonne", "region": "Bourgogne-Franche-Comté / BOURGOGNE", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.5756, "N2": 11.1888, "N3P1": 12.2107, "N3P2": 13.0283, "N4P1": 13.8458, "N4P2": 14.6634, "AUTRE": 10.57}}, {"dept": "90 Territoire de Belfort", "region": "Bourgogne-Franche-Comté / FC", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.5756, "N2": 11.1888, "N3P1": 12.2107, "N3P2": 13.0283, "N4P1": 13.8458, "N4P2": 14.6634, "AUTRE": 10.57}}, {"dept": "91 Essonne", "region": "Île-de-France", "panier": 10.3, "panierNonSoumis": 9.5, "panierSoumis": 0.8000000000000007, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.779982857519617, "N3P1": 11.736005802070284, "N3P2": 12.659062438188172, "N4P1": 13.450253840574934, "N4P2": 14.73593986945342, "AUTRE": 10.57}}, {"dept": "92 Hauts-de-Seine", "region": "Île-de-France", "panier": 10.3, "panierNonSoumis": 9.5, "panierSoumis": 0.8000000000000007, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.779982857519617, "N3P1": 11.736005802070284, "N3P2": 12.659062438188172, "N4P1": 13.450253840574934, "N4P2": 14.73593986945342, "AUTRE": 10.57}}, {"dept": "93 Seine-Saint-Denis", "region": "Île-de-France", "panier": 10.3, "panierNonSoumis": 9.5, "panierSoumis": 0.8000000000000007, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.779982857519617, "N3P1": 11.736005802070284, "N3P2": 12.659062438188172, "N4P1": 13.450253840574934, "N4P2": 14.73593986945342, "AUTRE": 10.57}}, {"dept": "94 Val-de-Marne", "region": "Île-de-France", "panier": 10.3, "panierNonSoumis": 9.5, "panierSoumis": 0.8000000000000007, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.779982857519617, "N3P1": 11.736005802070284, "N3P2": 12.659062438188172, "N4P1": 13.450253840574934, "N4P2": 14.73593986945342, "AUTRE": 10.57}}, {"dept": "95 Val-d'Oise", "region": "Île-de-France", "panier": 10.3, "panierNonSoumis": 9.5, "panierSoumis": 0.8000000000000007, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.779982857519617, "N3P1": 11.736005802070284, "N3P2": 12.659062438188172, "N4P1": 13.450253840574934, "N4P2": 14.73593986945342, "AUTRE": 10.57}}], "logement": [{"dept": "01", "costPerHour": 5.795888500561165}, {"dept": "02", "costPerHour": 4.878385829714292}, {"dept": "03", "costPerHour": 5.585315829904213}, {"dept": "04", "costPerHour": 3.57136428260902}, {"dept": "05", "costPerHour": 3.394079733058977}, {"dept": "06", "costPerHour": 3.92075094219065}, {"dept": "07", "costPerHour": 4.297609924977712}, {"dept": "08", "costPerHour": 3.7961520917107587}, {"dept": "09", "costPerHour": 3.2160884466209634}, {"dept": "10", "costPerHour": 3.3566986960658505}, {"dept": "11", "costPerHour": 5.4170892569651485}, {"dept": "12", "costPerHour": 4.3729874368785575}, {"dept": "13", "costPerHour": 6.285313799867605}, {"dept": "14", "costPerHour": 5.130031477655958}, {"dept": "15", "costPerHour": 4.649481536960597}, {"dept": "16", "costPerHour": 7.557788548133048}, {"dept": "17", "costPerHour": 6.24450766410553}, {"dept": "18", "costPerHour": 5.0280515731941895}, {"dept": "19", "costPerHour": 8.638118900376272}, {"dept": "20", "costPerHour": 3.2618270294809317}, {"dept": "21", "costPerHour": 5.186630404636091}, {"dept": "22", "costPerHour": 3.916761154023778}, {"dept": "23", "costPerHour": 4.583893525533148}, {"dept": "24", "costPerHour": 4.481546663221038}, {"dept": "25", "costPerHour": 4.501733611903312}, {"dept": "26", "costPerHour": 4.6034236804556725}, {"dept": "27", "costPerHour": 4.203308073307403}, {"dept": "28", "costPerHour": 6.30178569228717}, {"dept": "29", "costPerHour": 4.013238819016334}, {"dept": "30", "costPerHour": 3.9563319492313944}, {"dept": "31", "costPerHour": 8.644241858781541}, {"dept": "32", "costPerHour": 2.6653344666118035}, {"dept": "33", "costPerHour": 4.564611917538078}, {"dept": "34", "costPerHour": 4.736134693470107}, {"dept": "35", "costPerHour": 3.561109354400128}, {"dept": "36", "costPerHour": 5.744447824935295}, {"dept": "37", "costPerHour": 4.426209418166419}, {"dept": "38", "costPerHour": 4.391420370454298}, {"dept": "39", "costPerHour": 5.36914347728995}, {"dept": "40", "costPerHour": 4.4902574910077275}, {"dept": "41", "costPerHour": 4.8813072294687}, {"dept": "42", "costPerHour": 4.891839975295181}, {"dept": "43", "costPerHour": 4.747882170542636}, {"dept": "44", "costPerHour": 4.560631863934719}, {"dept": "45", "costPerHour": 4.273514241994955}, {"dept": "46", "costPerHour": 5.32503059769777}, {"dept": "47", "costPerHour": 3.5761161147826894}, {"dept": "49", "costPerHour": 5.211198005892021}, {"dept": "50", "costPerHour": 3.9964551510043504}, {"dept": "51", "costPerHour": 6.113608456976273}, {"dept": "52", "costPerHour": 5.084178780132994}, {"dept": "53", "costPerHour": 4.249845834224279}, {"dept": "54", "costPerHour": 7.075483290994444}, {"dept": "55", "costPerHour": 6.177694503852751}, {"dept": "56", "costPerHour": 3.9106649515191645}, {"dept": "57", "costPerHour": 5.081309404443686}, {"dept": "58", "costPerHour": 4.381954570052255}, {"dept": "59", "costPerHour": 4.930054159749711}, {"dept": "60", "costPerHour": 5.822528137165652}, {"dept": "61", "costPerHour": 4.283567796446958}, {"dept": "62", "costPerHour": 7.38518798830347}, {"dept": "63", "costPerHour": 4.74880950436815}, {"dept": "64", "costPerHour": 4.652487987021713}, {"dept": "65", "costPerHour": 5.018635994892752}, {"dept": "66", "costPerHour": 4.3096427252823135}, {"dept": "67", "costPerHour": 4.592073672112334}, {"dept": "68", "costPerHour": 6.499407920328064}, {"dept": "69", "costPerHour": 5.292704660161336}, {"dept": "70", "costPerHour": 4.502215611036732}, {"dept": "71", "costPerHour": 5.125781437878925}, {"dept": "72", "costPerHour": 4.129666899698017}, {"dept": "73", "costPerHour": 2.934243073761926}, {"dept": "74", "costPerHour": 5.349241680937941}, {"dept": "75", "costPerHour": 6.379795005228747}, {"dept": "76", "costPerHour": 4.307614814068635}, {"dept": "77", "costPerHour": 4.62731845005259}, {"dept": "78", "costPerHour": 5.621896985629258}, {"dept": "79", "costPerHour": 4.250941534159147}, {"dept": "80", "costPerHour": 4.7351233625970535}, {"dept": "81", "costPerHour": 3.797842003543695}, {"dept": "82", "costPerHour": 2.466377012074881}, {"dept": "83", "costPerHour": 4.021701467669915}, {"dept": "84", "costPerHour": 5.150464587945683}, {"dept": "85", "costPerHour": 4.49748261694792}, {"dept": "86", "costPerHour": 5.121720214504284}, {"dept": "87", "costPerHour": 5.520490304577609}, {"dept": "88", "costPerHour": 7.039604254088634}, {"dept": "89", "costPerHour": 5.438920735722149}, {"dept": "91", "costPerHour": 5.184565709130246}, {"dept": "92", "costPerHour": 6.255946589912801}, {"dept": "94", "costPerHour": 3.23407818619677}, {"dept": "95", "costPerHour": 4.681268572809363}, {"dept": "MOYENNE NAT", "costPerHour": 3.331616567565655}, {"dept": "0.8", "costPerHour": 0.8}, {"dept": "0.9", "costPerHour": 0.9}, {"dept": "1", "costPerHour": 1}, {"dept": "1.1", "costPerHour": 1.1}, {"dept": "1.2", "costPerHour": 1.2}, {"dept": "1.3", "costPerHour": 1.3}, {"dept": "1.4", "costPerHour": 1.4}, {"dept": "1.5", "costPerHour": 1.5}, {"dept": "1.6", "costPerHour": 1.6}, {"dept": "1.7", "costPerHour": 1.7}, {"dept": "1.8", "costPerHour": 1.8}, {"dept": "1.9", "costPerHour": 1.9}, {"dept": "2", "costPerHour": 2}, {"dept": "2.1", "costPerHour": 2.1}, {"dept": "2.2", "costPerHour": 2.2}, {"dept": "2.3", "costPerHour": 2.3}, {"dept": "2.4", "costPerHour": 2.4}, {"dept": "2.5", "costPerHour": 2.5}, {"dept": "2.6", "costPerHour": 2.6}, {"dept": "2.7", "costPerHour": 2.7}, {"dept": "2.8", "costPerHour": 2.8}, {"dept": "2.9", "costPerHour": 2.9}, {"dept": "3", "costPerHour": 3}, {"dept": "3.1", "costPerHour": 3.1}, {"dept": "3.2", "costPerHour": 3.2}, {"dept": "3.3", "costPerHour": 3.3}, {"dept": "3.4", "costPerHour": 3.4}, {"dept": "3.5", "costPerHour": 3.5}, {"dept": "3.6", "costPerHour": 3.6}, {"dept": "3.7", "costPerHour": 3.7}, {"dept": "3.8", "costPerHour": 3.8}, {"dept": "3.9", "costPerHour": 3.9}, {"dept": "4", "costPerHour": 4}, {"dept": "4.1", "costPerHour": 4.1}, {"dept": "4.2", "costPerHour": 4.2}, {"dept": "4.3", "costPerHour": 4.3}, {"dept": "4.4", "costPerHour": 4.4}, {"dept": "4.5", "costPerHour": 4.5}, {"dept": "4.6", "costPerHour": 4.6}, {"dept": "4.7", "costPerHour": 4.7}, {"dept": "4.8", "costPerHour": 4.8}, {"dept": "4.9", "costPerHour": 4.9}, {"dept": "5", "costPerHour": 5}, {"dept": "5.1", "costPerHour": 5.1}, {"dept": "5.2", "costPerHour": 5.2}, {"dept": "5.3", "costPerHour": 5.3}, {"dept": "5.4", "costPerHour": 5.4}, {"dept": "5.5", "costPerHour": 5.5}, {"dept": "5.6", "costPerHour": 5.6}, {"dept": "5.7", "costPerHour": 5.7}, {"dept": "5.8", "costPerHour": 5.8}, {"dept": "5.9", "costPerHour": 5.9}, {"dept": "6", "costPerHour": 6}, {"dept": "6.1", "costPerHour": 6.1}, {"dept": "6.2", "costPerHour": 6.2}, {"dept": "6.3", "costPerHour": null}, {"dept": "6.4", "costPerHour": 6.4}, {"dept": "6.5", "costPerHour": 6.5}, {"dept": "6.6", "costPerHour": 6.6}, {"dept": "6.7", "costPerHour": 6.7}, {"dept": "6.8", "costPerHour": 6.8}, {"dept": "6.9", "costPerHour": 6.9}, {"dept": "7", "costPerHour": 7}, {"dept": "7.1", "costPerHour": 7.1}, {"dept": "7.2", "costPerHour": 7.2}, {"dept": "7.3", "costPerHour": 7.3}, {"dept": "7.4", "costPerHour": 7.4}, {"dept": "7.5", "costPerHour": 7.5}, {"dept": "7.6", "costPerHour": 7.6}, {"dept": "7.7", "costPerHour": 7.7}, {"dept": "7.8", "costPerHour": 7.8}, {"dept": "7.89999999999999", "costPerHour": 7.89999999999999}, {"dept": "7.99999999999999", "costPerHour": 7.99999999999999}, {"dept": "8.09999999999999", "costPerHour": 8.09999999999999}, {"dept": "8.19999999999999", "costPerHour": 8.19999999999999}]};
+var GOLDEN_TARIFAIRE = {"inputs": {"D3": "SIMULATEUR INDUSTRIE", "D8": " ", "D11": 11.88, "D12": 9, "F11": "NON", "F12": "NON", "F13": "OUI", "H11": "OUI", "H12": 3.5, "I12": 3.5, "H13": 7.3, "I13": 20.7, "D16": 5, "D17": 43, "D18": 0, "D19": 0, "D20": 0, "D21": "NON", "F16": "PAS DE TRANSPORT PD", "F17": 0, "F18": null, "F19": -80, "F21": null, "H16": 1.78, "H21": 0, "D30": 0, "C25": "MAJO DIMANCHE 80 %", "C26": "MAJO FERIE 100 %", "C27": "MAJO DE NUIT 10%", "C28": "HEURES SUPPLEMENTAIRES 25%", "C30": "MAJO NORMALES 50 %", "C52": "PARTICIPATION LIBRE", "D37": 5, "E37": 0, "D38": 0, "E38": 0, "D39": 0, "E39": 0, "D40": 0, "E40": 0, "D41": 0, "E41": 0, "D44": 0, "E44": 0, "D47": 0, "E47": 0, "D48": 0, "E48": 0, "E50": 0, "L14": 22.6, "L17": 15, "L18": "OUI", "L19": "OUI", "L20": "OUI", "L21": "OUI", "L22": "NON", "L24": 35, "M52": 0, "L52": 35, "M54": "NON", "M63": 0, "N27": 1.9, "M47": 1, "M48": 1}, "golden": {"F42": 534.6, "F32": 0, "F33": 0, "D32": 534.6, "D33": 534.6, "F59": -80, "F88": 81.70516400000001, "H88": 31.435090399999922, "H83": 165.56546160000008, "F89": 368.96273571200004, "F90": 368.96273571200004, "F91": 387, "F92": 150.5, "F93": 799.3207903999999, "F94": 817.3580546879998, "F43": 3.9321002879999947, "F14": 336.40833599999996, "O42": 951.5880000000002, "O60": 951.5880000000002, "O61": 152.26720960000034, "O62": 22.1299534883721, "O64": 152.26720960000034, "H14": 21.146400000000003, "H17": 16.001379756785532, "D14": 8.580528737488374, "D15": 10.51073252490977, "E15": 10.51073252490977, "D24": 35, "D28": 8, "D29": 0, "F24": 415.8, "E25": 9.504000000000001, "E26": 11.88, "E27": 1.1880000000000002, "E28": 14.850000000000001, "E29": 17.82, "E30": 5.94, "D107": 644, "D108": 1238.3999999999999, "D109": 1733.7599999999998, "D98": 0.2815451851851853, "D100": 0.2815451851851853, "D101": 481.14000000000004, "D102": 534.6, "H62": 37.422000000000004, "H63": 2.6302320000000003, "H64": 0.769824, "H66": 0, "H67": 2.3135000000000003, "F67": 2.3135000000000003, "H68": 16.038, "H69": 45.70830000000001, "H70": 10.79892, "H71": 32.12946, "H74": 18.4437, "H75": 21.811680000000003, "H77": 20.133036, "H78": 0.8019, "I17": 9.720087052379819, "I22": 9.720087052379819, "H22": 16.001379756785532, "D13": 387, "F22": 387, "O52": 0, "L52": 35, "F52": -80, "D104": 165.56546160000008, "D105": 215.2351000800001, "E104": 165.56546160000008, "D62": 534.6, "D63": 534.6, "F62": 29.403000000000002, "F63": 2.961684, "F65": 0, "F66": 0, "F69": 36.8874, "F70": 2.1384000000000003, "F71": 21.43746, "F76": -13.436280000000002, "F79": 0, "F80": 0, "F81": 0}, "golden_hidden": {"F42": 646.8660000000001, "F32": 53.46000000000001, "F33": 58.80600000000001, "D32": 534.6, "D33": 588.0600000000001, "F88": 102.26585714000001, "H88": 141.72681802, "H83": 99.82623420000003, "F89": 451.9614985711201, "F91": 451.9614985711201, "F93": 859.0928180200001, "D62": 646.8660000000001, "D101": 582.1794000000001, "D102": 646.8660000000001, "D14": 10.51073252490977, "D15": 10.51073252490977, "H17": 9.720087052379819, "I17": 9.720087052379819, "F43": 13.836273428880007, "D104": 99.82623420000003, "E104": 99.82623420000003, "O60": 951.5880000000002, "O64": 92.4951819800001, "O65": 92.4951819800001, "F92": 150.5, "F67": 2.3135000000000003, "H67": 2.3135000000000003}};
+if (typeof module !== 'undefined') module.exports = { DB: DB, GOLDEN_NEW: GOLDEN_NEW, GOLDEN_V1: GOLDEN_V1, GOLDEN_TARIFAIRE: GOLDEN_TARIFAIRE };
+</script>
+<script>
+/* ============================================================
+ * Moteur de calcul — portage fidèle de deux classeurs :
+ *  - secteur "agri"      : 20250902_SIMULATEUR AGRI.xlsm (MSA, exonération TO-DE)
+ *  - secteur "tarifaire" : SIMULATEUR_TARIFAIRE_11_2024.xlsm (Industrie/BTP, allègement Fillon)
+ * Feuilles portées : SIMULATOR, "NE PAS TOUCHER NI REGARDER" (scénario
+ * IFM+ICCP forcés), SIMULATEUR TODE (agri).
+ * Les clés des objets résultats reprennent les adresses de cellules Excel
+ * (F42, H88, O64...) pour permettre la vérification contre les classeurs.
+ * ============================================================ */
+"use strict";
+
+const OUI = s => String(s == null ? "" : s).trim().toUpperCase() === "OUI";
+
+/* Constantes communes figées dans les classeurs */
+const CONST = {
+  SMIC: 11.88,            // SMIC horaire (TO-DE, Fillon, assiette mini)
+  SMIC_FIGE: 11.52,       // "Figé au 31/12/2023" — plafonds 2,5 / 3,5 SMIC (D108/D109)
+  ICCP_TAUX: 0.10,        // E33
+  IFM_TAUX: 0.10,         // E32
+  FILLON_T: 0.3194        // D98
+};
+
+/* Taux de cotisations par défaut — secteur AGRI (E = salarial, G = patronal) */
+const RATES_AGRI = {
+  maladieSal: 5.5,        // E62 (si attestation fiscale = OUI)
+  compIIDT1Sal: 0.5,      // E63
+  compIIDT1Pat: 0.5,      // G63
+  nonCsgT1Pat: 0,         // G64 (ligne absente du classeur agri)
+  compIIDT2Sal: 0.3366,   // E65
+  compIIDT2Pat: 0.2473,   // G65
+  nonCsgT2Sal: 0,         // E66 (ligne absente)
+  nonCsgT2Pat: 0,         // G66 (ligne absente)
+  mutuelleSal: 0,         // E67 — % du plafond (D107)
+  mutuellePat: 0,         // G67
+  atPat: 2.2,             // G68
+  ssPlafSal: 6.9,         // E69
+  ssPlafPat: 8.55,        // G69
+  ssDeplafSal: 0.4,       // E70
+  ssDeplafPat: 2.02,      // G70
+  compT1Sal: 4.01,        // E71
+  compT1Pat: 6.01,        // G71
+  compT2Sal: 9.72,        // E72
+  compT2Pat: 14.57,       // G72
+  cetSal: 0.14,           // E73
+  cetPat: 0.14,           // G73
+  chomagePat: 4.3,        // G75
+  redSalHSup: 11.31,      // E76
+  autresSal: 0.01,        // E77
+  autresPat: 0.3 + 0.016 + 0.1 + 0.55 + 0.68 + 1 + 0.42 + 0.05 + 0.01 + 0.04 + 0.2, // G77
+  statutairesPat: 0,      // G78
+  csgDedSal: 6.8,         // E79 (si attestation fiscale = NON)
+  csgNonDedSal: 2.9,      // E80
+  csgNonDedHSSal: 9.7,    // E81
+  redPatHSupParH: -1.5    // G82 (€ par heure sup)
+};
+
+/* Taux — secteur TARIFAIRE 11/2024 */
+const RATES_TARIFAIRE = Object.assign({}, RATES_AGRI, {
+  compIIDT1Sal: 0.554,    // E63
+  compIIDT1Pat: 0.492,    // G63
+  nonCsgT1Pat: 0.144,     // G64 (Comp. IID NON CSG T1, patronale)
+  compIIDT2Sal: 0.469,    // E65
+  compIIDT2Pat: 0.408,    // G65
+  nonCsgT2Sal: 0,         // E66 (vide dans le classeur)
+  nonCsgT2Pat: 0.133,     // G66
+  mutuelleSal: 0.0661,    // E67 — € PAR HEURE (base D24)
+  mutuellePat: 0.0661,    // G67
+  atPat: 3,               // G68
+  chomagePat: 4.08,       // G75
+  autresSal: 0,           // E77 absent du classeur tarifaire
+  autresPat: 3.766,       // G77
+  statutairesPat: 0.15    // G78
+});
+
+/* Configuration par secteur */
+const SECTORS = {
+  agri: {
+    label: "Agricole — MSA · TO-DE",
+    rates: RATES_AGRI,
+    plafondSSMois: 3925,        // D107 = 3925/30*jours
+    retenueJour: 55,            // F43
+    dfsFactor: 0.8,             // D101 = brut × 0,8 (abattement DFS 20 %)
+    dfsOnMain: false,           // D62 SIMULATOR = F42 (abattement sur feuille cachée seulement)
+    exo: "tode",                // H83
+    mutuelleMode: "pctPlafond", // F67 = D107 × taux/100
+    ifmMode: "input",           // D32 = saisie (feuille cachée uniquement)
+    iccpMode: "rows",           // D33 = somme des lignes de paie
+    ifmMainToggle: false,       // pas de ligne IFM sur SIMULATOR
+    netSubT2Main: true,         // F89 SIMULATOR soustrait F65+F72+F73 (+F77)
+    o52Mode: "flat",            // O52 SIMULATOR = M52 ; caché = 0
+    logementMode: "hebdo",      // F92 = coût hebdo
+    targetCell: "O66",          // M14 = O66 − L14 (taux hors logement)
+    baremePD: 7.4, baremeGD: 21.1,
+    f77Cross: true,             // caché F77 = SIMULATOR!F77
+    hiddenLinkedRates: ["compIIDT1Sal", "compIIDT1Pat", "compIIDT2Sal", "compIIDT2Pat",
+                        "mutuelleSal", "mutuellePat", "atPat", "chomagePat", "autresSal", "autresPat"],
+    modes: ["SIMULATEUR MSA", "SIMULATEUR AGRICOLE", "SIMULATEUR INDUSTRIE",
+            "SIMULATEUR BTP GRAND D", "SIMULATEUR BTP PETIT D"]
+  },
+  tarifaire: {
+    label: "Tarifaire — Industrie · BTP",
+    rates: RATES_TARIFAIRE,
+    plafondSSMois: 3864,        // D107 = 3864/30*jours (2024)
+    retenueJour: 54,            // F43
+    dfsFactor: 0.9,             // D101 = brut × 0,9 (abattement DFS 10 %)
+    dfsOnMain: true,            // D62 = IF(INDUSTRIE, F42, max(D101, D102)) sur les DEUX feuilles
+    exo: "fillon",              // H83 = IF(BTP GD, MIN(D105,E105), D104)
+    mutuelleMode: "perHour",    // F67 = D24 × taux (€/h, sans /100)
+    ifmMode: "rows",            // D32 = Σ lignes de paie (SIMULATOR sans F30, caché avec F30)
+    iccpMode: "ifm",            // D33 = D32 + F32
+    ifmMainToggle: true,        // F11 = choix utilisateur sur SIMULATOR
+    netSubT2Main: false,        // F89 ne soustrait ni F65/F72/F73 ni F77
+    o52Mode: "hours",           // O52 = L52 × M52, L52 = IF(logement, min(D17,35), 0)
+    logementMode: "horaire",    // F92 = coût €/h × heures logement (43 dans le classeur)
+    targetCell: "O62",          // M14 = O62 − L14 (taux global avec logement)
+    baremePD: 7.3, baremeGD: 20.7,
+    f77Cross: false,            // pas de F77 dans ce classeur
+    hiddenLinkedRates: [],      // tous les taux de la feuille cachée sont des littéraux
+    modes: ["SIMULATEUR INDUSTRIE", "SIMULATEUR BTP GRAND D", "SIMULATEUR BTP PETIT D"]
+  }
+};
+
+/* Valeurs par défaut des entrées = état de chaque classeur */
+function defaultInputs(DB, sector) {
+  sector = sector || "agri";
+  const cfg = SECTORS[sector];
+  const common = {
+    sector: sector,
+    client: "",
+    dept: "",
+    thBrut: 11.88,              // D11
+    attestation: true,          // F13
+    logement: true,             // H11
+    redevanceClient: 0,         // H21
+    baremeRepasPD: cfg.baremePD, // H13
+    baremeRepasGD: cfg.baremeGD, // I13
+    jours: 5,                   // D16
+    hNuit: 0, hDim: 0, hFerie: 0,
+    anRepasConsomme: false,     // D21
+    zonePD: "PAS DE TRANSPORT PD",
+    repasClient: 0, transpClient: 0, anRepasClient: 0,
+    majoFerieLabel: "MAJO FERIE 100 %",
+    majoNuitLabel: "MAJO DE NUIT 10%",
+    hSupLabel: "HEURES SUPPLEMENTAIRES 25%",
+    majoNormQty: 0,
+    ticketsQty: 0, ticketsVal: 0,
+    indemDecoucheRate: 0,       // E50
+    participationChoice: "PARTICIPATION LIBRE",
+    retraitANRepas: false,      // M54
+    remisePct: 0,               // M63
+    refactDim: true, refactFerie: true, refactNuit: true,
+    annualisation: false,
+    heuresFactNormal: 35,       // L24
+    refactIndem2: 1,            // M48
+    cibleMargePct: 15,          // L17
+    logementHeures: 43,         // multiplicateur F92 (classeur tarifaire : ×43 en dur)
+    rates: Object.assign({}, cfg.rates)
+  };
+  if (sector === "agri") {
+    return Object.assign(common, {
+      mode: "SIMULATEUR MSA",   // D3
+      netAttendu: 10,           // D12
+      ifm: false,               // (pas de ligne IFM sur SIMULATOR agri)
+      iccp: true,               // F12
+      logementHebdo: 135,       // H12 (€ / semaine)
+      logementHoraire: 0,
+      heures: 35,               // D17
+      coeff: 1.4681,            // H16
+      coeffHDN: 1.4,            // N27
+      majoDimLabel: "MAJO DIMANCHE 10 %",
+      majoNormLabel: "MAJO NORMALES 40 %",
+      baseIFM: 0,               // D32 (saisie, scénario IFM)
+      primes: [ {q:5, r:0, name:"Prime 1"}, {q:0, r:0, name:"Prime 2"}, {q:0, r:0, name:"Prime 3"},
+                {q:0, r:0, name:"Prime 4"}, {q:0, r:0, name:"Prime 5"} ],
+      indemnites: [ {q:5, r:6, name:"Indemnité 1"}, {q:0, r:0, name:"Indemnité 2"} ],
+      participationLibre: -50,  // F19
+      coutLogementFacture: 70,  // M52 (€ / semaine)
+      refactPrimes: true,       // L18
+      refactIndem1: 0,          // M47
+      cibleTauxFact: 17.45      // L14
+    });
+  }
+  return Object.assign(common, {
+    mode: "SIMULATEUR INDUSTRIE", // D3
+    netAttendu: 9,              // D12
+    ifm: false,                 // F11
+    iccp: false,                // F12
+    logementHebdo: 0,
+    logementHoraire: 3.5,       // I12/H12 (€ / heure, cf. LOGEMT)
+    heures: 43,                 // D17
+    coeff: 1.78,                // H16
+    coeffHDN: 1.9,              // N27
+    majoDimLabel: "MAJO DIMANCHE 80 %",
+    majoNormLabel: "MAJO NORMALES 50 %",
+    baseIFM: 0,
+    primes: [ {q:5, r:0, name:"Prime 1"}, {q:0, r:0, name:"Prime 2"}, {q:0, r:0, name:"Prime 3"},
+              {q:0, r:0, name:"Prime 4"}, {q:0, r:0, name:"Prime 5"} ],
+    indemnites: [ {q:0, r:0, name:"Indemnité 1"}, {q:0, r:0, name:"Indemnité 2"} ],
+    participationLibre: -80,    // F19
+    coutLogementFacture: 0,     // M52 (€ / heure facturé)
+    refactPrimes: true,         // L18
+    refactIndem1: 1,            // M47
+    cibleTauxFact: 22.6         // L14
+  });
+}
+
+function lookupMult(table, label) {
+  const row = table.find(r => r.label === label);
+  return row ? (row.mult != null ? row.mult : row.raw) : 0;
+}
+function lookupValue(table, label) {
+  const row = table.find(r => r.label === label);
+  return row ? row.value : 0;
+}
+
+/* TO-DE (exonération travailleurs occasionnels / demandeurs d'emploi — agri) */
+function computeTODE(hours, brut, brutHorsHS) {
+  const B1 = CONST.SMIC, B2 = hours;
+  const B3 = B1 * B2 * 1.25;
+  const B4 = B1 * B2 * 1.6;
+  const B8 = brutHorsHS < B3 ? "TOTALE" : (brutHorsHS > B3 && brutHorsHS < B4 ? "PARTIELLE" : "NON");
+  const msa = [7, 0.3, 8.55, 2.02, 0.46, 3.45, 0.1, 4.05].reduce((s, t) => s + brut * t / 100, 0);
+  const retraite = brut * 4.72 / 100 + brut * 1.29 / 100;
+  let B21 = 0, B22 = 0, B23 = 0, B24 = 0;
+  if (B8 === "TOTALE") { B21 = msa; B22 = retraite; }
+  if (B8 === "PARTIELLE") {
+    const k = (1.6 * B2 * B1 / brutHorsHS) - 1;
+    B23 = (1.25 * msa / 0.35) * k;
+    B24 = (1.25 * retraite / 0.35) * k;
+  }
+  return { seuilTotale: B3, seuilMax: B4, eligibilite: B8, msa, retraite,
+           B21, B22, B23, B24, total: B21 + B22 + B23 + B24 };
+}
+
+/* Calcule une feuille complète.
+ * variant: 'main' (SIMULATOR) ou 'hidden' (feuille cachée, IFM+ICCP forcés).
+ * hiddenAvance: {F55,F56} de la feuille cachée (pour F49/F51 de la principale).
+ * f77Override: secteur agri — le caché reprend F77 de la principale. */
+function computeSheet(i, variant, hiddenAvance, f77Override) {
+  const cfg = SECTORS[i.sector || "agri"];
+  const R = i.rates, S = {};
+  const isMain = variant === "main";
+  const mode = i.mode;
+  const netNull = (i.netAttendu == null);
+
+  /* --- Heures et majorations (lignes 24-31) --- */
+  S.D24 = (i.heures <= 35) ? i.heures : 35;
+  S.E24 = i.thBrut;
+  S.F24 = S.D24 * S.E24;
+  S.D25 = i.hDim;   S.E25 = i.thBrut * lookupMult(DB.majoDimanche, i.majoDimLabel);   S.F25 = S.D25 * S.E25;
+  S.D26 = i.hFerie; S.E26 = i.thBrut * lookupMult(DB.majoFerie, i.majoFerieLabel);    S.F26 = S.D26 * S.E26;
+  S.D27 = i.hNuit;  S.E27 = i.thBrut * lookupMult(DB.majoNuit, i.majoNuitLabel);      S.F27 = S.D27 * S.E27;
+  S.D28 = (i.heures >= 36) ? (i.heures < 44 ? i.heures - 35 : 8) : 0;
+  S.E28 = i.thBrut * lookupMult(DB.heuresSup, i.hSupLabel);
+  S.F28 = S.D28 * S.E28;
+  S.D29 = (i.heures >= 44) ? (i.heures < 48 ? i.heures - 43 : i.heures - S.D28 - S.D24) : 0;
+  S.E29 = S.E24 * 1.5;
+  S.F29 = S.D29 * S.E29;
+  S.D30 = i.majoNormQty; S.E30 = i.thBrut * lookupMult(DB.majoNormales, i.majoNormLabel); S.F30 = S.D30 * S.E30;
+  S.D31 = i.heures;
+
+  /* --- Barème zone km / repas --- */
+  S.H18 = lookupValue(DB.zonesKmPD, i.zonePD);
+  S.E45 = (i.transpClient < S.H18) ? i.transpClient : S.H18;
+  S.E46 = (i.repasClient > i.baremeRepasPD) ? i.baremeRepasPD : i.repasClient;
+  S.D45 = i.jours; S.F45 = S.D45 * S.E45;
+  S.D46 = i.jours; S.F46 = S.D46 * S.E46;
+
+  /* --- Primes au-delà des plafonds & AN repas (lignes 34-36) --- */
+  S.D34 = S.D46; S.E34 = i.repasClient - S.E46;  S.F34 = S.D34 * S.E34;
+  S.D35 = S.D45; S.E35 = i.transpClient - S.E45; S.F35 = S.D35 * S.E35;
+  S.D36 = i.jours; S.E36 = i.anRepasClient;      S.F36 = S.D36 * S.E36;
+
+  /* --- Primes 1-5 (lignes 37-41) --- */
+  for (let k = 0; k < 5; k++) {
+    S["F" + (37 + k)] = i.primes[k].q * i.primes[k].r;
+  }
+
+  /* --- IFM (ligne 32) & ICCP (ligne 33) --- */
+  const rowsSum = S.F24 + S.F25 + S.F26 + S.F27 + S.F28 + S.F29 + S.F30 +
+                  S.F34 + S.F35 + S.F36 + S.F37 + S.F38 + S.F39 + S.F40 + S.F41;
+  if (cfg.ifmMode === "input") {
+    S.D32 = i.baseIFM || 0;                       // agri : saisie
+  } else {
+    // tarifaire : SIMULATOR = Σ lignes SANS F30 ; caché = Σ lignes AVEC F30
+    S.D32 = rowsSum - (isMain ? S.F30 : 0);
+  }
+  const ifmOn = isMain ? (cfg.ifmMainToggle ? i.ifm : false) : true;  // caché : F11='OUI'
+  S.F32 = ifmOn ? S.D32 * CONST.IFM_TAUX : 0;
+  S.D33 = (cfg.iccpMode === "ifm") ? S.D32 + S.F32 : rowsSum;
+  const iccpOn = isMain ? i.iccp : true;          // caché : F12='OUI'
+  S.F33 = iccpOn ? S.D33 * CONST.ICCP_TAUX : 0;
+
+  /* --- TOTAL BRUT (F42 = SUM F24:F41) --- */
+  S.F42 = rowsSum + S.F32 + S.F33;
+
+  /* --- Plafonds (lignes 107-109) --- */
+  S.D107 = cfg.plafondSSMois / 30 * i.jours;
+  S.D108 = CONST.SMIC_FIGE * S.D31 * 2.5;
+  S.D109 = CONST.SMIC_FIGE * S.D31 * 3.5;
+
+  /* --- Assiette de cotisations (D62) --- */
+  S.D101 = S.F42 * cfg.dfsFactor;
+  S.D102 = (S.D24 * CONST.SMIC) + (S.D29 * CONST.SMIC * 1.5) +
+           (S.D28 * CONST.SMIC * (S.E24 ? S.E28 / S.E24 : 0)) + S.F32 + S.F33;
+  const dfsApplies = isMain ? cfg.dfsOnMain : true;
+  if (!dfsApplies) {
+    S.D62 = S.F42;
+  } else {
+    S.D62 = (mode === "SIMULATEUR INDUSTRIE") ? S.F42 : Math.max(S.D101, S.D102);
+  }
+
+  /* --- Cotisations (lignes 62-82) : F = salarial, H = patronal --- */
+  const att = i.attestation; // F13
+  S.F62 = att ? S.D62 * R.maladieSal / 100 : 0;
+  S.G62 = (S.D62 <= S.D108) ? 7 : 13;
+  S.H62 = S.D62 * S.G62 / 100;
+  S.D63 = Math.min(S.D62, S.D107);
+  S.F63 = S.D63 * R.compIIDT1Sal / 100;  S.H63 = S.D63 * R.compIIDT1Pat / 100;
+  S.D64 = S.D63;                                        // ligne 64 (tarifaire) : patronale seule
+  S.H64 = S.D64 * R.nonCsgT1Pat / 100;
+  S.D65 = S.D62 - S.D63;
+  S.F65 = S.D65 * R.compIIDT2Sal / 100;  S.H65 = S.D65 * R.compIIDT2Pat / 100;
+  S.D66 = S.D65;                                        // ligne 66 (tarifaire)
+  S.F66 = S.D66 * R.nonCsgT2Sal / 100;   S.H66 = S.D66 * R.nonCsgT2Pat / 100;
+  if (cfg.mutuelleMode === "pctPlafond") {
+    S.D67 = S.D107;
+    S.F67 = S.D67 * R.mutuelleSal / 100;   S.H67 = S.D67 * R.mutuellePat / 100;
+  } else {
+    S.D67 = S.D24;                                      // tarifaire : € par heure normale
+    S.F67 = S.D67 * R.mutuelleSal;         S.H67 = S.D67 * R.mutuellePat;
+  }
+  S.H68 = S.D62 * R.atPat / 100;
+  /* ligne 69 : base D63 (plafonnée) sur SIMULATOR, D62 (non plafonnée) sur la feuille cachée */
+  S.D69 = isMain ? S.D63 : S.D62;
+  S.F69 = S.D69 * R.ssPlafSal / 100;     S.H69 = S.D69 * R.ssPlafPat / 100;
+  S.F70 = S.D62 * R.ssDeplafSal / 100;   S.H70 = S.D62 * R.ssDeplafPat / 100;
+  S.F71 = S.D63 * R.compT1Sal / 100;     S.H71 = S.D63 * R.compT1Pat / 100;
+  S.D72 = S.D62 - S.D63;
+  S.F72 = S.D72 * R.compT2Sal / 100;     S.H72 = S.D72 * R.compT2Pat / 100;
+  S.D73 = (S.D72 > 0) ? S.D62 : 0;
+  S.F73 = S.D73 * R.cetSal / 100;        S.H73 = S.D73 * R.cetPat / 100;
+  S.G74 = (S.D62 <= S.D109) ? 3.45 : 5.25;
+  S.H74 = S.D62 * S.G74 / 100;
+  S.H75 = S.D62 * R.chomagePat / 100;
+  S.D76 = S.F42 ? (S.F28 + S.F29) * (S.D62 / S.F42) : 0;
+  S.F76 = -S.D76 * R.redSalHSup / 100;
+  S.F77 = (f77Override != null) ? f77Override : S.D62 * R.autresSal / 100;
+  S.H77 = S.D62 * R.autresPat / 100;
+  S.H78 = S.D62 * R.statutairesPat / 100;
+  S.D79 = ((S.F42 - S.F29 - S.F28) * 0.9825) + S.H67 + S.H63 + S.H65;
+  S.F79 = att ? 0 : S.D79 * R.csgDedSal / 100;
+  S.F80 = att ? 0 : S.D79 * R.csgNonDedSal / 100;
+  S.D81 = (S.F28 + S.F29) * 0.9825;
+  S.F81 = att ? 0 : S.D81 * R.csgNonDedHSSal / 100;
+  S.D82 = S.D28 + S.D29;
+  S.H82 = S.D82 * R.redPatHSupParH;
+
+  /* --- Tickets restaurant (ligne 44) --- */
+  S.F44 = -(i.ticketsQty * i.ticketsVal * 0.4);
+  S.H44 = i.ticketsQty * i.ticketsVal * 0.6;
+
+  /* --- Fillon (lignes 97-105) --- */
+  S.D98 = S.F42 ? (CONST.FILLON_T / 0.6) * ((1.6 * (CONST.SMIC * S.D31) / S.F42) - 1) : 0;
+  S.D99 = Math.min(S.D98, CONST.FILLON_T);
+  S.D100 = Math.max(S.D99, 0);
+  S.E98 = S.D62 ? (CONST.FILLON_T / 0.6) * ((1.6 * (CONST.SMIC * S.D31) / S.D62) - 1) : 0;
+  S.E99 = Math.min(S.E98, CONST.FILLON_T);
+  S.E100 = Math.max(S.E99, 0);
+  S.D104 = (S.D100 * S.F42) * 1.1;
+  S.E104 = (S.E100 * S.D62) * 1.1;
+  S.D105 = S.D104 * 1.3;
+  S.E105 = S.E104;
+
+  /* --- Exonération (H83) : TO-DE (agri) ou allègement Fillon (tarifaire) --- */
+  S.tode = computeTODE(S.D24, S.F42, S.F42 - S.F28 - S.F29);
+  if (cfg.exo === "tode") {
+    S.H83 = S.tode.total;
+  } else {
+    S.H83 = (mode === "SIMULATEUR BTP GRAND D") ? Math.min(S.D105, S.E105) : S.D104;
+  }
+
+  /* --- Provision CET (ligne 85) --- */
+  S.D85 = (S.F32 + S.F33) > 0 ? 0 : S.D32 * 0.21;
+  S.H85 = S.D85 * 0.45;
+
+  /* --- Totaux cotisations (ligne 88) ---
+   * agri : F88 inclut F77 ; tarifaire : pas de F77 (taux 0 → terme nul). */
+  S.F88 = S.F62 + S.F63 + S.F67 + S.F69 + S.F70 + S.F71 + S.F76 +
+          S.F79 + S.F80 + S.F81 + S.F65 + S.F66 + S.F72 + S.F73 + S.F77;
+  S.H88 = (S.H62 + S.H63 + S.H64 + S.H65 + S.H66 + S.H67 + S.H68 + S.H69 + S.H70 + S.H71 +
+           S.H72 + S.H73 + S.H74 + S.H75 + S.H77 + S.H78 + S.H82) - S.H83 + S.H44;
+
+  /* --- Net imposable & retenue à la source (F14, F43) --- */
+  S.F14 = S.F42 + S.H67 + S.F80 + S.F81 - S.F88 - S.F28 - S.F29;
+  S.F43 = ((S.F14 * 0.9) - (cfg.retenueJour * i.jours)) * 0.12;
+
+  /* --- Indemnités (lignes 47-51) --- */
+  S.F47 = i.indemnites[0].q * i.indemnites[0].r;
+  S.F48 = i.indemnites[1].q * i.indemnites[1].r;
+  S.D49 = (mode === "SIMULATEUR BTP GRAND D") ? i.jours : 0;
+  S.D50 = (mode === "SIMULATEUR BTP GRAND D") ? i.jours - 1 : 0;
+  S.F50 = S.D50 * i.indemDecoucheRate;
+  S.D51 = (mode === "SIMULATEUR INDUSTRIE") ? i.jours : 0;
+
+  /* --- Logement (F92) --- */
+  if (cfg.logementMode === "hebdo") {
+    S.H12 = i.logementHebdo;
+    S.F92 = i.logement ? S.H12 : 0;
+  } else {
+    S.H12 = i.logementHoraire;                    // € / heure (LOGEMT)
+    S.F92 = i.logement ? S.H12 * i.logementHeures : 0;   // classeur : × 43 en dur
+  }
+
+  /* --- Participation (F52-F54) --- */
+  const partMap = {
+    "PARTICIPATION FORFAIT": -25,
+    "PARTICIPATION FACTURE": -S.F92,
+    "PARTICIPATION ANNULATION GD": -S.F50,
+    "PARTICIPATION LIBRE": i.participationLibre
+  };
+  S.F52 = partMap[i.participationChoice] != null ? partMap[i.participationChoice] : 0;
+  S.F53 = (S.F52 === 0) ? -i.redevanceClient : 0;
+  S.F54 = i.anRepasConsomme ? -S.F36 : 0;
+
+  /* --- Net attendu (D13, F22) --- */
+  S.D13 = netNull ? null : i.netAttendu * S.D31;
+  S.F22 = netNull ? 0 : (i.netAttendu * i.heures) + (S.F27 * 0.85);
+
+  /* --- TOTAL NET AVANT REGUL (F89) — sans F49/F51 ---
+   * agri SIMULATOR : soustrait aussi F65+F72+F73 et F77 ; caché : F77 seul.
+   * tarifaire : aucune de ces soustractions. */
+  S.F89 = S.F42 - S.F43 + S.F45 + S.F46 + S.F47 + S.F48 + S.F52 -
+          S.F62 - S.F63 - S.F67 - S.F69 - S.F70 - S.F71 - S.F76 -
+          S.F79 - S.F80 - S.F81 + S.F53 + S.F54 + S.F50 + S.F44 -
+          (cfg.f77Cross ? S.F77 : 0) -
+          (isMain && cfg.netSubT2Main ? (S.F65 + S.F72 + S.F73) : 0);
+
+  /* --- Avances sur salaire (F55/F56) --- */
+  S.F55 = netNull ? 0 : Math.max(0, S.D13 - S.F89);
+  S.F56 = (!netNull && S.F22 > S.D13 && S.F89 < S.F22) ? S.F22 - S.F89 : 0;
+
+  /* --- F49 / F51 (la feuille principale utilise les avances du caché) --- */
+  const av = isMain ? hiddenAvance : { F55: S.F55, F56: S.F56 };
+  const maxAv = Math.max(av.F55, av.F56);
+  S.F49 = (maxAv > i.baremeRepasGD * S.D49) ? i.baremeRepasGD * S.D49 : maxAv;
+  S.E49 = S.D49 === 0 ? 0 : S.F49 / S.D49;
+  S.F51 = (maxAv > S.H18 * S.D51) ? S.H18 * S.D51 : maxAv;
+
+  /* --- F90, F57/F58, F91 ---
+   * SIMULATOR!F90 n'inclut PAS F44 (tickets restaurant) alors que F89 l'inclut ;
+   * la feuille cachée conserve F44 dans les deux (vrai dans les deux classeurs). */
+  S.F90 = S.F89 + S.F51 + S.F49 - (isMain ? S.F44 : 0);
+  S.F57 = netNull ? 0 : Math.max(0, S.D13 - S.F90);
+  S.F58 = (!netNull && S.F22 > S.D13 && S.F90 < S.F22) ? S.F22 - S.F90 : 0;
+  S.F91 = S.F90 + Math.max(S.F57, S.F58);
+  S.G55 = (S.F57 >= 0) ? 0 : S.F55;
+  S.G56 = (S.F58 >= 0) ? 0 : S.F56;
+  S.G57 = (S.F58 > S.F57) ? 0 : S.F57;
+  S.G58 = (S.F58 > 0) ? S.F58 : 0;
+
+  /* --- TOTAL NET (F59) & coûts globaux (F93/F94) --- */
+  S.F59 = S.F44 + S.F45 + S.F46 + S.F47 + S.F48 + S.F49 + S.F50 + S.F51 + S.F52 + S.F53 + S.F54;
+  S.F93 = S.F42 + S.H88 + S.F45 + S.F46 + S.F47 + S.F48 + S.F92 + S.F52 +
+          S.D85 + S.H85 + S.F53 + S.F54 + S.F51 + S.F49 + S.F50 + S.F44;
+  S.F94 = S.F93 + S.G55 + S.G56 + S.G57 + S.G58;
+
+  /* --- Nets par heure (D14/D15) --- */
+  S.D14 = S.F89 / S.D31;
+  S.D15 = S.F91 / S.D31;
+
+  /* --- FACTURATION (colonnes K-P) --- */
+  S.H16 = i.coeff;
+  S.H14 = i.thBrut * i.coeff;
+  S.L24 = i.heuresFactNormal;
+  S.O24 = S.L24 * S.H14;                          P(S, 24);
+  S.L25 = i.refactDim ? S.D25 : 0;   S.O25 = S.L25 * S.E25 * i.coeff;  P(S, 25);
+  S.L26 = i.refactFerie ? S.D26 : 0; S.O26 = S.L26 * S.E26 * i.coeff;  P(S, 26);
+  S.L27 = i.refactNuit ? S.D27 : 0;
+  S.O27 = S.L27 * S.E27 * i.coeff;
+  S.P27 = S.L27 * S.E27 * i.coeffHDN;
+  /* L29 : IFS(D17<44→0 ; D17=L24→0 ; L24>=43→D17-L24 ; L24<43→D17-43) */
+  S.L29 = (i.heures < 44) ? 0 : (i.heures === S.L24 ? 0 : (S.L24 >= 43 ? i.heures - S.L24 : i.heures - 43));
+  S.L28 = i.annualisation ? 0 : (i.heures > S.L24 ? i.heures - S.L24 - S.L29 : 0);
+  S.O28 = S.L28 * S.E28 * i.coeff;  P(S, 28);
+  S.O29 = S.L29 * S.E29 * i.coeff;  P(S, 29);
+  S.L30 = S.D30;  S.O30 = S.L30 * S.E30 * i.coeff;  P(S, 30);
+  S.M34 = i.refactPrimes ? i.coeff : 0;
+  S.L34 = S.F34; S.O34 = S.L34 * S.M34; P(S, 34);
+  S.L35 = S.F35; S.O35 = S.L35 * S.M34; P(S, 35);
+  S.L36 = S.F36; S.O36 = S.L36 * S.M34; P(S, 36);
+  S.L37 = S.F37; S.O37 = S.L37 * S.M34; P(S, 37);
+  S.L38 = S.F38; S.O38 = S.L38 * S.M34; P(S, 38);
+  S.L39 = S.F39; S.O39 = S.L39 * S.M34; P(S, 39);
+  S.L40 = S.F40; S.O40 = S.L40 * S.M34; P(S, 40);
+  S.L41 = S.F41; S.O41 = S.L41 * S.M34; P(S, 41);
+  S.O45 = S.F45 * 1;              P(S, 45);
+  S.O46 = S.F46 * 1;              P(S, 46);
+  S.O47 = S.F47 * i.refactIndem1; P(S, 47);
+  S.O48 = S.F48 * i.refactIndem2; P(S, 48);
+  S.O49 = S.F49 * 1;              P(S, 49);
+  S.O50 = S.F50 * 1;              P(S, 50);
+  if (cfg.o52Mode === "flat") {
+    S.L52 = 0;
+    S.O52 = isMain ? i.coutLogementFacture : 0;   // agri : M52 € / semaine (caché : 0)
+  } else {
+    S.L52 = i.logement ? Math.min(i.heures, 35) : 0;   // tarifaire : heures × € / h
+    S.O52 = S.L52 * i.coutLogementFacture;
+  }
+  S.P52 = S.O52;
+  S.O54 = i.retraitANRepas ? S.F54 : 0;  P(S, 54);
+
+  const oRows = [24, 25, 26, 27, 28, 29, 30, 34, 35, 36, 37, 38, 39, 40, 41];
+  S.O42 = oRows.reduce((s, r) => s + S["O" + r], 0);
+  S.P42 = oRows.reduce((s, r) => s + S["P" + r], 0);
+  const extra = [45, 46, 47, 48, 49, 50, 52, 54];
+  S.O60 = S.O42 + extra.reduce((s, r) => s + S["O" + r], 0);
+  S.P60 = S.P42 + extra.reduce((s, r) => s + S["P" + r], 0);
+  S.O58 = S.O60 - S.O52;
+  S.P58 = S.P60 - S.P52;
+  S.O61 = S.O60 - S.F93;
+  S.P61 = S.P60 - S.F93;
+  S.O62 = i.heures ? S.O60 / i.heures : 0;
+  S.P62 = i.heures ? S.P60 / i.heures : 0;
+  S.O63 = S.O60 - (S.O42 * i.remisePct / 100);
+  S.P63 = S.P60 - (S.P42 * i.remisePct / 100);
+  S.O64 = S.O61 - (S.O42 * i.remisePct / 100);
+  S.P64 = S.P61 - (i.remisePct * S.P42 / 100);
+  if (isMain) {
+    S.O65 = S.O60 ? S.F92 / S.O60 : 0;
+    S.P65 = S.P60 ? S.F92 / S.P60 : 0;
+  } else {
+    const g = S.G55 + S.G56 + S.G57 + S.G58;
+    S.O65 = S.O64 - g;
+    S.P65 = S.P64 - g;
+  }
+  S.O66 = i.heures ? S.O58 / i.heures : 0;
+  S.P66 = i.heures ? S.P58 / i.heures : 0;
+  S.H17 = S.O60 ? S.O64 / S.O60 * 100 : 0;
+  S.H22 = S.P60 ? S.P64 / S.P60 * 100 : 0;
+  return S;
+}
+
+function P(S, row) { S["P" + row] = S["O" + row]; }
+
+/* Calcul complet : feuille cachée d'abord, puis feuille principale. */
+function compute(i) {
+  const cfg = SECTORS[i.sector || "agri"];
+  const pre = computeSheet(i, "main", { F55: 0, F56: 0 });
+  const hiddenRates = Object.assign({}, cfg.rates);
+  for (const k of cfg.hiddenLinkedRates) hiddenRates[k] = i.rates[k];
+  const hidden = computeSheet(Object.assign({}, i, { rates: hiddenRates }), "hidden", null,
+                              cfg.f77Cross ? pre.F77 : null);
+  const main = computeSheet(i, "main", { F55: hidden.F55, F56: hidden.F56 });
+  main.D15 = hidden.F91 / hidden.D31;   // SIMULATOR!D15 = caché D15
+  main.E15 = hidden.F89 / hidden.D31;   // SIMULATOR!E15 = caché D14
+  // Excel : F15 = E15 − D12 donne #VALEUR! quand D12 = "pas de net attendu" → null ici
+  main.F15 = (i.netAttendu == null) ? null : main.E15 - i.netAttendu;
+  hidden.I17 = hidden.O60 ? hidden.O65 / hidden.O60 * 100 : 0;
+  hidden.I22 = hidden.P60 ? hidden.P65 / hidden.P60 * 100 : 0;
+  main.I17 = hidden.I17;
+  main.I22 = hidden.I22;
+  main.I57 = hidden.G55 + hidden.G56 + hidden.G57 + hidden.G58;
+  main.M14 = (cfg.targetCell === "O62" ? main.O62 : main.O66) - i.cibleTauxFact;
+  main.M17 = main.H17 - i.cibleMargePct;
+  return { main, hidden };
+}
+
+/* --- Recherche de coefficient (résolution directe, amélioration vs Excel) --- */
+function solveCoeff(i, evalFn, target, lo, hi) {
+  lo = lo == null ? 0.01 : lo; hi = hi == null ? 10 : hi;
+  const f = c => evalFn(compute(Object.assign({}, i, { coeff: c }))) - target;
+  let flo = f(lo), fhi = f(hi);
+  if (isNaN(flo) || isNaN(fhi) || flo * fhi > 0) return null;
+  for (let k = 0; k < 80; k++) {
+    const mid = (lo + hi) / 2, fm = f(mid);
+    if (Math.abs(fm) < 1e-10) return mid;
+    if (flo * fm <= 0) { hi = mid; fhi = fm; } else { lo = mid; flo = fm; }
+  }
+  return (lo + hi) / 2;
+}
+function coeffPourTauxFact(i, tauxCible)  { return solveCoeff(i, r => r.main.O66, tauxCible); }
+function coeffPourTauxFactAvecLogement(i, tauxCible) { return solveCoeff(i, r => r.main.O62, tauxCible); }
+function coeffPourMarge(i, margeCiblePct) { return solveCoeff(i, r => r.main.H17, margeCiblePct); }
+/* cible de taux du secteur : O66 (agri, hors logement) ou O62 (tarifaire, global) */
+function coeffPourTauxSecteur(i, tauxCible) {
+  return SECTORS[i.sector || "agri"].targetCell === "O62"
+    ? coeffPourTauxFactAvecLogement(i, tauxCible) : coeffPourTauxFact(i, tauxCible);
+}
+
+if (typeof module !== "undefined") {
+  module.exports = { compute, computeSheet, computeTODE, defaultInputs, SECTORS, CONST,
+                     RATES_AGRI, RATES_TARIFAIRE,
+                     coeffPourTauxFact, coeffPourMarge, coeffPourTauxFactAvecLogement,
+                     coeffPourTauxSecteur, solveCoeff };
+}
+</script>
+<script>
+"use strict";
+/* ================= HELPERS ================= */
+const $ = id => document.getElementById(id);
+const EUR = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
+const N2 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const N4 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+const fmtE = v => isFinite(v) ? EUR.format(v) : "—";
+const fmtP = v => isFinite(v) ? N2.format(v) + " %" : "—";
+const num = el => { const v = parseFloat(el.value); return isFinite(v) ? v : 0; };
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+/* ================= STATE ================= */
+let inp = defaultInputs(DB, "agri");
+
+/* ================= POPULATE SELECTS ================= */
+function fillSelect(id, table, selected) {
+  const s = $(id);
+  s.innerHTML = "";
+  for (const row of table) {
+    const o = document.createElement("option");
+    o.value = row.label; o.textContent = row.label.toLowerCase().replace(/^./, c => c.toUpperCase());
+    s.appendChild(o);
+  }
+  s.value = selected;
+}
+function fillModeSelect(sector, selected) {
+  const s = $("in-mode");
+  s.innerHTML = "";
+  for (const m of SECTORS[sector].modes) {
+    const o = document.createElement("option");
+    o.value = m; o.textContent = m;
+    s.appendChild(o);
+  }
+  if (selected && SECTORS[sector].modes.indexOf(selected) === -1) {
+    const o = document.createElement("option");
+    o.value = selected; o.textContent = selected;
+    s.appendChild(o);
+  }
+  s.value = selected || SECTORS[sector].modes[0];
+}
+{
+  const s = $("in-dept");
+  for (const d of DB.departments) {
+    const o = document.createElement("option");
+    o.value = d.dept; o.textContent = d.dept;
+    s.appendChild(o);
+  }
+}
+
+/* primes / indemnités rows */
+const primeNames = ["Prime 1", "Prime 2", "Prime 3", "Prime 4", "Prime 5"];
+const indemNames = ["Indemnité 1", "Indemnité 2"];
+function buildRows(containerId, names, arr, prefix, kind) {
+  const c = $(containerId);
+  c.innerHTML = "";
+  names.forEach((name, k) => {
+    const div = document.createElement("div");
+    div.className = "rowline";
+    const label = arr[k].name || name;
+    div.innerHTML = '<input type="text" id="' + prefix + 'n' + k + '" value="' + esc(label) + '" aria-label="Nom ' + kind + ' ' + (k + 1) + '">' +
+      '<input type="number" step="0.5" min="0" id="' + prefix + 'q' + k + '" value="' + arr[k].q + '" aria-label="Nombre ' + kind + ' ' + (k + 1) + '">' +
+      '<input type="number" step="0.01" id="' + prefix + 'r' + k + '" value="' + arr[k].r + '" aria-label="Montant ' + kind + ' ' + (k + 1) + '">' +
+      '<span class="amt" id="' + prefix + 'a' + k + '">—</span>';
+    c.appendChild(div);
+  });
+}
+buildRows("primes", primeNames, inp.primes, "pr", "prime");
+buildRows("indems", indemNames, inp.indemnites, "in", "indemnité");
+
+/* rates grid (advanced) */
+const RATE_DEFS = [
+  ["maladieSal", "Maladie salariale % (E62)"], ["compIIDT1Sal", "Comp. IID T1 sal. % (E63)"], ["compIIDT1Pat", "Comp. IID T1 pat. % (G63)"],
+  ["nonCsgT1Pat", "Comp. IID non-CSG T1 pat. % (G64)"],
+  ["compIIDT2Sal", "Comp. IID T2 sal. % (E65)"], ["compIIDT2Pat", "Comp. IID T2 pat. % (G65)"],
+  ["nonCsgT2Sal", "Comp. IID non-CSG T2 sal. % (E66)"], ["nonCsgT2Pat", "Comp. IID non-CSG T2 pat. % (G66)"],
+  ["mutuelleSal", "Mutuelle sal. (E67)"], ["mutuellePat", "Mutuelle pat. (G67)"], ["atPat", "AT-MP pat. % (G68)"],
+  ["ssPlafSal", "SS plafonnée sal. % (E69)"], ["ssPlafPat", "SS plafonnée pat. % (G69)"],
+  ["ssDeplafSal", "SS déplafonnée sal. % (E70)"], ["ssDeplafPat", "SS déplafonnée pat. % (G70)"],
+  ["compT1Sal", "Complémentaire T1 sal. % (E71)"], ["compT1Pat", "Complémentaire T1 pat. % (G71)"],
+  ["compT2Sal", "Complémentaire T2 sal. % (E72)"], ["compT2Pat", "Complémentaire T2 pat. % (G72)"],
+  ["cetSal", "CET sal. % (E73)"], ["cetPat", "CET pat. % (G73)"], ["chomagePat", "Assurance chômage pat. % (G75)"],
+  ["redSalHSup", "Réduction salariale HS % (E76)"], ["autresSal", "Autres contributions sal. % (E77)"],
+  ["autresPat", "Autres contributions pat. % (G77)"], ["statutairesPat", "Cotis. statutaires pat. % (G78)"],
+  ["csgDedSal", "CSG déductible % (E79)"], ["csgNonDedSal", "CSG/CRDS non déd. % (E80)"],
+  ["csgNonDedHSSal", "CSG/CRDS non déd. HS % (E81)"], ["redPatHSupParH", "Réduction pat. €/h sup (G82)"]
+];
+function buildRatesGrid() {
+  const g = $("rates-grid");
+  g.innerHTML = "";
+  for (const [key, label] of RATE_DEFS) {
+    const d = document.createElement("div");
+    d.className = "field";
+    d.innerHTML = '<label for="rate-' + key + '">' + label + '</label>' +
+      '<input type="number" step="0.0001" id="rate-' + key + '" value="' + inp.rates[key] + '">';
+    g.appendChild(d);
+    d.querySelector("input").addEventListener("input", onChange);
+  }
+}
+
+/* ================= SECTOR ================= */
+function applySector(sector, preset) {
+  inp = preset || defaultInputs(DB, sector);
+  document.body.classList.toggle("sector-tarifaire", sector === "tarifaire");
+  $("sector-agri").setAttribute("aria-pressed", sector === "agri" ? "true" : "false");
+  $("sector-tarifaire").setAttribute("aria-pressed", sector === "tarifaire" ? "true" : "false");
+  fillModeSelect(sector, inp.mode);
+  fillSelect("in-majodim", DB.majoDimanche, inp.majoDimLabel);
+  fillSelect("in-majoferie", DB.majoFerie, inp.majoFerieLabel);
+  fillSelect("in-majonuit", DB.majoNuit, inp.majoNuitLabel);
+  fillSelect("in-hsup", DB.heuresSup, inp.hSupLabel);
+  fillSelect("in-majonorm", DB.majoNormales, inp.majoNormLabel);
+  fillSelect("in-zone", DB.zonesKmPD, inp.zonePD);
+  if (sector === "agri") {
+    $("brand-sub").textContent = "Marge brute intérim agricole · MSA & TO-DE";
+    $("tile-exo-label").textContent = "TO-DE (exonération)";
+    $("sum-cotis").textContent = "Cotisations & TO-DE";
+    $("lbl-logfact").textContent = "Logement facturé au client (€/sem)";
+    $("lbl-cibletx").textContent = "Taux facturé cible hors logement (€/h)";
+    $("const-note").innerHTML = "Taux du classeur AGRI (MSA). SMIC horaire <b>11,88&nbsp;€</b> (TO-DE, Fillon, assiette mini) ; plafonds 2,5/3,5 SMIC figés au 31/12/2023 sur <b>11,52&nbsp;€</b> ; plafond SS <b>3&nbsp;925&nbsp;€/mois</b> proratisé ; retenue à la source 55&nbsp;€/j ; abattement DFS 20&nbsp;% (scénario IFM+CP). Mutuelle en % du plafond.";
+    $("hidden-note").innerHTML = "Variante du classeur : IFM et ICCP forcés, assiette de cotisations avec abattement DFS 20&nbsp;% (bornée par l'assiette minimale), logement non facturé.";
+  } else {
+    $("brand-sub").textContent = "Marge brute intérim · Industrie & BTP (11/2024)";
+    $("tile-exo-label").textContent = "Allègement Fillon";
+    $("sum-cotis").textContent = "Cotisations & Fillon";
+    $("lbl-logfact").textContent = "Logement facturé au client (€/heure)";
+    $("lbl-cibletx").textContent = "Taux facturé global cible (€/h)";
+    $("const-note").innerHTML = "Taux du classeur TARIFAIRE 11/2024. SMIC horaire <b>11,88&nbsp;€</b> ; plafond SS <b>3&nbsp;864&nbsp;€/mois</b> proratisé ; retenue à la source 54&nbsp;€/j ; abattement DFS 10&nbsp;% (hors mode industrie) ; Fillon majoré ×1,1 (intérim), plafonné en BTP GD à min(×1,3&nbsp;; variante DFS). Mutuelle en <b>€ par heure</b> (base heures normales).";
+    $("hidden-note").innerHTML = "Variante du classeur : IFM et ICCP forcés (base IFM = ensemble des éléments de paie, ICCP sur base + IFM). Assiette DFS 10&nbsp;% hors mode industrie.";
+  }
+  buildRatesGrid();
+  setFormFromInputs();
+  render(compute(inp));
+}
+
+/* ================= INPUT WIRING ================= */
+function setFormFromInputs() {
+  $("in-client").value = inp.client;
+  $("in-dept").value = inp.dept || "";
+  $("in-thbrut").value = inp.thBrut;
+  $("in-nonet").checked = inp.netAttendu == null;
+  $("in-net").value = inp.netAttendu == null ? "" : inp.netAttendu;
+  $("in-net").disabled = inp.netAttendu == null;
+  $("in-jours").value = inp.jours; $("in-heures").value = inp.heures;
+  $("in-hnuit").value = inp.hNuit; $("in-hdim").value = inp.hDim; $("in-hferie").value = inp.hFerie;
+  $("in-majodim").value = inp.majoDimLabel; $("in-majoferie").value = inp.majoFerieLabel;
+  $("in-majonuit").value = inp.majoNuitLabel; $("in-hsup").value = inp.hSupLabel;
+  $("in-majonorm").value = inp.majoNormLabel; $("in-majonormq").value = inp.majoNormQty;
+  $("in-ifm-toggle").checked = !!inp.ifm;
+  $("in-iccp").checked = inp.iccp; $("in-attest").checked = inp.attestation; $("in-annu").checked = inp.annualisation;
+  $("in-log").checked = inp.logement; $("in-loghebdo").value = inp.logementHebdo;
+  $("in-loghoraire").value = inp.logementHoraire; $("in-logheures").value = inp.logementHeures;
+  $("in-redevance").value = inp.redevanceClient; $("in-logfact").value = inp.coutLogementFacture;
+  $("in-zone").value = inp.zonePD; $("in-transp").value = inp.transpClient;
+  $("in-repas").value = inp.repasClient; $("in-anrepas").value = inp.anRepasClient;
+  $("in-baremepd").value = inp.baremeRepasPD; $("in-baremegd").value = inp.baremeRepasGD;
+  $("in-tickq").value = inp.ticketsQty; $("in-tickv").value = inp.ticketsVal;
+  $("in-anconso").checked = inp.anRepasConsomme; $("in-anretrait").checked = inp.retraitANRepas;
+  inp.primes.forEach((p, k) => { $("prq" + k).value = p.q; $("prr" + k).value = p.r; $("prn" + k).value = p.name || primeNames[k]; });
+  inp.indemnites.forEach((p, k) => { $("inq" + k).value = p.q; $("inr" + k).value = p.r; $("inn" + k).value = p.name || indemNames[k]; });
+  $("in-refind1").checked = !!inp.refactIndem1; $("in-refind2").checked = !!inp.refactIndem2;
+  $("in-part").value = inp.participationChoice; $("in-partlibre").value = inp.participationLibre;
+  $("in-ifm").value = inp.baseIFM; $("in-decouche").value = inp.indemDecoucheRate;
+  $("in-coeff").value = inp.coeff; $("in-coeffhdn").value = inp.coeffHDN;
+  $("in-hfact").value = inp.heuresFactNormal; $("in-remise").value = inp.remisePct;
+  $("in-refprimes").checked = inp.refactPrimes; $("in-refdim").checked = inp.refactDim;
+  $("in-refferie").checked = inp.refactFerie; $("in-refnuit").checked = inp.refactNuit;
+  $("in-cibletx").value = inp.cibleTauxFact; $("in-ciblemarge").value = inp.cibleMargePct;
+  for (const [key] of RATE_DEFS) { const el = $("rate-" + key); if (el) el.value = inp.rates[key]; }
+  $("in-mode").value = inp.mode;
+}
+
+function readInputsFromForm() {
+  inp.client = $("in-client").value;
+  inp.mode = $("in-mode").value;
+  inp.dept = $("in-dept").value;
+  inp.thBrut = num($("in-thbrut"));
+  inp.netAttendu = $("in-nonet").checked ? null : num($("in-net"));
+  $("in-net").disabled = $("in-nonet").checked;
+  inp.jours = num($("in-jours")); inp.heures = num($("in-heures"));
+  inp.hNuit = num($("in-hnuit")); inp.hDim = num($("in-hdim")); inp.hFerie = num($("in-hferie"));
+  inp.majoDimLabel = $("in-majodim").value; inp.majoFerieLabel = $("in-majoferie").value;
+  inp.majoNuitLabel = $("in-majonuit").value; inp.hSupLabel = $("in-hsup").value;
+  inp.majoNormLabel = $("in-majonorm").value; inp.majoNormQty = num($("in-majonormq"));
+  inp.ifm = $("in-ifm-toggle").checked;
+  inp.iccp = $("in-iccp").checked; inp.attestation = $("in-attest").checked; inp.annualisation = $("in-annu").checked;
+  inp.logement = $("in-log").checked; inp.logementHebdo = num($("in-loghebdo"));
+  inp.logementHoraire = num($("in-loghoraire")); inp.logementHeures = num($("in-logheures"));
+  inp.redevanceClient = num($("in-redevance")); inp.coutLogementFacture = num($("in-logfact"));
+  inp.zonePD = $("in-zone").value; inp.transpClient = num($("in-transp"));
+  inp.repasClient = num($("in-repas")); inp.anRepasClient = num($("in-anrepas"));
+  inp.baremeRepasPD = num($("in-baremepd")); inp.baremeRepasGD = num($("in-baremegd"));
+  inp.ticketsQty = num($("in-tickq")); inp.ticketsVal = num($("in-tickv"));
+  inp.anRepasConsomme = $("in-anconso").checked; inp.retraitANRepas = $("in-anretrait").checked;
+  inp.primes = inp.primes.map((p, k) => ({ q: num($("prq" + k)), r: num($("prr" + k)), name: $("prn" + k).value }));
+  inp.indemnites = inp.indemnites.map((p, k) => ({ q: num($("inq" + k)), r: num($("inr" + k)), name: $("inn" + k).value }));
+  inp.refactIndem1 = $("in-refind1").checked ? 1 : 0;
+  inp.refactIndem2 = $("in-refind2").checked ? 1 : 0;
+  inp.participationChoice = $("in-part").value; inp.participationLibre = num($("in-partlibre"));
+  inp.baseIFM = num($("in-ifm")); inp.indemDecoucheRate = num($("in-decouche"));
+  inp.coeff = num($("in-coeff")); inp.coeffHDN = num($("in-coeffhdn"));
+  inp.heuresFactNormal = num($("in-hfact")); inp.remisePct = num($("in-remise"));
+  inp.refactPrimes = $("in-refprimes").checked; inp.refactDim = $("in-refdim").checked;
+  inp.refactFerie = $("in-refferie").checked; inp.refactNuit = $("in-refnuit").checked;
+  inp.cibleTauxFact = num($("in-cibletx")); inp.cibleMargePct = num($("in-ciblemarge"));
+  for (const [key] of RATE_DEFS) { const el = $("rate-" + key); if (el) inp.rates[key] = num(el); }
+}
+
+/* ================= RENDER ================= */
+function badgeFor(elig) {
+  return elig === "TOTALE" ? ["good", "Exonération totale"] :
+         elig === "PARTIELLE" ? ["warn", "Exonération partielle"] : ["bad", "Non éligible"];
+}
+function kvRow(label, ref, val, cls) {
+  return "<tr" + (cls ? ' class="' + cls + '"' : "") + "><td>" + label +
+         (ref ? '<span class="ref">' + ref + "</span>" : "") + '</td><td class="n">' + val + "</td></tr>";
+}
+
+function render(r) {
+  const m = r.main, h = r.hidden;
+  const cfg = SECTORS[inp.sector];
+  const neg = m.O64 < 0;
+  $("hero").classList.toggle("neg", neg);
+  $("out-mb").textContent = fmtE(m.O64);
+  $("out-mbpct").textContent = fmtP(m.H17);
+  $("out-ca").textContent = fmtE(m.O60);
+  $("out-cout").textContent = fmtE(m.F93);
+  $("out-mbh").textContent = inp.heures ? fmtE(m.O64 / inp.heures) + "/h" : "—";
+  $("out-mbhdn").textContent = fmtE(m.P64);
+  $("out-mbhdnpct").textContent = fmtP(m.H22);
+  $("out-mbifm").textContent = fmtE(h.O64);
+  $("out-mbifmpct").textContent = fmtP(m.I17) + (inp.sector === "agri" ? " · avec DFS 20 %" : " · IFM + ICCP forcés");
+  $("out-tode").textContent = fmtE(m.H83);
+  const badge = $("out-todebadge");
+  if (cfg.exo === "tode") {
+    const [bc, bt] = badgeFor(m.tode.eligibilite);
+    badge.className = "badge " + bc; badge.textContent = bt;
+  } else {
+    badge.className = "badge info";
+    badge.textContent = (inp.mode === "SIMULATEUR BTP GRAND D") ? "Fillon min(×1,3 ; DFS)" : "Fillon ×1,1 intérim";
+  }
+  $("out-txh").textContent = inp.heures ? fmtE(m.O62) + "/h" : "—";
+  $("out-txhorslog").textContent = inp.heures ? "hors logement " + fmtE(m.O66) + "/h" : "—";
+
+  /* barre résumé mobile */
+  $("mbar").classList.toggle("neg", neg);
+  $("mbar-mb").textContent = fmtE(m.O64);
+  $("mbar-pct").textContent = fmtP(m.H17);
+  $("mbar-ca").textContent = "CA " + fmtE(m.O60);
+
+  $("out-brut").textContent = fmtE(m.F42);
+  $("out-neth").textContent = inp.heures ? fmtE(m.D14) : "—";
+  $("out-netatt").textContent = inp.netAttendu == null ? "pas de net attendu" : fmtE(inp.netAttendu);
+  const nd = $("out-netdelta");
+  if (inp.netAttendu == null || !inp.heures) { nd.textContent = "—"; nd.className = "n"; }
+  else {
+    const d = m.D14 - inp.netAttendu;
+    nd.textContent = (d >= 0 ? "+" : "") + N2.format(d) + " €/h";
+    nd.className = "n delta " + (d >= -1e-9 ? "good" : "bad");
+  }
+  $("out-netifm").textContent = inp.heures ? fmtE(m.D15) : "—";
+  $("out-ras").textContent = fmtE(m.F43);
+  $("out-avance").textContent = fmtE(Math.max(m.F57, m.F58));
+
+  inp.primes.forEach((p, k) => { $("pra" + k).textContent = fmtE(p.q * p.r); });
+  inp.indemnites.forEach((p, k) => { $("ina" + k).textContent = fmtE(p.q * p.r); });
+
+  /* goal seek — la cible de taux suit le secteur (O66 agri, O62 tarifaire) */
+  const cTx = coeffPourTauxSecteur(inp, inp.cibleTauxFact);
+  const cMg = coeffPourMarge(inp, inp.cibleMargePct);
+  $("gs-tx").textContent = cTx == null ? "—" : N4.format(cTx);
+  $("gs-marge").textContent = cMg == null ? "—" : N4.format(cMg);
+  $("gs-tx-apply").disabled = cTx == null;
+  $("gs-marge-apply").disabled = cMg == null;
+  $("gs-tx-apply").dataset.coeff = cTx == null ? "" : cTx;
+  $("gs-marge-apply").dataset.coeff = cMg == null ? "" : cMg;
+
+  renderPaie(m); renderCotis(m); renderFact(m); renderHidden(h, m); renderGrille(); renderChart();
+  renderDeptHint();
+}
+
+function renderPaie(m) {
+  const pn = k => esc($("prn" + k) ? $("prn" + k).value : primeNames[k]);
+  const inn = k => esc($("inn" + k) ? $("inn" + k).value : indemNames[k]);
+  let s = "";
+  s += kvRow("Heures normales — " + N2.format(m.D24) + " h × " + fmtE(m.E24), "F24", fmtE(m.F24));
+  if (m.F25) s += kvRow("Majoration dimanche — " + N2.format(m.D25) + " h × " + fmtE(m.E25), "F25", fmtE(m.F25));
+  if (m.F26) s += kvRow("Majoration férié — " + N2.format(m.D26) + " h × " + fmtE(m.E26), "F26", fmtE(m.F26));
+  if (m.F27) s += kvRow("Majoration nuit — " + N2.format(m.D27) + " h × " + fmtE(m.E27), "F27", fmtE(m.F27));
+  if (m.F28) s += kvRow("Heures sup — " + N2.format(m.D28) + " h × " + fmtE(m.E28), "F28", fmtE(m.F28));
+  if (m.F29) s += kvRow("Heures sup 50 % — " + N2.format(m.D29) + " h × " + fmtE(m.E29), "F29", fmtE(m.F29));
+  if (m.F30) s += kvRow("Majo heures normales — " + N2.format(m.D30) + " × " + fmtE(m.E30), "F30", fmtE(m.F30));
+  if (m.F32) s += kvRow("IFM 10 % (base " + fmtE(m.D32) + ")", "F32", fmtE(m.F32));
+  s += kvRow("ICCP 10 %" + (m.F33 ? "" : " (désactivé)"), "F33", fmtE(m.F33));
+  if (m.F34) s += kvRow("Prime repas &gt; plafond URSSAF", "F34", fmtE(m.F34));
+  if (m.F35) s += kvRow("Prime transport &gt; plafond URSSAF", "F35", fmtE(m.F35));
+  if (m.F36) s += kvRow("Avantage en nature repas client", "F36", fmtE(m.F36));
+  for (let k = 0; k < 5; k++) if (m["F" + (37 + k)]) s += kvRow(pn(k) + " (soumise)", "F" + (37 + k), fmtE(m["F" + (37 + k)]));
+  s += kvRow("Salaire brut total", "F42", fmtE(m.F42), "total");
+  if (m.F44) s += kvRow("Tickets restaurant (part salariale)", "F44", fmtE(m.F44));
+  if (m.F45) s += kvRow("Indemnité transport", "F45", fmtE(m.F45));
+  if (m.F46) s += kvRow("Indemnité repas", "F46", fmtE(m.F46));
+  for (let k = 0; k < 2; k++) if (m["F" + (47 + k)]) s += kvRow(inn(k) + " (non soumise)", "F" + (47 + k), fmtE(m["F" + (47 + k)]));
+  if (m.F49) s += kvRow("Indemnité repas GD auto", "F49", fmtE(m.F49));
+  if (m.F50) s += kvRow("Indemnité découché GD", "F50", fmtE(m.F50));
+  if (m.F51) s += kvRow("Indemnité transport auto (industrie)", "F51", fmtE(m.F51));
+  if (m.F52) s += kvRow("Participation logement salarié", "F52", fmtE(m.F52));
+  if (m.F53) s += kvRow("Participation logement client", "F53", fmtE(m.F53));
+  if (m.F54) s += kvRow("Retrait avantage en nature repas", "F54", fmtE(m.F54));
+  s += kvRow("Net avant régularisation", "F89", fmtE(m.F89), "total");
+  s += kvRow("Net après régularisation (avances)", "F91", fmtE(m.F91), "total");
+  $("tbl-paie").innerHTML = s;
+}
+
+function renderCotis(m) {
+  let s = "";
+  s += kvRow("<b>Salariales</b>", "", "", "sub");
+  const rows = [
+    ["Maladie 5,5 % (attestation fiscale)", "F62", m.F62], ["Comp. IID T1", "F63", m.F63],
+    ["Comp. IID T2", "F65", m.F65], ["Comp. IID non-CSG T2", "F66", m.F66], ["Mutuelle", "F67", m.F67],
+    ["SS plafonnée", "F69", m.F69], ["SS déplafonnée", "F70", m.F70],
+    ["Complémentaire T1", "F71", m.F71], ["Complémentaire T2", "F72", m.F72], ["CET", "F73", m.F73],
+    ["Réduction salariale heures sup", "F76", m.F76], ["Autres contributions", "F77", m.F77],
+    ["CSG déductible", "F79", m.F79], ["CSG/CRDS non déductible", "F80", m.F80], ["CSG/CRDS sur HS", "F81", m.F81]
+  ];
+  for (const [l, ref, v] of rows) if (Math.abs(v) > 1e-9) s += kvRow(l, ref, fmtE(v));
+  s += kvRow("Total salarial", "F88", fmtE(m.F88), "total");
+  s += kvRow("<b>Patronales</b>", "", "", "sub");
+  const prows = [
+    ["Maladie (" + N2.format(m.G62) + " %)", "H62", m.H62], ["Comp. IID T1", "H63", m.H63],
+    ["Comp. IID non-CSG T1", "H64", m.H64], ["Comp. IID T2", "H65", m.H65], ["Comp. IID non-CSG T2", "H66", m.H66],
+    ["Mutuelle", "H67", m.H67], ["AT-MP", "H68", m.H68], ["SS plafonnée", "H69", m.H69],
+    ["SS déplafonnée", "H70", m.H70], ["Complémentaire T1", "H71", m.H71], ["Complémentaire T2", "H72", m.H72],
+    ["CET", "H73", m.H73], ["Famille (" + N2.format(m.G74) + " %)", "H74", m.H74], ["Assurance chômage", "H75", m.H75],
+    ["Autres contributions", "H77", m.H77], ["Statutaires", "H78", m.H78],
+    ["Réduction patronale heures sup", "H82", m.H82], ["Part patronale tickets resto", "H44", m.H44]
+  ];
+  for (const [l, ref, v] of prows) if (Math.abs(v) > 1e-9) s += kvRow(l, ref, fmtE(v));
+  if (SECTORS[inp.sector].exo === "tode") {
+    s += kvRow("TO-DE : exonération <b>" + m.tode.eligibilite + "</b> (seuils " + fmtE(m.tode.seuilTotale) + " / " + fmtE(m.tode.seuilMax) + ")", "H83", "−" + EUR.format(m.H83).replace("-", ""));
+  } else {
+    s += kvRow("Allègement Fillon (coeff " + N4.format(m.D100) + " × brut × 1,1" +
+               (inp.mode === "SIMULATEUR BTP GRAND D" ? ", plafonné BTP GD" : "") + ")", "H83", "−" + EUR.format(m.H83).replace("-", ""));
+  }
+  if (m.D85) s += kvRow("Provision CET 21 % (ni IFM ni ICCP) + charges 45 %", "D85/H85", fmtE(m.D85 + m.H85));
+  s += kvRow("Total patronal (après exonération)", "H88", fmtE(m.H88), "total");
+  s += kvRow("Coût global salarié", "F93", fmtE(m.F93), "total");
+  $("tbl-cotis").innerHTML = s;
+}
+
+function renderFact(m) {
+  let s = "";
+  s += kvRow("Heures au taux normal — " + N2.format(m.L24) + " h × " + fmtE(m.H14), "O24", fmtE(m.O24));
+  if (m.O25) s += kvRow("Heures dimanche", "O25", fmtE(m.O25));
+  if (m.O26) s += kvRow("Heures férié", "O26", fmtE(m.O26));
+  if (m.O27) s += kvRow("Majoration nuit", "O27", fmtE(m.O27));
+  if (m.O28) s += kvRow("Heures sup 25 %", "O28", fmtE(m.O28));
+  if (m.O29) s += kvRow("Heures sup 50 % (&gt;43 h)", "O29", fmtE(m.O29));
+  if (m.O30) s += kvRow("Majo heures normales", "O30", fmtE(m.O30));
+  for (const r of [34, 35, 36, 37, 38, 39, 40, 41]) if (m["O" + r]) s += kvRow("Prime refacturée (ligne " + r + ")", "O" + r, fmtE(m["O" + r]));
+  s += kvRow("CA HT soumis à coefficient", "O42", fmtE(m.O42), "total");
+  for (const [l, ref] of [["Indemnité transport refacturée", "O45"], ["Indemnité repas refacturée", "O46"], ["Indemnité 1 refacturée", "O47"], ["Indemnité 2 refacturée", "O48"], ["Repas GD refacturé", "O49"], ["Découché GD refacturé", "O50"]])
+    if (m[ref]) s += kvRow(l, ref, fmtE(m[ref]));
+  if (m.O52) s += kvRow(inp.sector === "agri" ? "Logement facturé" : "Logement facturé — " + N2.format(m.L52) + " h × " + fmtE(inp.coutLogementFacture), "O52", fmtE(m.O52));
+  if (m.O54) s += kvRow("Retrait AN repas", "O54", fmtE(m.O54));
+  s += kvRow("CA HT total", "O60", fmtE(m.O60), "total");
+  if (inp.remisePct) s += kvRow("Remise fin d'année " + N2.format(inp.remisePct) + " %", "M63", fmtE(-m.O42 * inp.remisePct / 100));
+  s += kvRow("Volume de marge brute", "O64", fmtE(m.O64), "total");
+  s += kvRow("Taux de marge", "H17", fmtP(m.H17), "total");
+  $("tbl-fact").innerHTML = s;
+}
+
+function renderHidden(h, m) {
+  let s = "";
+  s += kvRow("IFM 10 % (base " + fmtE(h.D32) + ")", "F32", fmtE(h.F32));
+  s += kvRow("ICCP 10 %", "F33", fmtE(h.F33));
+  s += kvRow("Salaire brut total", "F42", fmtE(h.F42), "total");
+  s += kvRow("Assiette de cotisations", "D62", fmtE(h.D62));
+  s += kvRow(SECTORS[inp.sector].exo === "tode" ? "TO-DE (" + h.tode.eligibilite + ")" : "Allègement Fillon", "H83", fmtE(h.H83));
+  s += kvRow("Coût global salarié", "F93", fmtE(h.F93), "total");
+  s += kvRow(SECTORS[inp.sector].o52Mode === "flat" ? "CA HT (sans logement facturé)"
+             : (h.O52 ? "CA HT (logement facturé inclus)" : "CA HT"), "O60", fmtE(h.O60));
+  s += kvRow("Marge brute", "O64", fmtE(h.O64), "total");
+  s += kvRow("Taux de marge", "I17", fmtP(m.I17), "total");
+  s += kvRow("Net / h avec IFM + ICCP", "D15", inp.heures ? fmtE(h.F91 / h.D31) : "—");
+  $("tbl-hidden").innerHTML = s;
+}
+
+function renderGrille() {
+  const cur = Math.round(inp.coeff * 10000) / 10000;
+  const coeffs = [];
+  for (let d = -0.3; d <= 0.3001; d += 0.05) coeffs.push(Math.round((cur + d) * 10000) / 10000);
+  let s = "<tr><th>Coeff</th><th>Taux HN €/h</th><th>CA HT</th><th>Marge €</th><th>Marge %</th></tr>";
+  for (const c of coeffs) {
+    const r = compute(Object.assign({}, inp, { coeff: c }));
+    const isCur = Math.abs(c - cur) < 1e-9;
+    s += '<tr class="' + (isCur ? "cur" : "") + '"><td>' + N4.format(c) + "</td><td>" + N2.format(r.main.H14) +
+         "</td><td>" + N2.format(r.main.O60) + "</td><td" + (r.main.O64 < 0 ? ' class="neg"' : "") + ">" + N2.format(r.main.O64) +
+         "</td><td" + (r.main.O64 < 0 ? ' class="neg"' : "") + ">" + N2.format(r.main.H17) + "</td></tr>";
+  }
+  $("grille").innerHTML = s;
+}
+
+/* margin curve: marge % vs coefficient */
+let chartPts = [];
+function renderChart() {
+  const svg = $("chart");
+  const W = svg.clientWidth || 380, H = 180, padL = 38, padR = 12, padT = 12, padB = 24;
+  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+  const c0 = Math.max(0.9, inp.coeff - 0.45), c1 = inp.coeff + 0.45;
+  chartPts = [];
+  for (let k = 0; k <= 40; k++) {
+    const c = c0 + (c1 - c0) * k / 40;
+    const r = compute(Object.assign({}, inp, { coeff: c }));
+    chartPts.push({ c, pct: r.main.H17, mb: r.main.O64 });
+  }
+  const ys = chartPts.map(p => p.pct).filter(isFinite);
+  let y0 = Math.min(...ys, 0), y1 = Math.max(...ys, inp.cibleMargePct || 0);
+  const span = (y1 - y0) || 1; y0 -= span * .08; y1 += span * .08;
+  const X = c => padL + (c - c0) / (c1 - c0) * (W - padL - padR);
+  const Y = v => padT + (1 - (v - y0) / (y1 - y0)) * (H - padT - padB);
+  let g = "";
+  const step = niceStep(y1 - y0);
+  for (let v = Math.ceil(y0 / step) * step; v <= y1; v += step) {
+    g += '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="var(--chart-grid)" stroke-width="1"/>';
+    g += '<text x="' + (padL - 5) + '" y="' + (Y(v) + 3.5) + '" text-anchor="end" font-size="10" fill="var(--muted)">' + N2.format(v) + '</text>';
+  }
+  for (const c of [c0, (c0 + c1) / 2, c1]) {
+    g += '<text x="' + X(c) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="10" fill="var(--muted)">' + N2.format(c) + '</text>';
+  }
+  if (y0 < 0 && y1 > 0) g += '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + Y(0) + '" y2="' + Y(0) + '" stroke="var(--bad)" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>';
+  if (isFinite(inp.cibleMargePct) && inp.cibleMargePct > y0 && inp.cibleMargePct < y1) {
+    g += '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + Y(inp.cibleMargePct) + '" y2="' + Y(inp.cibleMargePct) + '" stroke="var(--info)" stroke-width="1.5" stroke-dasharray="5 4"/>';
+    g += '<text x="' + (W - padR) + '" y="' + (Y(inp.cibleMargePct) - 4) + '" text-anchor="end" font-size="10" fill="var(--info)">cible ' + N2.format(inp.cibleMargePct) + ' %</text>';
+  }
+  let path = "";
+  chartPts.forEach((p, k) => { path += (k ? "L" : "M") + X(p.c).toFixed(1) + " " + Y(p.pct).toFixed(1) + " "; });
+  g += '<path d="' + path + '" fill="none" stroke="var(--chart-line)" stroke-width="2" stroke-linejoin="round"/>';
+  const rNow = compute(inp);
+  g += '<circle cx="' + X(inp.coeff) + '" cy="' + Y(rNow.main.H17) + '" r="4.5" fill="var(--chart-line)" stroke="var(--card)" stroke-width="2"/>';
+  g += '<text x="' + padL + '" y="' + (padT - 1) + '" font-size="10" fill="var(--muted)">Marge % selon coefficient</text>';
+  svg.innerHTML = g;
+  svg.__map = { X, Y, c0, c1 };
+}
+function niceStep(range) {
+  const raw = range / 4, pow = Math.pow(10, Math.floor(Math.log10(raw)));
+  for (const m of [1, 2, 5, 10]) if (raw <= m * pow) return m * pow;
+  return 10 * pow;
+}
+$("chart").addEventListener("mousemove", e => {
+  const svg = $("chart"), tip = $("chart-tip");
+  if (!svg.__map || !chartPts.length) return;
+  const rect = svg.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const { c0, c1 } = svg.__map;
+  const c = c0 + (x - 38) / (rect.width - 50) * (c1 - c0);
+  let best = chartPts[0];
+  for (const p of chartPts) if (Math.abs(p.c - c) < Math.abs(best.c - c)) best = p;
+  tip.style.display = "block";
+  tip.style.left = Math.min(x + 10, rect.width - 130) + "px";
+  tip.style.top = "8px";
+  tip.innerHTML = "coeff <b>" + N4.format(best.c) + "</b> · marge <b>" + N2.format(best.pct) + " %</b> · " + fmtE(best.mb);
+});
+$("chart").addEventListener("mouseleave", () => { $("chart-tip").style.display = "none"; });
+
+function renderDeptHint() {
+  const el = $("dept-hint");
+  const d = DB.departments.find(x => x.dept === inp.dept);
+  if (!d) { el.innerHTML = ""; return; }
+  const lg = DB.logement.find(x => d.dept.startsWith(x.dept + " "));
+  let chips = "";
+  for (const [k, v] of Object.entries(d.rates)) {
+    if (v == null || k === "AUTRE") continue;
+    chips += '<button class="chip" data-rate="' + v + '" title="Appliquer au taux horaire brut">' + k + " <b>" + N2.format(v) + "</b></button>";
+  }
+  el.innerHTML = "Grille " + esc(d.dept) + " — panier " + (d.panier != null ? N2.format(d.panier) + " €" : "n.c.") +
+    (d.panierNonSoumis != null ? " (non soumis " + N2.format(d.panierNonSoumis) + " €)" : "") +
+    (lg && lg.costPerHour != null ? " · logement moyen " + N2.format(lg.costPerHour) + " €/h" : "") +
+    '<span class="chips">' + chips + "</span>";
+  el.querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => {
+    $("in-thbrut").value = Math.round(parseFloat(b.dataset.rate) * 100) / 100;
+    onChange();
+  }));
+}
+
+/* ================= EVENTS ================= */
+let raf = 0;
+function onChange() {
+  cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(() => { readInputsFromForm(); render(compute(inp)); });
+}
+document.querySelectorAll("input, select").forEach(el => {
+  el.addEventListener("input", onChange);
+  el.addEventListener("change", onChange);
+});
+/* en secteur tarifaire, choisir un département préremplit le coût logement €/h (le
+ * classeur tentait un VLOOKUP cassé ; ici la table LOGEMT est réellement utilisée) */
+$("in-dept").addEventListener("change", () => {
+  if (inp.sector !== "tarifaire") return;
+  const d = DB.departments.find(x => x.dept === $("in-dept").value);
+  const lg = d && DB.logement.find(x => d.dept.startsWith(x.dept + " "));
+  if (lg && lg.costPerHour != null) {
+    $("in-loghoraire").value = Math.round(lg.costPerHour * 100) / 100;
+    onChange();
+  }
+});
+$("sector-agri").addEventListener("click", () => { if (inp.sector !== "agri") applySector("agri"); });
+$("sector-tarifaire").addEventListener("click", () => { if (inp.sector !== "tarifaire") applySector("tarifaire"); });
+$("gs-tx-apply").addEventListener("click", e => {
+  const c = parseFloat(e.currentTarget.dataset.coeff);
+  if (isFinite(c)) { $("in-coeff").value = Math.round(c * 10000) / 10000; onChange(); }
+});
+$("gs-marge-apply").addEventListener("click", e => {
+  const c = parseFloat(e.currentTarget.dataset.coeff);
+  if (isFinite(c)) { $("in-coeff").value = Math.round(c * 10000) / 10000; onChange(); }
+});
+$("btn-reset").addEventListener("click", () => {
+  applySector(inp.sector);
+  history.replaceState(null, "", location.pathname + location.search);
+});
+$("btn-share").addEventListener("click", async () => {
+  readInputsFromForm();
+  const hash = "#s=" + encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(inp)))));
+  const url = location.origin + location.pathname + location.search + hash;
+  history.replaceState(null, "", hash);
+  try { await navigator.clipboard.writeText(url); $("btn-share").textContent = "Lien copié ✓"; }
+  catch (_) { prompt("Copier ce lien :", url); }
+  setTimeout(() => { $("btn-share").textContent = "Partager"; }, 1800);
+});
+
+/* ================= INIT ================= */
+/* Méta mobiles (iOS) — injectées si absentes (la page artifact n'a pas de <head> à nous) */
+const APPLE_ICON = "iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAP30lEQVR42u2daVRbZRqAv5sFskEgAcKSAAUStpZ9rW2hy2BXCl2tWsepS9tjZ8aOOselRx1HPVZHPY6dHo86HZ1xqT0t3WiVWrVFukJpy1bWsAQIhCXsISSQ+YHQQHIvWW4Cbd7nF9zc3CV58q3v917s4F4RAgBjUOAjAEAOAOQAQA4A5ABADgDkAEAOAOQAQA4A5AAAkAMAOQCQAwA5AJADADkAkAMAOQCQAwA5AADkAEAOAOQAQA4A5ABADgDkAEAOAOQAQA4AADkAkAMAOQCQAwA5AJADADkAkAMAOQCQAwA5AADkAEAOAOQAQA4A5ABADgDkAEAOAOQAHA/anL0ynrfYNzhJ4B/N9QzkuPnQnVlUKl2rVY8MDwz0yPs6mxSyUrm0sEtePdeufFH2vsjUbeN/Xzz6auX1YyAHOTDY7uHJmyXxmW6e8wxfpTux6E4stquXwD9aHLcOIdTXJau+cbLi6neqge65cP1UmlNIzJrJf0MTskEOEnBmusYue2r+A49Qac6mv8uVL0rI2BO77OnaW2dL8r/sbvutIGFyeJv2Hme5eCCExkY1n70UY5+7mDd/hTPTdfJf78BYrmdgb0cDtDksJzBy+dYXzkSn7TDLDP3fa2hC1qa9x5ZufZvNFSAMW/bQ/nEzEEIUiv1+A6EJ2QZbsqDksBCMQk1Z/VzUkt8bvqRsr60ryWupudKvbFUNdFOoNGeGi6uHP98nNCA83TckmUKhTjkURpHErw+KelBef0MoWaj/AoZRdLoxW98Lx83bT5wybaMkLrPwh3/a4ez3mxwYhbri4feCoh6ctn2wt/3y6f3S0nNIp5vcODaq0Y6oBvsUcmlR2aWvOW4+MUufiEjZimFTyj8anSGSPDC9hKTSRrUjtr4dSXzWtItBCLG5AqFkoayqAKoV80jf8qahGa11hcc+2iQtydM3w5CBHnnB8TePH9jW191sioV2qVOyzNoOcuASnbZDEpc5bWN7463vD+0yvevRISvL+WhzW0PxDPdp+2aHT1CiK1+E16LSb6WCHDPA9w1LWvnnaRuHB5U/fLFHqxk261BqVd/Zz3cqmkqI7pNqcznCErNN7N+CHDOwZOPrhl9Y4bkDw4NKC46mGRnK+/KPg30K/JLDttUK3YkVtCCDqMbBVwfkmD4Y4CVaMG2jdkRVVXjc4mMO9XdeOvHWbJUcwTGraE5Mgh08hZE8bzHIMTNGO66y6kujWrU1h60vO99YcQGnQUqz8/CGZfs4uhxcvr93YJzhdlKGES+dfMuoYTatVriegd6BsTPuJo5bR7FLp+kelkMUvsTodtVAl/UH71e2Vt84bedqJcy0IoHJ4fmHLQE5iPAOMP4jo9CcSDl+acF/DQdIbPeTxShUcfzdDnlN8en7plk6C3K4C4IQzsQbKcdXttfJai7brc0hlCxku3pNFn75OX8bHurB29k/LI3B5oEcuLAmPkoDaULIOkVVYY7dqhX9OqX6xintiIqg8KBQaZK4tSAH0ZCA0e1eogWGExOW0VhxQTuiskO14sziBkQsvStl0XGEUOX1HIK3SO6dPsssyIE3Acbk8HyCEkg5hVYz3Hjngh1KDnHsWupEU0khK1W21yGEutuqO2RleG/h+0g8/CJADuOMDA/gvbRg0aNknUVacs4ObQ79oQv9uqyy8Nh90CydFTn6EH7Ij584lZSzNNdcHhvV2rRa4fuEeviFTxSH6tpb30++VHvrLMEMkThmDZWkrtn9JkdvZxPBq8u3vctx8yalfGpvvGnTakW/AKgvPT8y3K9/dmlJnoktFZAD6U+yI8KRorVPH3Jx9yWhWXon33ZT9hQqXRx7t99RWTR9VqiyMMf6cTPkaJFgClkJ8Q5cj4CsZ775+fCLLbVXrTnR7YuHbl88ZKO7CIxIZ7Dd0UTYkeGlyqVFvZ2NXI8AgtERgmlkBy05WqVFQ/2dM42FeK596vPFG15lcubokNGUpmjRCaNBawSFB0ahji+tADmmoBsbJR5jnowKjkjZuu3FvOTVf2G5es6pT43l6ikKXTRxP7rqohNGd6u+cXJsbPTe7bPMzpR92aWvTQz3ojuxYtKfeOSlH9M2vUHiEKqVSOIyJ4NSW6VFeEGsQ30dsspf8Q7i5jlPEBAzl+Wgrknlzs5Qh05nGMVPUAh7+EVELtwmFKeOjWp7Oxp1+L9IO5C26e+TDY6icwe65FUIfzguJGY1biGq000brIOSAyGEbud/0d5029x3eQfGLXvone37fkld+wJeW8/WCAJi3Lx+W6qpUQ9KS88R7Nx05yJBAys4eiWNzoCSw/BHM9ZQ/ktwVIYFk7E0OkMQEDN/4cM+8+I0I0N9nY06wkUM5BK/YrenMGJigv5Ufdl5wtvUMTk8o8FN44HHPQrp5BJOKDmQXqx5d+5nT/Z1ySx8P4b5iVMzHvvo4ZfPx6/Y7cyyh+U0OiM4eqVef2TmoFfiAY+53Cyd5UVNfV2yE/96WCErteYgbFevhIw9j7x8PmXN87bu+gYtyHBicMb/7umob2+8NeNbejsaCJbV+AUnkzLid19VK/pB59U3TlJpdIF/tDVT9lQq3TswNiJlK0Koo7ncRi3WhZkvuvD8JgbZ/tPWcNPESjQwcjle+adW9cmlRVByGGdsVHPt7AcnD263sghBCNGd2Umrnt36wmmfoETSr9PF3c934rCmjtYghBCqK8nTqAfxIzyyEIZByUHEYG975fWj3fJqd0Ewk8NH1qX6kMRn0pyYcmkhicvboxY/5hucNP63rKqg4uoRk+3XuvCEk81Yw6ttrbs+oGwFOWagRyGtuHpEISthcniuPKHFPykMw7wD4zz8IurLzpNTxWBY+pa3nJku4/9d//5DpUJq+rtVg93hSZsIrrah/CeoVkyqoWWVv5757Knv3l9XVvDViKrf4iMFhKet2nGQlLEEYUjqZMtxeKinAWf1FB6KppLuthqCdi5e9CSUHHh93R5ZVUHZpa96OuoZLK6Lu58FB3HlCV35ovrSH628mMSVf5pcz1h57WhT5UWzu8E0p7szMgYBAH1dss7WOyCHmc3VMW23vLqq6ERtca5Go3Lli5yc2cjMxIQDytau1kqLr8GJ6ZK++Y3JoJD8nL+pZppYNtKn7WqKWrwdL1MIg+1mzVJhW4Ad3CtC9xQUCtU/PD0iZYtQstD0rq9a1ffNOxkW11CRqdsWZe+z9a0d3r+qt6sJSg5rGiS6no76mpu5NcWnaXQG30diStYeGt15bFTTWnfdspMu3vAqG2e5DYmMqAdb665Bg5QE+rqb84+9fvjdNSZ+5eHJmy0LM+Z5SzyFkcguWaPIWrkD6a0RQqhf2XL60x2FeR/PuCfLxcPDou84PGmjfe6FzRWYHsaAHDm9tVk1TfFPn6hVvYuyZmgW+AYlEmeHMp6xSW8B46lPHpdLC625WCaHt33fBbyqMDQhu7n6siOWHFnPfL3z3fKd75Y/+XYx6XEM5Ze/Lb/yLfE+PvPikfnZcxkst8lSSl5v7SSIaqC7GT9wet785U4T42yOJYdWo574OToLDVKFWs/lU/uJM8BwzJ//DEvagPTWSSMyAkdqi3PxCyrnkOjVjijHmN4q2cDIpTaZwPv+Q0S47hmZl5HYxy8kxcTcG8ic9FQEIbRzJ8LDviWHXkIm/7A0W7TM68vO93Y24r3KMFOO0MTsyYvsbKkgODIyM/dhY8UveK96iRa4C4IdTg799fVMDs83JNkWZ6m+cRI/5sPJ9Jk8DKPoL07RXwprPTU3c+d+ajnKLCZfsFEXsbnmCkEsuOmNBqE4VT9Gq77sRxIvUlZVQJAASBKfORdSy82mHPodARLpbLmDt5SI4Psw0hRNvjvD3t1WbXmsK06EB8FKayaHjzdFdx/LoZ42hCCxQcb4sVGNGkcC0xsNDLZ7oN5C+Ibyn0m/ztqbZwibOxscuuRACMWkP2GLOAa1yngKEIKICiMFO5V+Vw789qPFyBuK+/GjvwLC7y7UdlA5mBye0WzGyOpIUqPbW+sKTc5yv1E/cXZHczmywcBu3a2zBKnl9FM8OKIcCKHotD+Qnn3RaJd1VKs2cYpOEBCj35lsqbmCbLNoaoY+y2wPeMy+HHRn9pKNryFSp6+MPiiuvuwn/eQ7BESkbp2WM8JGH0h3Ww3Bcjf9tFIO1yBFeg9RGF9vQgp4EyhlBV8h057TFhK9Ck0N/7TdZ1JTnEscZuA4cmjwXkpd91eynjgREJ5uuLGpMt/EddsJGXv0m6JIpyNrYNR4n+XWGYI6SxK/3j7LPOduyYEQotEZKx8/YH20FcfNO0hvLSuaGPu6dPJtU94uClscGp81bcjfygd9EDPQ09aFX7PQ6Iyklc86bptjEheecM3T/2ZzBdacInn1c4Zji1dy3zNlCMtTNP93j34wbXydRmcYfTY2iRCk90AIRSRvnq0EUXOl5BjH3Ssoe8+3hg9xQiaHARtmSqm8frTiyuEZ3xscvSpz5xdGB12WbdtvwwBSDGO7Coh3WLrlrfnkpe9FczPA2MXd1/BxkNNwYnDGH7SpkJWYsVINw+KW70pd8/y03720JO/CkX3E2Ts8hZEPrH8lfsXuKU2Nqav4w5M3M9humuHBof5Osrq1FCpdGPrAkg2v+c00AYlhFP/QxQJRVG9X02BvO7ovlyb4BCVk7voSmZyd4ebPn9bczJ3xYcF+Iclxy3f7BicaJsbIP/a6UcME/tE8H7GXaIFfSIoLT2j6LYyo+lvqrinbawd65ANKeau00PRnGbsLgrl8f7abN5fvz/cN8xItIH4sHN7HIqsuUDSVKhV1xBld7zE5vPyjsvdMieSTlp4LCE8nyPWsHuptqvq1peaqsr22X9kyMjyo040xWFxnFpfrEeATlCgUp/C8JchgWuvqmX+UFvwP77BbX8glpSVh1kqT1U9+KiIv/k3ZXnvk/fXovgkwHtVMaXNUXP3u15w3XHjC+BW7xLHrjGagdmZxxbFrzRpI7mypuHDklS75HM2lhOBZ9sblGB3R/wovn3oHIdTf3XzhyL7CvI8jUraEJm6wpunX391c9OPBmuLTJKZdcGTm1nJIjEL1DU4KjnrQP2yJ6X1arWa4ufpSZWFO05180MIh1sq6ec3zDojl+4W7eQZy3HyYHD7diYlRqKPaEY16cLC3vV/Z2tl6R9FU0lZfbO4TzoF7e1FTj6K+R1GPCuE7QrAcEgA5AJADADkAkAMAOQAA5ABADgDkAEAOAOQAQA4A5ABADgDkAEAOAAA5AJADADkAkAMAOQCQAwA5AJADADkAkAMAOQAA5ABADoAksFFNH3wKAJQcAMgBgBwAyAGAHADIAUA2QQBKDgDkAEAOAAA5AJADADkAkAMAOQCQAwA5AJADADkAkAMAQA4A5ABADgDkAEAOAOQAQA4A5ABADsAx+D81XZPYwOqZ7wAAAABJRU5ErkJggg==";
+(function ensureMobileMeta() {
+  const head = document.head;
+  if (!head.querySelector('meta[name="viewport"]')) {
+    const v = document.createElement("meta");
+    v.name = "viewport"; v.content = "width=device-width, initial-scale=1, viewport-fit=cover";
+    head.appendChild(v);
+  }
+  if (!head.querySelector('meta[name="theme-color"]')) {
+    for (const [scheme, color] of [["light", "#F6F1E4"], ["dark", "#191A11"]]) {
+      const t = document.createElement("meta");
+      t.name = "theme-color"; t.content = color; t.media = "(prefers-color-scheme: " + scheme + ")";
+      head.appendChild(t);
+    }
+  }
+  if (APPLE_ICON.indexOf("_") === -1 && !head.querySelector('link[rel="apple-touch-icon"]')) {
+    const l = document.createElement("link");
+    l.rel = "apple-touch-icon"; l.href = "data:image/png;base64," + APPLE_ICON;
+    head.appendChild(l);
+  }
+  if (!head.querySelector('meta[name="apple-mobile-web-app-title"]')) {
+    const a = document.createElement("meta");
+    a.name = "apple-mobile-web-app-title"; a.content = "Simulateur Intérim";
+    head.appendChild(a);
+  }
+  document.querySelectorAll("input[type=number]").forEach(el => el.setAttribute("inputmode", "decimal"));
+})();
+$("mbar").addEventListener("click", () => document.querySelector(".rail").scrollIntoView({ behavior: "smooth" }));
+$("mbar").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("mbar").click(); } });
+
+/* restauration éventuelle depuis un lien partagé */
+let restored = null;
+(function restoreFromHash() {
+  const m = location.hash.match(/#s=(.+)/);
+  if (!m) return;
+  try {
+    const obj = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1])))));
+    const sector = obj.sector === "tarifaire" ? "tarifaire" : "agri";
+    restored = Object.assign(defaultInputs(DB, sector), obj);
+    restored.sector = sector;
+    restored.rates = Object.assign({}, SECTORS[sector].rates, obj.rates || {});
+  } catch (_) { /* hash invalide : valeurs par défaut */ }
+})();
+applySector(restored ? restored.sector : "agri", restored || undefined);
+window.addEventListener("resize", () => renderChart());
+</script>
+</body>
+</html>
