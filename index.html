@@ -475,8 +475,10 @@ table.grille td.neg { color: var(--bad); }
       <summary>Taux de cotisations &amp; constantes (avancé)</summary>
       <div class="card-b">
         <p class="note" id="const-note"></p>
+        <p><button class="btn" id="btn-classeur">Rétablir les constantes du classeur d'origine</button>
+        <span class="note">— pour reproduire l'Excel à l'identique (SMIC 11,88 · plafond 3 925/3 864 · barèmes 7,40/21,10 ou 7,30/20,70)</span></p>
         <div class="grid" style="margin-bottom:10px">
-          <div class="field"><label for="in-smicclasseur">SMIC des formules du classeur (€/h)</label><input type="number" id="in-smicclasseur" step="0.01" min="0"></div>
+          <div class="field"><label for="in-smicclasseur">SMIC des formules (€/h)</label><input type="number" id="in-smicclasseur" step="0.01" min="0"></div>
           <div class="field"><label for="in-plafondss">Plafond SS mensuel (€)</label><input type="number" id="in-plafondss" step="1" min="0"></div>
           <div class="field"><label for="in-todetot">Seuil TO-DE exo totale (× SMIC)</label><input type="number" id="in-todetot" step="0.01" min="0"></div>
           <div class="field"><label for="in-todemax">Seuil TO-DE maximal (× SMIC)</label><input type="number" id="in-todemax" step="0.01" min="0"></div>
@@ -623,6 +625,23 @@ const CONST = {
   FILLON_T: 0.3194        // D98
 };
 
+/* Valeurs officielles vérifiées multi-sources (URSSAF + BOSS + presse paie
+ * concordants) le 19/08/2026 — utilisées comme DÉFAUTS de l'interface.
+ * Les barèmes repas/nuitée n'ont pas d'API : gardés ici, surveillés par la
+ * vérification programmée de janvier/juillet. SMIC et plafond SS sont en plus
+ * actualisés en direct via OpenFisca à chaque ouverture. */
+const BAKED_OFFICIAL = {
+  asOf: "2026-08-19",
+  smic: { value: 12.31, date: "2026-06-01" },            // SMIC horaire brut en vigueur
+  pss: { value: 4005, date: "2026-01-01" },              // plafond SS mensuel
+  repasLieuTravail: { value: 7.50, date: "2026-01-01" }, // panier (barème repas PD)
+  repasHorsLocaux: { value: 10.40, date: "2026-01-01" },
+  repasRestaurant: { value: 21.40, date: "2026-01-01" }, // barème repas GD
+  nuiteeGDParis: { value: 76.60, date: "2026-01-01" },
+  nuiteeGDProvince: { value: 56.80, date: "2026-01-01" },
+  zonesBTPInchangees: true // 3,00/6,10/9,10/12,10/15,20 — identiques au classeur, confirmé BOSS 30/04/2026
+};
+
 /* RGDU 2026 (réduction générale dégressive unique, remplace Fillon au 01/01/2026)
  * Coefficient = Tmin + Tdelta × [½ × (plafond × SMIC réf / rémunération − 1)]^P,
  * plafonné à Tmin+Tdelta, nul dès `plafond` SMIC, arrondi à 4 décimales.
@@ -747,12 +766,12 @@ function defaultInputs(DB, sector) {
     sector: sector,
     client: "",
     dept: "",
-    thBrut: 11.88,              // D11
+    thBrut: BAKED_OFFICIAL.smic.value,  // D11 — défaut = SMIC en vigueur (classeur : 11,88)
     attestation: true,          // F13
     logement: true,             // H11
     redevanceClient: 0,         // H21
-    baremeRepasPD: cfg.baremePD, // H13
-    baremeRepasGD: cfg.baremeGD, // I13
+    baremeRepasPD: BAKED_OFFICIAL.repasLieuTravail.value, // H13 — 2026 (classeur : 7,40/7,30)
+    baremeRepasGD: BAKED_OFFICIAL.repasRestaurant.value,  // I13 — 2026 (classeur : 21,10/20,70)
     jours: 5,                   // D16
     hNuit: 0, hDim: 0, hFerie: 0,
     anRepasConsomme: false,     // D21
@@ -775,8 +794,8 @@ function defaultInputs(DB, sector) {
     logementHeures: 43,         // multiplicateur F92 (classeur tarifaire : ×43 en dur)
     exoFormule: "fillon",       // secteur tarifaire : "fillon" (classeur) ou "rgdu" (2026)
     rgdu: { smicRef: RGDU_DEFAULTS.smicRef, fnal050: false, interim: true },
-    smicClasseur: CONST.SMIC,   // SMIC des formules du classeur (Fillon, TO-DE, assiette mini)
-    plafondSSMois: cfg.plafondSSMois, // plafond SS mensuel (D107)
+    smicClasseur: BAKED_OFFICIAL.smic.value, // SMIC des formules (Fillon, TO-DE, assiette mini) — défaut = droit courant ; classeur : 11,88
+    plafondSSMois: BAKED_OFFICIAL.pss.value, // plafond SS mensuel (D107) — défaut = droit courant ; classeur : 3925/3864
     todeSeuilTot: 1.25,         // seuil TO-DE exonération intégrale (× SMIC)
     todeSeuilMax: 1.6,          // seuil TO-DE maximal (× SMIC)
     rates: Object.assign({}, cfg.rates)
@@ -1238,7 +1257,7 @@ function coeffPourTauxSecteur(i, tauxCible) {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { compute, computeSheet, computeTODE, defaultInputs, SECTORS, CONST, RGDU_DEFAULTS,
+  module.exports = { compute, computeSheet, computeTODE, defaultInputs, SECTORS, CONST, RGDU_DEFAULTS, BAKED_OFFICIAL,
                      RATES_AGRI, RATES_TARIFAIRE,
                      coeffPourTauxFact, coeffPourMarge, coeffPourTauxFactAvecLogement,
                      coeffPourTauxSecteur, solveCoeff };
@@ -1364,7 +1383,7 @@ function applySector(sector, preset) {
     $("sum-cotis").textContent = "Cotisations & TO-DE";
     $("lbl-logfact").textContent = "Logement facturé au client (€/sem)";
     $("lbl-cibletx").textContent = "Taux facturé cible hors logement (€/h)";
-    $("const-note").innerHTML = "Taux du classeur AGRI (MSA). SMIC horaire <b>11,88&nbsp;€</b> (TO-DE, Fillon, assiette mini) ; plafonds 2,5/3,5 SMIC figés au 31/12/2023 sur <b>11,52&nbsp;€</b> ; plafond SS <b>3&nbsp;925&nbsp;€/mois</b> proratisé ; retenue à la source 55&nbsp;€/j ; abattement DFS 20&nbsp;% (scénario IFM+CP). Mutuelle en % du plafond.";
+    $("const-note").innerHTML = "Secteur AGRI (MSA). Les défauts suivent le <b>droit courant</b> (SMIC et plafond SS actualisés en direct) ; le bouton ci-dessous rétablit les constantes du classeur Excel. Plafonds 2,5/3,5 SMIC figés au 31/12/2023 sur <b>11,52&nbsp;€</b> ; retenue à la source 55&nbsp;€/j ; abattement DFS 20&nbsp;% (scénario IFM+CP) ; mutuelle en % du plafond — taux de cotisations du classeur.";
     $("hidden-note").innerHTML = "Variante du classeur : IFM et ICCP forcés, assiette de cotisations avec abattement DFS 20&nbsp;% (bornée par l'assiette minimale), logement non facturé.";
   } else {
     $("brand-sub").textContent = "Marge brute intérim · Industrie & BTP (11/2024)";
@@ -1372,7 +1391,7 @@ function applySector(sector, preset) {
     $("sum-cotis").textContent = "Cotisations & Fillon";
     $("lbl-logfact").textContent = "Logement facturé au client (€/heure)";
     $("lbl-cibletx").textContent = "Taux facturé global cible (€/h)";
-    $("const-note").innerHTML = "Taux du classeur TARIFAIRE 11/2024. SMIC horaire <b>11,88&nbsp;€</b> ; plafond SS <b>3&nbsp;864&nbsp;€/mois</b> proratisé ; retenue à la source 54&nbsp;€/j ; abattement DFS 10&nbsp;% (hors mode industrie) ; Fillon majoré ×1,1 (intérim), plafonné en BTP GD à min(×1,3&nbsp;; variante DFS). Mutuelle en <b>€ par heure</b> (base heures normales).";
+    $("const-note").innerHTML = "Secteur TARIFAIRE (Industrie/BTP). Les défauts suivent le <b>droit courant</b> (SMIC et plafond SS actualisés en direct) ; le bouton ci-dessous rétablit les constantes du classeur 11/2024. Retenue à la source 54&nbsp;€/j ; abattement DFS 10&nbsp;% (hors mode industrie) ; Fillon majoré ×1,1 (intérim), plafonné en BTP GD à min(×1,3&nbsp;; variante DFS) ; mutuelle en <b>€ par heure</b> — taux de cotisations du classeur.";
     $("hidden-note").innerHTML = "Variante du classeur : IFM et ICCP forcés (base IFM = ensemble des éléments de paie, ICCP sur base + IFM). Assiette DFS 10&nbsp;% hors mode industrie.";
   }
   buildRatesGrid();
@@ -1834,6 +1853,17 @@ $("btn-reset").addEventListener("click", () => {
   applySector(inp.sector);
   history.replaceState(null, "", location.pathname + location.search);
 });
+/* constantes du classeur d'origine (comparabilité Excel) */
+$("btn-classeur").addEventListener("click", () => {
+  const agri = inp.sector === "agri";
+  $("in-smicclasseur").value = 11.88;
+  $("in-plafondss").value = agri ? 3925 : 3864;
+  $("in-baremepd").value = agri ? 7.4 : 7.3;
+  $("in-baremegd").value = agri ? 21.1 : 20.7;
+  $("in-thbrut").value = 11.88;
+  $("in-todetot").value = 1.25; $("in-todemax").value = 1.6;
+  onChange();
+});
 $("btn-share").addEventListener("click", async () => {
   readInputsFromForm();
   const hash = "#s=" + encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(inp)))));
@@ -1970,7 +2000,8 @@ async function fetchOfficial() {
     if (cached) { official = cached; official.fromCache = true; }
     else {
       $("official-status").innerHTML = "Flux OpenFisca indisponible ici (hors ligne ou restriction réseau de la page). " +
-        "Valeurs intégrées à la publication : SMIC 12,31 € (01/06/2026), plafond SS 4 005 € (2026), RGDU Tmin 0,02 · Tdelta 0,3781/0,3821 · P 1,75.";
+        "Valeurs intégrées à la publication du " + BAKED_OFFICIAL.asOf.split("-").reverse().join("/") +
+        " (et utilisées comme défauts) : SMIC 12,31 € (01/06/2026), plafond SS 4 005 €, repas 7,50 / 10,40 / 21,40 €, RGDU Tmin 0,02 · Tdelta 0,3781/0,3821 · P 1,75.";
       return;
     }
   }
@@ -1992,6 +2023,24 @@ function applyOfficialLawParams() {
   $("in-rgdusmic").value = inp.rgdu.smicRef;
   $("in-todetot").value = inp.todeSeuilTot;
   $("in-todemax").value = inp.todeSeuilMax;
+  /* SMIC / plafond SS : suivent la valeur en direct tant que l'utilisateur
+   * n'a pas modifié le champ (encore égal au défaut intégré) */
+  const follow = (id, baked, live) => {
+    const el = $(id);
+    if (el && live != null && Math.abs(num(el) - baked) < 1e-9 && Math.abs(live - baked) > 1e-9) el.value = live;
+  };
+  if (official.smic) {
+    follow("in-smicclasseur", BAKED_OFFICIAL.smic.value, official.smic.value);
+    follow("in-thbrut", BAKED_OFFICIAL.smic.value, official.smic.value);
+  }
+  if (official.pss) follow("in-plafondss", BAKED_OFFICIAL.pss.value, official.pss.value);
+  readInputsFromForm();
+  /* readInputsFromForm ne couvre pas les paramètres RGDU hors formulaire — re-fusion */
+  if (official.tmin) inp.rgdu.tmin = official.tmin.value;
+  if (official.tdeltaP) inp.rgdu.tdeltaPetite = official.tdeltaP.value;
+  if (official.tdeltaG) inp.rgdu.tdeltaGrande = official.tdeltaG.value;
+  if (official.puissance) inp.rgdu.p = official.puissance.value;
+  if (official.plafond) inp.rgdu.plafondSmic = official.plafond.value;
   render(compute(inp));
 }
 
@@ -2010,6 +2059,16 @@ function renderOfficial() {
              N4.format(official.tmin.value) + " · " + N4.format(official.tdeltaP.value) + " / " + N4.format(official.tdeltaG.value) +
              " · " + N2.format(official.puissance.value) + " · " + N2.format(official.plafond.value) + " SMIC — appliqués");
   s += kvRow("TO-DE — seuils exo totale / max", "", N2.format(official.todeTot.value) + " / " + N2.format(official.todeMax.value) + " × SMIC — appliqués");
+  s += "<tr class='sub'><td colspan='2'><b>Barèmes sans API</b> — vérifiés multi-sources (URSSAF · BOSS · presse paie, concordants) le " +
+       BAKED_OFFICIAL.asOf.split("-").reverse().join("/") + " ; surveillance automatique janvier/juillet</td></tr>";
+  s += kvRow('Repas lieu de travail / panier (<a href="https://www.urssaf.fr/accueil/outils-documentation/taux-baremes/frais-professionnels.html" target="_blank" rel="noopener">URSSAF</a>)', "",
+             N2.format(BAKED_OFFICIAL.repasLieuTravail.value) + " € — défaut du champ « Barème repas PD »");
+  s += kvRow("Repas hors locaux (sans restaurant)", "", N2.format(BAKED_OFFICIAL.repasHorsLocaux.value) + " €");
+  s += kvRow("Repas au restaurant (déplacement)", "", N2.format(BAKED_OFFICIAL.repasRestaurant.value) + " € — défaut du champ « Barème repas GD »");
+  s += kvRow("Nuitée GD Paris/92/93/94 · province (3 premiers mois)", "",
+             N2.format(BAKED_OFFICIAL.nuiteeGDParis.value) + " € · " + N2.format(BAKED_OFFICIAL.nuiteeGDProvince.value) + " €");
+  s += kvRow("Zones petits déplacements BTP (transport/j)", "", "inchangées 2026 — identiques au classeur (confirmé BOSS 30/04/2026)");
+  s += kvRow("Contradictions entre sources", "", "aucune au " + BAKED_OFFICIAL.asOf.split("-").reverse().join("/"));
   $("tbl-official").innerHTML = s;
   const wire = (id, fn) => { const b = $(id); if (b) b.addEventListener("click", fn); };
   wire("of-apply-smic", () => { $("in-smicclasseur").value = official.smic.value; onChange(); });
