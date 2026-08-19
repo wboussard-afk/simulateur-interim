@@ -373,15 +373,23 @@ table.grille td.neg { color: var(--bad); }
     </section>
 
     <section class="card">
-      <div class="card-h"><h2>Logement &amp; frais</h2><span class="eyebrow">Repas · transport</span></div>
+      <div class="card-h"><h2>Logement</h2><span class="eyebrow">Coût · participation · facturation</span></div>
       <div class="card-b">
         <div class="grid">
-          <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-log"> Logement payé par l'agence</label></div>
-          <div class="field only-agri"><label for="in-loghebdo">Coût du logement hebdo (€)</label><input type="number" id="in-loghebdo" step="1" min="0"></div>
-          <div class="field only-tarifaire"><label for="in-loghoraire">Coût du logement (€/heure)</label><input type="number" id="in-loghoraire" step="0.01" min="0"></div>
-          <div class="field only-tarifaire"><label for="in-logheures">Heures logement / sem</label><input type="number" id="in-logheures" step="1" min="0"></div>
-          <div class="field"><label for="in-redevance">Redevance logement client (€)</label><input type="number" id="in-redevance" step="1" min="0"></div>
+          <div class="field"><label for="in-loghebdo">Coût du logement (€/sem)</label><input type="number" id="in-loghebdo" step="0.01" min="0"></div>
+          <div class="field"><label for="in-partlog">Participation logement salarié (€/sem)</label><input type="number" id="in-partlog" step="1" min="0" title="Montant retenu sur le net du salarié (ex. 180 pour une reprise de 180 €/semaine)"></div>
           <div class="field"><label for="in-logfact" id="lbl-logfact">Logement facturé au client (€/sem)</label><input type="number" id="in-logfact" step="0.01" min="0"></div>
+          <div class="field only-tarifaire"><label for="in-decouche">Indemnité découché GD (€/nuit, mode BTP GD)</label><input type="number" id="in-decouche" step="0.01" min="0"></div>
+        </div>
+        <p class="hint">Participation = retenue nette hebdomadaire sur le salarié (0 = aucune). Coût à 0 = pas de logement pris en charge.
+        <span class="only-tarifaire">Le coût hebdo se préremplit depuis le département (coût moyen × 43 h) ; facturation = min(heures ; 35) × prix €/h.</span></p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h"><h2>Repas &amp; transport</h2><span class="eyebrow">Barèmes · tickets</span></div>
+      <div class="card-b">
+        <div class="grid">
           <div class="field wide"><label for="in-zone">Zone kilométrique PD (exonération transport)</label><select id="in-zone"></select></div>
           <div class="field"><label for="in-transp">Transport donné par client (€/j)</label><input type="number" id="in-transp" step="0.01" min="0"></div>
           <div class="field"><label for="in-repas">Montant repas client (€/j)</label><input type="number" id="in-repas" step="0.01" min="0"></div>
@@ -391,7 +399,6 @@ table.grille td.neg { color: var(--bad); }
           <div class="field"><label for="in-tickq">Tickets restaurant (nb)</label><input type="number" id="in-tickq" step="1" min="0"></div>
           <div class="field"><label for="in-tickv">Valeur ticket (€)</label><input type="number" id="in-tickv" step="0.01" min="0"></div>
         </div>
-        <p class="hint only-tarifaire">Coût logement = €/h × heures logement (43 dans le classeur). Facturation logement = min(heures&nbsp;; 35) × prix €/h. Le coût €/h se préremplit depuis le département de mission.</p>
         <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:8px">
           <label class="check"><input type="checkbox" id="in-anconso"> AN repas consommé</label>
           <label class="check"><input type="checkbox" id="in-anretrait"> Retrait AN repas de la facturation</label>
@@ -407,18 +414,8 @@ table.grille td.neg { color: var(--bad); }
         <div class="rowline rowhead" style="margin-top:10px"><span>Indemnité (non soumise)</span><span>Nombre</span><span>Coef fact.</span><span>Montant (€)</span><span style="text-align:right">Total</span></div>
         <div id="indems"></div>
         <p class="hint">Coef fact. = coefficient de facturation de la ligne. Primes : vide = coefficient de la mission ; indemnités : défaut 1 (à l'identique) ; <b>0 = non refacturée</b> ; toute autre valeur possible.</p>
-        <div class="grid" style="margin-top:10px">
-          <div class="field"><label for="in-part">Participation logement salarié</label>
-            <select id="in-part">
-              <option value="PARTICIPATION FORFAIT">Forfait (−25 €)</option>
-              <option value="PARTICIPATION FACTURE">Égale au coût du logement</option>
-              <option value="PARTICIPATION ANNULATION GD">Annulation découché GD</option>
-              <option value="PARTICIPATION LIBRE">Montant libre</option>
-            </select>
-          </div>
-          <div class="field"><label for="in-partlibre">Montant libre (€, négatif = retenue)</label><input type="number" id="in-partlibre" step="1"></div>
-          <div class="field only-agri"><label for="in-ifm">Base IFM (€, scénario IFM+CP)</label><input type="number" id="in-ifm" step="0.01" min="0"></div>
-          <div class="field"><label for="in-decouche">Indemnité découché GD (€/nuit)</label><input type="number" id="in-decouche" step="0.01" min="0"></div>
+        <div class="grid only-agri" style="margin-top:10px">
+          <div class="field"><label for="in-ifm">Base IFM (€, scénario IFM+CP)</label><input type="number" id="in-ifm" step="0.01" min="0"></div>
         </div>
       </div>
     </section>
@@ -1510,9 +1507,14 @@ function setFormFromInputs() {
   $("in-atmp").value = inp.rates.atPat;
   $("in-ifm-toggle").checked = !!inp.ifm;
   $("in-iccp").checked = inp.iccp; $("in-attest").checked = inp.attestation; $("in-annu").checked = inp.annualisation;
-  $("in-log").checked = inp.logement; $("in-loghebdo").value = inp.logementHebdo;
-  $("in-loghoraire").value = inp.logementHoraire; $("in-logheures").value = inp.logementHeures;
-  $("in-redevance").value = inp.redevanceClient; $("in-logfact").value = inp.coutLogementFacture;
+  /* coût logement affiché en €/semaine dans les deux secteurs ; en tarifaire le
+   * classeur calcule en €/h × heures logement → conversion transparente */
+  $("in-loghebdo").value = inp.sector === "agri"
+    ? inp.logementHebdo
+    : Math.round(inp.logementHoraire * (inp.logementHeures || 43) * 100) / 100;
+  /* participation : saisie positive = retenue hebdomadaire sur le net (F19 = −valeur) */
+  $("in-partlog").value = Math.abs(Math.min(0, inp.participationLibre));
+  $("in-logfact").value = inp.coutLogementFacture;
   $("in-zone").value = inp.zonePD; $("in-transp").value = inp.transpClient;
   $("in-repas").value = inp.repasClient; $("in-anrepas").value = inp.anRepasClient;
   $("in-baremepd").value = inp.baremeRepasPD; $("in-baremegd").value = inp.baremeRepasGD;
@@ -1522,7 +1524,6 @@ function setFormFromInputs() {
                                  $("prf" + k).value = (p.fc == null || p.fc === "coef") ? "" : p.fc; });
   inp.indemnites.forEach((p, k) => { $("inq" + k).value = p.q; $("inr" + k).value = p.r; $("inn" + k).value = p.name || indemNames[k];
                                      $("inf" + k).value = (p.fc == null) ? "" : p.fc; });
-  $("in-part").value = inp.participationChoice; $("in-partlibre").value = inp.participationLibre;
   $("in-ifm").value = inp.baseIFM; $("in-decouche").value = inp.indemDecoucheRate;
   $("in-coeff").value = inp.coeff; $("in-coeffhdn").value = inp.coeffHDN;
   $("in-hfact").value = inp.heuresFactNormal; $("in-remise").value = inp.remisePct;
@@ -1559,9 +1560,15 @@ function readInputsFromForm() {
   inp.majoNormLabel = $("in-majonorm").value; inp.majoNormQty = num($("in-majonormq"));
   inp.ifm = $("in-ifm-toggle").checked;
   inp.iccp = $("in-iccp").checked; inp.attestation = $("in-attest").checked; inp.annualisation = $("in-annu").checked;
-  inp.logement = $("in-log").checked; inp.logementHebdo = num($("in-loghebdo"));
-  inp.logementHoraire = num($("in-loghoraire")); inp.logementHeures = num($("in-logheures"));
-  inp.redevanceClient = num($("in-redevance")); inp.coutLogementFacture = num($("in-logfact"));
+  inp.logement = true; // (bascule supprimée : coût à 0 = pas de logement)
+  const hebdo = num($("in-loghebdo"));
+  if (inp.sector === "agri") { inp.logementHebdo = hebdo; }
+  else {
+    inp.logementHeures = inp.logementHeures || 43;
+    inp.logementHoraire = hebdo / inp.logementHeures; // le moteur remultiplie ×heures (classeur)
+  }
+  inp.redevanceClient = 0; // champ supprimé (F53 inchangé : 0)
+  inp.coutLogementFacture = num($("in-logfact"));
   inp.zonePD = $("in-zone").value; inp.transpClient = num($("in-transp"));
   inp.repasClient = num($("in-repas")); inp.anRepasClient = num($("in-anrepas"));
   inp.baremeRepasPD = num($("in-baremepd")); inp.baremeRepasGD = num($("in-baremegd"));
@@ -1570,7 +1577,8 @@ function readInputsFromForm() {
   const readFc = id => { const raw = $(id).value.trim(); if (raw === "") return null; const v = parseFloat(raw.replace(",", ".")); return isFinite(v) ? v : null; };
   inp.primes = inp.primes.map((p, k) => ({ q: num($("prq" + k)), r: num($("prr" + k)), name: $("prn" + k).value, fc: readFc("prf" + k) }));
   inp.indemnites = inp.indemnites.map((p, k) => ({ q: num($("inq" + k)), r: num($("inr" + k)), name: $("inn" + k).value, fc: readFc("inf" + k) }));
-  inp.participationChoice = $("in-part").value; inp.participationLibre = num($("in-partlibre"));
+  inp.participationChoice = "PARTICIPATION LIBRE";
+  inp.participationLibre = -Math.abs(num($("in-partlog"))); // positif saisi = retenue (F19 négatif)
   inp.baseIFM = num($("in-ifm")); inp.indemDecoucheRate = num($("in-decouche"));
   inp.coeff = num($("in-coeff")); inp.coeffHDN = num($("in-coeffhdn"));
   inp.heuresFactNormal = num($("in-hfact")); inp.remisePct = num($("in-remise"));
@@ -1930,7 +1938,7 @@ $("in-dept").addEventListener("change", () => {
   const d = DB.departments.find(x => x.dept === $("in-dept").value);
   const lg = d && DB.logement.find(x => d.dept.startsWith(x.dept + " "));
   if (lg && lg.costPerHour != null) {
-    $("in-loghoraire").value = Math.round(lg.costPerHour * 100) / 100;
+    $("in-loghebdo").value = Math.round(lg.costPerHour * (inp.logementHeures || 43) * 100) / 100;
     onChange();
   }
 });
