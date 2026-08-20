@@ -103,6 +103,7 @@ button { font: inherit; cursor: pointer; }
 /* visibilité par secteur */
 body:not(.sector-tarifaire) .only-tarifaire { display: none !important; }
 body.sector-tarifaire .only-agri { display: none !important; }
+body:not(.branche-btp) .only-btp { display: none !important; }
 
 /* ================= HEADER ================= */
 header.top {
@@ -318,8 +319,9 @@ table.grille td.neg { color: var(--bad); }
     <div class="top-fields">
       <div class="field"><label id="lbl-sector">Secteur</label>
         <div class="seg" role="group" aria-labelledby="lbl-sector">
-          <button type="button" id="sector-agri" aria-pressed="true">Agricole · TO-DE</button>
-          <button type="button" id="sector-tarifaire" aria-pressed="false">Tarifaire · Fillon</button>
+          <button type="button" id="sector-agri" aria-pressed="true">Agricole · MSA</button>
+          <button type="button" id="sector-btp" aria-pressed="false">BTP · CPAM</button>
+          <button type="button" id="sector-industrie" aria-pressed="false">Industrie · CPAM</button>
         </div>
       </div>
       <div class="field"><label for="in-client">Client</label><input type="text" id="in-client" placeholder="Nom du client"></div>
@@ -414,6 +416,17 @@ table.grille td.neg { color: var(--bad); }
       <div class="card-h"><h2>Références barèmes</h2><span class="eyebrow">URSSAF 2026 · grilles régionales BTP</span></div>
       <div class="card-b">
         <div class="grid">
+          <div class="field only-btp"><label for="in-niveau">Niveau de qualification (grille BTP)</label>
+            <select id="in-niveau">
+              <option value="N1P1">N1P1 — coeff 150</option>
+              <option value="N1P2">N1P2 — coeff 170</option>
+              <option value="N2">N2 — coeff 185</option>
+              <option value="N3P1">N3P1 — coeff 210</option>
+              <option value="N3P2">N3P2 — coeff 230</option>
+              <option value="N4P1">N4P1 — coeff 250</option>
+              <option value="N4P2">N4P2 — coeff 270</option>
+              <option value="AUTRE">Autre</option>
+            </select></div>
           <div class="field"><label for="in-zone">Distance (petits déplacements, aller-retour)</label><select id="in-zone"></select></div>
           <div class="field"><label for="in-gdduree">Durée du grand déplacement</label>
             <select id="in-gdduree">
@@ -428,7 +441,8 @@ table.grille td.neg { color: var(--bad); }
             </select></div>
         </div>
         <table class="kv" id="tbl-ref" style="margin-top:8px"></table>
-        <p class="note">Montants actualisés automatiquement : barèmes URSSAF vérifiés multi-sources (repas et GD au 01/01/2026, abattements 15 % / 30 % selon la durée — BOSS), grille régionale BTP du classeur sélectionnée d'après le département de mission. La distance choisie alimente aussi l'exonération transport du calcul.</p>
+        <p class="note">Montants actualisés automatiquement : barèmes URSSAF vérifiés multi-sources (repas et GD au 01/01/2026, abattements 15 % / 30 % selon la durée — BOSS), grille régionale BTP du classeur sélectionnée d'après le département de mission. La distance choisie alimente aussi l'exonération transport du calcul.
+        <span class="only-btp">Minima officiels à jour par région : <a href="https://code.travail.gouv.fr/contribution/1596-quel-est-le-salaire-minimum" target="_blank" rel="noopener">code.travail.gouv.fr — CC 1596/1597 (ouvriers BTP)</a> ; la grille du classeur (16/03/2022) est plafonnée au plancher SMIC et surveillée automatiquement.</span></p>
       </div>
     </section>
 
@@ -485,15 +499,16 @@ table.grille td.neg { color: var(--bad); }
       </div>
     </section>
 
-    <section class="card only-tarifaire">
-      <div class="card-h"><h2>Allègement patronal</h2><span class="eyebrow">RGDU 2026</span></div>
+    <section class="card">
+      <div class="card-h"><h2>Allègement patronal</h2><span class="eyebrow">RGDU 2026 <span class="only-agri">· comparatif TO-DE</span></span></div>
       <div class="card-b">
         <div class="grid">
           <div class="field"><label for="in-rgdusmic">SMIC réf. RGDU (€/h, 01/01/2026)</label><input type="number" id="in-rgdusmic" step="0.01" min="0"></div>
           <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-rgdufnal"> ≥ 50 salariés (FNAL 0,50 %)</label></div>
           <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-rgduinterim"> Majoration intérim ×1,1</label></div>
         </div>
-        <p class="note">RGDU 2026 : coefficient = Tmin + Tdelta × [½ × (3 × SMIC réf / rémunération − 1)]^P, plafonné à Tmin+Tdelta, <b>nul dès 3 SMIC</b>, arrondi à 4 décimales. Paramètres du décret <b>actualisés automatiquement depuis OpenFisca</b> (au 01/01/2026 : Tmin 0,02 · Tdelta 0,3781 / 0,3821 selon la taille · P 1,75). Majoration intérim ×1,1 <b>confirmée</b> (art. D.241-10 III CSS, hors CDI intérimaire). L'ancien Fillon n'est conservé que par le bouton « constantes du classeur » (reproduction Excel).</p>
+        <p class="note">RGDU 2026 : coefficient = Tmin + Tdelta × [½ × (3 × SMIC réf / rémunération − 1)]^P, plafonné à Tmin+Tdelta, <b>nul dès 3 SMIC</b>, arrondi à 4 décimales. Paramètres du décret <b>actualisés automatiquement depuis OpenFisca</b> (au 01/01/2026 : Tmin 0,02 · Tdelta 0,3781 / 0,3821 selon la taille · P 1,75). Majoration intérim ×1,1 <b>confirmée</b> (art. D.241-10 III CSS, hors CDI intérimaire). L'ancien Fillon n'est conservé que par le bouton « constantes du classeur » (reproduction Excel).
+        <span class="only-agri"><b>Agricole (CDD saisonnier)</b> : la TO-DE est appliquée au calcul ; la RGDU équivalente est affichée en comparaison dans le détail des cotisations — les deux dispositifs <b>ne se cumulent pas</b>, l'employeur opte salarié par salarié pour le plus favorable.</span></p>
       </div>
     </section>
 
@@ -902,7 +917,7 @@ function defaultInputs(DB, sector) {
       netAttendu: 10,           // D12
       ifm: false,               // (pas de ligne IFM sur SIMULATOR agri)
       iccp: true,               // F12
-      logementHebdo: 135,       // H12 (€ / semaine)
+      logementHebdo: 0,         // H12 (€ / semaine) — défaut 0 : pas de logement tant que rien n'est saisi
       logementHoraire: 0,
       heures: 35,               // D17
       coeff: 1.4681,            // H16
@@ -917,19 +932,21 @@ function defaultInputs(DB, sector) {
                 {q:0, r:0, name:"Prime 4", fc:null}, {q:0, r:0, name:"Prime 5", fc:null} ],
       indemnites: [ {q:5, r:6, name:"Indemnité 1", fc:0}, {q:0, r:0, name:"Indemnité 2", fc:1},   // M47=0, M48=1 (classeur agri)
                     {q:0, r:0, name:"Indemnité 3", fc:1}, {q:0, r:0, name:"Indemnité 4", fc:1} ], // extension web (modèle ligne 48)
-      participationLibre: -50,  // F19
-      coutLogementFacture: 70,  // M52 (€ / semaine)
+      participationLibre: 0,    // F19 — défaut 0 (aucune retenue)
+      coutLogementFacture: 0,   // M52 (€ / semaine) — défaut 0
       refactPrimes: true,       // L18
       cibleTauxFact: 17.45      // L14
     });
   }
   return Object.assign(common, {
     mode: "SIMULATEUR INDUSTRIE", // D3
+    branche: "industrie",       // UI : "btp" | "industrie" (affiliation CPAM, RGDU pour les deux)
+    niveauQualif: "N1P1",       // référence grille BTP (niveau de qualification affiché)
     netAttendu: 9,              // D12
     ifm: false,                 // F11
     iccp: false,                // F12
     logementHebdo: 0,
-    logementHoraire: 3.5,       // I12/H12 (€ / heure, cf. LOGEMT)
+    logementHoraire: 0,         // I12/H12 (€ / heure) — défaut 0 ; le département préremplit sur sélection
     heures: 43,                 // D17
     coeff: 1.78,                // H16
     coeffHDN: 1.9,              // N27
@@ -940,7 +957,7 @@ function defaultInputs(DB, sector) {
               {q:0, r:0, name:"Prime 4", fc:null}, {q:0, r:0, name:"Prime 5", fc:null} ],
     indemnites: [ {q:0, r:0, name:"Indemnité 1", fc:1}, {q:0, r:0, name:"Indemnité 2", fc:1},   // M47=M48=1 (classeur tarifaire)
                   {q:0, r:0, name:"Indemnité 3", fc:1}, {q:0, r:0, name:"Indemnité 4", fc:1} ], // extension web
-    participationLibre: -80,    // F19
+    participationLibre: 0,      // F19 — défaut 0 (aucune retenue)
     coutLogementFacture: 0,     // M52 (€ / heure facturé)
     refactPrimes: true,         // L18
     cibleTauxFact: 22.6         // L14
@@ -1432,20 +1449,24 @@ function fillSelect(id, table, selected) {
   }
   s.value = selected;
 }
-function fillModeSelect(sector, selected) {
+function fillModeSelect(sector, selected, branche) {
   const s = $("in-mode");
   s.innerHTML = "";
-  for (const m of SECTORS[sector].modes) {
+  let modes = SECTORS[sector].modes;
+  /* en tarifaire, la branche (BTP / Industrie) filtre les types de simulateur */
+  if (sector === "tarifaire" && branche)
+    modes = modes.filter(m => (m.indexOf("BTP") >= 0) === (branche === "btp"));
+  for (const m of modes) {
     const o = document.createElement("option");
     o.value = m; o.textContent = m;
     s.appendChild(o);
   }
-  if (selected && SECTORS[sector].modes.indexOf(selected) === -1) {
+  if (selected && modes.indexOf(selected) === -1) {
     const o = document.createElement("option");
     o.value = selected; o.textContent = selected;
     s.appendChild(o);
   }
-  s.value = selected || SECTORS[sector].modes[0];
+  s.value = selected || modes[0];
 }
 {
   const s = $("in-dept");
@@ -1510,12 +1531,24 @@ function buildRatesGrid() {
 }
 
 /* ================= SECTOR ================= */
-function applySector(sector, preset) {
+function applySector(sector, preset, brancheArg) {
   inp = preset || defaultInputs(DB, sector);
+  /* 3 types de fonctionnement : agri (MSA · TO-DE) / BTP (CPAM · RGDU) / Industrie (CPAM · RGDU) */
+  const branche = sector === "tarifaire"
+    ? (brancheArg || inp.branche || (String(inp.mode).indexOf("BTP") >= 0 ? "btp" : "industrie"))
+    : null;
+  if (sector === "tarifaire") {
+    inp.branche = branche;
+    const isBtpMode = String(inp.mode).indexOf("BTP") >= 0;
+    if (branche === "btp" && !isBtpMode) inp.mode = "SIMULATEUR BTP GRAND D";
+    if (branche === "industrie" && isBtpMode) inp.mode = "SIMULATEUR INDUSTRIE";
+  }
   document.body.classList.toggle("sector-tarifaire", sector === "tarifaire");
+  document.body.classList.toggle("branche-btp", branche === "btp");
   $("sector-agri").setAttribute("aria-pressed", sector === "agri" ? "true" : "false");
-  $("sector-tarifaire").setAttribute("aria-pressed", sector === "tarifaire" ? "true" : "false");
-  fillModeSelect(sector, inp.mode);
+  $("sector-btp").setAttribute("aria-pressed", branche === "btp" ? "true" : "false");
+  $("sector-industrie").setAttribute("aria-pressed", branche === "industrie" ? "true" : "false");
+  fillModeSelect(sector, inp.mode, branche);
   fillSelect("in-majodim", DB.majoDimanche, inp.majoDimLabel);
   fillSelect("in-majoferie", DB.majoFerie, inp.majoFerieLabel);
   fillSelect("in-majonuit", DB.majoNuit, inp.majoNuitLabel);
@@ -1523,7 +1556,7 @@ function applySector(sector, preset) {
   fillSelect("in-majonorm", DB.majoNormales, inp.majoNormLabel);
   fillSelect("in-zone", DB.zonesKmPD, inp.zonePD);
   if (sector === "agri") {
-    $("brand-sub").textContent = "Marge brute & construction du net · MSA & TO-DE";
+    $("brand-sub").textContent = "Marge brute & construction du net · CDD saisonnier agricole (MSA · TO-DE)";
     $("tile-exo-label").textContent = "TO-DE (exonération)";
     $("sum-cotis").textContent = "Cotisations & TO-DE";
     $("lbl-logfact").textContent = "Logement facturé au client (€/sem)";
@@ -1531,9 +1564,11 @@ function applySector(sector, preset) {
     $("const-note").innerHTML = "Secteur AGRI (MSA). Les défauts suivent le <b>droit courant</b> (SMIC et plafond SS actualisés en direct) ; le bouton ci-dessous rétablit les constantes du classeur Excel. Plafonds 2,5/3,5 SMIC figés au 31/12/2023 sur <b>11,52&nbsp;€</b> ; retenue à la source 55&nbsp;€/j ; abattement DFS 20&nbsp;% (scénario IFM+CP) ; mutuelle en % du plafond — taux de cotisations du classeur.";
     $("hidden-note").innerHTML = "Variante du classeur : IFM et ICCP forcés, assiette de cotisations avec abattement DFS 20&nbsp;% (bornée par l'assiette minimale), logement non facturé.";
   } else {
-    $("brand-sub").textContent = "Marge brute & construction du net · Industrie & BTP";
-    $("tile-exo-label").textContent = "Allègement Fillon";
-    $("sum-cotis").textContent = "Cotisations & Fillon";
+    $("brand-sub").textContent = branche === "btp"
+      ? "Marge brute & construction du net · BTP (CPAM · RGDU · grille régionale)"
+      : "Marge brute & construction du net · Industrie (CPAM · RGDU · barème URSSAF)";
+    $("tile-exo-label").textContent = "Allègement RGDU";
+    $("sum-cotis").textContent = "Cotisations & RGDU";
     $("lbl-logfact").textContent = "Logement facturé au client (€/heure)";
     $("lbl-cibletx").textContent = "Taux facturé global cible (€/h)";
     $("const-note").innerHTML = "Secteur TARIFAIRE (Industrie/BTP). Les défauts suivent le <b>droit courant</b> (SMIC et plafond SS actualisés en direct) ; le bouton ci-dessous rétablit les constantes du classeur 11/2024. Retenue à la source 54&nbsp;€/j ; abattement DFS 10&nbsp;% (hors mode industrie) ; Fillon majoré ×1,1 (intérim), plafonné en BTP GD à min(×1,3&nbsp;; variante DFS) ; mutuelle en <b>€ par heure</b> — taux de cotisations du classeur.";
@@ -1576,6 +1611,7 @@ function setFormFromInputs() {
   $("in-logfact").value = inp.coutLogementFacture;
   $("in-zone").value = inp.zonePD;
   $("in-gdduree").value = String(inp.gdDuree || 0);
+  $("in-niveau").value = inp.niveauQualif || "N1P1";
   $("in-gdlieu").value = inp.gdLieu || "province";
   inp.primes.forEach((p, k) => { if (!$("prq" + k)) return;
                                  $("prq" + k).value = p.q; $("prr" + k).value = p.r; $("prn" + k).value = p.name || primeNames[k] || ("Prime " + (k + 1));
@@ -1630,6 +1666,7 @@ function readInputsFromForm() {
   inp.coutLogementFacture = num($("in-logfact"));
   inp.zonePD = $("in-zone").value;
   inp.gdDuree = parseInt($("in-gdduree").value, 10) || 0;
+  inp.niveauQualif = $("in-niveau").value;
   inp.gdLieu = $("in-gdlieu").value;
   /* champs supprimés de l'interface (repas/transport client, AN, tickets, barèmes) :
    * les valeurs moteur restent à leurs défauts (0 / barèmes URSSAF intégrés) */
@@ -1882,6 +1919,10 @@ function renderCotis(m) {
   for (const [l, ref, v] of prows) if (Math.abs(v) > 1e-9) s += kvRow(l, ref, fmtE(v));
   if (SECTORS[inp.sector].exo === "tode") {
     s += kvRow("TO-DE : exonération <b>" + m.tode.eligibilite + "</b> (seuils " + fmtE(m.tode.seuilTotale) + " / " + fmtE(m.tode.seuilMax) + ")", "H83", "−" + EUR.format(m.H83).replace("-", ""));
+    /* TO-DE et réduction générale ne se cumulent pas : option par salarié pour le plus favorable */
+    s += kvRow("RGDU équivalente (non cumulable avec la TO-DE — option par salarié)" +
+               (m.rgduAmount > m.H83 + 0.005 ? " — <b>serait plus favorable ⚠</b>" : " — TO-DE plus favorable ✓"),
+               "", fmtE(m.rgduAmount));
   } else if (inp.exoFormule === "rgdu") {
     s += kvRow("Allègement RGDU 2026 (coeff " + N4.format(m.rgduCoeff) + " × brut" +
                (inp.rgdu.interim !== false ? " × 1,1" : "") + ") — Fillon classeur : " + fmtE(m.H83_fillon), "H83", "−" + EUR.format(m.H83).replace("-", ""));
@@ -2027,7 +2068,28 @@ function renderRef(m) {
   const abat = [1, 0.85, 0.70][duree];
   const nuitee = (inp.gdLieu === "paris" ? BAKED_OFFICIAL.nuiteeGDParisPeriodes : BAKED_OFFICIAL.nuiteeGDProvincePeriodes)[duree];
   const repasGD = BAKED_OFFICIAL.repasRestaurant.value * abat;
-  let s = "<tr class='sub'><td colspan='2'><b>Repas petits déplacements</b> (exonération URSSAF / repas, 2026)</td></tr>";
+  const isBTP = inp.sector === "tarifaire" && inp.branche === "btp";
+  let s = "";
+  /* BTP : grille régionale — région + niveau de qualification -> minimum de salaire, panier */
+  if (isBTP) {
+    s += "<tr class='sub'><td colspan='2'><b>Grille BTP régionale</b> — " +
+         (d ? "région " + esc((d.region || "").split("/")[0].trim()) : "choisir un département de mission") + "</td></tr>";
+    if (d && d.rates) {
+      const lvl = inp.niveauQualif || "N1P1";
+      const g = d.rates[lvl];
+      const smicNow = (typeof official !== "undefined" && official && official.smic) ? official.smic.value : BAKED_OFFICIAL.smic.value;
+      if (g != null) {
+        const below = g < smicNow - 1e-9;
+        s += kvRow("Salaire minimum " + esc(lvl) + (below ? " — grille sous le SMIC, plancher appliqué ⚠" : ""), "",
+                   fmtE(below ? smicNow : g) + (below ? " (grille : " + fmtE(g) + ")" : ""));
+      } else {
+        s += kvRow("Salaire minimum " + esc(lvl), "", "n.c. dans la grille");
+      }
+      s += kvRow("Panier repas BTP du département", "", d.panier != null ? fmtE(d.panier) +
+        (d.panierNonSoumis != null ? " (non soumis " + fmtE(d.panierNonSoumis) + ")" : "") : "n.c.");
+    }
+  }
+  s += "<tr class='sub'><td colspan='2'><b>Repas petits déplacements</b> (exonération URSSAF / repas, 2026)</td></tr>";
   s += kvRow("Repas atelier / sur le lieu de travail", "", fmtE(BAKED_OFFICIAL.repasLieuTravail.value));
   s += kvRow("Repas chantier (hors des locaux, sans restaurant)", "", fmtE(BAKED_OFFICIAL.repasHorsLocaux.value));
   s += kvRow("Repas au restaurant", "", fmtE(BAKED_OFFICIAL.repasRestaurant.value));
@@ -2036,17 +2098,13 @@ function renderRef(m) {
   const normZ = z => (z || "").replace(/ /g, " ").trim();
   const ziEntry = Object.entries(ZONE_REGIONALE).find(e => normZ(e[0]) === normZ(inp.zonePD));
   const zi = ziEntry ? ziEntry[1] : null;
-  if (d && zi != null && d.transport && d.transport[zi] != null) {
+  if (isBTP && d && zi != null && d.transport && d.transport[zi] != null) {
     s += kvRow("Grille régionale " + esc((d.region || "").split("/")[0].trim()) + " — transport zone " + ZONE_NOMS[zi], "", fmtE(d.transport[zi]));
     s += kvRow("Grille régionale — trajet zone " + ZONE_NOMS[zi], "", fmtE(d.trajet[zi]));
-  } else if (!d) {
+  } else if (isBTP && !d) {
     s += kvRow("Grille régionale transport/trajet", "", "choisir un département de mission");
-  } else if (zi == null) {
+  } else if (isBTP && zi == null) {
     s += kvRow("Grille régionale transport/trajet", "", "hors zones régionales (≤ 50 km)");
-  }
-  if (d) {
-    s += kvRow("Panier conventionnel du département", "", d.panier != null ? fmtE(d.panier) +
-      (d.panierNonSoumis != null ? " (non soumis " + fmtE(d.panierNonSoumis) + ")" : "") : "n.c.");
   }
   s += "<tr class='sub'><td colspan='2'><b>Grand déplacement</b> — " +
        (inp.gdLieu === "paris" ? "Paris + 92/93/94" : "province") + ", " +
@@ -2061,18 +2119,21 @@ function renderDeptHint() {
   const el = $("dept-hint");
   const d = DB.departments.find(x => x.dept === inp.dept);
   if (!d) { el.innerHTML = ""; return; }
+  const isBTP = inp.sector === "tarifaire" && inp.branche === "btp";
   const lg = DB.logement.find(x => d.dept.startsWith(x.dept + " "));
   let chips = "";
   const smicNow = (typeof official !== "undefined" && official && official.smic) ? official.smic.value : null;
-  for (const [k, v] of Object.entries(d.rates)) {
+  /* la grille N1P1..N4P2 et le panier sont des références conventionnelles BTP — masqués hors branche BTP */
+  if (isBTP) for (const [k, v] of Object.entries(d.rates)) {
     if (v == null || k === "AUTRE") continue;
     const below = smicNow != null && v < smicNow - 1e-9;
     chips += '<button class="chip' + (below ? " below" : "") + '" data-rate="' + v +
       '" title="' + (below ? "Grille sous le SMIC en vigueur (" + N2.format(smicNow) + " €) — sera rehaussée" : "Appliquer au taux horaire brut") + '">' +
       k + " <b>" + N2.format(v) + "</b>" + (below ? " ⚠" : "") + "</button>";
   }
-  el.innerHTML = "Grille " + esc(d.dept) + " — panier " + (d.panier != null ? N2.format(d.panier) + " €" : "n.c.") +
-    (d.panierNonSoumis != null ? " (non soumis " + N2.format(d.panierNonSoumis) + " €)" : "") +
+  el.innerHTML = esc(d.dept) +
+    (isBTP && d.panier != null ? " — panier " + N2.format(d.panier) + " €" +
+      (d.panierNonSoumis != null ? " (non soumis " + N2.format(d.panierNonSoumis) + " €)" : "") : "") +
     (lg && lg.costPerHour != null ? " · logement moyen " + N2.format(lg.costPerHour) + " €/h" : "") +
     '<span class="chips">' + chips + "</span>";
   el.querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => {
@@ -2103,7 +2164,12 @@ $("in-dept").addEventListener("change", () => {
   }
 });
 $("sector-agri").addEventListener("click", () => { if (inp.sector !== "agri") applySector("agri"); });
-$("sector-tarifaire").addEventListener("click", () => { if (inp.sector !== "tarifaire") applySector("tarifaire"); });
+$("sector-btp").addEventListener("click", () => {
+  if (!(inp.sector === "tarifaire" && inp.branche === "btp")) applySector("tarifaire", undefined, "btp");
+});
+$("sector-industrie").addEventListener("click", () => {
+  if (!(inp.sector === "tarifaire" && inp.branche === "industrie")) applySector("tarifaire", undefined, "industrie");
+});
 $("ifmcp-direct").addEventListener("click", () => {
   $("ifmcp-direct").setAttribute("aria-pressed", "true"); $("ifmcp-cet").setAttribute("aria-pressed", "false");
   onChange();
@@ -2121,7 +2187,7 @@ $("gs-marge-apply").addEventListener("click", e => {
   if (isFinite(c)) { $("in-coeff").value = Math.round(c * 10000) / 10000; onChange(); }
 });
 $("btn-reset").addEventListener("click", () => {
-  applySector(inp.sector);
+  applySector(inp.sector, undefined, inp.branche);
   history.replaceState(null, "", location.pathname + location.search);
 });
 /* constantes du classeur d'origine (comparabilité Excel) */
