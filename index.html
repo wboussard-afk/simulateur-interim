@@ -2177,12 +2177,15 @@ function renderRef(m) {
       } else {
         s += kvRow("Salaire minimum " + esc(lvl), "", lvl === "AUTRE" ? "saisie libre — plancher SMIC " + fmtE(smicNow) : "n.c.");
       }
-      /* panier décomposé RECALCULÉ sur la limite URSSAF courante (les parts figées du
-       * classeur datent de la limite 2022 — doctrine : valeurs du droit courant) */
+      /* panier : accord régional de la base de veille si disponible, sinon classeur —
+       * décomposition RECALCULÉE sur la limite URSSAF courante */
       const limRepas = BAKED_OFFICIAL.repasHorsLocaux.value;
-      s += kvRow("Panier repas BTP — total", "", d.panier != null ? fmtE(d.panier) : "n.c.");
-      if (d.panier != null) {
-        const nsPan = Math.min(d.panier, limRepas), soPan = Math.max(0, d.panier - limRepas);
+      const ipdP = (BTP_IPD || {})[normRegionBTP(d.region)] || null;
+      const panier = ipdP && ipdP.repas != null ? ipdP.repas : d.panier;
+      s += kvRow("Panier repas BTP — total" + (ipdP && ipdP.repas != null ? " (" + esc(ipdP.accord || "accord à jour") + ")" : " (grille classeur)"), "",
+                 panier != null ? fmtE(panier) : "n.c.");
+      if (panier != null) {
+        const nsPan = Math.min(panier, limRepas), soPan = Math.max(0, panier - limRepas);
         s += kvRow("&nbsp;&nbsp;· part <b>non soumise</b> à cotisations (exonérée, limite URSSAF " + fmtE(limRepas) + ")", "", fmtE(nsPan));
         s += kvRow("&nbsp;&nbsp;· part <b>soumise</b> à cotisations (au-delà de la limite)", "", soPan > 1e-9 ? fmtE(soPan) : "0,00 € (sous la limite)");
       }
@@ -2197,12 +2200,22 @@ function renderRef(m) {
   const normZ = z => (z || "").replace(/ /g, " ").trim();
   const ziEntry = Object.entries(ZONE_REGIONALE).find(e => normZ(e[0]) === normZ(inp.zonePD));
   const zi = ziEntry ? ziEntry[1] : null;
-  /* BTP : grilles complètes par zone — transport (prime, NON soumise) et trajet (SOUMIS à cotisations) */
-  if (isBTP && d && d.transport) {
-    s += "<tr class='sub'><td colspan='2'><b>Transport par zone</b> — grille " + regionNom + " (prime de transport, <b>non soumise</b> à cotisations)</td></tr>";
+  /* BTP : grilles complètes par zone — transport (prime, NON soumise) et trajet (SOUMIS
+   * à cotisations) ; accord régional de la base de veille prioritaire sur le classeur */
+  const ipdG = (isBTP && d && BTP_IPD) ? (BTP_IPD[normRegionBTP(d.region)] || null) : null;
+  const IPD_KEYS = ["1A", "1B", "2", "3", "4", "5"];
+  if (isBTP && d && ipdG && ipdG.zones) {
+    s += "<tr class='sub'><td colspan='2'><b>Transport par zone</b> — " + esc(ipdG.accord || "accord régional") + " (prime de transport, <b>non soumise</b> à cotisations)</td></tr>";
+    IPD_KEYS.forEach((zk, z) => { const v = ipdG.zones[zk];
+      if (v && v.transport != null) s += kvRow("Zone " + ZONE_NOMS[z] + (z === zi ? " ◀ distance sélectionnée" : ""), "", fmtE(v.transport)); });
+    s += "<tr class='sub'><td colspan='2'><b>Trajet par zone</b> — " + esc(ipdG.accord || "accord régional") + " (indemnité de trajet, <b>soumise</b> à cotisations)</td></tr>";
+    IPD_KEYS.forEach((zk, z) => { const v = ipdG.zones[zk];
+      if (v && v.trajet != null) s += kvRow("Zone " + ZONE_NOMS[z] + (z === zi ? " ◀ distance sélectionnée" : ""), "", fmtE(v.trajet)); });
+  } else if (isBTP && d && d.transport) {
+    s += "<tr class='sub'><td colspan='2'><b>Transport par zone</b> — grille " + regionNom + " (prime de transport, <b>non soumise</b> à cotisations, grille classeur)</td></tr>";
     for (let z = 0; z < ZONE_NOMS.length; z++) if (d.transport[z] != null)
       s += kvRow("Zone " + ZONE_NOMS[z] + (z === zi ? " ◀ distance sélectionnée" : ""), "", fmtE(d.transport[z]));
-    s += "<tr class='sub'><td colspan='2'><b>Trajet par zone</b> — grille " + regionNom + " (indemnité de trajet, <b>soumise</b> à cotisations)</td></tr>";
+    s += "<tr class='sub'><td colspan='2'><b>Trajet par zone</b> — grille " + regionNom + " (indemnité de trajet, <b>soumise</b> à cotisations, grille classeur)</td></tr>";
     for (let z = 0; z < ZONE_NOMS.length; z++) if (d.trajet[z] != null)
       s += kvRow("Zone " + ZONE_NOMS[z] + (z === zi ? " ◀ distance sélectionnée" : ""), "", fmtE(d.trajet[z]));
   } else if (isBTP) {
@@ -2584,6 +2597,31 @@ let restored = null;
 applySector(restored ? restored.sector : "agri", restored || undefined);
 window.addEventListener("resize", () => renderChart());
 fetchOfficial();
+/* ===== Base barèmes BTP actualisée par la veille hebdomadaire =====
+ * data/btp-baremes.json vit dans le même repo GitHub Pages (historique + sources,
+ * mis à jour automatiquement par la tâche « verif-minima-btp » qui lit Légifrance/KALI).
+ * Hors Pages (fichier local, artifact : CSP), le fetch échoue silencieusement et les
+ * valeurs intégrées au moteur restent en vigueur. */
+var BTP_IPD = null;
+fetch("data/btp-baremes.json", { cache: "no-store" })
+  .then(r => (r.ok ? r.json() : null))
+  .then(j => {
+    if (!j || !j.current) return;
+    if (j.current.salaires) for (const [reg, v] of Object.entries(j.current.salaires)) {
+      const k = normRegionBTP(reg);
+      if (!BTP_MINIMA.regions[k]) BTP_MINIMA.regions[k] = {};
+      if (v.cc1596) BTP_MINIMA.regions[k].cc1596 = v.cc1596;
+      if (v.cc1597) BTP_MINIMA.regions[k].cc1597 = v.cc1597;
+      if (v.accord) BTP_MINIMA.accords[k] = v.accord;
+    }
+    if (j.updatedAt) BTP_MINIMA.siteMajLe = j.updatedAt + " (veille)";
+    if (j.current.ipd && Object.keys(j.current.ipd).length) {
+      BTP_IPD = {};
+      for (const [reg, v] of Object.entries(j.current.ipd)) BTP_IPD[normRegionBTP(reg)] = v;
+    }
+    render(compute(inp));
+  })
+  .catch(() => {});
 </script>
 </body>
 </html>
