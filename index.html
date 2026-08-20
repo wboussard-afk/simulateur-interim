@@ -409,7 +409,7 @@ table.grille td.neg { color: var(--bad); }
           <div class="field"><label for="in-logfact" id="lbl-logfact">Logement facturé au client (€/sem)</label><input type="number" id="in-logfact" step="0.01" min="0"></div>
         </div>
         <p class="hint">Participation = retenue nette hebdomadaire sur le salarié (0 = aucune). Coût à 0 = pas de logement pris en charge.
-        <span class="only-tarifaire">Le coût hebdo se préremplit depuis le département (coût moyen × 43 h) ; facturation = min(heures ; 35) × prix €/h.</span></p>
+        <span class="only-tarifaire">Facturation = min(heures ; 35) × prix €/h.</span></p>
       </div>
     </section>
 
@@ -445,7 +445,7 @@ table.grille td.neg { color: var(--bad); }
         </div>
         <table class="kv" id="tbl-ref" style="margin-top:8px"></table>
         <p class="note">Montants actualisés automatiquement : barèmes URSSAF vérifiés multi-sources (repas et GD au 01/01/2026, abattements 15 % / 30 % selon la durée — BOSS), grille régionale BTP du classeur rattachée automatiquement à la région d'après le <b>département de mission choisi en haut de page</b>. La distance choisie alimente aussi l'exonération transport du calcul. Transport (prime, par zone) = <b>non soumis</b> à cotisations ; trajet (indemnité de temps, par zone) = <b>soumis</b> à cotisations.
-        <span class="only-btp">Minima officiels à jour par région : <a href="https://code.travail.gouv.fr/contribution/1596-quel-est-le-salaire-minimum" target="_blank" rel="noopener">code.travail.gouv.fr — CC 1596/1597 (ouvriers BTP)</a> ; la grille du classeur (16/03/2022) est plafonnée au plancher SMIC et surveillée automatiquement.</span></p>
+        <span class="only-btp"><b>Minima salariaux : source officielle</b> <a href="https://code.travail.gouv.fr/contribution/1596-quel-est-le-salaire-minimum" target="_blank" rel="noopener">code.travail.gouv.fr — IDCC 1596/1597 (ouvriers BTP)</a>, site mis à jour au 01/06/2026 (mensuel brut ÷ 151,67 = horaire) — jamais affichés sous le SMIC en vigueur (plancher signalé ⚠). Transport, trajet et panier : grille régionale du classeur en attendant le branchement Légifrance ; surveillance automatique hebdomadaire avec alerte e-mail.</span></p>
       </div>
     </section>
 
@@ -588,7 +588,7 @@ table.grille td.neg { color: var(--bad); }
       <div class="tile"><span class="eyebrow" id="tile-exo-label">TO-DE (exonération)</span>
         <div class="tile-num" id="out-tode">—</div><div class="tile-sub"><span class="badge" id="out-todebadge">—</span></div></div>
       <div class="tile"><span class="eyebrow">Tx facturé HT / h — avec logement</span>
-        <div class="tile-num" id="out-txh">—</div><div class="tile-sub" id="out-txhorslog">—</div></div>
+        <div class="tile-num" id="out-txh">—</div></div>
     </div>
 
     <section class="card">
@@ -813,6 +813,62 @@ const RATES_2026_TARIFAIRE = Object.assign({}, RATES_TARIFAIRE, {
   autresPat: 0.30 + 0.10 + 0.016 + 1.30 + 0.68
   // CSA + FNAL <50 + dialogue social + formation ETT + apprentissage — À PERSONNALISER (classeur : 3,766)
 });
+
+/* ===== Minima BTP officiels — ouvriers, grilles régionales (IDCC 1596 / 1597) =====
+ * Source : code.travail.gouv.fr (Code du travail numérique, ministère du Travail),
+ * pages « Quel est le salaire minimum ? » des CC 1596 (≤ 10 salariés) et 1597 (> 10),
+ * relevées le 20/08/2026 — site « Mis à jour le 01/06/2026 ».
+ * Montants MENSUELS bruts base 35 h ; horaire = mensuel ÷ 151,6667.
+ * Le site applique déjà le plancher SMIC mensuel (astérisque) sur les bas coefficients. */
+var BTP_MINIMA = {
+  sources: ["https://code.travail.gouv.fr/contribution/1596-quel-est-le-salaire-minimum",
+            "https://code.travail.gouv.fr/contribution/1597-quel-est-le-salaire-minimum"],
+  releveLe: "2026-08-20", siteMajLe: "01/06/2026", diviseurHoraire: 151.6667,
+  accords: {
+    BRETAGNE: "accord du 3/12/2024 (au 1/1/2025)", GRANDEST: "accord du 16/1/2025 (au 1/3/2025)",
+    HAUTSDEFRANCE: "accord du 25/11/2024", ILEDEFRANCE: "accord du 7/11/2024",
+    PAYSDELALOIRE: "accord du 10/10/2023", PROVENCEALPESCOTEDAZUR: "accord du 30/9/2024 (au 1/11/2024)",
+    NOUVELLEAQUITAINE: "accord régional du 22/10/2025"
+  },
+  regions: {
+    AUVERGNERHONEALPES:    { cc1596: {150:1867.02,170:1867.02,185:1909,   210:2099.14,230:2277.47,250:2449.27,270:2597.13},
+                             cc1597: {150:1867.02,170:1867.02,185:1909,   210:2099.14,230:2277.47,250:2449.27,270:2597.13} },
+    BOURGOGNEFRANCHECOMTE: { cc1596: {150:1867.02,170:1867.02,185:1874,   210:2051,   230:2193,   250:2335,   270:2477},
+                             cc1597: {150:1867.02,170:1867.02,185:1874,   210:2051,   230:2193,   250:2335,   270:2477} },
+    BRETAGNE:              { cc1596: {150:1867.02,170:1868.17,185:1917.7, 210:2064.78,230:2234.67,250:2404.54,270:2574.41},
+                             cc1597: {150:1867.02,170:1868.17,185:1917.7, 210:2064.78,230:2234.67,250:2404.54,270:2574.41} },
+    CENTREVALDELOIRE:      { cc1596: {150:1867.02,170:1867.02,185:1907,   210:2056,   230:2175,   250:2293,   270:2412},
+                             cc1597: {150:1867.02,170:1867.02,185:1898,   210:2045,   230:2165,   250:2283,   270:2400} },
+    CORSE:                 { cc1596: {150:1867.02,170:1867.02,185:1932.59,210:2100.92,230:2274.76,250:2448.6, 270:2622.44},
+                             cc1597: {150:1867.02,170:1867.02,185:1932.59,210:2100.92,230:2274.76,250:2448.6, 270:2622.44} },
+    GRANDEST:              { cc1596: {150:1867.02,170:1867.02,185:1896.79,210:2101.77,230:2237.79,250:2394.78,270:2578.38},
+                             cc1597: {150:1867.02,170:1867.02,185:1896.79,210:2101.77,230:2237.79,250:2394.78,270:2578.38} },
+    HAUTSDEFRANCE:         { cc1596: {150:1867.02,170:1867.02,185:1955,   210:2111,   230:2269,   250:2469,   270:2650},
+                             cc1597: {150:1867.02,170:1867.02,185:1955,   210:2111,   230:2269,   250:2469,   270:2650} },
+    ILEDEFRANCE:           { cc1596: {150:1867.02,170:1867.02,185:1899,   210:2038,   230:2164,   250:2292,   270:2510},
+                             cc1597: {150:1867.02,170:1867.02,185:1899,   210:2038,   230:2164,   250:2292,   270:2510} },
+    NORMANDIE:             { cc1596: {150:1867.02,170:1867.02,185:1884.22,210:2065.63,230:2210.88,250:2380.23,270:2527.04},
+                             cc1597: {150:1867.02,170:1867.02,185:1884.22,210:2065.63,230:2210.88,250:2380.23,270:2527.04} },
+    NOUVELLEAQUITAINE:     { cc1596: {150:1867.02,170:1867.02,185:1912.56,210:2073.33,230:2229.55,250:2399.42,270:2560.19},
+                             cc1597: {150:1867.02,170:1867.02,185:1912.56,210:2073.33,230:2229.55,250:2399.42,270:2560.19} },
+    OCCITANIE:             { cc1596: {150:1867.02,170:1867.02,185:1902.53,210:2084.9, 230:2248.73,250:2380.1, 270:2547.01},
+                             cc1597: {150:1867.02,170:1867.02,185:1902.53,210:2084.9, 230:2248.73,250:2380.1, 270:2547.01} },
+    PAYSDELALOIRE:         { cc1596: {150:1867.02,170:1867.02,185:1867.02,210:2064.23,230:2244.72,250:2425.2, 270:2607.21},
+                             cc1597: {150:1867.02,170:1867.02,185:1867.02,210:2064.23,230:2244.72,250:2425.2, 270:2607.21} },
+    PROVENCEALPESCOTEDAZUR:{ cc1596: {150:1867.02,170:1868.43,185:1975.12,210:2170.8, 230:2340.59,250:2510.38,270:2680.18},
+                             cc1597: {150:1867.02,170:1868.43,185:1975.12,210:2170.8, 230:2340.59,250:2510.38,270:2680.18} }
+  }
+};
+var NIVEAU_COEF_BTP = { N1P1: 150, N1P2: 170, N2: 185, N3P1: 210, N3P2: 230, N4P1: 250, N4P2: 270 };
+function normRegionBTP(s) {
+  return (s || "").split("/")[0].normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/[^A-Z]/g, "");
+}
+function btpMinimaRegion(label) { return BTP_MINIMA.regions[normRegionBTP(label)] || null; }
+function btpMinimaHoraire(label, niveau, cc) {
+  const r = btpMinimaRegion(label), coef = NIVEAU_COEF_BTP[niveau];
+  const m = r && coef ? (r[cc || "cc1596"] || {})[coef] : null;
+  return m ? Math.round(m / BTP_MINIMA.diviseurHoraire * 100) / 100 : null;
+}
 
 /* Configuration par secteur */
 const SECTORS = {
@@ -1749,7 +1805,6 @@ function render(r) {
   }
 
   $("out-txh").textContent = inp.heures ? fmtE(m.O62) + "/h" : "—";
-  $("out-txhorslog").textContent = inp.heures ? "hors logement " + fmtE(m.O66) + "/h" : "—";
 
   /* barre résumé mobile */
   $("mbar").classList.toggle("neg", neg);
@@ -2073,6 +2128,15 @@ $("chart").addEventListener("mouseleave", () => { $("chart-tip").style.display =
  * la distance choisie, grand déplacement (nuitée + 2 repas/jour) selon durée et lieu. */
 const ZONE_REGIONALE = { "5 km et 10 km": 0, "10 km et 20 km": 1, "20 km et 30 km": 2, "30 km et 40 km": 2, "40 km et 50 km": 3, "50 km et 60 km": 3, "60 km et 70 km": 4, "70 km et 80 km": 4, "80 km et 90 km": 5, "90 km et 100 km": 5 }; /* tranches URSSAF aller-retour -> zones BTP aller simple (correspondance AB/AC du classeur) */
 const ZONE_NOMS = ["IA (0-4 km)", "IB (4-10 km)", "II (10-20 km)", "III (20-30 km)", "IV (30-40 km)", "V (40-50 km)"];
+/* minimum horaire d'un niveau : minima OFFICIEL (code.travail.gouv.fr, IDCC 1596) si la
+ * région est couverte, sinon grille du classeur ; jamais restitué sous le SMIC courant */
+function nivHoraireBTP(d, lvl, smicNow) {
+  const h = btpMinimaHoraire(d.region, lvl, "cc1596");
+  const raw = h != null ? h : (d.rates ? d.rates[lvl] : null);
+  if (raw == null) return null;
+  return { raw, shown: Math.max(Math.round(raw * 100) / 100, smicNow), below: raw < smicNow - 1e-9, officiel: h != null };
+}
+
 function renderRef(m) {
   const d = DB.departments.find(x => x.dept === inp.dept);
   const duree = inp.gdDuree || 0;
@@ -2087,15 +2151,31 @@ function renderRef(m) {
   if (isBTP) {
     s += "<tr class='sub'><td colspan='2'><b>Grille BTP régionale</b> — " +
          (d ? "région " + regionNom + " (département " + esc(d.dept) + ")" : "choisir le département de mission en haut de page") + "</td></tr>";
-    if (d && d.rates) {
+    if (d) {
       const lvl = inp.niveauQualif || "N1P1";
-      const g = d.rates[lvl];
-      if (g != null) {
-        const below = g < smicNow - 1e-9;
-        s += kvRow("Salaire minimum " + esc(lvl) + (below ? " — grille sous le SMIC, plancher appliqué ⚠" : ""), "",
-                   fmtE(below ? smicNow : g) + (below ? " (grille : " + fmtE(g) + ")" : ""));
+      const rOff = btpMinimaRegion(d.region);
+      const coef = NIVEAU_COEF_BTP[lvl];
+      const m96 = rOff && coef ? rOff.cc1596[coef] : null;
+      if (m96) {
+        /* minima OFFICIELS (code.travail.gouv.fr) : mensuel brut ÷ 151,67 = horaire */
+        const div = BTP_MINIMA.diviseurHoraire;
+        const h96 = Math.round(m96 / div * 100) / 100;
+        const below = h96 < smicNow - 1e-9;
+        s += kvRow("Salaire minimum " + esc(lvl) + " — IDCC 1596 (≤ 10 sal.)" + (below ? " — plancher SMIC appliqué ⚠" : ""), "",
+                   fmtE(Math.max(h96, smicNow)) + "/h (" + fmtE(m96) + "/mois)");
+        const m97 = rOff.cc1597 ? rOff.cc1597[coef] : null;
+        if (m97 && Math.abs(m97 - m96) > 0.005) {
+          const h97 = Math.round(m97 / div * 100) / 100;
+          s += kvRow("&nbsp;&nbsp;· IDCC 1597 (> 10 sal.)", "", fmtE(Math.max(h97, smicNow)) + "/h (" + fmtE(m97) + "/mois)");
+        }
+        const acc = BTP_MINIMA.accords[normRegionBTP(d.region)];
+        s += kvRow("Source officielle — code.travail.gouv.fr (màj " + BTP_MINIMA.siteMajLe + ")", "", acc || "grille en vigueur");
+      } else if (d.rates && d.rates[lvl] != null) {
+        const g = d.rates[lvl];
+        s += kvRow("Salaire minimum " + esc(lvl) + " (grille classeur — région hors source officielle)" + (g < smicNow - 1e-9 ? " ⚠" : ""), "",
+                   fmtE(Math.max(g, smicNow)));
       } else {
-        s += kvRow("Salaire minimum " + esc(lvl), "", "n.c. dans la grille");
+        s += kvRow("Salaire minimum " + esc(lvl), "", lvl === "AUTRE" ? "saisie libre — plancher SMIC " + fmtE(smicNow) : "n.c.");
       }
       /* panier décomposé RECALCULÉ sur la limite URSSAF courante (les parts figées du
        * classeur datent de la limite 2022 — doctrine : valeurs du droit courant) */
@@ -2140,21 +2220,21 @@ function renderRef(m) {
    * le montant exonéré dès le choix du kilométrage */
   $("zone-hint").textContent = m.H18 ? "exonération " + fmtE(m.H18) + " / jour" : "";
   const selN = $("in-niveau");
-  if (isBTP && d && d.rates) {
+  if (isBTP && d) {
     const lvl = inp.niveauQualif || "N1P1";
-    const g = d.rates[lvl];
-    $("niveau-hint").textContent = g != null
-      ? "minimum " + fmtE(Math.max(g, smicNow)) + "/h — " + (d.region || "").split("/")[0].trim() +
-        (g < smicNow - 1e-9 ? " (plancher SMIC)" : "")
+    const nv = nivHoraireBTP(d, lvl, smicNow);
+    $("niveau-hint").textContent = nv
+      ? "minimum " + fmtE(nv.shown) + "/h — " + (d.region || "").split("/")[0].trim() +
+        (nv.officiel ? " (officiel)" : " (classeur)") + (nv.below ? " · plancher SMIC" : "")
       : "n.c. dans la grille régionale";
-    /* options enrichies : « N3P2 — coeff 230 · 13,66 € » (plancher SMIC appliqué) —
+    /* options enrichies : « N3P2 — coeff 230 · 14,73 € » (officiel, plancher SMIC) —
      * cache par département + SMIC pour se rafraîchir quand le SMIC officiel arrive */
     const enrichKey = inp.dept + "|" + smicNow;
     if (selN.dataset.key !== enrichKey) {
       for (const o of selN.options) {
         const base = o.textContent.split(" · ")[0];
-        const v = d.rates[o.value];
-        o.textContent = v != null ? base + " · " + N2.format(Math.max(v, smicNow)) + " €" : base;
+        const v = nivHoraireBTP(d, o.value, smicNow);
+        o.textContent = v ? base + " · " + N2.format(v.shown) + " €" : base;
       }
       selN.dataset.key = enrichKey;
     }
@@ -2174,21 +2254,21 @@ function renderDeptHint() {
   $("dept-region").textContent = d ? "Région : " + (d.region || "").split("/")[0].trim() : "";
   if (!d) { el.innerHTML = ""; return; }
   const isBTP = inp.sector === "tarifaire" && inp.branche === "btp";
-  const lg = DB.logement.find(x => d.dept.startsWith(x.dept + " "));
   let chips = "";
   const smicNow = (typeof official !== "undefined" && official && official.smic) ? official.smic.value : BAKED_OFFICIAL.smic.value;
-  /* la grille N1P1..N4P2 et le panier sont des références conventionnelles BTP — masqués hors branche BTP */
-  if (isBTP) for (const [k, v] of Object.entries(d.rates)) {
-    if (v == null || k === "AUTRE") continue;
-    const below = v < smicNow - 1e-9;
-    chips += '<button class="chip' + (below ? " below" : "") + '" data-rate="' + v +
-      '" title="' + (below ? "Grille sous le SMIC en vigueur (" + N2.format(smicNow) + " €) — sera rehaussée" : "Appliquer au taux horaire brut") + '">' +
-      k + " <b>" + N2.format(v) + "</b>" + (below ? " ⚠" : "") + "</button>";
+  /* chips de qualification (BTP) : minima OFFICIELS (repli classeur), jamais affichés
+   * sous le SMIC — la valeur appliquée au taux brut est la valeur plancher */
+  if (isBTP) for (const k of Object.keys(NIVEAU_COEF_BTP)) {
+    const nv = nivHoraireBTP(d, k, smicNow);
+    if (!nv) continue;
+    chips += '<button class="chip' + (nv.below ? " below" : "") + '" data-rate="' + nv.shown +
+      '" title="' + (nv.officiel ? "Minima officiel IDCC 1596" : "Grille classeur") +
+      (nv.below ? " (" + N2.format(nv.raw) + " €) — sous le SMIC, plancher appliqué" : " — appliquer au taux horaire brut") + '">' +
+      k + " <b>" + N2.format(nv.shown) + "</b>" + (nv.below ? " ⚠" : "") + "</button>";
   }
   el.innerHTML = esc(d.dept) +
     (isBTP && d.panier != null ? " — panier " + N2.format(d.panier) + " €" +
       " (non soumis " + N2.format(Math.min(d.panier, BAKED_OFFICIAL.repasHorsLocaux.value)) + " €)" : "") +
-    (lg && lg.costPerHour != null ? " · logement moyen " + N2.format(lg.costPerHour) + " €/h" : "") +
     '<span class="chips">' + chips + "</span>";
   el.querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => {
     $("in-thbrut").value = Math.round(parseFloat(b.dataset.rate) * 100) / 100;
@@ -2206,17 +2286,8 @@ document.querySelectorAll("input, select").forEach(el => {
   el.addEventListener("input", onChange);
   el.addEventListener("change", onChange);
 });
-/* en secteur tarifaire, choisir un département préremplit le coût logement €/h (le
- * classeur tentait un VLOOKUP cassé ; ici la table LOGEMT est réellement utilisée) */
-$("in-dept").addEventListener("change", () => {
-  if (inp.sector !== "tarifaire") return;
-  const d = DB.departments.find(x => x.dept === $("in-dept").value);
-  const lg = d && DB.logement.find(x => d.dept.startsWith(x.dept + " "));
-  if (lg && lg.costPerHour != null) {
-    $("in-loghebdo").value = Math.round(lg.costPerHour * (inp.logementHeures || 43) * 100) / 100;
-    onChange();
-  }
-});
+/* préremplissage logement depuis la table Excel LOGEMT supprimé (20/08/2026) :
+ * données 2024 sans valeur — le coût du logement se saisit librement */
 $("sector-agri").addEventListener("click", () => { if (inp.sector !== "agri") applySector("agri"); });
 $("sector-btp").addEventListener("click", () => {
   if (inp.sector === "tarifaire" && inp.branche === "btp") return;
