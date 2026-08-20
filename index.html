@@ -163,6 +163,12 @@ header.top {
 /* ================= FORMS ================= */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 12px; }
 .grid .wide { grid-column: 1 / -1; }
+/* tableau strict à 2 colonnes (demande utilisateur) */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+.grid2 .span2 { grid-column: 1 / -1; }
+.field-bold label:not(.check) { font-size: 13px; color: var(--ink); font-weight: 700; }
+.field-bold input { font-weight: 700; font-size: 15px; }
+.ro-calc { background: var(--line-soft) !important; border-style: dashed !important; color: var(--brass-deep) !important; font-weight: 600; cursor: default; }
 .field label:not(.check) { display: block; font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
 .field input[type=text], .field input[type=number], .field select {
   width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 7px;
@@ -340,17 +346,22 @@ table.grille td.neg { color: var(--bad); }
     <section class="card">
       <div class="card-h"><h2>Mission &amp; salarié</h2><span class="eyebrow">Heures · taux</span></div>
       <div class="card-b">
-        <div class="grid">
-          <div class="field"><label for="in-thbrut">Taux horaire brut (€)</label><input type="number" id="in-thbrut" step="0.01" min="0"></div>
-          <div class="field"><label for="in-net">Taux horaire net attendu (€)</label><input type="number" id="in-net" step="0.01" min="0"></div>
-          <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-nonet"> Pas de net attendu</label></div>
-          <div class="field"><label for="in-jours">Jours travaillés / sem</label><input type="number" id="in-jours" step="1" min="0"></div>
-          <div class="field"><label for="in-heures">Heures travaillées / sem</label><input type="number" id="in-heures" step="0.5" min="0"></div>
+        <div class="grid2">
+          <div class="field span2 field-bold"><label for="in-thbrut">Taux horaire brut (€)</label><input type="number" id="in-thbrut" step="0.01" min="0"></div>
+          <div class="field"><label for="in-net">Tx net promis (€/h)</label><input type="number" id="in-net" step="0.01" min="0">
+            <label class="check" style="margin-top:4px"><input type="checkbox" id="in-nonet"> Pas de tx net attendu</label></div>
+          <div class="field"><label for="ro-netconstate">Tx net constaté (€/h)</label><input type="text" id="ro-netconstate" readonly class="ro-calc" tabindex="-1" title="Net réel avant régularisation (indemnités et heures incluses, avant avances)">
+            <span class="hint" id="net-delta-hint"></span></div>
+          <div class="field"><label for="in-jours">Nombre de jours travaillés / sem</label><input type="number" id="in-jours" step="1" min="0"></div>
+          <div class="field"><label for="in-heures">Heures travaillées globales / sem</label><input type="number" id="in-heures" step="0.5" min="0"></div>
+          <div class="field"><label for="ro-hnorm">Heures normales (35 ou moins)</label><input type="text" id="ro-hnorm" readonly class="ro-calc" tabindex="-1"></div>
+          <div class="field"><label for="ro-hs25">Heures supp à +25 % (36ᵉ–43ᵉ)</label><input type="text" id="ro-hs25" readonly class="ro-calc" tabindex="-1"></div>
+          <div class="field"><label for="ro-hs50">Heures supp à +50 % (au-delà 43ᵉ)</label><input type="text" id="ro-hs50" readonly class="ro-calc" tabindex="-1"></div>
+          <div class="field"><label for="in-atmp">Taux AT-MP (%)</label><input type="number" id="in-atmp" step="0.01" min="0" title="Taux accident du travail notifié par la CARSAT — pèse directement sur la marge. Défaut : valeur moyenne 2026 (2,08 %), à renseigner manuellement."></div>
           <div class="field"><label for="in-hnuit">… dont heures de nuit</label><input type="number" id="in-hnuit" step="0.5" min="0"></div>
           <div class="field"><label for="in-hdim">… dont heures dimanche</label><input type="number" id="in-hdim" step="0.5" min="0"></div>
           <div class="field"><label for="in-hferie">… dont heures férié</label><input type="number" id="in-hferie" step="0.5" min="0"></div>
         </div>
-        <p class="hint" id="hours-hint"></p>
         <div id="dept-hint" class="hint"></div>
         <p class="hint" id="conf-hint" hidden></p>
         <div class="grid" style="margin-top:10px">
@@ -369,7 +380,7 @@ table.grille td.neg { color: var(--bad); }
               <button type="button" id="ifmcp-cet" aria-pressed="false">Mise en CET 100 %</button>
             </div>
           </div>
-          <label class="check"><input type="checkbox" id="in-attest"> Attestation fiscale</label>
+          <label class="check"><input type="checkbox" id="in-attest" title="Résident fiscal étranger : exonération de CSG/CRDS (maladie salariale 5,5 % à la place) — améliore le net de l'intérimaire"> Attestation fiscale étrangère (exo CSG/CRDS)</label>
           <label class="check"><input type="checkbox" id="in-annu"> Annualisation</label>
         </div>
         <p class="hint"><b>Mise en CET</b> : 100 % des IFM/ICCP placés sur le compte épargne temps — le classeur provisionne 21 % de la base + 45 % de charges (D85/H85) au lieu de payer les indemnités en paie ; déblocage conseillé à l'issue du 2ᵉ contrat de prolongation. <span id="cet-eco"></span><br>
@@ -549,7 +560,9 @@ table.grille td.neg { color: var(--bad); }
           <tr><td>Net / h avec IFM + ICCP<span class="ref">D15</span></td><td class="n" id="out-netifm">—</td></tr>
           <tr><td>Retenue à la source<span class="ref">F43</span></td><td class="n" id="out-ras">—</td></tr>
           <tr><td>Avance sur salaire (régul)<span class="ref">F57/F58</span></td><td class="n" id="out-avance">—</td></tr>
+          <tr><td>CET disponible (net estimé)<span class="ref">D85</span></td><td class="n" id="out-cetdispo">—</td></tr>
         </table>
+        <p class="hint" id="cet-alert" hidden></p>
       </div>
     </section>
 
@@ -1473,7 +1486,7 @@ function applySector(sector, preset) {
   fillSelect("in-majonorm", DB.majoNormales, inp.majoNormLabel);
   fillSelect("in-zone", DB.zonesKmPD, inp.zonePD);
   if (sector === "agri") {
-    $("brand-sub").textContent = "Marge brute intérim agricole · MSA & TO-DE";
+    $("brand-sub").textContent = "Marge brute & construction du net · MSA & TO-DE";
     $("tile-exo-label").textContent = "TO-DE (exonération)";
     $("sum-cotis").textContent = "Cotisations & TO-DE";
     $("lbl-logfact").textContent = "Logement facturé au client (€/sem)";
@@ -1481,7 +1494,7 @@ function applySector(sector, preset) {
     $("const-note").innerHTML = "Secteur AGRI (MSA). Les défauts suivent le <b>droit courant</b> (SMIC et plafond SS actualisés en direct) ; le bouton ci-dessous rétablit les constantes du classeur Excel. Plafonds 2,5/3,5 SMIC figés au 31/12/2023 sur <b>11,52&nbsp;€</b> ; retenue à la source 55&nbsp;€/j ; abattement DFS 20&nbsp;% (scénario IFM+CP) ; mutuelle en % du plafond — taux de cotisations du classeur.";
     $("hidden-note").innerHTML = "Variante du classeur : IFM et ICCP forcés, assiette de cotisations avec abattement DFS 20&nbsp;% (bornée par l'assiette minimale), logement non facturé.";
   } else {
-    $("brand-sub").textContent = "Marge brute intérim · Industrie & BTP (11/2024)";
+    $("brand-sub").textContent = "Marge brute & construction du net · Industrie & BTP";
     $("tile-exo-label").textContent = "Allègement Fillon";
     $("sum-cotis").textContent = "Cotisations & Fillon";
     $("lbl-logfact").textContent = "Logement facturé au client (€/heure)";
@@ -1683,7 +1696,33 @@ function render(r) {
   }
   $("out-netifm").textContent = inp.heures ? fmtE(m.D15) : "—";
   $("out-ras").textContent = fmtE(m.F43);
-  $("out-avance").textContent = fmtE(Math.max(m.F57, m.F58));
+  const avance = Math.max(m.F57, m.F58);
+  $("out-avance").textContent = fmtE(avance);
+
+  /* CET vs avance : le brut placé au CET (provision D85 = IFM+ICCP non payés)
+   * est converti en net (ratio net/brut de la fiche) pour financer l'avance
+   * jusqu'au net promis — alerte si insuffisant (→ + d'indemnités ou d'heures) */
+  const cetActif = !inp.iccp && !inp.ifm;
+  const netRatio = m.F42 > 0 ? Math.max(0, (m.F42 - m.F88 - Math.max(0, m.F43)) / m.F42) : 0;
+  const cetNet = cetActif ? m.D85 * netRatio : 0;
+  $("out-cetdispo").textContent = cetActif ? fmtE(cetNet) + " (brut " + fmtE(m.D85) + ")" : "— (paiement direct)";
+  const ca = $("cet-alert");
+  /* 1 € d'indemnité nette (non soumise) = 1 € d'avance en moins : la suggestion est exacte */
+  const sugg = avance > 0.005 ? " Alternative sans avance : ajouter <b>" + fmtE(avance) +
+    "</b> d'indemnités nettes (dans les plafonds URSSAF) ou augmenter les heures." : "";
+  if (cetActif && avance > cetNet + 0.005) {
+    ca.hidden = false;
+    ca.innerHTML = "<span class='conf-warn'>⚠ CET insuffisant pour financer l'avance jusqu'au net promis (manque " +
+      fmtE(avance - cetNet) + ").</span>" + sugg;
+  } else if (cetActif && avance > 0.005) {
+    ca.hidden = false;
+    ca.innerHTML = "<span class='delta good'>✓ Avance de " + fmtE(avance) + " finançable par le CET (" + fmtE(cetNet) + " disponibles en net).</span>" + sugg;
+  } else if (!cetActif && avance > 0.005) {
+    ca.hidden = false;
+    ca.innerHTML = "⚠ Avance de " + fmtE(avance) + " non adossée à un CET (IFM/ICCP en paiement direct)." + sugg;
+  } else {
+    ca.hidden = true; ca.innerHTML = "";
+  }
 
   inp.primes.forEach((p, k) => { $("pra" + k).textContent = fmtE(p.q * p.r); });
   inp.indemnites.forEach((p, k) => { $("ina" + k).textContent = fmtE(p.q * p.r); });
@@ -1698,13 +1737,17 @@ function render(r) {
   $("gs-tx-apply").dataset.coeff = cTx == null ? "" : cTx;
   $("gs-marge-apply").dataset.coeff = cMg == null ? "" : cMg;
 
-  /* décomposition des heures : normales / +25 % (36ᵉ–43ᵉ) / +50 % (au-delà) */
-  $("hours-hint").innerHTML = inp.heures
-    ? "<b>" + N2.format(inp.heures) + " h</b> = " + N2.format(m.D24) + " h au taux normal" +
-      (m.D28 ? " + <b>" + N2.format(m.D28) + " h à +25 %</b> (36ᵉ–43ᵉ)" : "") +
-      (m.D29 ? " + <b>" + N2.format(m.D29) + " h à +50 %</b> (au-delà de la 43ᵉ)" : "") +
-      (!m.D28 && !m.D29 ? " (pas d'heures supplémentaires)" : "")
-    : "";
+  /* cellules calculées du tableau Mission (décomposition auto des heures + net constaté) */
+  $("ro-hnorm").value = N2.format(m.D24) + " h";
+  $("ro-hs25").value = N2.format(m.D28) + " h";
+  $("ro-hs50").value = N2.format(m.D29) + " h";
+  $("ro-netconstate").value = inp.heures ? N2.format(m.D14) + " €/h" : "—";
+  const ndh = $("net-delta-hint");
+  if (inp.netAttendu != null && inp.heures) {
+    const d = m.D14 - inp.netAttendu;
+    ndh.innerHTML = "écart vs promis : <b class='delta " + (d >= -1e-9 ? "good" : "bad") + "'>" +
+      (d >= 0 ? "+" : "") + N2.format(d) + " €/h</b>";
+  } else { ndh.textContent = ""; }
 
   /* impact de la mise en CET vs paiement direct des IFM/ICCP */
   if (!inp.iccp && !inp.ifm) {
