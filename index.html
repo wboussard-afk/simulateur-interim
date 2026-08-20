@@ -350,25 +350,30 @@ table.grille td.neg { color: var(--bad); }
           <div class="field"><label for="in-hdim">… dont heures dimanche</label><input type="number" id="in-hdim" step="0.5" min="0"></div>
           <div class="field"><label for="in-hferie">… dont heures férié</label><input type="number" id="in-hferie" step="0.5" min="0"></div>
         </div>
+        <p class="hint" id="hours-hint"></p>
         <div id="dept-hint" class="hint"></div>
         <p class="hint" id="conf-hint" hidden></p>
         <div class="grid" style="margin-top:10px">
-          <div class="field"><label for="in-majodim">Majoration dimanche</label><select id="in-majodim"></select></div>
-          <div class="field"><label for="in-majoferie">Majoration férié</label><select id="in-majoferie"></select></div>
+          <div class="field"><label for="in-hsup">Heures supplémentaires (36ᵉ–43ᵉ)</label><select id="in-hsup"></select></div>
+          <div class="field"><label for="in-majonorm">Heures spécifiques majorées</label><select id="in-majonorm"></select></div>
+          <div class="field"><label for="in-majonormq">Nb heures spécifiques</label><input type="number" id="in-majonormq" step="0.5" min="0"></div>
           <div class="field"><label for="in-majonuit">Majoration nuit</label><select id="in-majonuit"></select></div>
-          <div class="field"><label for="in-hsup">Heures supplémentaires</label><select id="in-hsup"></select></div>
-          <div class="field"><label for="in-majonorm">Majo heures normales</label><select id="in-majonorm"></select></div>
-          <div class="field"><label for="in-majonormq">Nb heures majo normales</label><input type="number" id="in-majonormq" step="0.5" min="0"></div>
+          <div class="field"><label for="in-majoferie">Majoration férié</label><select id="in-majoferie"></select></div>
+          <div class="field"><label for="in-majodim">Majoration dimanche</label><select id="in-majodim"></select></div>
           <div class="field"><label for="in-atmp">Taux AT-MP (%)</label><input type="number" id="in-atmp" step="0.01" min="0" title="Taux accident du travail notifié par la CARSAT — pèse directement sur la marge. Défaut : valeur moyenne."></div>
         </div>
-        <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:8px">
-          <label class="check only-tarifaire"><input type="checkbox" id="in-ifm-toggle"> IFM (10&nbsp;%)</label>
-          <label class="check"><input type="checkbox" id="in-iccp"> ICCP (10&nbsp;%)</label>
+        <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:8px; align-items:center">
+          <div class="field" style="min-width:280px"><label id="lbl-ifmcp">IFM &amp; ICCP</label>
+            <div class="seg" role="group" aria-labelledby="lbl-ifmcp">
+              <button type="button" id="ifmcp-direct" aria-pressed="true">Paiement direct</button>
+              <button type="button" id="ifmcp-cet" aria-pressed="false">Mise en CET 100 %</button>
+            </div>
+          </div>
           <label class="check"><input type="checkbox" id="in-attest"> Attestation fiscale</label>
           <label class="check"><input type="checkbox" id="in-annu"> Annualisation</label>
         </div>
-        <p class="hint">Attestation fiscale <b>OUI</b> : maladie salariale 5,5&nbsp;% et pas de CSG/CRDS. <b>NON</b> : CSG/CRDS, pas de maladie salariale.
-        <span class="only-tarifaire">Sans IFM ni ICCP, le classeur provisionne un CET de 21&nbsp;% de la base (D85).</span></p>
+        <p class="hint"><b>Mise en CET</b> : 100 % des IFM/ICCP placés sur le compte épargne temps — le classeur provisionne 21 % de la base + 45 % de charges (D85/H85) au lieu de payer les indemnités en paie ; déblocage conseillé à l'issue du 2ᵉ contrat de prolongation. <span id="cet-eco"></span><br>
+        Attestation fiscale <b>OUI</b> : maladie salariale 5,5&nbsp;% et pas de CSG/CRDS. <b>NON</b> : CSG/CRDS, pas de maladie salariale.</p>
       </div>
     </section>
 
@@ -1505,8 +1510,12 @@ function setFormFromInputs() {
   $("in-majonuit").value = inp.majoNuitLabel; $("in-hsup").value = inp.hSupLabel;
   $("in-majonorm").value = inp.majoNormLabel; $("in-majonormq").value = inp.majoNormQty;
   $("in-atmp").value = inp.rates.atPat;
-  $("in-ifm-toggle").checked = !!inp.ifm;
-  $("in-iccp").checked = inp.iccp; $("in-attest").checked = inp.attestation; $("in-annu").checked = inp.annualisation;
+  /* IFM/ICCP : « paiement direct » (indemnités payées en paie) ou « mise en CET »
+   * (non payées → provision CET 21 % + 45 % du classeur, D85/H85) */
+  const direct = !!inp.iccp || !!inp.ifm;
+  $("ifmcp-direct").setAttribute("aria-pressed", direct ? "true" : "false");
+  $("ifmcp-cet").setAttribute("aria-pressed", direct ? "false" : "true");
+  $("in-attest").checked = inp.attestation; $("in-annu").checked = inp.annualisation;
   /* coût logement affiché en €/semaine dans les deux secteurs ; en tarifaire le
    * classeur calcule en €/h × heures logement → conversion transparente */
   $("in-loghebdo").value = inp.sector === "agri"
@@ -1558,8 +1567,10 @@ function readInputsFromForm() {
   inp.majoDimLabel = $("in-majodim").value; inp.majoFerieLabel = $("in-majoferie").value;
   inp.majoNuitLabel = $("in-majonuit").value; inp.hSupLabel = $("in-hsup").value;
   inp.majoNormLabel = $("in-majonorm").value; inp.majoNormQty = num($("in-majonormq"));
-  inp.ifm = $("in-ifm-toggle").checked;
-  inp.iccp = $("in-iccp").checked; inp.attestation = $("in-attest").checked; inp.annualisation = $("in-annu").checked;
+  const direct = $("ifmcp-direct").getAttribute("aria-pressed") === "true";
+  inp.ifm = direct;   // ignoré sur la feuille principale agri (pas de ligne IFM) ; forcé OUI côté caché
+  inp.iccp = direct;
+  inp.attestation = $("in-attest").checked; inp.annualisation = $("in-annu").checked;
   inp.logement = true; // (bascule supprimée : coût à 0 = pas de logement)
   const hebdo = num($("in-loghebdo"));
   if (inp.sector === "agri") { inp.logementHebdo = hebdo; }
@@ -1687,6 +1698,24 @@ function render(r) {
   $("gs-tx-apply").dataset.coeff = cTx == null ? "" : cTx;
   $("gs-marge-apply").dataset.coeff = cMg == null ? "" : cMg;
 
+  /* décomposition des heures : normales / +25 % (36ᵉ–43ᵉ) / +50 % (au-delà) */
+  $("hours-hint").innerHTML = inp.heures
+    ? "<b>" + N2.format(inp.heures) + " h</b> = " + N2.format(m.D24) + " h au taux normal" +
+      (m.D28 ? " + <b>" + N2.format(m.D28) + " h à +25 %</b> (36ᵉ–43ᵉ)" : "") +
+      (m.D29 ? " + <b>" + N2.format(m.D29) + " h à +50 %</b> (au-delà de la 43ᵉ)" : "") +
+      (!m.D28 && !m.D29 ? " (pas d'heures supplémentaires)" : "")
+    : "";
+
+  /* impact de la mise en CET vs paiement direct des IFM/ICCP */
+  if (!inp.iccp && !inp.ifm) {
+    const altDirect = compute(Object.assign({}, inp, { ifm: true, iccp: true }));
+    const d = m.O64 - altDirect.main.O64;
+    $("cet-eco").innerHTML = "Impact vs paiement direct : <b class='delta " + (d >= 0 ? "good" : "bad") + "'>" +
+      (d >= 0 ? "+" : "") + N2.format(d) + " € de marge</b> (provision " + fmtE(m.D85 + m.H85) + ").";
+  } else {
+    $("cet-eco").textContent = "";
+  }
+
   /* conformité : taux horaire brut sous le SMIC en vigueur (revalorisations en cours d'année) */
   const conf = $("conf-hint");
   if (official && official.smic && inp.thBrut > 0 && inp.thBrut < official.smic.value - 1e-9) {
@@ -1716,7 +1745,7 @@ function renderPaie(m) {
   if (m.F27) s += kvRow("Majoration nuit — " + N2.format(m.D27) + " h × " + fmtE(m.E27), "F27", fmtE(m.F27));
   if (m.F28) s += kvRow("Heures sup — " + N2.format(m.D28) + " h × " + fmtE(m.E28), "F28", fmtE(m.F28));
   if (m.F29) s += kvRow("Heures sup 50 % — " + N2.format(m.D29) + " h × " + fmtE(m.E29), "F29", fmtE(m.F29));
-  if (m.F30) s += kvRow("Majo heures normales — " + N2.format(m.D30) + " × " + fmtE(m.E30), "F30", fmtE(m.F30));
+  if (m.F30) s += kvRow("Heures spécifiques majorées — " + N2.format(m.D30) + " × " + fmtE(m.E30), "F30", fmtE(m.F30));
   if (m.F32) s += kvRow("IFM 10 % (base " + fmtE(m.D32) + ")", "F32", fmtE(m.F32));
   s += kvRow("ICCP 10 %" + (m.F33 ? "" : " (désactivé)"), "F33", fmtE(m.F33));
   if (m.F34) s += kvRow("Prime repas &gt; plafond URSSAF", "F34", fmtE(m.F34));
@@ -1786,7 +1815,7 @@ function renderFact(m) {
   if (m.O27) s += kvRow("Majoration nuit", "O27", fmtE(m.O27));
   if (m.O28) s += kvRow("Heures sup 25 %", "O28", fmtE(m.O28));
   if (m.O29) s += kvRow("Heures sup 50 % (&gt;43 h)", "O29", fmtE(m.O29));
-  if (m.O30) s += kvRow("Majo heures normales", "O30", fmtE(m.O30));
+  if (m.O30) s += kvRow("Heures spécifiques majorées", "O30", fmtE(m.O30));
   for (const r of [34, 35, 36, 37, 38, 39, 40, 41]) if (m["O" + r]) s += kvRow("Prime refacturée (ligne " + r + ")", "O" + r, fmtE(m["O" + r]));
   s += kvRow("CA HT soumis à coefficient", "O42", fmtE(m.O42), "total");
   const inn2 = k => esc($("inn" + k) ? $("inn" + k).value : indemNames[k]);
@@ -1944,6 +1973,14 @@ $("in-dept").addEventListener("change", () => {
 });
 $("sector-agri").addEventListener("click", () => { if (inp.sector !== "agri") applySector("agri"); });
 $("sector-tarifaire").addEventListener("click", () => { if (inp.sector !== "tarifaire") applySector("tarifaire"); });
+$("ifmcp-direct").addEventListener("click", () => {
+  $("ifmcp-direct").setAttribute("aria-pressed", "true"); $("ifmcp-cet").setAttribute("aria-pressed", "false");
+  onChange();
+});
+$("ifmcp-cet").addEventListener("click", () => {
+  $("ifmcp-direct").setAttribute("aria-pressed", "false"); $("ifmcp-cet").setAttribute("aria-pressed", "true");
+  onChange();
+});
 $("exo-fillon").addEventListener("click", () => {
   inp.exoFormule = "fillon";
   $("exo-fillon").setAttribute("aria-pressed", "true"); $("exo-rgdu").setAttribute("aria-pressed", "false");
