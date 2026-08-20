@@ -314,7 +314,7 @@ table.grille td.neg { color: var(--bad); }
   <div class="top-inner">
     <div class="brand">
       <h1><span class="wheat">Simulateur</span> Intérim</h1>
-      <span class="sub" id="brand-sub">Marge brute intérim · Agricole & Tarifaire</span>
+      <span class="sub" id="brand-sub">Marge brute &amp; construction du net</span>
     </div>
     <div class="top-fields">
       <div class="field"><label id="lbl-sector">Secteur</label>
@@ -967,6 +967,7 @@ function defaultInputs(DB, sector) {
     tauxReduits: sector === "agri",
     pasMode: "grille",          // retenue à la source : grille BOFiP 2026 ("classeur" = formule linéaire du classeur)
     pasContratCourt: true,      // abattement contrats courts 766 €/mois (missions ≤ 2 mois)
+    gdAvanceAuto: false,        // conversion classeur avance -> repas GD/transport refacturés : désactivée (true = Excel)
     rates: Object.assign({}, cfg.rates),
     ratesBase: Object.assign({}, cfg.rates) // littéraux de la feuille cachée (non liés aux éditions)
   };
@@ -1317,9 +1318,15 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   S.F55 = netNull ? 0 : Math.max(0, S.D13 - S.F89);
   S.F56 = (!netNull && S.F22 > S.D13 && S.F89 < S.F22) ? S.F22 - S.F89 : 0;
 
-  /* --- F49 / F51 (la feuille principale utilise les avances du caché) --- */
+  /* --- F49 / F51 (la feuille principale utilise les avances du caché) ---
+   * Mécanisme du classeur : l'avance vers le net attendu est convertie en indemnités
+   * « repas GD » (BTP GD, F49 — refacturées au client en O49) ou « transport »
+   * (industrie, F51). SUPPRIMÉ par défaut le 20/08/2026 à la demande de l'utilisateur
+   * (la participation logement faisait grimper le CA via cette conversion) : les
+   * avances sont financées par le CET, rien n'est refacturé. gdAvanceAuto=true
+   * (goldens/classeur) rétablit le comportement Excel à l'identique. */
   const av = isMain ? hiddenAvance : { F55: S.F55, F56: S.F56 };
-  const maxAv = Math.max(av.F55, av.F56);
+  const maxAv = i.gdAvanceAuto === true ? Math.max(av.F55, av.F56) : 0;
   S.F49 = (maxAv > i.baremeRepasGD * S.D49) ? i.baremeRepasGD * S.D49 : maxAv;
   S.E49 = S.D49 === 0 ? 0 : S.F49 / S.D49;
   S.F51 = (maxAv > S.H18 * S.D51) ? S.H18 * S.D51 : maxAv;
@@ -1621,8 +1628,8 @@ function applySector(sector, preset, brancheArg) {
     const row = DB.zonesKmPD.find(r => r.label === o.value);
     if (row && row.value) o.textContent = o.textContent.split(" — ")[0] + " — " + N2.format(row.value) + " €";
   }
+  /* sous-titre statique (le descriptif de secteur a été retiré à la demande de l'utilisateur) */
   if (sector === "agri") {
-    $("brand-sub").textContent = "Marge brute & construction du net · CDD saisonnier agricole (MSA · TO-DE)";
     $("tile-exo-label").textContent = "TO-DE (exonération)";
     $("sum-cotis").textContent = "Cotisations & TO-DE";
     $("lbl-logfact").textContent = "Logement facturé au client (€/sem)";
@@ -1630,9 +1637,6 @@ function applySector(sector, preset, brancheArg) {
     $("const-note").innerHTML = "Secteur AGRI (MSA). Les défauts suivent le <b>droit courant</b> (SMIC et plafond SS actualisés en direct) ; le bouton ci-dessous rétablit les constantes du classeur Excel. Plafonds 2,5/3,5 SMIC figés au 31/12/2023 sur <b>11,52&nbsp;€</b> ; retenue à la source 55&nbsp;€/j ; abattement DFS 20&nbsp;% (scénario IFM+CP) ; mutuelle en % du plafond — taux de cotisations du classeur.";
     $("hidden-note").innerHTML = "Variante du classeur : IFM et ICCP forcés, assiette de cotisations avec abattement DFS 20&nbsp;% (bornée par l'assiette minimale), logement non facturé.";
   } else {
-    $("brand-sub").textContent = branche === "btp"
-      ? "Marge brute & construction du net · BTP (CPAM · RGDU · grille régionale)"
-      : "Marge brute & construction du net · Industrie (CPAM · RGDU · barème URSSAF)";
     $("tile-exo-label").textContent = "Allègement RGDU";
     $("sum-cotis").textContent = "Cotisations & RGDU";
     $("lbl-logfact").textContent = "Logement facturé au client (€/heure)";
@@ -1834,40 +1838,63 @@ function render(r) {
    * est converti en net (ratio net/brut de la fiche) pour financer l'avance
    * jusqu'au net promis — alerte si insuffisant (→ + d'indemnités ou d'heures) */
   /* Cascade de financement du net promis (ordre voulu par l'utilisateur) :
-   * 1. consommer le CET en priorité (objectif : solde ≈ 0 à l'issue de la
-   *    2ᵉ prolongation) ; 2. compléter le reliquat en indemnités nettes
-   *    (non soumises, plafonds URSSAF). 1 € d'indemnité = 1 € d'avance en moins. */
+   * 1. consommer le CET en priorité et LE PLUS POSSIBLE (objectif : solde ≈ 0 à
+   *    l'issue de la 2ᵉ prolongation) ; 2. compléter en indemnités nettes ;
+   * 3. la PARTICIPATION LOGEMENT sert d'ajustement FINAL sur le net promis :
+   *    la baisser fait monter le net (net promis pas atteint), la monter absorbe
+   *    le CET restant via une avance supplémentaire (net promis inchangé). */
   const cetActif = !inp.iccp && !inp.ifm;
   const netRatio = m.F42 > 0 ? Math.max(0, (m.F42 - m.F88 - Math.max(0, m.F43)) / m.F42) : 0;
   const cetNet = cetActif ? m.D85 * netRatio : 0;
   const cetUtilise = cetActif ? Math.min(avance, cetNet) : 0;
   const cetRestant = cetActif ? cetNet - cetUtilise : 0;
-  const complement = avance - cetUtilise;   // à couvrir en indemnités nettes
+  const complement = avance - cetUtilise;   // à couvrir (indemnités / baisse de participation)
   const soldeQuasiNul = cetRestant <= Math.max(5, cetNet * 0.05);
+  /* levier participation logement */
+  const partAct = Math.max(0, -(inp.participationLibre || 0));   // €/sem retenus
+  const coutLog = m.F92 || 0;                                    // coût logement hebdo
+  const margePart = coutLog > 0 ? Math.max(0, coutLog - partAct) : 0;  // hausse possible
   $("out-cetdispo").textContent = cetActif ? fmtE(cetNet) + " (brut " + fmtE(m.D85) + ")" : "— (paiement direct)";
   $("out-cetutilise").textContent = cetActif ? "−" + EUR.format(cetUtilise).replace("-", "") : "—";
+  const hausse = Math.min(cetRestant, margePart);                // CET absorbable via participation
   const cr = $("out-cetrestant");
   cr.innerHTML = cetActif
-    ? fmtE(cetRestant) + (soldeQuasiNul ? " <span class='badge good'>soldé ✓</span>" : " <span class='badge warn'>à étaler</span>")
+    ? fmtE(cetRestant) + (soldeQuasiNul ? " <span class='badge good'>soldé ✓</span>"
+        : (hausse > 0.5 ? " <span class='badge warn'>ajustable via logement</span>" : " <span class='badge warn'>à étaler</span>"))
     : "—";
   const ca = $("cet-alert");
+  const conseilHausse = hausse > 0.5
+    ? " <b>Ajustement final par le logement :</b> porter la participation à <b>" + fmtE(partAct + hausse) +
+      "/sem</b> (au lieu de " + fmtE(partAct) + ") et verser une avance supplémentaire de " + fmtE(hausse) +
+      " — le net reste au promis, le CET descend à " + fmtE(cetRestant - hausse) +
+      (cetRestant - hausse > Math.max(5, cetNet * 0.05) ? " (étaler le reliquat sur les prochaines paies)." : " (quasi soldé ✓).")
+    : (cetRestant > 0.005 && !soldeQuasiNul
+        ? " Étaler des avances supplémentaires sur les prochaines paies pour solder le CET avant la fin de la 2ᵉ prolongation" +
+          (coutLog > 0 && margePart < 0.5 ? " (participation déjà au niveau du coût du logement)." : ".")
+        : "");
   if (cetActif && complement > 0.005) {
+    const baisse = Math.min(complement, partAct);
     ca.hidden = false;
-    ca.innerHTML = "<span class='conf-warn'>⚠ CET consommé en totalité (" + fmtE(cetUtilise) +
-      ") — compléter avec <b>" + fmtE(complement) + " d'indemnités nettes</b> (plafonds URSSAF) ou augmenter les heures pour atteindre le net promis.</span>";
+    ca.innerHTML = "<span class='conf-warn'>⚠ CET consommé en totalité (" + fmtE(cetUtilise) + ") — il manque <b>" +
+      fmtE(complement) + "</b> pour le net promis.</span>" +
+      (baisse > 0.5
+        ? " <b>Ajustement par le logement :</b> réduire la participation à <b>" + fmtE(partAct - baisse) +
+          "/sem</b> (au lieu de " + fmtE(partAct) + ") — le net remonte d'autant" +
+          (complement - baisse > 0.5 ? ", puis compléter avec " + fmtE(complement - baisse) + " d'indemnités nettes." : ".")
+        : " Compléter avec <b>" + fmtE(complement) + " d'indemnités nettes</b> (plafonds URSSAF) ou augmenter les heures.");
   } else if (cetActif && avance > 0.005) {
     ca.hidden = false;
     ca.innerHTML = "<span class='delta good'>✓ Avance de " + fmtE(avance) + " entièrement financée par le CET.</span>" +
-      (soldeQuasiNul ? " CET quasi soldé — rien ou presque à débloquer en fin de 2ᵉ prolongation."
-                     : " Reste <b>" + fmtE(cetRestant) + "</b> au CET : étaler des avances supplémentaires sur les prochaines paies pour le solder avant la fin de la 2ᵉ prolongation.");
+      (soldeQuasiNul ? " CET quasi soldé — rien ou presque à débloquer en fin de 2ᵉ prolongation." : conseilHausse);
   } else if (cetActif && cetRestant > 0.005) {
     ca.hidden = false;
-    ca.innerHTML = "Aucune avance nécessaire — le CET conserve " + fmtE(cetRestant) +
-      (soldeQuasiNul ? "." : " : étaler des avances sur les prochaines paies pour le solder avant la fin de la 2ᵉ prolongation.");
+    ca.innerHTML = "Aucune avance nécessaire — le CET conserve " + fmtE(cetRestant) + "." +
+      (soldeQuasiNul ? "" : conseilHausse);
   } else if (!cetActif && avance > 0.005) {
     ca.hidden = false;
-    ca.innerHTML = "⚠ Avance de " + fmtE(avance) + " non adossée à un CET (IFM/ICCP en paiement direct) — ajouter <b>" +
-      fmtE(avance) + " d'indemnités nettes</b> (plafonds URSSAF) ou passer en mise en CET.";
+    ca.innerHTML = "⚠ Avance de " + fmtE(avance) + " non adossée à un CET (IFM/ICCP en paiement direct) — " +
+      (partAct > 0.5 ? "réduire la participation logement (jusqu'à −" + fmtE(Math.min(avance, partAct)) + "), " : "") +
+      "ajouter des indemnités nettes ou passer en mise en CET.";
   } else {
     ca.hidden = true; ca.innerHTML = "";
   }
