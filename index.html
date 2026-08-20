@@ -561,6 +561,8 @@ table.grille td.neg { color: var(--bad); }
           <tr><td>Retenue à la source<span class="ref">F43</span></td><td class="n" id="out-ras">—</td></tr>
           <tr><td>Avance sur salaire (régul)<span class="ref">F57/F58</span></td><td class="n" id="out-avance">—</td></tr>
           <tr><td>CET disponible (net estimé)<span class="ref">D85</span></td><td class="n" id="out-cetdispo">—</td></tr>
+          <tr><td>… dont consommé par l'avance</td><td class="n" id="out-cetutilise">—</td></tr>
+          <tr><td>CET restant à débloquer</td><td class="n" id="out-cetrestant">—</td></tr>
         </table>
         <p class="hint" id="cet-alert" hidden></p>
       </div>
@@ -1702,24 +1704,41 @@ function render(r) {
   /* CET vs avance : le brut placé au CET (provision D85 = IFM+ICCP non payés)
    * est converti en net (ratio net/brut de la fiche) pour financer l'avance
    * jusqu'au net promis — alerte si insuffisant (→ + d'indemnités ou d'heures) */
+  /* Cascade de financement du net promis (ordre voulu par l'utilisateur) :
+   * 1. consommer le CET en priorité (objectif : solde ≈ 0 à l'issue de la
+   *    2ᵉ prolongation) ; 2. compléter le reliquat en indemnités nettes
+   *    (non soumises, plafonds URSSAF). 1 € d'indemnité = 1 € d'avance en moins. */
   const cetActif = !inp.iccp && !inp.ifm;
   const netRatio = m.F42 > 0 ? Math.max(0, (m.F42 - m.F88 - Math.max(0, m.F43)) / m.F42) : 0;
   const cetNet = cetActif ? m.D85 * netRatio : 0;
+  const cetUtilise = cetActif ? Math.min(avance, cetNet) : 0;
+  const cetRestant = cetActif ? cetNet - cetUtilise : 0;
+  const complement = avance - cetUtilise;   // à couvrir en indemnités nettes
+  const soldeQuasiNul = cetRestant <= Math.max(5, cetNet * 0.05);
   $("out-cetdispo").textContent = cetActif ? fmtE(cetNet) + " (brut " + fmtE(m.D85) + ")" : "— (paiement direct)";
+  $("out-cetutilise").textContent = cetActif ? "−" + EUR.format(cetUtilise).replace("-", "") : "—";
+  const cr = $("out-cetrestant");
+  cr.innerHTML = cetActif
+    ? fmtE(cetRestant) + (soldeQuasiNul ? " <span class='badge good'>soldé ✓</span>" : " <span class='badge warn'>à étaler</span>")
+    : "—";
   const ca = $("cet-alert");
-  /* 1 € d'indemnité nette (non soumise) = 1 € d'avance en moins : la suggestion est exacte */
-  const sugg = avance > 0.005 ? " Alternative sans avance : ajouter <b>" + fmtE(avance) +
-    "</b> d'indemnités nettes (dans les plafonds URSSAF) ou augmenter les heures." : "";
-  if (cetActif && avance > cetNet + 0.005) {
+  if (cetActif && complement > 0.005) {
     ca.hidden = false;
-    ca.innerHTML = "<span class='conf-warn'>⚠ CET insuffisant pour financer l'avance jusqu'au net promis (manque " +
-      fmtE(avance - cetNet) + ").</span>" + sugg;
+    ca.innerHTML = "<span class='conf-warn'>⚠ CET consommé en totalité (" + fmtE(cetUtilise) +
+      ") — compléter avec <b>" + fmtE(complement) + " d'indemnités nettes</b> (plafonds URSSAF) ou augmenter les heures pour atteindre le net promis.</span>";
   } else if (cetActif && avance > 0.005) {
     ca.hidden = false;
-    ca.innerHTML = "<span class='delta good'>✓ Avance de " + fmtE(avance) + " finançable par le CET (" + fmtE(cetNet) + " disponibles en net).</span>" + sugg;
+    ca.innerHTML = "<span class='delta good'>✓ Avance de " + fmtE(avance) + " entièrement financée par le CET.</span>" +
+      (soldeQuasiNul ? " CET quasi soldé — rien ou presque à débloquer en fin de 2ᵉ prolongation."
+                     : " Reste <b>" + fmtE(cetRestant) + "</b> au CET : étaler des avances supplémentaires sur les prochaines paies pour le solder avant la fin de la 2ᵉ prolongation.");
+  } else if (cetActif && cetRestant > 0.005) {
+    ca.hidden = false;
+    ca.innerHTML = "Aucune avance nécessaire — le CET conserve " + fmtE(cetRestant) +
+      (soldeQuasiNul ? "." : " : étaler des avances sur les prochaines paies pour le solder avant la fin de la 2ᵉ prolongation.");
   } else if (!cetActif && avance > 0.005) {
     ca.hidden = false;
-    ca.innerHTML = "⚠ Avance de " + fmtE(avance) + " non adossée à un CET (IFM/ICCP en paiement direct)." + sugg;
+    ca.innerHTML = "⚠ Avance de " + fmtE(avance) + " non adossée à un CET (IFM/ICCP en paiement direct) — ajouter <b>" +
+      fmtE(avance) + " d'indemnités nettes</b> (plafonds URSSAF) ou passer en mise en CET.";
   } else {
     ca.hidden = true; ca.innerHTML = "";
   }
