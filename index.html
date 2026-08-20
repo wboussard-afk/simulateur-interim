@@ -166,6 +166,9 @@ header.top {
 /* tableau strict à 2 colonnes (demande utilisateur) */
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
 .grid2 .span2 { grid-column: 1 / -1; }
+.grid2 .rowspan2 { grid-row: span 2; display: flex; flex-direction: column; justify-content: center; }
+.grid2 .tlabel { font-size: 12.5px; font-weight: 600; color: var(--muted); align-self: center; }
+.grid2 .check-cell { align-self: center; }
 .field-bold label:not(.check) { font-size: 13px; color: var(--ink); font-weight: 700; }
 .field-bold input { font-weight: 700; font-size: 15px; }
 .ro-calc { background: var(--line-soft) !important; border-style: dashed !important; color: var(--brass-deep) !important; font-weight: 600; cursor: default; }
@@ -347,40 +350,47 @@ table.grille td.neg { color: var(--bad); }
       <div class="card-h"><h2>Mission &amp; salarié</h2><span class="eyebrow">Heures · taux</span></div>
       <div class="card-b">
         <div class="grid2">
-          <div class="field span2 field-bold"><label for="in-thbrut">Taux horaire brut (€)</label><input type="number" id="in-thbrut" step="0.01" min="0"></div>
-          <div class="field"><label for="in-net">Tx net promis (€/h)</label><input type="number" id="in-net" step="0.01" min="0">
-            <label class="check" style="margin-top:4px"><input type="checkbox" id="in-nonet"> Pas de tx net attendu</label></div>
-          <div class="field"><label for="ro-netconstate">Tx net constaté (€/h)</label><input type="text" id="ro-netconstate" readonly class="ro-calc" tabindex="-1" title="Net réel avant régularisation (indemnités et heures incluses, avant avances)">
+          <!-- ligne 1-2 : brut (fusionné, gras) face à la paire net promis / net constaté -->
+          <div class="field field-bold rowspan2"><label for="in-thbrut">Tx horaire brut (€)</label><input type="number" id="in-thbrut" step="0.01" min="0"></div>
+          <div class="field"><label for="in-net">Tx net promis (€/h)</label><input type="number" id="in-net" step="0.01" min="0"></div>
+          <div class="field"><label for="ro-netconstate">Tx net constaté (€/h, avant ajustements)</label><input type="text" id="ro-netconstate" readonly class="ro-calc" tabindex="-1" title="Net réel avant régularisation (indemnités et heures incluses, avant avances)">
             <span class="hint" id="net-delta-hint"></span></div>
+          <!-- ligne 3 -->
           <div class="field"><label for="in-jours">Nombre de jours travaillés / sem</label><input type="number" id="in-jours" step="1" min="0"></div>
           <div class="field"><label for="in-heures">Heures travaillées globales / sem</label><input type="number" id="in-heures" step="0.5" min="0"></div>
-          <div class="field"><label for="ro-hnorm">Heures normales (35 ou moins)</label><input type="text" id="ro-hnorm" readonly class="ro-calc" tabindex="-1"></div>
-          <div class="field"><label for="ro-hs25">Heures supp à +25 % (36ᵉ–43ᵉ)</label><input type="text" id="ro-hs25" readonly class="ro-calc" tabindex="-1"></div>
-          <div class="field"><label for="ro-hs50">Heures supp à +50 % (au-delà 43ᵉ)</label><input type="text" id="ro-hs50" readonly class="ro-calc" tabindex="-1"></div>
-          <div class="field"><label for="in-atmp">Taux AT-MP (%)</label><input type="number" id="in-atmp" step="0.01" min="0" title="Taux accident du travail notifié par la CARSAT — pèse directement sur la marge. Défaut : valeur moyenne 2026 (2,08 %), à renseigner manuellement."></div>
-          <div class="field"><label for="in-hnuit">… dont heures de nuit</label><input type="number" id="in-hnuit" step="0.5" min="0"></div>
-          <div class="field"><label for="in-hdim">… dont heures dimanche</label><input type="number" id="in-hdim" step="0.5" min="0"></div>
-          <div class="field"><label for="in-hferie">… dont heures férié</label><input type="number" id="in-hferie" step="0.5" min="0"></div>
+          <!-- lignes 4-6 : libellé à gauche, valeur calculée à droite -->
+          <div class="tlabel">Heures normales (35 ou moins)</div>
+          <div class="field"><input type="text" id="ro-hnorm" readonly class="ro-calc" tabindex="-1" aria-label="Heures normales calculées"></div>
+          <div class="tlabel">Heures supp à +25 % (36ᵉ–43ᵉ)</div>
+          <div class="field"><input type="text" id="ro-hs25" readonly class="ro-calc" tabindex="-1" aria-label="Heures à 25 % calculées"></div>
+          <div class="tlabel">Heures supp à +50 % (au-delà de la 43ᵉ)</div>
+          <div class="field"><input type="text" id="ro-hs50" readonly class="ro-calc" tabindex="-1" aria-label="Heures à 50 % calculées"></div>
+          <!-- ligne 7 : taux AT | pas de net attendu -->
+          <div class="field"><label for="in-atmp">Tx AT en % (défaut moyen, saisie manuelle)</label><input type="number" id="in-atmp" step="0.01" min="0" title="Taux accident du travail notifié par la CARSAT — pèse directement sur la marge. Défaut : moyenne nationale 2026 (2,08 %)."></div>
+          <div class="check-cell"><label class="check" style="margin:0"><input type="checkbox" id="in-nonet"> Pas de tx net attendu</label></div>
+          <!-- ligne 8 : IFM/CP paiement direct | mise en CET -->
+          <div class="span2"><label id="lbl-ifmcp" class="tlabel" style="display:block; margin-bottom:3px">IFM &amp; CP</label>
+            <div class="seg" role="group" aria-labelledby="lbl-ifmcp">
+              <button type="button" id="ifmcp-direct" aria-pressed="true">Paiement direct</button>
+              <button type="button" id="ifmcp-cet" aria-pressed="false">Mise en CET 100 %</button>
+            </div>
+          </div>
+          <!-- ligne 9 -->
+          <div class="check-cell"><label class="check" style="margin:0"><input type="checkbox" id="in-attest" title="Résident fiscal étranger : exonération de CSG/CRDS (maladie salariale 5,5 % à la place) — améliore le net de l'intérimaire"> Attestation fiscale étrangère (exo CSG/CRDS)</label></div>
+          <div class="check-cell"><label class="check" style="margin:0"><input type="checkbox" id="in-annu"> Annualisation</label></div>
         </div>
         <div id="dept-hint" class="hint"></div>
         <p class="hint" id="conf-hint" hidden></p>
         <div class="grid" style="margin-top:10px">
+          <div class="field"><label for="in-hnuit">… dont heures de nuit</label><input type="number" id="in-hnuit" step="0.5" min="0"></div>
+          <div class="field"><label for="in-hdim">… dont heures dimanche</label><input type="number" id="in-hdim" step="0.5" min="0"></div>
+          <div class="field"><label for="in-hferie">… dont heures férié</label><input type="number" id="in-hferie" step="0.5" min="0"></div>
           <div class="field"><label for="in-hsup">Heures supplémentaires (36ᵉ–43ᵉ)</label><select id="in-hsup"></select></div>
           <div class="field"><label for="in-majonorm">Heures spécifiques majorées</label><select id="in-majonorm"></select></div>
           <div class="field"><label for="in-majonormq">Nb heures spécifiques</label><input type="number" id="in-majonormq" step="0.5" min="0"></div>
           <div class="field"><label for="in-majonuit">Majoration nuit</label><select id="in-majonuit"></select></div>
           <div class="field"><label for="in-majoferie">Majoration férié</label><select id="in-majoferie"></select></div>
           <div class="field"><label for="in-majodim">Majoration dimanche</label><select id="in-majodim"></select></div>
-        </div>
-        <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:8px; align-items:center">
-          <div class="field" style="min-width:280px"><label id="lbl-ifmcp">IFM &amp; ICCP</label>
-            <div class="seg" role="group" aria-labelledby="lbl-ifmcp">
-              <button type="button" id="ifmcp-direct" aria-pressed="true">Paiement direct</button>
-              <button type="button" id="ifmcp-cet" aria-pressed="false">Mise en CET 100 %</button>
-            </div>
-          </div>
-          <label class="check"><input type="checkbox" id="in-attest" title="Résident fiscal étranger : exonération de CSG/CRDS (maladie salariale 5,5 % à la place) — améliore le net de l'intérimaire"> Attestation fiscale étrangère (exo CSG/CRDS)</label>
-          <label class="check"><input type="checkbox" id="in-annu"> Annualisation</label>
         </div>
         <p class="hint"><b>Mise en CET</b> : 100 % des IFM/ICCP placés sur le compte épargne temps — le classeur provisionne 21 % de la base + 45 % de charges (D85/H85) au lieu de payer les indemnités en paie ; déblocage conseillé à l'issue du 2ᵉ contrat de prolongation. <span id="cet-eco"></span><br>
         Attestation fiscale <b>OUI</b> : maladie salariale 5,5&nbsp;% et pas de CSG/CRDS. <b>NON</b> : CSG/CRDS, pas de maladie salariale.</p>
