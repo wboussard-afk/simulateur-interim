@@ -325,10 +325,11 @@ table.grille td.neg { color: var(--bad); }
         </div>
       </div>
       <div class="field"><label for="in-client">Client</label><input type="text" id="in-client" placeholder="Nom du client"></div>
-      <div class="field"><label for="in-dept">Département de mission</label><select id="in-dept"><option value="">—</option></select></div>
-      <div class="field"><label for="in-mode">Type de simulateur</label>
-        <select id="in-mode"></select>
-      </div>
+      <div class="field"><label for="in-dept">Département de mission</label><select id="in-dept"><option value="">—</option></select>
+        <span class="hint only-btp" id="dept-region"></span></div>
+      <!-- « Type de simulateur » supprimé (20/08/2026) : le mode est déduit du secteur
+           (agri → MSA, BTP → GRAND D, industrie → INDUSTRIE) — select caché pour l'état moteur -->
+      <select id="in-mode" hidden aria-hidden="true" tabindex="-1"></select>
       <div class="top-actions">
         <button class="btn" id="btn-share" title="Copier un lien qui restaure ce scénario">Partager</button>
         <button class="btn" id="btn-reset">Réinitialiser</button>
@@ -426,8 +427,10 @@ table.grille td.neg { color: var(--bad); }
               <option value="N4P1">N4P1 — coeff 250</option>
               <option value="N4P2">N4P2 — coeff 270</option>
               <option value="AUTRE">Autre</option>
-            </select></div>
-          <div class="field"><label for="in-zone">Distance (petits déplacements, aller-retour)</label><select id="in-zone"></select></div>
+            </select>
+            <span class="hint" id="niveau-hint"></span></div>
+          <div class="field"><label for="in-zone">Distance (petits déplacements, aller-retour)</label><select id="in-zone"></select>
+            <span class="hint" id="zone-hint"></span></div>
           <div class="field"><label for="in-gdduree">Durée du grand déplacement</label>
             <select id="in-gdduree">
               <option value="0">3 premiers mois</option>
@@ -441,7 +444,7 @@ table.grille td.neg { color: var(--bad); }
             </select></div>
         </div>
         <table class="kv" id="tbl-ref" style="margin-top:8px"></table>
-        <p class="note">Montants actualisés automatiquement : barèmes URSSAF vérifiés multi-sources (repas et GD au 01/01/2026, abattements 15 % / 30 % selon la durée — BOSS), grille régionale BTP du classeur sélectionnée d'après le département de mission. La distance choisie alimente aussi l'exonération transport du calcul.
+        <p class="note">Montants actualisés automatiquement : barèmes URSSAF vérifiés multi-sources (repas et GD au 01/01/2026, abattements 15 % / 30 % selon la durée — BOSS), grille régionale BTP du classeur rattachée automatiquement à la région d'après le <b>département de mission choisi en haut de page</b>. La distance choisie alimente aussi l'exonération transport du calcul. Transport (prime, par zone) = <b>non soumis</b> à cotisations ; trajet (indemnité de temps, par zone) = <b>soumis</b> à cotisations.
         <span class="only-btp">Minima officiels à jour par région : <a href="https://code.travail.gouv.fr/contribution/1596-quel-est-le-salaire-minimum" target="_blank" rel="noopener">code.travail.gouv.fr — CC 1596/1597 (ouvriers BTP)</a> ; la grille du classeur (16/03/2022) est plafonnée au plancher SMIC et surveillée automatiquement.</span></p>
       </div>
     </section>
@@ -1539,6 +1542,8 @@ function applySector(sector, preset, brancheArg) {
     : null;
   if (sector === "tarifaire") {
     inp.branche = branche;
+    /* type de simulateur déduit automatiquement (menu supprimé de l'UI) — coercition
+     * seulement en cas d'incohérence, pour préserver un PETIT D restauré d'un lien */
     const isBtpMode = String(inp.mode).indexOf("BTP") >= 0;
     if (branche === "btp" && !isBtpMode) inp.mode = "SIMULATEUR BTP GRAND D";
     if (branche === "industrie" && isBtpMode) inp.mode = "SIMULATEUR INDUSTRIE";
@@ -1555,6 +1560,11 @@ function applySector(sector, preset, brancheArg) {
   fillSelect("in-hsup", DB.heuresSup, inp.hSupLabel);
   fillSelect("in-majonorm", DB.majoNormales, inp.majoNormLabel);
   fillSelect("in-zone", DB.zonesKmPD, inp.zonePD);
+  /* le montant exonéré apparaît directement dans les options kilométrage */
+  for (const o of $("in-zone").options) {
+    const row = DB.zonesKmPD.find(r => r.label === o.value);
+    if (row && row.value) o.textContent = o.textContent.split(" — ")[0] + " — " + N2.format(row.value) + " €";
+  }
   if (sector === "agri") {
     $("brand-sub").textContent = "Marge brute & construction du net · CDD saisonnier agricole (MSA · TO-DE)";
     $("tile-exo-label").textContent = "TO-DE (exonération)";
@@ -1576,9 +1586,10 @@ function applySector(sector, preset, brancheArg) {
   }
   buildRatesGrid();
   setFormFromInputs();
-  render(compute(inp));
-  // ré-applique le droit courant (RGDU, TO-DE) après un changement de secteur
+  // ré-applique le droit courant (RGDU, TO-DE) après un changement de secteur ;
+  // applyOfficialLawParams se termine par son propre render — un seul rendu par bascule
   if (typeof official !== "undefined" && official) applyOfficialLawParams();
+  else render(compute(inp));
 }
 
 /* ================= INPUT WIRING ================= */
@@ -2060,7 +2071,7 @@ $("chart").addEventListener("mouseleave", () => { $("chart-tip").style.display =
  * repas petits déplacements (3 types, URSSAF 2026), transport/trajet de la grille
  * régionale BTP (classeur, sélectionnée via le département), exonération URSSAF de
  * la distance choisie, grand déplacement (nuitée + 2 repas/jour) selon durée et lieu. */
-const ZONE_REGIONALE = { "5 km et 10 km": 1, "10 km et 20 km": 2, "20 km et 30 km": 3, "30 km et 40 km": 4, "40 km et 50 km": 5 };
+const ZONE_REGIONALE = { "5 km et 10 km": 0, "10 km et 20 km": 1, "20 km et 30 km": 2, "30 km et 40 km": 2, "40 km et 50 km": 3, "50 km et 60 km": 3, "60 km et 70 km": 4, "70 km et 80 km": 4, "80 km et 90 km": 5, "90 km et 100 km": 5 }; /* tranches URSSAF aller-retour -> zones BTP aller simple (correspondance AB/AC du classeur) */
 const ZONE_NOMS = ["IA (0-4 km)", "IB (4-10 km)", "II (10-20 km)", "III (20-30 km)", "IV (30-40 km)", "V (40-50 km)"];
 function renderRef(m) {
   const d = DB.departments.find(x => x.dept === inp.dept);
@@ -2071,13 +2082,14 @@ function renderRef(m) {
   const isBTP = inp.sector === "tarifaire" && inp.branche === "btp";
   let s = "";
   /* BTP : grille régionale — région + niveau de qualification -> minimum de salaire, panier */
+  const smicNow = (typeof official !== "undefined" && official && official.smic) ? official.smic.value : BAKED_OFFICIAL.smic.value;
+  const regionNom = d ? esc((d.region || "").split("/")[0].trim()) : "";
   if (isBTP) {
     s += "<tr class='sub'><td colspan='2'><b>Grille BTP régionale</b> — " +
-         (d ? "région " + esc((d.region || "").split("/")[0].trim()) : "choisir un département de mission") + "</td></tr>";
+         (d ? "région " + regionNom + " (département " + esc(d.dept) + ")" : "choisir le département de mission en haut de page") + "</td></tr>";
     if (d && d.rates) {
       const lvl = inp.niveauQualif || "N1P1";
       const g = d.rates[lvl];
-      const smicNow = (typeof official !== "undefined" && official && official.smic) ? official.smic.value : BAKED_OFFICIAL.smic.value;
       if (g != null) {
         const below = g < smicNow - 1e-9;
         s += kvRow("Salaire minimum " + esc(lvl) + (below ? " — grille sous le SMIC, plancher appliqué ⚠" : ""), "",
@@ -2085,8 +2097,15 @@ function renderRef(m) {
       } else {
         s += kvRow("Salaire minimum " + esc(lvl), "", "n.c. dans la grille");
       }
-      s += kvRow("Panier repas BTP du département", "", d.panier != null ? fmtE(d.panier) +
-        (d.panierNonSoumis != null ? " (non soumis " + fmtE(d.panierNonSoumis) + ")" : "") : "n.c.");
+      /* panier décomposé RECALCULÉ sur la limite URSSAF courante (les parts figées du
+       * classeur datent de la limite 2022 — doctrine : valeurs du droit courant) */
+      const limRepas = BAKED_OFFICIAL.repasHorsLocaux.value;
+      s += kvRow("Panier repas BTP — total", "", d.panier != null ? fmtE(d.panier) : "n.c.");
+      if (d.panier != null) {
+        const nsPan = Math.min(d.panier, limRepas), soPan = Math.max(0, d.panier - limRepas);
+        s += kvRow("&nbsp;&nbsp;· part <b>non soumise</b> à cotisations (exonérée, limite URSSAF " + fmtE(limRepas) + ")", "", fmtE(nsPan));
+        s += kvRow("&nbsp;&nbsp;· part <b>soumise</b> à cotisations (au-delà de la limite)", "", soPan > 1e-9 ? fmtE(soPan) : "0,00 € (sous la limite)");
+      }
     }
   }
   s += "<tr class='sub'><td colspan='2'><b>Repas petits déplacements</b> (exonération URSSAF / repas, 2026)</td></tr>";
@@ -2098,13 +2117,16 @@ function renderRef(m) {
   const normZ = z => (z || "").replace(/ /g, " ").trim();
   const ziEntry = Object.entries(ZONE_REGIONALE).find(e => normZ(e[0]) === normZ(inp.zonePD));
   const zi = ziEntry ? ziEntry[1] : null;
-  if (isBTP && d && zi != null && d.transport && d.transport[zi] != null) {
-    s += kvRow("Grille régionale " + esc((d.region || "").split("/")[0].trim()) + " — transport zone " + ZONE_NOMS[zi], "", fmtE(d.transport[zi]));
-    s += kvRow("Grille régionale — trajet zone " + ZONE_NOMS[zi], "", fmtE(d.trajet[zi]));
-  } else if (isBTP && !d) {
-    s += kvRow("Grille régionale transport/trajet", "", "choisir un département de mission");
-  } else if (isBTP && zi == null) {
-    s += kvRow("Grille régionale transport/trajet", "", "hors zones régionales (≤ 50 km)");
+  /* BTP : grilles complètes par zone — transport (prime, NON soumise) et trajet (SOUMIS à cotisations) */
+  if (isBTP && d && d.transport) {
+    s += "<tr class='sub'><td colspan='2'><b>Transport par zone</b> — grille " + regionNom + " (prime de transport, <b>non soumise</b> à cotisations)</td></tr>";
+    for (let z = 0; z < ZONE_NOMS.length; z++) if (d.transport[z] != null)
+      s += kvRow("Zone " + ZONE_NOMS[z] + (z === zi ? " ◀ distance sélectionnée" : ""), "", fmtE(d.transport[z]));
+    s += "<tr class='sub'><td colspan='2'><b>Trajet par zone</b> — grille " + regionNom + " (indemnité de trajet, <b>soumise</b> à cotisations)</td></tr>";
+    for (let z = 0; z < ZONE_NOMS.length; z++) if (d.trajet[z] != null)
+      s += kvRow("Zone " + ZONE_NOMS[z] + (z === zi ? " ◀ distance sélectionnée" : ""), "", fmtE(d.trajet[z]));
+  } else if (isBTP) {
+    s += kvRow("Grilles régionales transport/trajet par zone", "", "choisir le département de mission en haut de page");
   }
   s += "<tr class='sub'><td colspan='2'><b>Grand déplacement</b> — " +
        (inp.gdLieu === "paris" ? "Paris + 92/93/94" : "province") + ", " +
@@ -2113,27 +2135,59 @@ function renderRef(m) {
   s += kvRow("Repas GD (midi + soir = 2 repas) / jour", "", fmtE(2 * repasGD) + " (" + fmtE(repasGD) + " × 2)");
   s += kvRow("Total GD / jour (nuitée + 2 repas)", "", fmtE(nuitee + 2 * repasGD), "total");
   $("tbl-ref").innerHTML = s;
+
+  /* hints réactifs sous les sélecteurs : le salaire apparaît dès le choix du niveau,
+   * le montant exonéré dès le choix du kilométrage */
+  $("zone-hint").textContent = m.H18 ? "exonération " + fmtE(m.H18) + " / jour" : "";
+  const selN = $("in-niveau");
+  if (isBTP && d && d.rates) {
+    const lvl = inp.niveauQualif || "N1P1";
+    const g = d.rates[lvl];
+    $("niveau-hint").textContent = g != null
+      ? "minimum " + fmtE(Math.max(g, smicNow)) + "/h — " + (d.region || "").split("/")[0].trim() +
+        (g < smicNow - 1e-9 ? " (plancher SMIC)" : "")
+      : "n.c. dans la grille régionale";
+    /* options enrichies : « N3P2 — coeff 230 · 13,66 € » (plancher SMIC appliqué) —
+     * cache par département + SMIC pour se rafraîchir quand le SMIC officiel arrive */
+    const enrichKey = inp.dept + "|" + smicNow;
+    if (selN.dataset.key !== enrichKey) {
+      for (const o of selN.options) {
+        const base = o.textContent.split(" · ")[0];
+        const v = d.rates[o.value];
+        o.textContent = v != null ? base + " · " + N2.format(Math.max(v, smicNow)) + " €" : base;
+      }
+      selN.dataset.key = enrichKey;
+    }
+  } else {
+    $("niveau-hint").textContent = isBTP ? "choisir le département de mission en haut de page" : "";
+    if (selN.dataset.key) {
+      for (const o of selN.options) o.textContent = o.textContent.split(" · ")[0];
+      delete selN.dataset.key;
+    }
+  }
 }
 
 function renderDeptHint() {
   const el = $("dept-hint");
   const d = DB.departments.find(x => x.dept === inp.dept);
+  /* rattachement automatique département -> région, affiché sous le sélecteur d'en-tête */
+  $("dept-region").textContent = d ? "Région : " + (d.region || "").split("/")[0].trim() : "";
   if (!d) { el.innerHTML = ""; return; }
   const isBTP = inp.sector === "tarifaire" && inp.branche === "btp";
   const lg = DB.logement.find(x => d.dept.startsWith(x.dept + " "));
   let chips = "";
-  const smicNow = (typeof official !== "undefined" && official && official.smic) ? official.smic.value : null;
+  const smicNow = (typeof official !== "undefined" && official && official.smic) ? official.smic.value : BAKED_OFFICIAL.smic.value;
   /* la grille N1P1..N4P2 et le panier sont des références conventionnelles BTP — masqués hors branche BTP */
   if (isBTP) for (const [k, v] of Object.entries(d.rates)) {
     if (v == null || k === "AUTRE") continue;
-    const below = smicNow != null && v < smicNow - 1e-9;
+    const below = v < smicNow - 1e-9;
     chips += '<button class="chip' + (below ? " below" : "") + '" data-rate="' + v +
       '" title="' + (below ? "Grille sous le SMIC en vigueur (" + N2.format(smicNow) + " €) — sera rehaussée" : "Appliquer au taux horaire brut") + '">' +
       k + " <b>" + N2.format(v) + "</b>" + (below ? " ⚠" : "") + "</button>";
   }
   el.innerHTML = esc(d.dept) +
     (isBTP && d.panier != null ? " — panier " + N2.format(d.panier) + " €" +
-      (d.panierNonSoumis != null ? " (non soumis " + N2.format(d.panierNonSoumis) + " €)" : "") : "") +
+      " (non soumis " + N2.format(Math.min(d.panier, BAKED_OFFICIAL.repasHorsLocaux.value)) + " €)" : "") +
     (lg && lg.costPerHour != null ? " · logement moyen " + N2.format(lg.costPerHour) + " €/h" : "") +
     '<span class="chips">' + chips + "</span>";
   el.querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => {
@@ -2165,10 +2219,15 @@ $("in-dept").addEventListener("change", () => {
 });
 $("sector-agri").addEventListener("click", () => { if (inp.sector !== "agri") applySector("agri"); });
 $("sector-btp").addEventListener("click", () => {
-  if (!(inp.sector === "tarifaire" && inp.branche === "btp")) applySector("tarifaire", undefined, "btp");
+  if (inp.sector === "tarifaire" && inp.branche === "btp") return;
+  /* même moteur tarifaire : on conserve les saisies en basculant BTP <-> Industrie */
+  if (inp.sector === "tarifaire") readInputsFromForm();
+  applySector("tarifaire", inp.sector === "tarifaire" ? inp : undefined, "btp");
 });
 $("sector-industrie").addEventListener("click", () => {
-  if (!(inp.sector === "tarifaire" && inp.branche === "industrie")) applySector("tarifaire", undefined, "industrie");
+  if (inp.sector === "tarifaire" && inp.branche === "industrie") return;
+  if (inp.sector === "tarifaire") readInputsFromForm();
+  applySector("tarifaire", inp.sector === "tarifaire" ? inp : undefined, "industrie");
 });
 $("ifmcp-direct").addEventListener("click", () => {
   $("ifmcp-direct").setAttribute("aria-pressed", "true"); $("ifmcp-cet").setAttribute("aria-pressed", "false");
@@ -2434,6 +2493,11 @@ let restored = null;
     const sector = obj.sector === "tarifaire" ? "tarifaire" : "agri";
     restored = Object.assign(defaultInputs(DB, sector), obj);
     restored.sector = sector;
+    /* compat liens antérieurs au 20/08/2026 (pas de branche) : déduite du mode sauvegardé,
+     * sinon le défaut "industrie" de defaultInputs masquerait un lien BTP */
+    if (sector === "tarifaire" && obj.branche === undefined)
+      restored.branche = String(obj.mode || "").indexOf("BTP") >= 0 ? "btp" : "industrie";
+    if (![0, 1, 2].includes(restored.gdDuree)) restored.gdDuree = 0;
     restored.rates = Object.assign({}, SECTORS[sector].rates, obj.rates || {});
     /* compat liens anciens : refactIndem1/2 → coefficient par ligne */
     if (restored.indemnites) restored.indemnites.forEach((p, k) => {
