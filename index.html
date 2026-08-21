@@ -356,7 +356,7 @@ table.grille td.neg { color: var(--bad); }
           <!-- ligne 1-2 : brut (fusionné, gras) face à la paire net promis / net constaté -->
           <div class="field field-bold rowspan2"><label for="in-thbrut">Tx horaire brut (€)</label><input type="number" id="in-thbrut" step="0.01" min="0"></div>
           <div class="field"><label for="in-net">Tx net promis (€/h)</label><input type="number" id="in-net" step="0.01" min="0"></div>
-          <div class="field"><label for="ro-netconstate">Tx net constaté (€/h, avant ajustements)</label><input type="text" id="ro-netconstate" readonly class="ro-calc" tabindex="-1" title="Net réel avant régularisation (indemnités et heures incluses, avant avances)">
+          <div class="field"><label for="ro-netconstate">Tx net constaté (€/h, salaire seul)</label><input type="text" id="ro-netconstate" readonly class="ro-calc" tabindex="-1" title="Net issu du seul taux brut × heures (majorations comprises) — hors IFM/CP, hors primes et indemnités, hors participation logement, avant avances">
             <span class="hint" id="net-delta-hint"></span></div>
           <!-- ligne 3 -->
           <div class="field"><label for="in-jours">Nombre de jours travaillés / sem</label><input type="number" id="in-jours" step="1" min="0"></div>
@@ -596,7 +596,7 @@ table.grille td.neg { color: var(--bad); }
       <div class="card-b">
         <table class="kv">
           <tr><td>Salaire brut total<span class="ref">F42</span></td><td class="n" id="out-brut">—</td></tr>
-          <tr><td>Net réel avant régul / h<span class="ref">D14</span></td><td class="n" id="out-neth">—</td></tr>
+          <tr><td>Net réel avant régul / h (indemnités et participation incluses)<span class="ref">D14</span></td><td class="n" id="out-neth">—</td></tr>
           <tr><td>Net attendu / h<span class="ref">D12</span></td><td class="n" id="out-netatt">—</td></tr>
           <tr><td>Écart net réel − attendu</td><td class="n" id="out-netdelta">—</td></tr>
           <tr><td>Net / h avec IFM + ICCP<span class="ref">D15</span></td><td class="n" id="out-netifm">—</td></tr>
@@ -1928,10 +1928,18 @@ function render(r) {
   $("ro-hnorm").value = N2.format(m.D24) + " h";
   $("ro-hs25").value = N2.format(m.D28) + " h";
   $("ro-hs50").value = N2.format(m.D29) + " h";
-  $("ro-netconstate").value = inp.heures ? N2.format(m.D14) + " €/h" : "—";
+  /* net constaté SALAIRE SEUL (définition utilisateur) : issu du taux brut × heures
+   * uniquement — variante recalculée sans primes, indemnités, participation ni tickets */
+  const baseVar = compute(Object.assign({}, inp, {
+    primes: inp.primes.map(p => Object.assign({}, p, { q: 0, r: 0 })),
+    indemnites: inp.indemnites.map(p => Object.assign({}, p, { q: 0, r: 0 })),
+    participationLibre: 0, ticketsQty: 0, anRepasClient: 0, anRepasConsomme: false
+  })).main;
+  const netSalaire = baseVar.D31 ? baseVar.F89 / baseVar.D31 : 0;
+  $("ro-netconstate").value = inp.heures ? N2.format(netSalaire) + " €/h" : "—";
   const ndh = $("net-delta-hint");
   if (inp.netAttendu != null && inp.heures) {
-    const d = m.D14 - inp.netAttendu;
+    const d = netSalaire - inp.netAttendu;
     ndh.innerHTML = "écart vs promis : <b class='delta " + (d >= -1e-9 ? "good" : "bad") + "'>" +
       (d >= 0 ? "+" : "") + N2.format(d) + " €/h</b>";
   } else { ndh.textContent = ""; }
