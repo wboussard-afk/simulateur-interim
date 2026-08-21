@@ -317,11 +317,23 @@ table.grille td.neg { color: var(--bad); }
       <span class="sub" id="brand-sub">Marge brute &amp; construction du net</span>
     </div>
     <div class="top-fields">
-      <div class="field"><label id="lbl-sector">Secteur</label>
-        <div class="seg" role="group" aria-labelledby="lbl-sector">
-          <button type="button" id="sector-agri" aria-pressed="true">Agricole · MSA</button>
-          <button type="button" id="sector-btp" aria-pressed="false">BTP · CPAM</button>
-          <button type="button" id="sector-industrie" aria-pressed="false">Industrie · CPAM</button>
+      <!-- 2 blocs (20/08/2026) : « Intérim » (BTP | Industrie) en premier — usage principal —
+           puis « CDD saisonnier » (Agricole) -->
+      <div class="field">
+        <div style="display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap">
+          <div>
+            <label id="lbl-interim">Intérim</label>
+            <div class="seg" role="group" aria-labelledby="lbl-interim">
+              <button type="button" id="sector-btp" aria-pressed="false">BTP</button>
+              <button type="button" id="sector-industrie" aria-pressed="false">Industrie</button>
+            </div>
+          </div>
+          <div>
+            <label id="lbl-cdd">CDD saisonnier</label>
+            <div class="seg" role="group" aria-labelledby="lbl-cdd">
+              <button type="button" id="sector-agri" aria-pressed="true">Agricole</button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="field"><label for="in-client">Client</label><input type="text" id="in-client" placeholder="Nom du client"></div>
@@ -472,7 +484,8 @@ table.grille td.neg { color: var(--bad); }
       <div class="card-h"><h2>Facturation &amp; commercial</h2><span class="eyebrow">Coefficients · refacturation</span></div>
       <div class="card-b">
         <div class="grid">
-          <div class="field"><label for="in-coeff">Coefficient</label><input type="number" id="in-coeff" step="0.0001" min="0"></div>
+          <div class="field"><label for="in-coeff">Coefficient</label><input type="number" id="in-coeff" step="0.0001" min="0" placeholder="à renseigner">
+            <span class="hint" id="coeff-hint" style="cursor:pointer" title="Coefficient au seuil de rentabilité (marge nulle) — cliquer pour l'appliquer"></span></div>
           <div class="field"><label for="in-hfact">Heures facturées au taux normal</label><input type="number" id="in-hfact" step="0.5" min="0" placeholder="auto : min(35 ; heures)" title="Heures facturées au taux normal (coefficient × brut). Le surplus (heures travaillées − cette valeur) est facturé aux taux majorés 25 %/50 %. Vide = automatique min(35 ; heures travaillées)."></div>
           <div class="field"><label for="in-remise">Remise fin d'année (%)</label><input type="number" id="in-remise" step="0.1" min="0"></div>
         </div>
@@ -932,13 +945,13 @@ function defaultInputs(DB, sector) {
     sector: sector,
     client: "",
     dept: "",
-    thBrut: BAKED_OFFICIAL.smic.value,  // D11 — défaut = SMIC en vigueur (classeur : 11,88)
+    thBrut: 0,                  // D11 — ZÉRO à l'ouverture (21/08/2026) : tout se renseigne à chaque fois
     attestation: true,          // F13
     logement: true,             // H11
     redevanceClient: 0,         // H21
     baremeRepasPD: BAKED_OFFICIAL.repasLieuTravail.value, // H13 — 2026 (classeur : 7,40/7,30)
     baremeRepasGD: BAKED_OFFICIAL.repasRestaurant.value,  // I13 — 2026 (classeur : 21,10/20,70)
-    jours: 5,                   // D16
+    jours: 0,                   // D16 — zéro à l'ouverture
     hNuit: 0, hDim: 0, hFerie: 0,
     anRepasConsomme: false,     // D21
     zonePD: "PAS DE TRANSPORT PD",
@@ -954,8 +967,8 @@ function defaultInputs(DB, sector) {
     remisePct: 0,               // M63
     refactDim: true, refactFerie: true, refactNuit: true,
     annualisation: false,
-    heuresFactNormal: 35,       // L24
-    cibleMargePct: 15,          // L17
+    heuresFactNormal: null,     // L24 — null = auto min(35 ; heures)
+    cibleMargePct: 0,           // L17 — 0 : le pilotage affiche le seuil de rentabilité
     logementHeures: 43,         // multiplicateur F92 (classeur tarifaire : ×43 en dur)
     exoFormule: "rgdu",         // RGDU 2026 (le Fillon du classeur ne sert plus qu'au mode « constantes du classeur »)
     gdDuree: 0,                 // référence GD : 0 = 3 premiers mois, 1 = 4ᵉ-24ᵉ (−15 %), 2 = au-delà (−30 %)
@@ -978,13 +991,13 @@ function defaultInputs(DB, sector) {
   if (sector === "agri") {
     return Object.assign(common, {
       mode: "SIMULATEUR MSA",   // D3
-      netAttendu: 10,           // D12
+      netAttendu: null,         // D12 — vide à l'ouverture
       ifm: false,               // (pas de ligne IFM sur SIMULATOR agri)
       iccp: true,               // F12
       logementHebdo: 0,         // H12 (€ / semaine) — défaut 0 : pas de logement tant que rien n'est saisi
       logementHoraire: 0,
-      heures: 35,               // D17
-      coeff: 1.4681,            // H16
+      heures: 0,                // D17 — zéro à l'ouverture
+      coeff: 0,                 // H16 — zéro à l'ouverture (seuil de rentabilité affiché en aide)
       coeffHDN: 1.4,            // N27
       majoDimLabel: "MAJO DIMANCHE 10 %",
       majoNormLabel: "MAJO NORMALES 40 %",
@@ -992,39 +1005,39 @@ function defaultInputs(DB, sector) {
       /* fc = coefficient de facturation par ligne : null/"coef" = coefficient de la
        * mission (via le réglage global « primes refacturées »), 0 = non facturée,
        * toute autre valeur = coefficient spécifique. Indemnités : défaut 1. */
-      primes: [ {q:5, r:0, name:"Prime 1", fc:null}, {q:0, r:0, name:"Prime 2", fc:null}, {q:0, r:0, name:"Prime 3", fc:null},
+      primes: [ {q:0, r:0, name:"Prime 1", fc:null}, {q:0, r:0, name:"Prime 2", fc:null}, {q:0, r:0, name:"Prime 3", fc:null},
                 {q:0, r:0, name:"Prime 4", fc:null}, {q:0, r:0, name:"Prime 5", fc:null} ],
-      indemnites: [ {q:5, r:6, name:"Indemnité 1", fc:0}, {q:0, r:0, name:"Indemnité 2", fc:1},   // M47=0, M48=1 (classeur agri)
+      indemnites: [ {q:0, r:0, name:"Indemnité 1", fc:0}, {q:0, r:0, name:"Indemnité 2", fc:1},   // fc du classeur agri (M47=0, M48=1)
                     {q:0, r:0, name:"Indemnité 3", fc:1}, {q:0, r:0, name:"Indemnité 4", fc:1} ], // extension web (modèle ligne 48)
       participationLibre: 0,    // F19 — défaut 0 (aucune retenue)
       coutLogementFacture: 0,   // M52 (€ / semaine) — défaut 0
       refactPrimes: true,       // L18
-      cibleTauxFact: 17.45      // L14
+      cibleTauxFact: 0          // L14 — zéro à l'ouverture
     });
   }
   return Object.assign(common, {
     mode: "SIMULATEUR INDUSTRIE", // D3
     branche: "industrie",       // UI : "btp" | "industrie" (affiliation CPAM, RGDU pour les deux)
     niveauQualif: "N1P1",       // référence grille BTP (niveau de qualification affiché)
-    netAttendu: 9,              // D12
+    netAttendu: null,           // D12 — vide à l'ouverture
     ifm: false,                 // F11
     iccp: false,                // F12
     logementHebdo: 0,
     logementHoraire: 0,         // I12/H12 (€ / heure) — défaut 0 ; le département préremplit sur sélection
-    heures: 43,                 // D17
-    coeff: 1.78,                // H16
+    heures: 0,                  // D17 — zéro à l'ouverture
+    coeff: 0,                   // H16 — zéro à l'ouverture (seuil de rentabilité affiché en aide)
     coeffHDN: 1.9,              // N27
     majoDimLabel: "MAJO DIMANCHE 80 %",
     majoNormLabel: "MAJO NORMALES 50 %",
     baseIFM: 0,
-    primes: [ {q:5, r:0, name:"Prime 1", fc:null}, {q:0, r:0, name:"Prime 2", fc:null}, {q:0, r:0, name:"Prime 3", fc:null},
+    primes: [ {q:0, r:0, name:"Prime 1", fc:null}, {q:0, r:0, name:"Prime 2", fc:null}, {q:0, r:0, name:"Prime 3", fc:null},
               {q:0, r:0, name:"Prime 4", fc:null}, {q:0, r:0, name:"Prime 5", fc:null} ],
     indemnites: [ {q:0, r:0, name:"Indemnité 1", fc:1}, {q:0, r:0, name:"Indemnité 2", fc:1},   // M47=M48=1 (classeur tarifaire)
                   {q:0, r:0, name:"Indemnité 3", fc:1}, {q:0, r:0, name:"Indemnité 4", fc:1} ], // extension web
     participationLibre: 0,      // F19 — défaut 0 (aucune retenue)
     coutLogementFacture: 0,     // M52 (€ / heure facturé)
     refactPrimes: true,         // L18
-    cibleTauxFact: 22.6         // L14
+    cibleTauxFact: 0            // L14 — zéro à l'ouverture
   });
 }
 
@@ -1360,7 +1373,7 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   /* --- FACTURATION (colonnes K-P) --- */
   S.H16 = i.coeff;
   S.H14 = i.thBrut * i.coeff;
-  S.L24 = i.heuresFactNormal;
+  S.L24 = i.heuresFactNormal == null ? Math.min(35, i.heures || 0) : i.heuresFactNormal;
   S.O24 = S.L24 * S.H14;                          P(S, 24);
   S.L25 = i.refactDim ? S.D25 : 0;   S.O25 = S.L25 * S.E25 * i.coeff;  P(S, 25);
   S.L26 = i.refactFerie ? S.D26 : 0; S.O26 = S.L26 * S.E26 * i.coeff;  P(S, 26);
@@ -1661,9 +1674,11 @@ function setFormFromInputs() {
   $("in-client").value = inp.client;
   $("in-dept").value = inp.dept || "";
   $("in-thbrut").value = inp.thBrut;
-  $("in-nonet").checked = inp.netAttendu == null;
+  /* vide ≠ « pas de net attendu » coché : les deux donnent netAttendu null au moteur,
+   * mais la case ne se coche que sur action explicite (noNet) */
+  $("in-nonet").checked = inp.noNet === true;
   $("in-net").value = inp.netAttendu == null ? "" : inp.netAttendu;
-  $("in-net").disabled = inp.netAttendu == null;
+  $("in-net").disabled = inp.noNet === true;
   $("in-jours").value = inp.jours; $("in-heures").value = inp.heures;
   $("in-hnuit").value = inp.hNuit; $("in-hdim").value = inp.hDim; $("in-hferie").value = inp.hFerie;
   $("in-majodim").value = inp.majoDimLabel; $("in-majoferie").value = inp.majoFerieLabel;
@@ -1696,7 +1711,8 @@ function setFormFromInputs() {
                                      $("inf" + k).value = (p.fc == null) ? "" : p.fc; });
   $("in-ifm").value = inp.baseIFM;
   $("in-coeff").value = inp.coeff;
-  $("in-hfact").value = inp.heuresFactNormal; $("in-remise").value = inp.remisePct;
+  $("in-hfact").value = inp.heuresFactNormal == null ? "" : inp.heuresFactNormal;
+  $("in-remise").value = inp.remisePct;
   $("in-refprimes").checked = inp.refactPrimes; $("in-refdim").checked = inp.refactDim;
   $("in-refferie").checked = inp.refactFerie; $("in-refnuit").checked = inp.refactNuit;
   $("in-cibletx").value = inp.cibleTauxFact; $("in-ciblemarge").value = inp.cibleMargePct;
@@ -1719,8 +1735,9 @@ function readInputsFromForm() {
   inp.mode = $("in-mode").value;
   inp.dept = $("in-dept").value;
   inp.thBrut = num($("in-thbrut"));
-  inp.netAttendu = $("in-nonet").checked ? null : num($("in-net"));
-  $("in-net").disabled = $("in-nonet").checked;
+  inp.noNet = $("in-nonet").checked;
+  inp.netAttendu = (inp.noNet || $("in-net").value === "") ? null : num($("in-net"));
+  $("in-net").disabled = inp.noNet;
   inp.jours = num($("in-jours")); inp.heures = num($("in-heures"));
   inp.hNuit = num($("in-hnuit")); inp.hDim = num($("in-hdim")); inp.hFerie = num($("in-hferie"));
   inp.majoDimLabel = $("in-majodim").value; inp.majoFerieLabel = $("in-majoferie").value;
@@ -1936,6 +1953,13 @@ function render(r) {
 
   /* goal seek — la cible de taux suit le secteur (O66 agri, O62 tarifaire) */
   const cTx = coeffPourTauxSecteur(inp, inp.cibleTauxFact);
+  /* seuil de rentabilité (marge nulle) affiché sous le champ Coefficient — le
+   * coefficient s'ouvre à zéro, ce repère donne le plancher à ne pas franchir */
+  const cSeuil = (inp.heures && inp.thBrut) ? coeffPourMarge(inp, 0) : null;
+  const ch = $("coeff-hint");
+  ch.textContent = cSeuil != null ? "seuil de rentabilité : " + N4.format(cSeuil) + " (cliquer pour appliquer)" : "";
+  ch.dataset.coeff = cSeuil != null ? cSeuil : "";
+
   const cMg = coeffPourMarge(inp, inp.cibleMargePct);
   $("gs-tx").textContent = cTx == null ? "—" : N4.format(cTx);
   $("gs-marge").textContent = cMg == null ? "—" : N4.format(cMg);
@@ -2389,6 +2413,10 @@ $("ifmcp-cet").addEventListener("click", () => {
   onChange();
 });
 $("gs-tx-apply").addEventListener("click", e => {
+  const c = parseFloat(e.currentTarget.dataset.coeff);
+  if (isFinite(c)) { $("in-coeff").value = Math.round(c * 10000) / 10000; onChange(); }
+});
+$("coeff-hint").addEventListener("click", e => {
   const c = parseFloat(e.currentTarget.dataset.coeff);
   if (isFinite(c)) { $("in-coeff").value = Math.round(c * 10000) / 10000; onChange(); }
 });
