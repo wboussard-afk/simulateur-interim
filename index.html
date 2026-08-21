@@ -1931,15 +1931,18 @@ function render(r) {
       (coutLog > 0 && margePart < 0.5 ? " (participation déjà au plafond du coût du logement)." : ".")
     : "";
   if (cetActif && complement > 0.005) {
-    const baisse = Math.min(complement, partAct);
+    /* la participation ne descend jamais sous le coût du logement (société logement
+     * à l'équilibre) : seule la part AU-DESSUS du coût est réductible */
+    const baisse = Math.min(complement, Math.max(0, partAct - coutLog));
     ca.hidden = false;
     ca.innerHTML = "<span class='conf-warn'>⚠ CET consommé en totalité (" + fmtE(cetUtilise) + ") — il manque <b>" +
       fmtE(complement) + "</b> pour le net promis.</span>" +
       (baisse > 0.5
         ? " <b>Régulation par le logement :</b> réduire la participation à <b>" + fmtE(partAct - baisse) +
-          "/sem</b> (au lieu de " + fmtE(partAct) + ") — le net remonte d'autant" +
+          "/sem</b> (au lieu de " + fmtE(partAct) + ", sans passer sous le coût du logement) — le net remonte d'autant" +
           (complement - baisse > 0.5 ? ", puis compléter avec " + fmtE(complement - baisse) + " d'indemnités nettes." : ".")
-        : " Compléter avec <b>" + fmtE(complement) + " d'indemnités nettes</b> (plafonds URSSAF) ou augmenter les heures.");
+        : " Compléter avec <b>" + fmtE(complement) + " d'indemnités nettes</b> (plafonds URSSAF) ou augmenter les heures" +
+          (partAct > 0.5 && coutLog > 0 ? " — la participation reste au niveau du coût du logement (société logement à l'équilibre)." : "."));
   } else if (cetActif && avance > 0.005) {
     ca.hidden = false;
     ca.innerHTML = "<span class='delta good'>✓ Avance maximale de " + fmtE(avance) +
@@ -2020,28 +2023,35 @@ function render(r) {
     const nuitee2 = (inp.gdLieu === "paris" ? BAKED_OFFICIAL.nuiteeGDParisPeriodes : BAKED_OFFICIAL.nuiteeGDProvincePeriodes)[1];
     const repas2 = Math.round(BAKED_OFFICIAL.repasRestaurant.value * 0.85 * 100) / 100;
     const plafondGD = 5 * nuitee2 + 10 * repas2;
-    /* base = salaire seul (sans participation ni indemnités) ; il faut exactement
-     * indemnités − participation = besoin. Priorité participation dans les 2 sens :
-     * besoin ≥ 0 → participation à 0 puis indemnités ; besoin < 0 → participation
-     * montée à −besoin (plafond : coût du logement), pas d'indemnités. */
+    /* base = salaire seul ; il faut exactement indemnités − participation = besoin.
+     * RÈGLE GROUPE (22/08/2026) : le logement est porté par une société dédiée qui
+     * paie les factures — la participation salarié a pour PLANCHER le coût du
+     * logement (jamais en dessous, sinon la société logement est déficitaire).
+     * Le net se règle par les INDEMNITÉS ; la participation ne monte AU-DELÀ du
+     * coût que pour rabaisser un net trop haut (régulation). */
     let partCible, indemCible = 0, warn = "";
-    if (besoin >= 0) {
-      partCible = 0;                                      // 1. participation au minimum
-      indemCible = Math.min(besoin, plafondGD);           // 2. compléter en indemnités
-      if (besoin > plafondGD + 0.005)
-        warn = " <span class='conf-warn'>⚠ plafond URSSAF atteint — il manque " + fmtE(besoin - plafondGD) + " : augmenter les heures ou le brut.</span>";
+    const plancherPart = coutLog2 > 0 ? coutLog2 : 0;     // équilibre société logement
+    const indemPourCible = besoin + plancherPart;         // indemnités nécessaires, part au coût
+    if (indemPourCible >= -0.005 && indemPourCible <= plafondGD + 0.005) {
+      partCible = plancherPart;
+      indemCible = Math.max(0, Math.min(indemPourCible, plafondGD));
+    } else if (indemPourCible < 0) {
+      partCible = plancherPart - indemPourCible;          // hausse au-delà du coût (régulation)
+      indemCible = 0;
     } else {
-      const hausseNecessaire = -besoin;                   // 1. participation à la hausse
-      partCible = coutLog2 > 0 ? Math.min(hausseNecessaire, coutLog2) : 0;
-      if (coutLog2 <= 0)
-        warn = " <span class='conf-warn'>⚠ net au-dessus de la cible et aucun coût de logement pour retenir davantage.</span>";
-      else if (hausseNecessaire > coutLog2 + 0.005)
-        warn = " <span class='conf-warn'>⚠ participation plafonnée au coût du logement — le net restera au-dessus de la cible de " + fmtE((hausseNecessaire - coutLog2) / hN) + "/h.</span>";
+      partCible = plancherPart;
+      indemCible = plafondGD;
+      warn = " <span class='conf-warn'>⚠ plafond URSSAF atteint — il manque " + fmtE(indemPourCible - plafondGD) +
+        " : augmenter les heures ou le brut (descendre la participation sous le coût du logement mettrait la société logement en déficit).</span>";
     }
     const netFinal = netSalaire + (indemCible - partCible) / hN;
     outNet.textContent = N2.format(netFinal) + " €/h";
-    detNet.innerHTML = "<b>Plan net à atteindre :</b> participation logement <b>" + fmtE(partCible) + "/sem</b>" +
-      (Math.abs(partCible - partAct2) > 0.005 ? " (au lieu de " + fmtE(partAct2) + ")" : "") +
+    const partStatut = coutLog2 > 0
+      ? (Math.abs(partCible - plancherPart) < 0.005 ? " (= coût du logement — société logement à l'équilibre)"
+                                                    : " (au-dessus du coût : régulation du net)")
+      : "";
+    detNet.innerHTML = "<b>Plan net à atteindre :</b> participation logement <b>" + fmtE(partCible) + "/sem</b>" + partStatut +
+      (Math.abs(partCible - partAct2) > 0.005 ? " — au lieu de " + fmtE(partAct2) + " —" : "") +
       " puis indemnités <b>" + fmtE(indemCible) + "/sem</b> (Indemnité 1) → net " + fmtE(netFinal) + "/h. " +
       "Plafond URSSAF GD 4ᵉ-24ᵉ mois (" + (inp.gdLieu === "paris" ? "Paris" : "province") + ") : 5 nuitées × " + fmtE(nuitee2) +
       " + 5 repas midi × " + fmtE(repas2) + " + 5 repas soir × " + fmtE(repas2) + " = <b>" + fmtE(plafondGD) + "/sem</b>." + warn;
