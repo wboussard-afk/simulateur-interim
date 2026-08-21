@@ -476,7 +476,7 @@ table.grille td.neg { color: var(--bad); }
         <p class="hint">Coef fact. = coefficient de facturation de la ligne. Primes : vide = coefficient de la mission ; indemnités : défaut 1 (à l'identique) ; <b>0 = non refacturée</b> ; toute autre valeur possible.
         Ex. découché GD : renommer une ligne d'indemnité « Découché GD », nombre = nuits, montant = €/nuit (barème 2026 : 76,60 € Paris / 56,80 € province), coef 1.</p>
         <div class="grid only-agri" style="margin-top:10px">
-          <div class="field"><label for="in-ifm">Base IFM (€, scénario IFM+CP)</label><input type="number" id="in-ifm" step="0.01" min="0"></div>
+          <div class="field"><label for="in-ifm">Base IFM — spécifique CDD agricole (scénario IFM+CP du classeur)</label><input type="number" id="in-ifm" step="0.01" min="0" title="N'existe que pour le CDD saisonnier agricole : base de calcul de l'IFM dans le scénario comparatif « IFM + ICCP » du classeur MSA. Sans effet sur le calcul principal. Laisser 0 si non utilisé."></div>
         </div>
       </div>
     </section>
@@ -512,6 +512,14 @@ table.grille td.neg { color: var(--bad); }
           <div class="gs-out" id="gs-marge">—</div>
           <button class="btn primary" id="gs-marge-apply">Appliquer</button>
         </div>
+        <!-- pilotage du NET à atteindre : participation logement en priorité, puis
+             indemnités plafonnées URSSAF GD (4e-24e mois : 5 nuitées + 5 midi + 5 soir) -->
+        <div class="gs">
+          <div class="field"><label for="in-ciblenet">Tx net à atteindre (€/h)</label><input type="number" id="in-ciblenet" step="0.01" min="0" placeholder="ex. 14,50"></div>
+          <div class="gs-out" id="gs-net">—</div>
+          <button class="btn primary" id="gs-net-apply">Appliquer</button>
+        </div>
+        <p class="note" id="gs-net-detail"></p>
         <p class="note">Le coefficient résolu donne exactement la cible (le classeur affichait seulement l'écart). Coût salarié indépendant du coefficient.</p>
         <div class="chart-box">
           <svg id="chart" width="100%" height="180" role="img" aria-label="Taux de marge en fonction du coefficient"></svg>
@@ -1997,6 +2005,52 @@ function render(r) {
       (d >= 0 ? "+" : "") + N2.format(d) + " €/h</b>";
   } else { ndh.textContent = ""; }
 
+  /* ===== Pilotage du net à atteindre =====
+   * leviers, dans l'ordre voulu : 1. participation logement (baisse OU hausse),
+   * 2. indemnités non soumises, plafonnées URSSAF grand déplacement 4e-24e mois
+   * (5 nuitées + 5 repas midi + 5 repas soir par semaine). Relation exacte :
+   * net final = net salaire seul + (indemnités − participation) / heures. */
+  const cibleNet = num($("in-ciblenet"));
+  const outNet = $("gs-net"), detNet = $("gs-net-detail"), btnNet = $("gs-net-apply");
+  if (cibleNet > 0 && inp.heures > 0 && inp.thBrut > 0 && m.D31) {
+    const hN = m.D31;
+    const besoin = cibleNet * hN - netSalaire * hN;      // net à ajouter (ou retirer si < 0)
+    const partAct2 = Math.max(0, -(inp.participationLibre || 0));
+    const coutLog2 = m.F92 || 0;
+    const nuitee2 = (inp.gdLieu === "paris" ? BAKED_OFFICIAL.nuiteeGDParisPeriodes : BAKED_OFFICIAL.nuiteeGDProvincePeriodes)[1];
+    const repas2 = Math.round(BAKED_OFFICIAL.repasRestaurant.value * 0.85 * 100) / 100;
+    const plafondGD = 5 * nuitee2 + 10 * repas2;
+    /* base = salaire seul (sans participation ni indemnités) ; il faut exactement
+     * indemnités − participation = besoin. Priorité participation dans les 2 sens :
+     * besoin ≥ 0 → participation à 0 puis indemnités ; besoin < 0 → participation
+     * montée à −besoin (plafond : coût du logement), pas d'indemnités. */
+    let partCible, indemCible = 0, warn = "";
+    if (besoin >= 0) {
+      partCible = 0;                                      // 1. participation au minimum
+      indemCible = Math.min(besoin, plafondGD);           // 2. compléter en indemnités
+      if (besoin > plafondGD + 0.005)
+        warn = " <span class='conf-warn'>⚠ plafond URSSAF atteint — il manque " + fmtE(besoin - plafondGD) + " : augmenter les heures ou le brut.</span>";
+    } else {
+      const hausseNecessaire = -besoin;                   // 1. participation à la hausse
+      partCible = coutLog2 > 0 ? Math.min(hausseNecessaire, coutLog2) : 0;
+      if (coutLog2 <= 0)
+        warn = " <span class='conf-warn'>⚠ net au-dessus de la cible et aucun coût de logement pour retenir davantage.</span>";
+      else if (hausseNecessaire > coutLog2 + 0.005)
+        warn = " <span class='conf-warn'>⚠ participation plafonnée au coût du logement — le net restera au-dessus de la cible de " + fmtE((hausseNecessaire - coutLog2) / hN) + "/h.</span>";
+    }
+    const netFinal = netSalaire + (indemCible - partCible) / hN;
+    outNet.textContent = N2.format(netFinal) + " €/h";
+    detNet.innerHTML = "<b>Plan net à atteindre :</b> participation logement <b>" + fmtE(partCible) + "/sem</b>" +
+      (Math.abs(partCible - partAct2) > 0.005 ? " (au lieu de " + fmtE(partAct2) + ")" : "") +
+      " puis indemnités <b>" + fmtE(indemCible) + "/sem</b> (Indemnité 1) → net " + fmtE(netFinal) + "/h. " +
+      "Plafond URSSAF GD 4ᵉ-24ᵉ mois (" + (inp.gdLieu === "paris" ? "Paris" : "province") + ") : 5 nuitées × " + fmtE(nuitee2) +
+      " + 5 repas midi × " + fmtE(repas2) + " + 5 repas soir × " + fmtE(repas2) + " = <b>" + fmtE(plafondGD) + "/sem</b>." + warn;
+    btnNet.disabled = false;
+    btnNet.dataset.plan = JSON.stringify({ part: Math.round(partCible * 100) / 100, indem: Math.round(indemCible * 100) / 100, cible: cibleNet });
+  } else {
+    outNet.textContent = "—"; detNet.innerHTML = ""; btnNet.disabled = true; btnNet.dataset.plan = "";
+  }
+
   /* impact de la mise en CET vs paiement direct des IFM/ICCP */
   if (!inp.iccp && !inp.ifm) {
     const altDirect = compute(Object.assign({}, inp, { ifm: true, iccp: true }));
@@ -2112,7 +2166,7 @@ function renderFact(m) {
   if (m.O29) s += kvRow("Heures sup 50 % (&gt;43 h)", "O29", fmtE(m.O29));
   if (m.O30) s += kvRow("Heures spécifiques majorées", "O30", fmtE(m.O30));
   for (const r of [34, 35, 36, 37, 38, 39, 40, 41]) if (m["O" + r]) s += kvRow("Prime refacturée (ligne " + r + ")", "O" + r, fmtE(m["O" + r]));
-  s += kvRow("CA HT soumis à coefficient", "O42", fmtE(m.O42), "total");
+  s += kvRow("Sous-total facturé au coefficient (heures + majorations + primes)", "O42", fmtE(m.O42), "total");
   const inn2 = k => esc($("inn" + k) ? $("inn" + k).value : indemNames[k]);
   for (const [l, ref] of [["Indemnité transport refacturée", "O45"], ["Indemnité repas refacturée", "O46"],
                           [inn2(0) + " refacturée (coef " + N2.format(m.O47 && m.F47 ? m.O47 / m.F47 : 0) + ")", "O47"],
@@ -2425,6 +2479,17 @@ $("gs-tx-apply").addEventListener("click", e => {
   const c = parseFloat(e.currentTarget.dataset.coeff);
   if (isFinite(c)) { $("in-coeff").value = Math.round(c * 10000) / 10000; onChange(); }
 });
+/* applique le plan du pilotage du net : participation + Indemnité 1 + net promis aligné */
+$("gs-net-apply").addEventListener("click", e => {
+  const p = e.currentTarget.dataset.plan;
+  if (!p) return;
+  const plan = JSON.parse(p);
+  $("in-partlog").value = plan.part;
+  $("inq0").value = plan.indem > 0 ? 1 : 0;
+  $("inr0").value = plan.indem;
+  $("in-net").value = plan.cible;
+  onChange();
+});
 /* au blur, la case remonte visuellement au plancher SMIC si la saisie est en dessous */
 $("in-thbrut").addEventListener("change", () => {
   const s = (typeof official !== "undefined" && official && official.smic) ? official.smic.value : BAKED_OFFICIAL.smic.value;
@@ -2703,7 +2768,8 @@ let restored = null;
       restored.indemnites.push({ q: 0, r: 0, name: "Indemnité " + (restored.indemnites.length + 1), fc: 1 });
   } catch (_) { /* hash invalide : valeurs par défaut */ }
 })();
-applySector(restored ? restored.sector : "agri", restored || undefined);
+/* ouverture sur l'INTÉRIM (BTP) — le CDD saisonnier agricole se choisit manuellement */
+applySector(restored ? restored.sector : "tarifaire", restored || undefined, restored ? undefined : "btp");
 window.addEventListener("resize", () => renderChart());
 fetchOfficial();
 /* ===== Base barèmes BTP actualisée par la veille hebdomadaire =====
