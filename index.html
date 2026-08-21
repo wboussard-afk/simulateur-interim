@@ -473,7 +473,7 @@ table.grille td.neg { color: var(--bad); }
       <div class="card-b">
         <div class="grid">
           <div class="field"><label for="in-coeff">Coefficient</label><input type="number" id="in-coeff" step="0.0001" min="0"></div>
-          <div class="field"><label for="in-hfact">Heures facturées au taux normal</label><input type="number" id="in-hfact" step="0.5" min="0"></div>
+          <div class="field"><label for="in-hfact">Heures facturées au taux normal</label><input type="number" id="in-hfact" step="0.5" min="0" placeholder="auto : min(35 ; heures)" title="Heures facturées au taux normal (coefficient × brut). Le surplus (heures travaillées − cette valeur) est facturé aux taux majorés 25 %/50 %. Vide = automatique min(35 ; heures travaillées)."></div>
           <div class="field"><label for="in-remise">Remise fin d'année (%)</label><input type="number" id="in-remise" step="0.1" min="0"></div>
         </div>
         <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:8px">
@@ -1754,7 +1754,10 @@ function readInputsFromForm() {
   inp.participationLibre = -Math.abs(num($("in-partlog"))); // positif saisi = retenue (F19 négatif)
   inp.baseIFM = num($("in-ifm")); // indemDecoucheRate : plus de champ dédié — utiliser une ligne d'indemnité
   inp.coeff = num($("in-coeff")); // coeffHDN : champ supprimé (variante nuit non pratiquée) — valeur conservée du classeur
-  inp.heuresFactNormal = num($("in-hfact")); inp.remisePct = num($("in-remise"));
+  /* champ vide = automatique min(35 ; heures) — sinon un vide était lu « 0 h au taux
+   * normal » et TOUTES les heures partaient en facturation majorée (+25 %) */
+  inp.heuresFactNormal = $("in-hfact").value === "" ? Math.min(35, inp.heures || 0) : num($("in-hfact"));
+  inp.remisePct = num($("in-remise"));
   inp.refactPrimes = $("in-refprimes").checked; inp.refactDim = $("in-refdim").checked;
   inp.refactFerie = $("in-refferie").checked; inp.refactNuit = $("in-refnuit").checked;
   inp.cibleTauxFact = num($("in-cibletx")); inp.cibleMargePct = num($("in-ciblemarge"));
