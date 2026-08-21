@@ -603,8 +603,8 @@ table.grille td.neg { color: var(--bad); }
           <tr><td><span id="lbl-ras">Retenue à la source</span><span class="ref">F43</span></td><td class="n" id="out-ras">—</td></tr>
           <tr><td>Avance sur salaire (régul)<span class="ref">F57/F58</span></td><td class="n" id="out-avance">—</td></tr>
           <tr><td>CET disponible (net estimé)<span class="ref">D85</span></td><td class="n" id="out-cetdispo">—</td></tr>
-          <tr><td>… dont consommé par l'avance</td><td class="n" id="out-cetutilise">—</td></tr>
-          <tr><td>CET restant à débloquer</td><td class="n" id="out-cetrestant">—</td></tr>
+          <tr><td>… consommé : régul + déblocage du solde</td><td class="n" id="out-cetutilise">—</td></tr>
+          <tr><td>CET conservé (interdit d'en garder)</td><td class="n" id="out-cetrestant">—</td></tr>
         </table>
         <p class="hint" id="cet-alert" hidden></p>
       </div>
@@ -1840,38 +1840,36 @@ function render(r) {
   /* Cascade de financement du net promis (ordre voulu par l'utilisateur) :
    * 1. consommer le CET en priorité et LE PLUS POSSIBLE (objectif : solde ≈ 0 à
    *    l'issue de la 2ᵉ prolongation) ; 2. compléter en indemnités nettes ;
-   * 3. la PARTICIPATION LOGEMENT sert d'ajustement FINAL sur le net promis :
-   *    la baisser fait monter le net (net promis pas atteint), la monter absorbe
-   *    le CET restant via une avance supplémentaire (net promis inchangé). */
+   * 3. il est INTERDIT de conserver des sommes au CET : tout reliquat après la
+   *    régul est DÉBLOQUÉ sur la même paie (le net versé peut dépasser le promis) ;
+   * 4. la PARTICIPATION LOGEMENT reste l'ajustement FINAL : la monter transforme
+   *    le déblocage en retenue logement (net ramené au promis), la baisser fait
+   *    remonter le net quand le promis n'est pas atteint. */
   const cetActif = !inp.iccp && !inp.ifm;
   const netRatio = m.F42 > 0 ? Math.max(0, (m.F42 - m.F88 - Math.max(0, m.F43)) / m.F42) : 0;
   const cetNet = cetActif ? m.D85 * netRatio : 0;
   const cetUtilise = cetActif ? Math.min(avance, cetNet) : 0;
-  const cetRestant = cetActif ? cetNet - cetUtilise : 0;
-  const complement = avance - cetUtilise;   // à couvrir (indemnités / baisse de participation)
-  const soldeQuasiNul = cetRestant <= Math.max(5, cetNet * 0.05);
+  const deblocage = cetActif ? cetNet - cetUtilise : 0;   // solde débloqué sur la même paie
+  const complement = avance - cetUtilise;   // à couvrir (baisse de participation / indemnités)
   /* levier participation logement */
   const partAct = Math.max(0, -(inp.participationLibre || 0));   // €/sem retenus
   const coutLog = m.F92 || 0;                                    // coût logement hebdo
   const margePart = coutLog > 0 ? Math.max(0, coutLog - partAct) : 0;  // hausse possible
+  const netVerse = m.D31 ? (m.F91 + deblocage) / m.D31 : 0;      // net /h avec régul + déblocage
   $("out-cetdispo").textContent = cetActif ? fmtE(cetNet) + " (brut " + fmtE(m.D85) + ")" : "— (paiement direct)";
-  $("out-cetutilise").textContent = cetActif ? "−" + EUR.format(cetUtilise).replace("-", "") : "—";
-  const hausse = Math.min(cetRestant, margePart);                // CET absorbable via participation
-  const cr = $("out-cetrestant");
-  cr.innerHTML = cetActif
-    ? fmtE(cetRestant) + (soldeQuasiNul ? " <span class='badge good'>soldé ✓</span>"
-        : (hausse > 0.5 ? " <span class='badge warn'>ajustable via logement</span>" : " <span class='badge warn'>à étaler</span>"))
+  $("out-cetutilise").textContent = cetActif
+    ? "−" + EUR.format(cetUtilise).replace("-", "") +
+      (deblocage > 0.005 ? " − " + EUR.format(deblocage) + " (déblocage même paie)" : "")
     : "—";
+  const hausse = Math.min(deblocage, margePart);   // déblocage transformable en retenue logement
+  const cr = $("out-cetrestant");
+  cr.innerHTML = cetActif ? "0,00 € <span class='badge good'>soldé ✓</span>" : "—";
   const ca = $("cet-alert");
-  const conseilHausse = hausse > 0.5
-    ? " <b>Ajustement final par le logement :</b> porter la participation à <b>" + fmtE(partAct + hausse) +
-      "/sem</b> (au lieu de " + fmtE(partAct) + ") et verser une avance supplémentaire de " + fmtE(hausse) +
-      " — le net reste au promis, le CET descend à " + fmtE(cetRestant - hausse) +
-      (cetRestant - hausse > Math.max(5, cetNet * 0.05) ? " (étaler le reliquat sur les prochaines paies)." : " (quasi soldé ✓).")
-    : (cetRestant > 0.005 && !soldeQuasiNul
-        ? " Étaler des avances supplémentaires sur les prochaines paies pour solder le CET avant la fin de la 2ᵉ prolongation" +
-          (coutLog > 0 && margePart < 0.5 ? " (participation déjà au niveau du coût du logement)." : ".")
-        : "");
+  const optionPart = hausse > 0.5
+    ? " <b>Option logement :</b> porter la participation à <b>" + fmtE(partAct + hausse) +
+      "/sem</b> (au lieu de " + fmtE(partAct) + ") transforme " + fmtE(hausse) +
+      " de déblocage en retenue logement — net ramené vers le promis."
+    : (deblocage > 0.005 && coutLog > 0 && margePart < 0.5 ? " (Participation déjà au niveau du coût du logement.)" : "");
   if (cetActif && complement > 0.005) {
     const baisse = Math.min(complement, partAct);
     ca.hidden = false;
@@ -1882,14 +1880,14 @@ function render(r) {
           "/sem</b> (au lieu de " + fmtE(partAct) + ") — le net remonte d'autant" +
           (complement - baisse > 0.5 ? ", puis compléter avec " + fmtE(complement - baisse) + " d'indemnités nettes." : ".")
         : " Compléter avec <b>" + fmtE(complement) + " d'indemnités nettes</b> (plafonds URSSAF) ou augmenter les heures.");
-  } else if (cetActif && avance > 0.005) {
+  } else if (cetActif && (avance > 0.005 || deblocage > 0.005)) {
     ca.hidden = false;
-    ca.innerHTML = "<span class='delta good'>✓ Avance de " + fmtE(avance) + " entièrement financée par le CET.</span>" +
-      (soldeQuasiNul ? " CET quasi soldé — rien ou presque à débloquer en fin de 2ᵉ prolongation." : conseilHausse);
-  } else if (cetActif && cetRestant > 0.005) {
-    ca.hidden = false;
-    ca.innerHTML = "Aucune avance nécessaire — le CET conserve " + fmtE(cetRestant) + "." +
-      (soldeQuasiNul ? "" : conseilHausse);
+    ca.innerHTML = "<span class='delta good'>✓ " +
+      (avance > 0.005 ? "Régul de " + fmtE(avance) + " vers le net promis financée par le CET" : "Net promis atteint sans régul") +
+      (deblocage > 0.005 ? " ; solde de <b>" + fmtE(deblocage) + "</b> débloqué sur la même paie (interdiction de conserver des sommes au CET)" : "") +
+      " — CET soldé.</span> Net versé ≈ <b>" + fmtE(netVerse) + "/h</b>" +
+      (inp.netAttendu != null && netVerse > inp.netAttendu + 0.005 ? " (au-dessus du net promis " + fmtE(inp.netAttendu) + ")" : "") + "." +
+      optionPart;
   } else if (!cetActif && avance > 0.005) {
     ca.hidden = false;
     ca.innerHTML = "⚠ Avance de " + fmtE(avance) + " non adossée à un CET (IFM/ICCP en paiement direct) — " +
