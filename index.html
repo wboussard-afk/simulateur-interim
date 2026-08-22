@@ -1250,7 +1250,14 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
     S.H83 = S.tode.total;
   } else {
     S.H83_fillon = (mode === "SIMULATEUR BTP GRAND D") ? Math.min(S.D105, S.E105) : S.D104;
-    S.H83 = (i.exoFormule === "rgdu") ? S.rgduAmount : S.H83_fillon;
+    /* RGDU : l'imputation est PLAFONNÉE aux cotisations dues du panier éligible
+     * (imputation ligne à ligne — BOSS ; décret 2025-1446 : part AT imputable
+     * 0,49 % en 2026 ; FNAL 0,10/0,50 % ; CSA 0,30 %). Sans ce plafond, la
+     * majoration intérim ×1,1 « sur-réduisait » près du SMIC (réduction
+     * supérieure aux cotisations réellement dues). */
+    S.rgduPanier = S.H62 + S.H69 + S.H70 + S.H71 + S.H74 + S.H75 +
+                   S.D62 * (0.0049 + 0.003 + ((i.rgdu && i.rgdu.fnal050) ? 0.005 : 0.001));
+    S.H83 = (i.exoFormule === "rgdu") ? Math.min(S.rgduAmount, S.rgduPanier) : S.H83_fillon;
   }
 
   /* --- Provision CET (ligne 85) --- */
