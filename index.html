@@ -2008,58 +2008,113 @@ function render(r) {
       (d >= 0 ? "+" : "") + N2.format(d) + " €/h</b>";
   } else { ndh.textContent = ""; }
 
-  /* ===== Pilotage du net à atteindre =====
-   * leviers, dans l'ordre voulu : 1. participation logement (baisse OU hausse),
-   * 2. indemnités non soumises, plafonnées URSSAF grand déplacement 4e-24e mois
-   * (5 nuitées + 5 repas midi + 5 repas soir par semaine). Relation exacte :
-   * net final = net salaire seul + (indemnités − participation) / heures. */
+  /* ===== Pilotage du net à atteindre ===== (résolu sur le moteur complet) */
+  renderNetPlan();
+  renderTail(m, h);
+}
+
+/* Pilotage du net : résolution SUR LE MOTEUR COMPLET (primes, indemnités 2-4,
+ * retenue à la source, CET… tout l'état courant est conservé). Cible = NET ATTEINT
+ * réel : salaire + indemnités − participation + AVANCE FINANCÉE PAR LE CET
+ * (consommé au maximum — c'est ce qui rendait 285 € suffisants là où une formule
+ * sans CET exigeait ~340 €). Doctrine groupe : participation plancher = coût du
+ * logement (société logement jamais déficitaire) ; hausse au-delà du coût
+ * uniquement pour rabaisser un net trop haut. */
+function evalNetAtteint(cible, part, indem1) {
+  const t = Object.assign({}, inp, {
+    netAttendu: cible, noNet: false,
+    participationLibre: -part,
+    indemnites: inp.indemnites.map((p, k) => k === 0
+      ? Object.assign({}, p, { q: indem1 > 0 ? 1 : 0, r: Math.round(indem1 * 100) / 100 }) : p)
+  });
+  const M = compute(t).main;
+  const hN = M.D31 || 0;
+  if (!hN) return null;
+  const cetActif = !inp.iccp && !inp.ifm;
+  const ratio = M.F42 > 0 ? Math.max(0, (M.F42 - M.F88 - Math.max(0, M.F43)) / M.F42) : 0;
+  const cet = cetActif ? M.D85 * ratio : 0;
+  const d13 = cible * hN;
+  /* net versé finançable : avance CET jusqu'au promis, jamais au-delà du promis */
+  const netHebdo = M.F90 >= d13 ? M.F90 : Math.min(d13, M.F90 + cet);
+  return { net: netHebdo / hN, avance: Math.max(0, Math.min(d13 - M.F90, cet)), cet, hN, f90: M.F90 };
+}
+function computeNetPlan(cible) {
+  if (!(cible > 0) || !(inp.heures > 0) || !(inp.thBrut > 0)) return null;
+  const cur = compute(inp).main;
+  const coutLog = cur.F92 || 0;
+  const plancher = coutLog > 0 ? coutLog : 0;
+  const nuitee = (inp.gdLieu === "paris" ? BAKED_OFFICIAL.nuiteeGDParisPeriodes : BAKED_OFFICIAL.nuiteeGDProvincePeriodes)[1];
+  const repas = Math.round(BAKED_OFFICIAL.repasRestaurant.value * 0.85 * 100) / 100;
+  const plafond = 5 * nuitee + 10 * repas;
+  const a0 = evalNetAtteint(cible, plancher, 0);
+  if (!a0) return null;
+  const base = { plancher, coutLog, nuitee, repas, plafond, cible };
+  if (a0.net >= cible - 0.005) {
+    if (a0.net <= cible + 0.005)   /* déjà au promis avec part au coût, sans indemnité */
+      return Object.assign(base, { part: plancher, indem: 0, res: a0, statut: "plancher", manque: 0 });
+    /* net trop haut : hausse de participation (régulation), bornée par recherche —
+     * on prend la PLUS HAUTE part qui laisse net >= cible (consomme le CET au max) */
+    let pLo = plancher, pHi = plancher + (a0.net - cible) * a0.hN + a0.cet + 10;
+    for (let k = 0; k < 22; k++) {
+      const mid = (pLo + pHi) / 2;
+      (evalNetAtteint(cible, mid, 0).net >= cible - 0.005) ? pLo = mid : pHi = mid;
+    }
+    const part = Math.floor(pLo * 100) / 100;   // arrondi bas : le net ne passe pas sous la cible
+    return Object.assign(base, { part, indem: 0, res: evalNetAtteint(cible, part, 0), statut: "regulation", manque: 0 });
+  }
+  const aMax = evalNetAtteint(cible, plancher, plafond);
+  if (aMax.net < cible - 0.005)    /* même au plafond URSSAF on n'y arrive pas */
+    return Object.assign(base, { part: plancher, indem: plafond, res: aMax, statut: "plafond",
+                                 manque: (cible - aMax.net) * aMax.hN });
+  /* PLUS PETITE indemnité qui atteint la cible (le CET finance le reste) */
+  let iLo = 0, iHi = plafond;
+  for (let k = 0; k < 26; k++) {
+    const mid = (iLo + iHi) / 2;
+    /* tolérance en €/h très fine (0,0001 ≈ 0,004 €/sem) : pas de manque résiduel */
+    (evalNetAtteint(cible, plancher, mid).net >= cible - 0.0001) ? iHi = mid : iLo = mid;
+  }
+  /* arrondi au centime SUPÉRIEUR + 1 centime de marge : jamais un manque résiduel */
+  const indem = Math.min(plafond, Math.ceil(iHi * 100) / 100 + 0.01);
+  return Object.assign(base, { part: plancher, indem, res: evalNetAtteint(cible, plancher, indem), statut: "plancher", manque: 0 });
+}
+function renderNetPlan() {
   const cibleNet = num($("in-ciblenet"));
   const outNet = $("gs-net"), detNet = $("gs-net-detail"), btnNet = $("gs-net-apply");
-  if (cibleNet > 0 && inp.heures > 0 && inp.thBrut > 0 && m.D31) {
-    const hN = m.D31;
-    const besoin = cibleNet * hN - netSalaire * hN;      // net à ajouter (ou retirer si < 0)
-    const partAct2 = Math.max(0, -(inp.participationLibre || 0));
-    const coutLog2 = m.F92 || 0;
-    const nuitee2 = (inp.gdLieu === "paris" ? BAKED_OFFICIAL.nuiteeGDParisPeriodes : BAKED_OFFICIAL.nuiteeGDProvincePeriodes)[1];
-    const repas2 = Math.round(BAKED_OFFICIAL.repasRestaurant.value * 0.85 * 100) / 100;
-    const plafondGD = 5 * nuitee2 + 10 * repas2;
-    /* base = salaire seul ; il faut exactement indemnités − participation = besoin.
-     * RÈGLE GROUPE (22/08/2026) : le logement est porté par une société dédiée qui
-     * paie les factures — la participation salarié a pour PLANCHER le coût du
-     * logement (jamais en dessous, sinon la société logement est déficitaire).
-     * Le net se règle par les INDEMNITÉS ; la participation ne monte AU-DELÀ du
-     * coût que pour rabaisser un net trop haut (régulation). */
-    let partCible, indemCible = 0, warn = "";
-    const plancherPart = coutLog2 > 0 ? coutLog2 : 0;     // équilibre société logement
-    const indemPourCible = besoin + plancherPart;         // indemnités nécessaires, part au coût
-    if (indemPourCible >= -0.005 && indemPourCible <= plafondGD + 0.005) {
-      partCible = plancherPart;
-      indemCible = Math.max(0, Math.min(indemPourCible, plafondGD));
-    } else if (indemPourCible < 0) {
-      partCible = plancherPart - indemPourCible;          // hausse au-delà du coût (régulation)
-      indemCible = 0;
-    } else {
-      partCible = plancherPart;
-      indemCible = plafondGD;
-      warn = " <span class='conf-warn'>⚠ plafond URSSAF atteint — il manque " + fmtE(indemPourCible - plafondGD) +
-        " : augmenter les heures ou le brut (descendre la participation sous le coût du logement mettrait la société logement en déficit).</span>";
-    }
-    const netFinal = netSalaire + (indemCible - partCible) / hN;
-    outNet.textContent = N2.format(netFinal) + " €/h";
-    const partStatut = coutLog2 > 0
-      ? (Math.abs(partCible - plancherPart) < 0.005 ? " (= coût du logement — société logement à l'équilibre)"
-                                                    : " (au-dessus du coût : régulation du net)")
-      : "";
-    detNet.innerHTML = "<b>Plan net à atteindre :</b> participation logement <b>" + fmtE(partCible) + "/sem</b>" + partStatut +
-      (Math.abs(partCible - partAct2) > 0.005 ? " — au lieu de " + fmtE(partAct2) + " —" : "") +
-      " puis indemnités <b>" + fmtE(indemCible) + "/sem</b> (Indemnité 1) → net " + fmtE(netFinal) + "/h. " +
-      "Plafond URSSAF GD 4ᵉ-24ᵉ mois (" + (inp.gdLieu === "paris" ? "Paris" : "province") + ") : 5 nuitées × " + fmtE(nuitee2) +
-      " + 5 repas midi × " + fmtE(repas2) + " + 5 repas soir × " + fmtE(repas2) + " = <b>" + fmtE(plafondGD) + "/sem</b>." + warn;
-    btnNet.disabled = false;
-    btnNet.dataset.plan = JSON.stringify({ part: Math.round(partCible * 100) / 100, indem: Math.round(indemCible * 100) / 100, cible: cibleNet });
-  } else {
-    outNet.textContent = "—"; detNet.innerHTML = ""; btnNet.disabled = true; btnNet.dataset.plan = "";
+  const plan = cibleNet > 0 ? computeNetPlan(cibleNet) : null;
+  if (!plan) {
+    outNet.textContent = "—"; detNet.innerHTML = ""; btnNet.disabled = true;
+    return;
   }
+  outNet.textContent = N2.format(plan.res.net) + " €/h";
+  const partStatut = plan.coutLog > 0
+    ? (plan.statut === "regulation" ? " (au-dessus du coût : régulation du net)"
+                                    : " (= coût du logement — société logement à l'équilibre)")
+    : "";
+  detNet.innerHTML = "<b>Plan net à atteindre :</b> participation logement <b>" + fmtE(plan.part) + "/sem</b>" + partStatut +
+    " · indemnités <b>" + fmtE(plan.indem) + "/sem</b> (Indemnité 1)" +
+    (plan.res.avance > 0.5 ? " · avance financée par le CET <b>" + fmtE(plan.res.avance) + "</b>" +
+      (plan.res.cet - plan.res.avance < Math.max(5, plan.res.cet * 0.05) ? " (CET soldé ✓)" : " (reste " + fmtE(plan.res.cet - plan.res.avance) + " au CET)") : "") +
+    " → net <b>" + fmtE(plan.res.net) + "/h</b>. " +
+    "Plafond URSSAF GD 4ᵉ-24ᵉ mois (" + (inp.gdLieu === "paris" ? "Paris" : "province") + ") : 5 nuitées × " + fmtE(plan.nuitee) +
+    " + 5 repas midi × " + fmtE(plan.repas) + " + 5 repas soir × " + fmtE(plan.repas) + " = <b>" + fmtE(plan.plafond) + "/sem</b>." +
+    (plan.statut === "plafond" ? " <span class='conf-warn'>⚠ plafond URSSAF atteint — il manque " + fmtE(plan.manque) +
+      " : augmenter les heures ou le brut (descendre la participation sous le coût du logement mettrait la société logement en déficit).</span>" : "");
+  btnNet.disabled = false;
+}
+function applyNetPlan() {
+  /* recalcule TOUJOURS sur l'état visible au moment du clic (pas de plan mémorisé) */
+  readInputsFromForm();
+  const cible = num($("in-ciblenet"));
+  const plan = cible > 0 ? computeNetPlan(cible) : null;
+  if (!plan) return;
+  $("in-partlog").value = plan.part;
+  $("inq0").value = plan.indem > 0 ? 1 : 0;
+  $("inr0").value = plan.indem;
+  $("in-net").value = plan.cible;
+  $("in-nonet").checked = false;
+  readInputsFromForm(); render(compute(inp));
+}
+function renderTail(m, h) {
 
   /* impact de la mise en CET vs paiement direct des IFM/ICCP */
   if (!inp.iccp && !inp.ifm) {
@@ -2489,17 +2544,8 @@ $("gs-tx-apply").addEventListener("click", e => {
   const c = parseFloat(e.currentTarget.dataset.coeff);
   if (isFinite(c)) { $("in-coeff").value = Math.round(c * 10000) / 10000; onChange(); }
 });
-/* applique le plan du pilotage du net : participation + Indemnité 1 + net promis aligné */
-$("gs-net-apply").addEventListener("click", e => {
-  const p = e.currentTarget.dataset.plan;
-  if (!p) return;
-  const plan = JSON.parse(p);
-  $("in-partlog").value = plan.part;
-  $("inq0").value = plan.indem > 0 ? 1 : 0;
-  $("inr0").value = plan.indem;
-  $("in-net").value = plan.cible;
-  onChange();
-});
+/* applique le plan du pilotage du net (recalculé à l'instant du clic) */
+$("gs-net-apply").addEventListener("click", applyNetPlan);
 /* au blur, la case remonte visuellement au plancher SMIC si la saisie est en dessous */
 $("in-thbrut").addEventListener("change", () => {
   const s = (typeof official !== "undefined" && official && official.smic) ? official.smic.value : BAKED_OFFICIAL.smic.value;
