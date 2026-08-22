@@ -473,7 +473,7 @@ table.grille td.neg { color: var(--bad); }
         <div id="primes"></div>
         <div class="rowline rowhead" style="margin-top:10px"><span>Indemnité (non soumise)</span><span>Nombre</span><span>Coef fact.</span><span>Montant (€)</span><span style="text-align:right">Total</span></div>
         <div id="indems"></div>
-        <p class="hint">Coef fact. = coefficient de facturation de la ligne. Primes : vide = coefficient de la mission ; indemnités : défaut 1 (à l'identique) ; <b>0 = non refacturée</b> ; toute autre valeur possible.
+        <p class="hint">Coef fact. = coefficient de facturation de la ligne. Primes : vide = coefficient de la mission ; indemnités : <b>défaut 0 = non refacturée</b> (pratique maison — les indemnités d'ajustement du net restent à votre charge) ; 1 = refacturée à l'identique ; toute autre valeur possible.
         Ex. découché GD : renommer une ligne d'indemnité « Découché GD », nombre = nuits, montant = €/nuit (barème 2026 : 76,60 € Paris / 56,80 € province), coef 1.</p>
         <div class="grid only-agri" style="margin-top:10px">
           <div class="field"><label for="in-ifm">Base IFM — spécifique CDD agricole (scénario IFM+CP du classeur)</label><input type="number" id="in-ifm" step="0.01" min="0" title="N'existe que pour le CDD saisonnier agricole : base de calcul de l'IFM dans le scénario comparatif « IFM + ICCP » du classeur MSA. Sans effet sur le calcul principal. Laisser 0 si non utilisé."></div>
@@ -1016,8 +1016,8 @@ function defaultInputs(DB, sector) {
        * toute autre valeur = coefficient spécifique. Indemnités : défaut 1. */
       primes: [ {q:0, r:0, name:"Prime 1", fc:null}, {q:0, r:0, name:"Prime 2", fc:null}, {q:0, r:0, name:"Prime 3", fc:null},
                 {q:0, r:0, name:"Prime 4", fc:null}, {q:0, r:0, name:"Prime 5", fc:null} ],
-      indemnites: [ {q:0, r:0, name:"Indemnité 1", fc:0}, {q:0, r:0, name:"Indemnité 2", fc:1},   // fc du classeur agri (M47=0, M48=1)
-                    {q:0, r:0, name:"Indemnité 3", fc:1}, {q:0, r:0, name:"Indemnité 4", fc:1} ], // extension web (modèle ligne 48)
+      indemnites: [ {q:0, r:0, name:"Indemnité 1", fc:0}, {q:0, r:0, name:"Indemnité 2", fc:0},   // défaut 0 (23/08/2026) : pratique maison —
+                    {q:0, r:0, name:"Indemnité 3", fc:0}, {q:0, r:0, name:"Indemnité 4", fc:0} ], // les indemnités d'ajustement du net ne sont pas refacturées
       participationLibre: 0,    // F19 — défaut 0 (aucune retenue)
       coutLogementFacture: 0,   // M52 (€ / semaine) — défaut 0
       refactPrimes: true,       // L18
@@ -1041,8 +1041,8 @@ function defaultInputs(DB, sector) {
     baseIFM: 0,
     primes: [ {q:0, r:0, name:"Prime 1", fc:null}, {q:0, r:0, name:"Prime 2", fc:null}, {q:0, r:0, name:"Prime 3", fc:null},
               {q:0, r:0, name:"Prime 4", fc:null}, {q:0, r:0, name:"Prime 5", fc:null} ],
-    indemnites: [ {q:0, r:0, name:"Indemnité 1", fc:1}, {q:0, r:0, name:"Indemnité 2", fc:1},   // M47=M48=1 (classeur tarifaire)
-                  {q:0, r:0, name:"Indemnité 3", fc:1}, {q:0, r:0, name:"Indemnité 4", fc:1} ], // extension web
+    indemnites: [ {q:0, r:0, name:"Indemnité 1", fc:0}, {q:0, r:0, name:"Indemnité 2", fc:0},   // défaut 0 (23/08/2026) : pratique maison —
+                  {q:0, r:0, name:"Indemnité 3", fc:0}, {q:0, r:0, name:"Indemnité 4", fc:0} ], // les indemnités d'ajustement du net ne sont pas refacturées
     participationLibre: 0,      // F19 — défaut 0 (aucune retenue)
     coutLogementFacture: 0,     // M52 (€ / heure facturé)
     refactPrimes: true,         // L18
