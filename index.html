@@ -1790,9 +1790,10 @@ function readInputsFromForm() {
   inp.participationLibre = -Math.abs(num($("in-partlog"))); // positif saisi = retenue (F19 négatif)
   inp.baseIFM = num($("in-ifm")); // indemDecoucheRate : plus de champ dédié — utiliser une ligne d'indemnité
   inp.coeff = num($("in-coeff")); // coeffHDN : champ supprimé (variante nuit non pratiquée) — valeur conservée du classeur
-  /* champ vide = automatique min(35 ; heures) — sinon un vide était lu « 0 h au taux
-   * normal » et TOUTES les heures partaient en facturation majorée (+25 %) */
-  inp.heuresFactNormal = $("in-hfact").value === "" ? Math.min(35, inp.heures || 0) : num($("in-hfact"));
+  /* champ vide = automatique DYNAMIQUE (null -> le moteur applique min(35 ; heures)
+   * à chaque calcul). Ne JAMAIS matérialiser l'auto en nombre : à l'ouverture à zéro
+   * il se figeait à « 0 » et toutes les heures partaient en facturation +25 %. */
+  inp.heuresFactNormal = $("in-hfact").value === "" ? null : num($("in-hfact"));
   inp.remisePct = num($("in-remise"));
   inp.refactPrimes = $("in-refprimes").checked; inp.refactDim = $("in-refdim").checked;
   inp.refactFerie = $("in-refferie").checked; inp.refactNuit = $("in-refnuit").checked;
@@ -1975,11 +1976,33 @@ function render(r) {
 
   /* goal seek — la cible de taux suit le secteur (O66 agri, O62 tarifaire) */
   const cTx = coeffPourTauxSecteur(inp, inp.cibleTauxFact);
-  /* seuil de rentabilité (marge nulle) affiché sous le champ Coefficient — le
-   * coefficient s'ouvre à zéro, ce repère donne le plancher à ne pas franchir */
-  const cSeuil = (inp.heures && inp.thBrut) ? coeffPourMarge(inp, 0) : null;
+  /* seuil de rentabilité (marge nulle) affiché sous le champ Coefficient.
+   * NET PROMIS FINANCÉ (22/08/2026) : quand un net est promis, le seuil intègre
+   * les indemnités nettes qu'il faudra verser AU-DELÀ du CET pour l'honorer —
+   * sinon le seuil paraît « impossible » (ex. 1,35) car il laisse le salarié
+   * loin du net promis. CA(c) est linéaire en c : résolution directe. */
+  let cSeuil = null, seuilAvecPromesse = false;
+  if (inp.heures && inp.thBrut) {
+    const cetActifS = !inp.iccp && !inp.ifm;
+    const ratioS = m.F42 > 0 ? Math.max(0, (m.F42 - m.F88 - Math.max(0, m.F43)) / m.F42) : 0;
+    const cetNetS = cetActifS ? m.D85 * ratioS : 0;
+    const avanceS = Math.max(m.F57, m.F58);
+    const complementS = Math.max(0, avanceS - cetNetS);   // indemnités nécessaires hors CET
+    if (complementS > 0.005) {
+      const o1 = compute(Object.assign({}, inp, { coeff: 1 })).main.O60;
+      const o2 = compute(Object.assign({}, inp, { coeff: 2 })).main.O60;
+      const pente = o2 - o1;
+      cSeuil = pente > 0 ? Math.round((1 + (m.F93 + complementS - o1) / pente) * 10000) / 10000 : null;
+      seuilAvecPromesse = true;
+    } else {
+      cSeuil = coeffPourMarge(inp, 0);
+    }
+  }
   const ch = $("coeff-hint");
-  ch.textContent = cSeuil != null ? "seuil de rentabilité : " + N4.format(cSeuil) + " (cliquer pour appliquer)" : "";
+  ch.textContent = cSeuil != null
+    ? "seuil de rentabilité" + (seuilAvecPromesse ? " (net promis financé)" : "") + " : " +
+      N4.format(cSeuil) + " (cliquer pour appliquer)"
+    : "";
   ch.dataset.coeff = cSeuil != null ? cSeuil : "";
 
   const cMg = coeffPourMarge(inp, inp.cibleMargePct);
