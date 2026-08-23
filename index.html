@@ -488,7 +488,8 @@ table.grille td.neg { color: var(--bad); }
           <div class="field"><label for="in-coeff">Coefficient</label><input type="number" id="in-coeff" step="0.0001" min="0" placeholder="à renseigner">
             <span class="hint" id="coeff-hint" style="cursor:pointer" title="Coefficient au seuil de rentabilité (marge nulle) — cliquer pour l'appliquer"></span></div>
           <div class="field"><label for="in-hfact">Heures facturées au taux normal</label><input type="number" id="in-hfact" step="0.5" min="0" placeholder="auto : min(35 ; heures)" title="Heures facturées au taux normal (coefficient × brut). Le surplus (heures travaillées − cette valeur) est facturé aux taux majorés 25 %/50 %. Vide = automatique min(35 ; heures travaillées)."></div>
-          <div class="field"><label for="in-remise">Remise fin d'année (%)</label><input type="number" id="in-remise" step="0.1" min="0"></div>
+          <div class="field"><label for="in-remise">Remise fin d'année (%)</label><input type="number" id="in-remise" step="0.1" min="0" title="RFA calculée sur le CA HT des seuls éléments SOUMIS à cotisations (heures, majorations, primes refacturées) — indemnités refacturées et logement facturé exclus de l'assiette.">
+            <span class="hint">assiette : CA soumis à cotisations (indemnités &amp; logement exclus)</span></div>
         </div>
         <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:8px">
           <label class="check"><input type="checkbox" id="in-refprimes" title="Coefficient appliqué aux primes automatiques (repas/transport/AN) et aux lignes de prime dont le coef fact. est vide"> Primes refacturées au coefficient</label>
@@ -2272,7 +2273,7 @@ function renderFact(m) {
   if (m.O52) s += kvRow(inp.sector === "agri" ? "Logement facturé" : "Logement facturé — " + N2.format(m.L52) + " h × " + fmtE(inp.coutLogementFacture), "O52", fmtE(m.O52));
   if (m.O54) s += kvRow("Retrait AN repas", "O54", fmtE(m.O54));
   s += kvRow("CA HT total", "O60", fmtE(m.O60), "total");
-  if (inp.remisePct) s += kvRow("Remise fin d'année " + N2.format(inp.remisePct) + " %", "M63", fmtE(-m.O42 * inp.remisePct / 100));
+  if (inp.remisePct) s += kvRow("Remise fin d'année " + N2.format(inp.remisePct) + " % × CA soumis à cotisations (" + fmtE(m.O42) + ")", "M63", fmtE(-m.O42 * inp.remisePct / 100));
   s += kvRow("Volume de marge brute", "O64", fmtE(m.O64), "total");
   s += kvRow("Taux de marge", "H17", fmtP(m.H17), "total");
   $("tbl-fact").innerHTML = s;
