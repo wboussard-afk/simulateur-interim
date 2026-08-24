@@ -451,9 +451,11 @@ table.grille td.neg { color: var(--bad); }
             </select>
             <span class="hint" id="niveau-hint"></span></div>
           <div class="field wide"><label for="in-adr-dom">Adresse domicile / siège social</label>
-            <input type="text" id="in-adr-dom" placeholder="ex. 2 rue de la Mairie, 35000 Rennes" autocomplete="off"></div>
+            <input type="text" id="in-adr-dom" placeholder="ex. 2 rue de la Mairie, 35000 Rennes — ou « 22 Dinan »" autocomplete="off" list="dl-adr-dom">
+            <datalist id="dl-adr-dom"></datalist></div>
           <div class="field wide"><label for="in-adr-cha" id="lbl-adr-cha">Adresse du chantier (BTP)</label>
-            <input type="text" id="in-adr-cha" placeholder="adresse de la mission" autocomplete="off"></div>
+            <input type="text" id="in-adr-cha" placeholder="adresse de la mission — ou « 35 Saint-Malo »" autocomplete="off" list="dl-adr-cha">
+            <datalist id="dl-adr-cha"></datalist></div>
           <div class="field only-btp"><label for="in-dist">Distance aller à vol d'oiseau (km) — zones BTP</label>
             <input type="number" id="in-dist" step="0.1" min="0" title="Distance orthodromique ALLER SIMPLE — détermine la zone BTP (IA à V) des grilles régionales transport/trajet. Corrigeable à la main."></div>
           <div class="field"><label for="in-distar">Distance réelle aller-retour (km) — barème URSSAF</label>
@@ -2660,13 +2662,57 @@ document.querySelectorAll("input, select").forEach(el => {
  * régionales) ; tranche URSSAF = ALLER-RETOUR (2 × aller) — les deux barèmes ne
  * mesurent pas la même chose. ⚠ Certains départements appliquent la distance
  * RÉELLE routière (ex. Savoie) : corriger alors le champ km à la main. */
-async function geocodeBAN(q) {
-  const r = await fetch("https://api-adresse.data.gouv.fr/search/?q=" + encodeURIComponent(q) + "&limit=1");
+/* « 22 Dinan » = département 22 + commune Dinan (PAS « n°22, rue de Dinan ») :
+ * le préfixe départemental filtre les candidats BAN sur leur contexte */
+function parseDeptQuery(q) {
+  const m = (q || "").trim().match(/^(\d{2,3}|2[ABab])\s+(.+)$/);
+  if (!m) return null;
+  const dep = m[1].toUpperCase();
+  return /^(2[AB]|9[0-5]|[0-8]\d|97[1-6])$/.test(dep) ? { dep, rest: m[2] } : null;
+}
+const ADR_CACHE = {};   /* label choisi dans les suggestions -> coordonnées (pas de re-géocodage ambigu) */
+async function banCandidates(q, limit) {
+  const p = parseDeptQuery(q);
+  const r = await fetch("https://api-adresse.data.gouv.fr/search/?limit=" + (limit || 8) +
+                        "&q=" + encodeURIComponent(p ? p.rest : q));
   if (!r.ok) throw new Error("HTTP " + r.status);
   const j = await r.json();
-  const f = j.features && j.features[0];
-  return f ? { lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], label: f.properties.label } : null;
+  let feats = j.features || [];
+  if (p) {
+    const duDep = feats.filter(f => ((f.properties.context || "").split(",")[0].trim().toUpperCase() === p.dep));
+    if (duDep.length) feats = duDep;
+  }
+  return feats.map(f => ({ lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1],
+                           label: f.properties.label, ctx: f.properties.context || "" }));
 }
+async function geocodeBAN(q) {
+  if (ADR_CACHE[q]) return ADR_CACHE[q];
+  const cs = await banCandidates(q, 8);
+  if (!cs.length) return null;
+  ADR_CACHE[cs[0].label] = cs[0];
+  return cs[0];
+}
+/* autocomplétion : suggestions d'adresses réelles répertoriées (BAN) pendant la frappe */
+function wireAdrAutocomplete(inputId, listId) {
+  const el = $(inputId), dl = $(listId);
+  let t = 0;
+  el.addEventListener("input", () => {
+    clearTimeout(t);
+    const v = el.value.trim();
+    if (v.length < 3) { dl.innerHTML = ""; return; }
+    t = setTimeout(async () => {
+      try {
+        const cs = await banCandidates(v, 8);
+        dl.innerHTML = cs.map(c => {
+          ADR_CACHE[c.label] = c;
+          return '<option value="' + esc(c.label) + '">' + esc(c.ctx) + "</option>";
+        }).join("");
+      } catch (e) { /* hors ligne : pas de suggestions */ }
+    }, 300);
+  });
+}
+wireAdrAutocomplete("in-adr-dom", "dl-adr-dom");
+wireAdrAutocomplete("in-adr-cha", "dl-adr-cha");
 function haversineKm(a, b) {
   const rad = x => x * Math.PI / 180, R = 6371.0088;
   const dLat = rad(b.lat - a.lat), dLon = rad(b.lon - a.lon);
