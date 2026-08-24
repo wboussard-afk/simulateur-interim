@@ -450,6 +450,14 @@ table.grille td.neg { color: var(--bad); }
               <option value="AUTRE">Autre</option>
             </select>
             <span class="hint" id="niveau-hint"></span></div>
+          <div class="field wide"><label for="in-adr-dom">Adresse domicile / siège social</label>
+            <input type="text" id="in-adr-dom" placeholder="ex. 2 rue de la Mairie, 35000 Rennes" autocomplete="off"></div>
+          <div class="field wide only-btp"><label for="in-adr-cha">Adresse du chantier (BTP)</label>
+            <input type="text" id="in-adr-cha" placeholder="adresse du chantier" autocomplete="off"></div>
+          <div class="field"><label for="in-dist">Distance aller (km, orthodromique)</label>
+            <div style="display:flex; gap:6px"><input type="number" id="in-dist" step="0.1" min="0" style="flex:1" title="Distance à vol d'oiseau (aller simple) — remplie par « Calculer » depuis les deux adresses, corrigeable à la main. Zone BTP = aller simple ; tranche URSSAF = aller-retour (2 × aller).">
+              <button type="button" class="btn" id="btn-dist">Calculer</button></div>
+            <span class="hint" id="dist-hint"></span></div>
           <div class="field"><label for="in-zone">Distance (petits déplacements, aller-retour)</label><select id="in-zone"></select>
             <span class="hint" id="zone-hint"></span></div>
           <div class="field"><label for="in-gdduree">Durée du grand déplacement</label>
@@ -1004,6 +1012,9 @@ function defaultInputs(DB, sector) {
     pasMode: "grille",          // retenue à la source : grille BOFiP 2026 ("classeur" = formule linéaire du classeur)
     pasContratCourt: true,      // abattement contrats courts 766 €/mois (missions ≤ 2 mois)
     gdAvanceAuto: false,        // conversion classeur avance -> repas GD/transport refacturés : désactivée (true = Excel)
+    adrDomicile: "",            // adresse domicile / siège social (UI : distance orthodromique)
+    adrChantier: "",            // adresse du chantier (BTP uniquement)
+    distAller: 0,               // km aller simple (orthodromique — zone BTP ; URSSAF = 2×)
     rates: Object.assign({}, cfg.rates),
     ratesBase: Object.assign({}, cfg.rates) // littéraux de la feuille cachée (non liés aux éditions)
   };
@@ -1733,6 +1744,8 @@ function setFormFromInputs() {
   $("in-zone").value = inp.zonePD;
   $("in-gdduree").value = String(inp.gdDuree || 0);
   $("in-niveau").value = inp.niveauQualif || "N1P1";
+  $("in-adr-dom").value = inp.adrDomicile || ""; $("in-adr-cha").value = inp.adrChantier || "";
+  $("in-dist").value = inp.distAller || "";
   $("in-gdlieu").value = inp.gdLieu || "province";
   inp.primes.forEach((p, k) => { if (!$("prq" + k)) return;
                                  $("prq" + k).value = p.q; $("prr" + k).value = p.r; $("prn" + k).value = p.name || primeNames[k] || ("Prime " + (k + 1));
@@ -1794,6 +1807,8 @@ function readInputsFromForm() {
   inp.zonePD = $("in-zone").value;
   inp.gdDuree = parseInt($("in-gdduree").value, 10) || 0;
   inp.niveauQualif = $("in-niveau").value;
+  inp.adrDomicile = $("in-adr-dom").value; inp.adrChantier = $("in-adr-cha").value;
+  inp.distAller = num($("in-dist"));
   inp.gdLieu = $("in-gdlieu").value;
   /* champs supprimés de l'interface (repas/transport client, AN, tickets, barèmes) :
    * les valeurs moteur restent à leurs défauts (0 / barèmes URSSAF intégrés) */
@@ -2530,7 +2545,9 @@ function renderRef(m) {
   s += kvRow("Exonération URSSAF quotidienne (tranche BTP/ETT)", "", fmtE(m.H18));
   const normZ = z => (z || "").replace(/ /g, " ").trim();
   const ziEntry = Object.entries(ZONE_REGIONALE).find(e => normZ(e[0]) === normZ(inp.zonePD));
-  const zi = ziEntry ? ziEntry[1] : null;
+  /* zone BTP = ALLER SIMPLE : la distance orthodromique calculée prime sur la
+   * correspondance approximative tranches URSSAF (aller-retour) -> zones */
+  const zi = (inp.distAller > 0) ? zoneBTPFromAller(inp.distAller) : (ziEntry ? ziEntry[1] : null);
   /* BTP : grilles complètes par zone — transport (prime, NON soumise) et trajet (SOUMIS
    * à cotisations) ; accord régional de la base de veille prioritaire sur le classeur */
   const ipdG = (isBTP && d && BTP_IPD) ? (BTP_IPD[normRegionBTP(d.region)] || null) : null;
@@ -2632,6 +2649,74 @@ document.querySelectorAll("input, select").forEach(el => {
 });
 /* préremplissage logement depuis la table Excel LOGEMT supprimé (20/08/2026) :
  * données 2024 sans valeur — le coût du logement se saisit librement */
+/* ===== Distance orthodromique (adresses -> km ALLER SIMPLE) =====
+ * Géocodage Base Adresse Nationale (api-adresse.data.gouv.fr, licence ouverte,
+ * CORS ouvert — même modèle qu'OpenFisca). Zone BTP = ALLER SIMPLE (grilles
+ * régionales) ; tranche URSSAF = ALLER-RETOUR (2 × aller) — les deux barèmes ne
+ * mesurent pas la même chose. ⚠ Certains départements appliquent la distance
+ * RÉELLE routière (ex. Savoie) : corriger alors le champ km à la main. */
+async function geocodeBAN(q) {
+  const r = await fetch("https://api-adresse.data.gouv.fr/search/?q=" + encodeURIComponent(q) + "&limit=1");
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  const j = await r.json();
+  const f = j.features && j.features[0];
+  return f ? { lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], label: f.properties.label } : null;
+}
+function haversineKm(a, b) {
+  const rad = x => x * Math.PI / 180, R = 6371.0088;
+  const dLat = rad(b.lat - a.lat), dLon = rad(b.lon - a.lon);
+  const s = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  return 2 * R * Math.asin(Math.sqrt(s));
+}
+function zoneBTPFromAller(km) {
+  if (!(km > 0)) return null;
+  const bornes = [4, 10, 20, 30, 40, 50];
+  for (let z = 0; z < bornes.length; z++) if (km <= bornes[z]) return z;
+  return null;   /* au-delà de 50 km aller : hors zones PD (grand déplacement) */
+}
+function trancheURSSAFFromAR(ar) {
+  let best = null;
+  for (const r of DB.zonesKmPD) {
+    const mm = (r.label || "").replace(/ /g, " ").match(/(\d+)\D+(\d+)/);
+    if (!mm) continue;
+    const lo = +mm[1], hi = +mm[2];
+    if (ar >= lo && ar <= hi) return r.label;
+    if (!best || hi > best.hi) { if (ar > hi) best = { label: r.label, hi }; }
+  }
+  return best ? best.label : "PAS DE TRANSPORT PD";   /* < 1re tranche : pas d'exo */
+}
+function applyDistanceAller(km, infoGeo) {
+  const ar = km * 2;
+  const zi = zoneBTPFromAller(km);
+  const tranche = km > 0 ? trancheURSSAFFromAR(ar) : null;
+  if (tranche) { const sz = $("in-zone"); if (Array.from(sz.options).some(o => o.value === tranche)) sz.value = tranche; }
+  const zTxt = zi != null ? "zone BTP " + ZONE_NOMS[zi] : (km > 0 ? "hors zones PD (&gt; 50 km aller : grand déplacement)" : "");
+  $("dist-hint").innerHTML = (infoGeo ? infoGeo + "<br>" : "") +
+    (km > 0 ? "aller <b>" + N2.format(km) + " km</b> · AR " + N2.format(ar) + " km → <b>" + zTxt + "</b>" +
+      (tranche && tranche !== "PAS DE TRANSPORT PD" ? " · tranche URSSAF appliquée" : " · pas d'exonération transport URSSAF") + "<br>" : "") +
+    "⚠ certains départements appliquent la distance réelle routière (ex. Savoie) — corriger le km à la main si votre grille l'exige.";
+  onChange();
+}
+$("btn-dist").addEventListener("click", async () => {
+  const qd = $("in-adr-dom").value.trim(), qc = $("in-adr-cha").value.trim();
+  if (!qd || !qc) { $("dist-hint").textContent = "Renseigner les deux adresses (domicile/siège ET chantier) — ou saisir la distance aller en km à la main."; return; }
+  $("dist-hint").textContent = "Géocodage en cours…";
+  try {
+    const both = await Promise.all([geocodeBAN(qd), geocodeBAN(qc)]);
+    if (!both[0] || !both[1]) {
+      $("dist-hint").textContent = "Adresse introuvable (" + (!both[0] ? "domicile/siège" : "chantier") + ") — préciser, ou saisir la distance à la main.";
+      return;
+    }
+    const km = Math.round(haversineKm(both[0], both[1]) * 10) / 10;
+    $("in-dist").value = km;
+    applyDistanceAller(km, "✓ " + esc(both[0].label) + " → " + esc(both[1].label));
+  } catch (e) {
+    $("dist-hint").textContent = "Géocodage indisponible ici (réseau bloqué) — saisir la distance aller en km à la main.";
+  }
+});
+$("in-dist").addEventListener("change", () => applyDistanceAller(num($("in-dist")), ""));
+
 /* BTP : sélectionner un niveau de qualification APPLIQUE son minimum (officiel,
  * plancher SMIC) au taux horaire brut de la mission. Au changement de département,
  * le brut suit la nouvelle région seulement s'il n'a pas été modifié à la main. */
