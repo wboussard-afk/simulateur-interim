@@ -199,6 +199,9 @@ header.top {
 
 /* rows of prime/indemnité (nom · nombre · coef fact · montant · total) */
 .rowline { display: grid; grid-template-columns: 1fr 62px 68px 84px 78px; gap: 8px; align-items: center; margin-bottom: 6px; }
+/* indemnités : 6ᵉ colonne « Ajust. » (ligne modifiable par le pilotage du net) */
+.rowline.adj6 { grid-template-columns: 1fr 62px 68px 84px 26px 78px; }
+.adjbox { width: 16px; height: 16px; accent-color: var(--brass); justify-self: center; }
 .rowline input { width: 100%; padding: 5px 7px; border: 1px solid var(--line); border-radius: 7px; background: var(--card2); color: var(--ink); font-size: 13px; }
 .rowline .amt { text-align: right; font-size: 13px; color: var(--muted); }
 .rowhead { font-size: 10.5px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 600; }
@@ -212,6 +215,7 @@ header.top {
   .check input { width: 19px; height: 19px; }
   .check { padding: 8px 0; }
   .rowline { grid-template-columns: 1fr 52px 56px 72px 64px; gap: 5px; }
+  .rowline.adj6 { grid-template-columns: 1fr 52px 56px 72px 24px 64px; }
   .seg button { min-height: 42px; }
 }
 
@@ -471,9 +475,10 @@ table.grille td.neg { color: var(--bad); }
       <div class="card-b">
         <div class="rowline rowhead"><span>Prime (soumise à cotisations)</span><span>Nombre</span><span>Coef fact.</span><span>Montant (€)</span><span style="text-align:right">Total</span></div>
         <div id="primes"></div>
-        <div class="rowline rowhead" style="margin-top:10px"><span>Indemnité (non soumise)</span><span>Nombre</span><span>Coef fact.</span><span>Montant (€)</span><span style="text-align:right">Total</span></div>
+        <div class="rowline rowhead adj6" style="margin-top:10px"><span>Indemnité (non soumise)</span><span>Nombre</span><span>Coef fact.</span><span>Montant (€)</span><span title="Coché = ajustable par le pilotage du net ; décoché = ligne protégée (client)">Ajust.</span><span style="text-align:right">Total</span></div>
         <div id="indems"></div>
         <p class="hint">Coef fact. = coefficient de facturation de la ligne. Primes : vide = coefficient de la mission ; indemnités : <b>défaut 0 = non refacturée</b> (pratique maison — les indemnités d'ajustement du net restent à votre charge) ; 1 = refacturée à l'identique ; toute autre valeur possible.
+        <b>Ajust.</b> = coché, la ligne peut être modifiée par le pilotage du net (indemnité agence) ; décoché, la ligne est <b>protégée</b> — indemnité propre au client, jamais touchée par l'ajustement.
         Ex. découché GD : renommer une ligne d'indemnité « Découché GD », nombre = nuits, montant = €/nuit (barème 2026 : 76,60 € Paris / 56,80 € province), coef 1.</p>
         <div class="grid only-agri" style="margin-top:10px">
           <div class="field"><label for="in-ifm">Base IFM — spécifique CDD agricole (scénario IFM+CP du classeur)</label><input type="number" id="in-ifm" step="0.01" min="0" title="N'existe que pour le CDD saisonnier agricole : base de calcul de l'IFM dans le scénario comparatif « IFM + ICCP » du classeur MSA. Sans effet sur le calcul principal. Laisser 0 si non utilisé."></div>
@@ -1588,15 +1593,20 @@ function buildRows(containerId, names, arr, prefix, kind) {
   const c = $(containerId);
   c.innerHTML = "";
   const fcPlaceholder = kind === "prime" ? "coef" : "1";
+  const isIndem = kind !== "prime";
   names.forEach((name, k) => {
     const div = document.createElement("div");
-    div.className = "rowline";
+    div.className = "rowline" + (isIndem ? " adj6" : "");
     const label = arr[k].name || name;
     const fcVal = (arr[k].fc == null || arr[k].fc === "coef") ? "" : arr[k].fc;
     div.innerHTML = '<input type="text" id="' + prefix + 'n' + k + '" value="' + esc(label) + '" aria-label="Nom ' + kind + ' ' + (k + 1) + '">' +
       '<input type="number" step="0.5" min="0" id="' + prefix + 'q' + k + '" value="' + arr[k].q + '" aria-label="Nombre ' + kind + ' ' + (k + 1) + '">' +
       '<input type="number" step="0.0001" min="0" id="' + prefix + 'f' + k + '" value="' + fcVal + '" placeholder="' + fcPlaceholder + '" aria-label="Coefficient de facturation ' + kind + ' ' + (k + 1) + '" title="Vide = ' + (kind === "prime" ? "coefficient de la mission" : "1 (à l’identique)") + ' ; 0 = non refacturée">' +
       '<input type="number" step="0.01" id="' + prefix + 'r' + k + '" value="' + arr[k].r + '" aria-label="Montant ' + kind + ' ' + (k + 1) + '">' +
+      (isIndem
+        ? '<input type="checkbox" class="adjbox" id="' + prefix + 'aj' + k + '"' + (arr[k].adj ? " checked" : "") +
+          ' aria-label="Indemnité ' + (k + 1) + ' ajustable" title="Coché = le pilotage du net peut modifier cette ligne (indemnité agence). Décoché = ligne PROTÉGÉE (indemnité propre au client, jamais touchée).">'
+        : "") +
       '<span class="amt" id="' + prefix + 'a' + k + '">—</span>';
     c.appendChild(div);
   });
@@ -1729,7 +1739,8 @@ function setFormFromInputs() {
                                  $("prf" + k).value = (p.fc == null || p.fc === "coef") ? "" : p.fc; });
   inp.indemnites.forEach((p, k) => { if (!$("inq" + k)) return;
                                      $("inq" + k).value = p.q; $("inr" + k).value = p.r; $("inn" + k).value = p.name || indemNames[k];
-                                     $("inf" + k).value = (p.fc == null) ? "" : p.fc; });
+                                     $("inf" + k).value = (p.fc == null) ? "" : p.fc;
+                                     if ($("inaj" + k)) $("inaj" + k).checked = !!p.adj; });
   $("in-ifm").value = inp.baseIFM;
   $("in-coeff").value = inp.coeff;
   $("in-hfact").value = inp.heuresFactNormal == null ? "" : inp.heuresFactNormal;
@@ -1790,7 +1801,8 @@ function readInputsFromForm() {
   inp.primes = inp.primes.map((p, k) => $("prq" + k)
     ? { q: num($("prq" + k)), r: num($("prr" + k)), name: $("prn" + k).value, fc: readFc("prf" + k) } : p);
   inp.indemnites = inp.indemnites.map((p, k) => $("inq" + k)
-    ? { q: num($("inq" + k)), r: num($("inr" + k)), name: $("inn" + k).value, fc: readFc("inf" + k) } : p);
+    ? { q: num($("inq" + k)), r: num($("inr" + k)), name: $("inn" + k).value, fc: readFc("inf" + k),
+        adj: $("inaj" + k) ? $("inaj" + k).checked : !!p.adj } : p);
   inp.participationChoice = "PARTICIPATION LIBRE";
   inp.participationLibre = -Math.abs(num($("in-partlog"))); // positif saisi = retenue (F19 négatif)
   inp.baseIFM = num($("in-ifm")); // indemDecoucheRate : plus de champ dédié — utiliser une ligne d'indemnité
@@ -2055,20 +2067,27 @@ function render(r) {
  * sans CET exigeait ~340 €). Doctrine groupe : participation plancher = coût du
  * logement (société logement jamais déficitaire) ; hausse au-delà du coût
  * uniquement pour rabaisser un net trop haut. */
-/* Ligne d'AJUSTEMENT dédiée : jamais les indemnités propres au client (facturées,
- * exigées sur leur facture pour égalité de traitement). On réutilise la ligne
- * nommée « Ajustement net » si elle existe, sinon la première ligne VIDE. */
-function findAdjustLine() {
-  let idx = inp.indemnites.findIndex(p => (p.name || "").trim().toLowerCase() === "ajustement net");
+/* Lignes AJUSTABLES ligne à ligne (case « Ajust. ») : cochée = le pilotage peut la
+ * modifier (indemnité agence) ; décochée = PROTÉGÉE (indemnité propre au client,
+ * facturée — jamais touchée). Les lignes cochées sont CONSOLIDÉES sur une ligne
+ * principale (« Ajustement net » si présente parmi elles, sinon la première cochée,
+ * sinon la première ligne vide quand rien n'est coché). */
+function findAdjustTargets() {
+  const adjSet = new Set(inp.indemnites.map((p, k) => p.adj ? k : -1).filter(k => k >= 0));
+  let idx = -1;
+  for (const k of adjSet)
+    if ((inp.indemnites[k].name || "").trim().toLowerCase() === "ajustement net") { idx = k; break; }
+  if (idx < 0 && adjSet.size) idx = Math.min.apply(null, Array.from(adjSet));
   if (idx < 0) idx = inp.indemnites.findIndex(p => !(p.q * p.r));
-  return idx;
+  return { idx, adjSet };
 }
-function evalNetAtteint(cible, part, indem1, idx) {
+function evalNetAtteint(cible, part, indem1, idx, adjSet) {
   const t = Object.assign({}, inp, {
     netAttendu: cible, noNet: false,
     participationLibre: -part,
     indemnites: inp.indemnites.map((p, k) => k === idx
-      ? Object.assign({}, p, { q: indem1 > 0 ? 1 : 0, r: Math.round(indem1 * 100) / 100, fc: 0 }) : p)
+      ? Object.assign({}, p, { q: indem1 > 0 ? 1 : 0, r: Math.round(indem1 * 100) / 100, fc: 0 })
+      : (adjSet && adjSet.has(k) ? Object.assign({}, p, { q: 0, r: 0 }) : p))
   });
   const M = compute(t).main;
   const hN = M.D31 || 0;
@@ -2090,18 +2109,23 @@ function computeNetPlan(cible) {
   const plancher = coutLog > 0 ? coutLog : 0;
   /* participation de départ : au coût du logement si le levier est actif, sinon figée */
   const partBase = usePart ? plancher : partAct;
-  const idx = useIndem ? findAdjustLine() : -1;
+  const cibles = useIndem ? findAdjustTargets() : { idx: -1, adjSet: new Set() };
+  const idx = cibles.idx, adjSet = cibles.adjSet;
   const nuitee = (inp.gdLieu === "paris" ? BAKED_OFFICIAL.nuiteeGDParisPeriodes : BAKED_OFFICIAL.nuiteeGDProvincePeriodes)[1];
   const repas = Math.round(BAKED_OFFICIAL.repasRestaurant.value * 0.85 * 100) / 100;
   const plafondTotal = 5 * nuitee + 10 * repas;
-  /* le plafond URSSAF couvre TOUTES les indemnités exonérées : on retranche celles
-   * déjà présentes (indemnités client comprises) hors ligne d'ajustement */
-  const dejaVersees = inp.indemnites.reduce((s, p, k) => s + (k === idx ? 0 : (p.q * p.r || 0)), 0);
+  /* le plafond URSSAF couvre TOUTES les indemnités exonérées : on retranche les
+   * lignes PROTÉGÉES (client) ; les lignes ajustables sont des variables consolidées */
+  const dejaVersees = inp.indemnites.reduce((s, p, k) =>
+    s + (k === idx || adjSet.has(k) ? 0 : (p.q * p.r || 0)), 0);
+  const montantConsolide = inp.indemnites.reduce((s, p, k) =>
+    s + (k !== idx && adjSet.has(k) ? (p.q * p.r || 0) : 0), 0);
   const plafond = Math.max(0, plafondTotal - dejaVersees);
-  const a0 = evalNetAtteint(cible, partBase, 0, idx);
+  const a0 = evalNetAtteint(cible, partBase, 0, idx, adjSet);
   if (!a0) return null;
   const base = { plancher, coutLog, partAct, nuitee, repas, plafondTotal, dejaVersees, plafond,
-                 cible, usePart, useIndem, idx };
+                 cible, usePart, useIndem, idx, adjSet, montantConsolide,
+                 nbConsolidees: Array.from(adjSet).filter(k => k !== idx && inp.indemnites[k].q * inp.indemnites[k].r > 0).length };
   if (a0.net >= cible - 0.005) {
     if (a0.net <= cible + 0.005)   /* déjà au promis, sans indemnité d'ajustement */
       return Object.assign(base, { part: partBase, indem: 0, res: a0, statut: "ok", manque: 0 });
@@ -2113,10 +2137,10 @@ function computeNetPlan(cible) {
     let pLo = partBase, pHi = partBase + (a0.net - cible) * a0.hN + a0.cet + 10;
     for (let k = 0; k < 22; k++) {
       const mid = (pLo + pHi) / 2;
-      (evalNetAtteint(cible, mid, 0, idx).net >= cible - 0.005) ? pLo = mid : pHi = mid;
+      (evalNetAtteint(cible, mid, 0, idx, adjSet).net >= cible - 0.005) ? pLo = mid : pHi = mid;
     }
     const part = Math.floor(pLo * 100) / 100;   // arrondi bas : le net ne passe pas sous la cible
-    return Object.assign(base, { part, indem: 0, res: evalNetAtteint(cible, part, 0, idx), statut: "regulation", manque: 0 });
+    return Object.assign(base, { part, indem: 0, res: evalNetAtteint(cible, part, 0, idx, adjSet), statut: "regulation", manque: 0 });
   }
   /* il manque du net : sans levier indemnités (décoché ou aucune ligne libre) → constat */
   if (!useIndem || idx < 0 || plafond <= 0.005) {
@@ -2124,7 +2148,7 @@ function computeNetPlan(cible) {
     return Object.assign(base, { part: partBase, indem: 0, res: a0, statut,
                                  manque: (cible - a0.net) * a0.hN });
   }
-  const aMax = evalNetAtteint(cible, partBase, plafond, idx);
+  const aMax = evalNetAtteint(cible, partBase, plafond, idx, adjSet);
   if (aMax.net < cible - 0.005)    /* même au plafond URSSAF restant on n'y arrive pas */
     return Object.assign(base, { part: partBase, indem: plafond, res: aMax, statut: "plafond",
                                  manque: (cible - aMax.net) * aMax.hN });
@@ -2133,11 +2157,11 @@ function computeNetPlan(cible) {
   for (let k = 0; k < 26; k++) {
     const mid = (iLo + iHi) / 2;
     /* tolérance en €/h très fine (0,0001 ≈ 0,004 €/sem) : pas de manque résiduel */
-    (evalNetAtteint(cible, partBase, mid, idx).net >= cible - 0.0001) ? iHi = mid : iLo = mid;
+    (evalNetAtteint(cible, partBase, mid, idx, adjSet).net >= cible - 0.0001) ? iHi = mid : iLo = mid;
   }
   /* arrondi au centime SUPÉRIEUR + 1 centime de marge : jamais un manque résiduel */
   const indem = Math.min(plafond, Math.ceil(iHi * 100) / 100 + 0.01);
-  return Object.assign(base, { part: partBase, indem, res: evalNetAtteint(cible, partBase, indem, idx), statut: "ok", manque: 0 });
+  return Object.assign(base, { part: partBase, indem, res: evalNetAtteint(cible, partBase, indem, idx, adjSet), statut: "ok", manque: 0 });
 }
 function renderNetPlan() {
   const cibleNet = num($("in-ciblenet"));
@@ -2171,7 +2195,9 @@ function renderNetPlan() {
     (plan.statut === "aucuneLigne" ? " <span class='conf-warn'>⚠ il manque " + fmtE(plan.manque) +
       " et les 4 lignes d'indemnités sont occupées — libérer une ligne pour l'ajustement.</span>" : "") +
     (plan.statut === "tropHaut" ? " <span class='conf-warn'>⚠ net au-dessus de la cible de " + fmtE(plan.manque) +
-      " — activer l'ajustement par la participation pour le rabaisser.</span>" : "");
+      " — activer l'ajustement par la participation pour le rabaisser.</span>" : "") +
+    (plan.nbConsolidees > 0 ? " <br>ℹ " + plan.nbConsolidees + " ligne(s) cochée(s) « Ajust. » (" + fmtE(plan.montantConsolide) +
+      ") seront consolidées dans « Ajustement net » à l'application — les lignes non cochées (client) ne bougent jamais." : "");
   btnNet.disabled = false;
 }
 function applyNetPlan() {
@@ -2182,12 +2208,19 @@ function applyNetPlan() {
   if (!plan) return;
   if (plan.usePart) $("in-partlog").value = plan.part;
   if (plan.useIndem && plan.idx >= 0) {
-    /* ligne dédiée, renommée pour être réutilisée aux prochains plans — fc 0 :
+    /* ligne principale, renommée pour être réutilisée aux prochains plans — fc 0 :
      * l'ajustement n'est jamais refacturé (les indemnités client, elles, gardent leur fc) */
     $("inn" + plan.idx).value = "Ajustement net";
     $("inq" + plan.idx).value = plan.indem > 0 ? 1 : 0;
     $("inr" + plan.idx).value = plan.indem;
     $("inf" + plan.idx).value = 0;
+    if ($("inaj" + plan.idx)) $("inaj" + plan.idx).checked = true;
+    /* les AUTRES lignes cochées « Ajust. » sont consolidées dans la principale :
+     * on les remet à zéro (noms conservés) ; les lignes protégées ne bougent jamais */
+    plan.adjSet.forEach(k => {
+      if (k === plan.idx) return;
+      $("inq" + k).value = 0; $("inr" + k).value = 0;
+    });
   }
   $("in-net").value = plan.cible;
   $("in-nonet").checked = false;
