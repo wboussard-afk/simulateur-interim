@@ -452,10 +452,12 @@ table.grille td.neg { color: var(--bad); }
             <span class="hint" id="niveau-hint"></span></div>
           <div class="field wide"><label for="in-adr-dom">Adresse domicile / siège social</label>
             <input type="text" id="in-adr-dom" placeholder="ex. 2 rue de la Mairie, 35000 Rennes" autocomplete="off"></div>
-          <div class="field wide only-btp"><label for="in-adr-cha">Adresse du chantier (BTP)</label>
-            <input type="text" id="in-adr-cha" placeholder="adresse du chantier" autocomplete="off"></div>
-          <div class="field"><label for="in-dist">Distance aller (km, orthodromique)</label>
-            <div style="display:flex; gap:6px"><input type="number" id="in-dist" step="0.1" min="0" style="flex:1" title="Distance à vol d'oiseau (aller simple) — remplie par « Calculer » depuis les deux adresses, corrigeable à la main. Zone BTP = aller simple ; tranche URSSAF = aller-retour (2 × aller).">
+          <div class="field wide"><label for="in-adr-cha" id="lbl-adr-cha">Adresse du chantier (BTP)</label>
+            <input type="text" id="in-adr-cha" placeholder="adresse de la mission" autocomplete="off"></div>
+          <div class="field only-btp"><label for="in-dist">Distance aller à vol d'oiseau (km) — zones BTP</label>
+            <input type="number" id="in-dist" step="0.1" min="0" title="Distance orthodromique ALLER SIMPLE — détermine la zone BTP (IA à V) des grilles régionales transport/trajet. Corrigeable à la main."></div>
+          <div class="field"><label for="in-distar">Distance réelle aller-retour (km) — barème URSSAF</label>
+            <div style="display:flex; gap:6px"><input type="number" id="in-distar" step="0.1" min="0" style="flex:1" title="Kilomètres RÉELS (itinéraire routier) aller-retour — sélectionne la tranche du barème transport URSSAF (plafonds d'exonération). Corrigeable à la main.">
               <button type="button" class="btn" id="btn-dist">Calculer</button></div>
             <span class="hint" id="dist-hint"></span></div>
           <div class="field"><label for="in-zone">Distance (petits déplacements, aller-retour)</label><select id="in-zone"></select>
@@ -1014,7 +1016,8 @@ function defaultInputs(DB, sector) {
     gdAvanceAuto: false,        // conversion classeur avance -> repas GD/transport refacturés : désactivée (true = Excel)
     adrDomicile: "",            // adresse domicile / siège social (UI : distance orthodromique)
     adrChantier: "",            // adresse du chantier (BTP uniquement)
-    distAller: 0,               // km aller simple (orthodromique — zone BTP ; URSSAF = 2×)
+    distAller: 0,               // km aller simple à vol d'oiseau (zones BTP)
+    distReelAR: 0,              // km RÉELS routiers aller-retour (tranche URSSAF transport)
     rates: Object.assign({}, cfg.rates),
     ratesBase: Object.assign({}, cfg.rates) // littéraux de la feuille cachée (non liés aux éditions)
   };
@@ -1745,7 +1748,9 @@ function setFormFromInputs() {
   $("in-gdduree").value = String(inp.gdDuree || 0);
   $("in-niveau").value = inp.niveauQualif || "N1P1";
   $("in-adr-dom").value = inp.adrDomicile || ""; $("in-adr-cha").value = inp.adrChantier || "";
-  $("in-dist").value = inp.distAller || "";
+  $("in-dist").value = inp.distAller || ""; $("in-distar").value = inp.distReelAR || "";
+  $("lbl-adr-cha").textContent = (inp.sector === "tarifaire" && inp.branche === "btp")
+    ? "Adresse du chantier (BTP)" : "Adresse de l'entreprise utilisatrice";
   $("in-gdlieu").value = inp.gdLieu || "province";
   inp.primes.forEach((p, k) => { if (!$("prq" + k)) return;
                                  $("prq" + k).value = p.q; $("prr" + k).value = p.r; $("prn" + k).value = p.name || primeNames[k] || ("Prime " + (k + 1));
@@ -1808,7 +1813,7 @@ function readInputsFromForm() {
   inp.gdDuree = parseInt($("in-gdduree").value, 10) || 0;
   inp.niveauQualif = $("in-niveau").value;
   inp.adrDomicile = $("in-adr-dom").value; inp.adrChantier = $("in-adr-cha").value;
-  inp.distAller = num($("in-dist"));
+  inp.distAller = num($("in-dist")); inp.distReelAR = num($("in-distar"));
   inp.gdLieu = $("in-gdlieu").value;
   /* champs supprimés de l'interface (repas/transport client, AN, tickets, barèmes) :
    * les valeurs moteur restent à leurs défauts (0 / barèmes URSSAF intégrés) */
@@ -2686,36 +2691,87 @@ function trancheURSSAFFromAR(ar) {
   }
   return best ? best.label : "PAS DE TRANSPORT PD";   /* < 1re tranche : pas d'exo */
 }
-function applyDistanceAller(km, infoGeo) {
-  const ar = km * 2;
-  const zi = zoneBTPFromAller(km);
-  const tranche = km > 0 ? trancheURSSAFFromAR(ar) : null;
-  if (tranche) { const sz = $("in-zone"); if (Array.from(sz.options).some(o => o.value === tranche)) sz.value = tranche; }
-  const zTxt = zi != null ? "zone BTP " + ZONE_NOMS[zi] : (km > 0 ? "hors zones PD (&gt; 50 km aller : grand déplacement)" : "");
-  $("dist-hint").innerHTML = (infoGeo ? infoGeo + "<br>" : "") +
-    (km > 0 ? "aller <b>" + N2.format(km) + " km</b> · AR " + N2.format(ar) + " km → <b>" + zTxt + "</b>" +
-      (tranche && tranche !== "PAS DE TRANSPORT PD" ? " · tranche URSSAF appliquée" : " · pas d'exonération transport URSSAF") + "<br>" : "") +
-    "⚠ certains départements appliquent la distance réelle routière (ex. Savoie) — corriger le km à la main si votre grille l'exige.";
+/* itinéraire ROUTIER réel (aller, km) : IGN Géoplateforme (service public), secours OSRM */
+async function routeReelKm(a, b) {
+  try {
+    const r = await fetch("https://data.geopf.fr/navigation/itineraire?resource=bdtopo-valhalla&profile=car&optimization=fastest&start=" +
+      a.lon + "," + a.lat + "&end=" + b.lon + "," + b.lat);
+    if (r.ok) {
+      const j = await r.json();
+      if (j && typeof j.distance === "number")
+        return (j.distanceUnit === "meter" || j.distance > 2000) ? j.distance / 1000 : j.distance;
+    }
+  } catch (e) { /* IGN indisponible : OSRM */ }
+  const r2 = await fetch("https://router.project-osrm.org/route/v1/driving/" +
+    a.lon + "," + a.lat + ";" + b.lon + "," + b.lat + "?overview=false");
+  if (!r2.ok) throw new Error("routage indisponible");
+  const j2 = await r2.json();
+  if (!j2.routes || !j2.routes[0]) throw new Error("pas d'itinéraire");
+  return j2.routes[0].distance / 1000;
+}
+/* deux modalités : zone BTP (orthodromique ALLER, BTP seulement) et tranche URSSAF
+ * (km RÉELS ALLER-RETOUR — industrie ET btp) */
+function refreshDistHint(infoGeo) {
+  const isBTP = inp.sector === "tarifaire" && inp.branche === "btp";
+  const kmO = num($("in-dist")), kmAR = num($("in-distar"));
+  const zi = zoneBTPFromAller(kmO);
+  let s = infoGeo ? infoGeo + "<br>" : "";
+  if (isBTP && kmO > 0)
+    s += "grille BTP : aller à vol d'oiseau <b>" + N2.format(kmO) + " km</b> → <b>" +
+         (zi != null ? "zone " + ZONE_NOMS[zi] : "hors zones PD (&gt; 50 km : grand déplacement)") + "</b><br>";
+  if (kmAR > 0) {
+    const tranche = trancheURSSAFFromAR(kmAR);
+    s += "URSSAF : réel aller-retour <b>" + N2.format(kmAR) + " km</b> → " +
+         (tranche !== "PAS DE TRANSPORT PD" ? "tranche « " + esc(tranche.toLowerCase()) + " » appliquée" : "pas d'exonération transport") + "<br>";
+  }
+  s += "⚠ grilles BTP : certains départements appliquent la distance réelle routière (ex. Savoie) — corriger les km à la main si nécessaire.";
+  $("dist-hint").innerHTML = s;
+}
+function applyTrancheURSSAF(kmAR) {
+  if (kmAR > 0) {
+    const tranche = trancheURSSAFFromAR(kmAR);
+    const sz = $("in-zone");
+    if (Array.from(sz.options).some(o => o.value === tranche)) sz.value = tranche;
+  }
+  refreshDistHint("");
   onChange();
 }
 $("btn-dist").addEventListener("click", async () => {
+  const isBTP = inp.sector === "tarifaire" && inp.branche === "btp";
   const qd = $("in-adr-dom").value.trim(), qc = $("in-adr-cha").value.trim();
-  if (!qd || !qc) { $("dist-hint").textContent = "Renseigner les deux adresses (domicile/siège ET chantier) — ou saisir la distance aller en km à la main."; return; }
-  $("dist-hint").textContent = "Géocodage en cours…";
+  if (!qd || !qc) {
+    $("dist-hint").textContent = "Renseigner les deux adresses (domicile/siège ET " +
+      (isBTP ? "chantier" : "entreprise utilisatrice") + ") — ou saisir les km à la main.";
+    return;
+  }
+  $("dist-hint").textContent = "Géocodage et itinéraire en cours…";
   try {
     const both = await Promise.all([geocodeBAN(qd), geocodeBAN(qc)]);
     if (!both[0] || !both[1]) {
-      $("dist-hint").textContent = "Adresse introuvable (" + (!both[0] ? "domicile/siège" : "chantier") + ") — préciser, ou saisir la distance à la main.";
+      $("dist-hint").textContent = "Adresse introuvable (" + (!both[0] ? "domicile/siège" : (isBTP ? "chantier" : "entreprise utilisatrice")) + ") — préciser, ou saisir les km à la main.";
       return;
     }
-    const km = Math.round(haversineKm(both[0], both[1]) * 10) / 10;
-    $("in-dist").value = km;
-    applyDistanceAller(km, "✓ " + esc(both[0].label) + " → " + esc(both[1].label));
+    const kmO = Math.round(haversineKm(both[0], both[1]) * 10) / 10;
+    $("in-dist").value = kmO;                       /* zones BTP : aller à vol d'oiseau */
+    let geoTxt = "✓ " + esc(both[0].label) + " → " + esc(both[1].label);
+    try {
+      const reelAller = await routeReelKm(both[0], both[1]);
+      const kmAR = Math.round(reelAller * 2 * 10) / 10;
+      $("in-distar").value = kmAR;                  /* URSSAF : réel aller-retour */
+      const tranche = trancheURSSAFFromAR(kmAR);
+      const sz = $("in-zone");
+      if (Array.from(sz.options).some(o => o.value === tranche)) sz.value = tranche;
+    } catch (e2) {
+      geoTxt += " — <b>itinéraire routier indisponible</b> : saisir le réel AR à la main";
+    }
+    refreshDistHint(geoTxt);
+    onChange();
   } catch (e) {
-    $("dist-hint").textContent = "Géocodage indisponible ici (réseau bloqué) — saisir la distance aller en km à la main.";
+    $("dist-hint").textContent = "Géocodage indisponible ici (réseau bloqué) — saisir les km à la main.";
   }
 });
-$("in-dist").addEventListener("change", () => applyDistanceAller(num($("in-dist")), ""));
+$("in-dist").addEventListener("change", () => { refreshDistHint(""); onChange(); });
+$("in-distar").addEventListener("change", () => applyTrancheURSSAF(num($("in-distar"))));
 
 /* BTP : sélectionner un niveau de qualification APPLIQUE son minimum (officiel,
  * plancher SMIC) au taux horaire brut de la mission. Au changement de département,
