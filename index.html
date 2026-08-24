@@ -2632,6 +2632,25 @@ document.querySelectorAll("input, select").forEach(el => {
 });
 /* préremplissage logement depuis la table Excel LOGEMT supprimé (20/08/2026) :
  * données 2024 sans valeur — le coût du logement se saisit librement */
+/* BTP : sélectionner un niveau de qualification APPLIQUE son minimum (officiel,
+ * plancher SMIC) au taux horaire brut de la mission. Au changement de département,
+ * le brut suit la nouvelle région seulement s'il n'a pas été modifié à la main. */
+function applyNiveauBrut(force) {
+  if (!(inp.sector === "tarifaire" && inp.branche === "btp")) return;
+  const d = DB.departments.find(x => x.dept === $("in-dept").value);
+  const lvl = $("in-niveau").value;
+  if (!d || lvl === "AUTRE") return;
+  const smicNow = (typeof official !== "undefined" && official && official.smic) ? official.smic.value : BAKED_OFFICIAL.smic.value;
+  const nv = nivHoraireBTP(d, lvl, smicNow);
+  if (!nv) return;
+  const cur = $("in-thbrut");
+  if (!force && cur.value !== cur.dataset.autoNiveau) return;   // saisie manuelle : on ne touche pas
+  cur.value = nv.shown;
+  cur.dataset.autoNiveau = String(nv.shown);
+  onChange();
+}
+$("in-niveau").addEventListener("change", () => applyNiveauBrut(true));
+$("in-dept").addEventListener("change", () => applyNiveauBrut(false));
 $("sector-agri").addEventListener("click", () => { if (inp.sector !== "agri") applySector("agri"); });
 $("sector-btp").addEventListener("click", () => {
   if (inp.sector === "tarifaire" && inp.branche === "btp") return;
