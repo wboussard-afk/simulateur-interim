@@ -39,8 +39,11 @@ header .sub { color: var(--muted); font-size: 12.5px; }
 .statut .warnb { background: var(--warn-soft); color: var(--warn); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; display: block; margin-top: 6px; }
 .wrap { max-width: 980px; margin: 0 auto; padding: 16px 20px 70px; display: flex; flex-direction: column; gap: 14px; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
-.card h2 { font-size: 16px; margin: 0; padding: 10px 16px; border-bottom: 1px solid var(--line-soft); }
-.card h2 .eyebrow { float: right; font: 600 10.5px "Segoe UI", sans-serif; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin-top: 3px; }
+/* PAS de float ici : un eyebrow flottant qui passe sous le titre en portrait
+ * compressait la zone de contenu (BFC créé par overflow-x:auto) à côté du float */
+.card h2 { font-size: 16px; margin: 0; padding: 10px 16px; border-bottom: 1px solid var(--line-soft);
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.card h2 .eyebrow { margin-left: auto; font: 600 10.5px "Segoe UI", sans-serif; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
 .card .b { padding: 12px 16px 14px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px 14px; }
 label { display: block; font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
@@ -77,6 +80,14 @@ tr.sub td { color: var(--muted); font-weight: 600; padding-top: 10px; }
 .hint { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
 a { color: var(--brass-deep); }
 @media (max-width: 700px) { select { font-size: 16px; min-height: 42px; } }
+/* portrait téléphone : police des tableaux réduite pour que les grilles tiennent
+ * en largeur (en paysage, la taille normale s'applique) */
+@media (max-width: 480px) {
+  table { font-size: 10.5px; }
+  td, th { padding: 3px 2px; }
+  th { font-size: 8.5px; letter-spacing: .02em; }
+  .card .b { padding: 10px 10px 12px; }
+}
 </style>
 </head>
 <body>
@@ -145,7 +156,7 @@ a { color: var(--brass-deep); }
 
   <section class="card">
     <h2>Minima conventionnels BTP — <span id="ttl-region">région</span> <span class="eyebrow">IDCC 1596 · 1597 (ouvriers)</span></h2>
-    <div class="b"><table id="tbl-minima"></table>
+    <div class="b"><p class="note" id="maj-minima" style="margin-top:0"></p><table id="tbl-minima"></table>
     <p class="note" id="note-minima"></p></div>
   </section>
 
@@ -1206,23 +1217,12 @@ $("sel-dept").addEventListener("change", () => {
 
 /* ---- rendus ---- */
 function renderDroit() {
-  const rg = RGDU_DEFAULTS;
+  /* volontairement minimal : les cotisations (AT, mutuelle, RGDU, TO-DE…) sont
+   * paramétrées directement dans l'ERP des gestionnaires — hors périmètre ici */
   let s = "";
   s += kv("SMIC horaire brut (en vigueur depuis le " + smicDate.split("-").reverse().join("/") + ")", "<b>" + fmtE(smicNow) + "</b>");
   s += kv("SMIC mensuel brut (151,67 h)", fmtE(smicNow * BTP_MINIMA.diviseurHoraire));
   s += kv("Plafond de la Sécurité sociale (mensuel)", fmtE(BAKED_OFFICIAL.pss.value));
-  s += kv("Taux AT-MP moyen national 2026 (à personnaliser par établissement)", "2,08 %");
-  s += kv("Mutuelle « Intérimaires Santé » (part patronale)", N2.format(0.0874) + " €/h");
-  s += "<tr class='sub'><td colspan='2'>Allègement RGDU 2026 (décret 2025-1446)</td></tr>";
-  s += kv("SMIC de référence (figé au 01/01/2026)", fmtE(rg.smicRef) + "/h");
-  s += kv("Tmin", String(rg.tmin).replace(".", ","));
-  s += kv("Tdelta (moins de 50 salariés / 50 et plus)", String(rg.tdeltaPetite).replace(".", ",") + " / " + String(rg.tdeltaGrande).replace(".", ","));
-  s += kv("Puissance P · plafond", String(rg.p).replace(".", ",") + " · nul dès " + rg.plafondSmic + " SMIC");
-  s += kv("Majoration intérim (art. D.241-10 III CSS, hors CDI intérimaire)", "× " + String(rg.interimMajoration).replace(".", ","));
-  s += kv("Imputation AT-MP maximale (2026)", "0,49 % de la rémunération");
-  s += "<tr class='sub'><td colspan='2'>TO-DE (CDD saisonnier agricole — non cumulable avec la RGDU)</td></tr>";
-  s += kv("Exonération totale jusqu'à", "1,25 × SMIC");
-  s += kv("Dégressive jusqu'à (nulle au-delà)", "1,60 × SMIC");
   $("tbl-droit").innerHTML = s;
 }
 function renderMinima() {
@@ -1232,10 +1232,11 @@ function renderMinima() {
   const reg = BTP_MINIMA.regions[key];
   if (!reg) { $("tbl-minima").innerHTML = kv("Région non couverte par la source officielle", "grille du classeur en repli"); return; }
   const lvlSel = $("sel-niveau").value;
-  let s = "<tr class='sub'><td colspan='5'>Dernière mise à jour de la grille : site à jour au <b>" + esc(BTP_MINIMA.siteMajLe) +
-          "</b> · relevé le <b>" + esc(BTP_MINIMA.releveLe) + "</b> (surveillance hebdomadaire)" +
-          (BTP_MINIMA.accords[key] ? " · " + esc(BTP_MINIMA.accords[key]) : "") + "</td></tr>";
-  s += "<tr><th>Niveau</th><th class='n'>Coeff</th><th class='n'>Mensuel ≤ 10 sal. (1596)</th><th class='n'>Mensuel &gt; 10 sal. (1597)</th><th class='n'>Horaire (÷ 151,67)</th></tr>";
+  /* la date de mise à jour vit HORS du tableau : en portrait elle se coupait au défilement */
+  $("maj-minima").innerHTML = "Dernière mise à jour de la grille : site à jour au <b>" + esc(BTP_MINIMA.siteMajLe) +
+    "</b> · relevé le <b>" + esc(BTP_MINIMA.releveLe) + "</b> (surveillance hebdomadaire)" +
+    (BTP_MINIMA.accords[key] ? " · " + esc(BTP_MINIMA.accords[key]) : "");
+  let s = "<tr><th>Niveau</th><th class='n'>Coeff</th><th class='n'>Mensuel 1596 (≤10)</th><th class='n'>Mensuel 1597 (&gt;10)</th><th class='n'>Horaire</th></tr>";
   for (const lvl of NIVEAUX) {
     const c = NIVEAU_COEF_BTP[lvl];
     const m96 = reg.cc1596[c], m97 = reg.cc1597[c];
