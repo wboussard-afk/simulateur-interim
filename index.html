@@ -189,6 +189,17 @@ header.top {
 .chip b { color: var(--brass-deep); }
 .chip:hover { border-color: var(--brass); }
 .hint { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+/* autocomplétion d'adresses : liste déroulante tactile sous le champ */
+.adr-wrap { position: relative; }
+.adr-sug {
+  position: absolute; left: 0; right: 0; top: 100%; z-index: 40;
+  background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: var(--shadow); max-height: 260px; overflow-y: auto;
+}
+.adr-sug .item { padding: 9px 11px; cursor: pointer; font-size: 13.5px; border-bottom: 1px solid var(--line-soft); }
+.adr-sug .item:last-child { border-bottom: 0; }
+.adr-sug .item:hover, .adr-sug .item:active { background: var(--card2); }
+.adr-sug .ctx { color: var(--muted); font-size: 11.5px; display: block; }
 .btn {
   border: 1px solid var(--line); background: var(--card2); color: var(--ink);
   border-radius: 7px; padding: 6px 12px; font-size: 13px;
@@ -451,11 +462,11 @@ table.grille td.neg { color: var(--bad); }
             </select>
             <span class="hint" id="niveau-hint"></span></div>
           <div class="field wide"><label for="in-adr-dom">Adresse domicile / siège social</label>
-            <input type="text" id="in-adr-dom" placeholder="ex. 2 rue de la Mairie, 35000 Rennes — ou « 22 Dinan »" autocomplete="off" list="dl-adr-dom">
-            <datalist id="dl-adr-dom"></datalist></div>
+            <div class="adr-wrap"><input type="text" id="in-adr-dom" placeholder="ex. 27 rue du Gros Chêne — puis choisir la ville" autocomplete="off">
+              <div class="adr-sug" id="sug-adr-dom" hidden></div></div></div>
           <div class="field wide"><label for="in-adr-cha" id="lbl-adr-cha">Adresse du chantier (BTP)</label>
-            <input type="text" id="in-adr-cha" placeholder="adresse de la mission — ou « 35 Saint-Malo »" autocomplete="off" list="dl-adr-cha">
-            <datalist id="dl-adr-cha"></datalist></div>
+            <div class="adr-wrap"><input type="text" id="in-adr-cha" placeholder="adresse de la mission — ou « 35 Saint-Malo »" autocomplete="off">
+              <div class="adr-sug" id="sug-adr-cha" hidden></div></div></div>
           <div class="field only-btp"><label for="in-dist">Distance aller à vol d'oiseau (km) — zones BTP</label>
             <input type="number" id="in-dist" step="0.1" min="0" title="Distance orthodromique ALLER SIMPLE — détermine la zone BTP (IA à V) des grilles régionales transport/trajet. Corrigeable à la main."></div>
           <div class="field"><label for="in-distar">Distance réelle aller-retour (km) — barème URSSAF</label>
@@ -2673,7 +2684,7 @@ function parseDeptQuery(q) {
 const ADR_CACHE = {};   /* label choisi dans les suggestions -> coordonnées (pas de re-géocodage ambigu) */
 async function banCandidates(q, limit) {
   const p = parseDeptQuery(q);
-  const r = await fetch("https://api-adresse.data.gouv.fr/search/?limit=" + (limit || 8) +
+  const r = await fetch("https://api-adresse.data.gouv.fr/search/?autocomplete=1&limit=" + (limit || 8) +
                         "&q=" + encodeURIComponent(p ? p.rest : q));
   if (!r.ok) throw new Error("HTTP " + r.status);
   const j = await r.json();
@@ -2683,7 +2694,26 @@ async function banCandidates(q, limit) {
     if (duDep.length) feats = duDep;
   }
   return feats.map(f => ({ lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1],
-                           label: f.properties.label, ctx: f.properties.context || "" }));
+                           label: f.properties.label, ctx: f.properties.context || "",
+                           city: f.properties.city || "" }));
+}
+/* même rue, PLUSIEURS villes : une suggestion par ville (la mieux classée), puis les
+ * variantes restantes — on tape la rue, on CHOISIT la ville */
+async function banDiverseCandidates(q, n) {
+  const cands = await banCandidates(q, 15);
+  const seen = new Set(), out = [];
+  for (const c of cands) {
+    const ville = c.city || c.ctx;
+    if (seen.has(ville)) continue;
+    seen.add(ville);
+    out.push(c);
+    if (out.length >= n) break;
+  }
+  for (const c of cands) {
+    if (out.length >= n) break;
+    if (out.indexOf(c) < 0) out.push(c);
+  }
+  return out;
 }
 async function geocodeBAN(q) {
   if (ADR_CACHE[q]) return ADR_CACHE[q];
@@ -2692,27 +2722,38 @@ async function geocodeBAN(q) {
   ADR_CACHE[cs[0].label] = cs[0];
   return cs[0];
 }
-/* autocomplétion : suggestions d'adresses réelles répertoriées (BAN) pendant la frappe */
-function wireAdrAutocomplete(inputId, listId) {
-  const el = $(inputId), dl = $(listId);
+/* autocomplétion : liste déroulante tactile — on tape la rue, on choisit la ville */
+function wireAdrAutocomplete(inputId, sugId) {
+  const el = $(inputId), box = $(sugId);
   let t = 0;
+  const hide = () => { box.hidden = true; box.innerHTML = ""; };
   el.addEventListener("input", () => {
     clearTimeout(t);
     const v = el.value.trim();
-    if (v.length < 3) { dl.innerHTML = ""; return; }
+    if (v.length < 3) { hide(); return; }
     t = setTimeout(async () => {
       try {
-        const cs = await banCandidates(v, 8);
-        dl.innerHTML = cs.map(c => {
+        const cs = await banDiverseCandidates(v, 8);
+        if (!cs.length) { hide(); return; }
+        box.innerHTML = cs.map(c =>
+          '<div class="item"><b>' + esc(c.label) + '</b><span class="ctx">' + esc(c.ctx) + "</span></div>").join("");
+        box.hidden = false;
+        Array.from(box.children).forEach((it, i) => it.addEventListener("mousedown", ev => {
+          ev.preventDefault();               /* avant le blur : la sélection gagne */
+          const c = cs[i];
           ADR_CACHE[c.label] = c;
-          return '<option value="' + esc(c.label) + '">' + esc(c.ctx) + "</option>";
-        }).join("");
-      } catch (e) { /* hors ligne : pas de suggestions */ }
-    }, 300);
+          el.value = c.label;
+          hide();
+          onChange();
+        }));
+      } catch (e) { hide(); /* hors ligne : pas de suggestions */ }
+    }, 250);
   });
+  el.addEventListener("blur", () => setTimeout(hide, 250));
+  el.addEventListener("keydown", ev => { if (ev.key === "Escape") hide(); });
 }
-wireAdrAutocomplete("in-adr-dom", "dl-adr-dom");
-wireAdrAutocomplete("in-adr-cha", "dl-adr-cha");
+wireAdrAutocomplete("in-adr-dom", "sug-adr-dom");
+wireAdrAutocomplete("in-adr-cha", "sug-adr-cha");
 function haversineKm(a, b) {
   const rad = x => x * Math.PI / 180, R = 6371.0088;
   const dLat = rad(b.lat - a.lat), dLon = rad(b.lon - a.lon);
