@@ -331,6 +331,14 @@ table.grille td.neg { color: var(--bad); }
   #etude-print .coefbig { font-size: 20pt; font-weight: 700; color: #9E0C24; }
   #etude-print .coefv { font-size: 12pt; font-weight: 700; color: #9E0C24; }
   #etude-print .sublet { display: block; color: #666; font-size: 9pt; font-weight: 400; }
+  /* MONTANTS mis en valeur (colonne de droite) ; lignes de total en rouge marqué */
+  #etude-print td.n { font-weight: 700; font-size: 11pt; }
+  #etude-print tr.tot td { border-top: 1.2pt solid #9E0C24; border-bottom: 0; font-size: 11.5pt; }
+  #etude-print tr.tot td.n { color: #9E0C24; font-size: 12.5pt; }
+  /* marges gérées par la page elle-même : supprime l'URL/date ajoutées par le
+   * navigateur dans les marges d'impression (mention wboussard inutile) */
+  @page { margin: 0; }
+  body.print-etude #etude-print { padding: 13mm 12mm 12mm; }
   #etude-print .foot { margin-top: 12pt; padding-top: 4pt; border-top: 0.5pt solid #bbb; color: #666; font-size: 8.5pt; }
 }
 @media print {
@@ -3025,7 +3033,7 @@ function buildEtudePrix() {
   });
   if (m.O52 > 0.005) s += kv("Part logement facturée", fmtE(m.O52) + "/sem");
   if (inp.remisePct) s += kv("Remise fin d'année (sur CA soumis à cotisations)", "−" + fmtE(m.O42 * inp.remisePct / 100).replace("-", "") + "/sem");
-  s += kv("<b>CA HT total</b>", "<b>" + fmtE(inp.remisePct ? m.O63 : m.O60) + "/sem</b>");
+  s += kv("<b>CA HT total</b>", fmtE(inp.remisePct ? m.O63 : m.O60) + "/sem", "tot");
   s += "</table>";
   s += '<p class="meta">Variante de facturation : toute ligne facturée peut aussi être <b>intégrée au taux global</b> (invisible pour le client — le taux horaire est alors majoré d\'autant et la ligne ne doit PAS apparaître sur la facture). Le paramétrage facturation doit impérativement choisir entre « ligne visible » et « intégré au taux » pour chaque élément ci-dessus.</p>';
 
@@ -3042,25 +3050,29 @@ function buildEtudePrix() {
   });
   const partAct = Math.max(0, -(inp.participationLibre || 0));
   const logNet = Math.max(0, (m.F92 || 0) - partAct - (m.O52 || 0));
-  if (logNet > 0.005) { totalNF += logNet; nfRows += kv("Logement net (coût − participation salarié − part facturée)", fmtE(logNet) + "/sem"); }
+  if (logNet > 0.005) {
+    totalNF += logNet;
+    nfRows += kv("Logement — la participation salarié couvre " + fmtE(partAct) +
+                 " sur un coût de " + fmtE(m.F92) + " : l'agence finance", fmtE(logNet) + "/sem");
+  }
   s += nfRows || kv("Aucun élément à la charge de l'agence", "—");
-  if (totalNF > 0.005) s += kv("<b>Total à la charge de l'agence</b>", "<b>" + fmtE(totalNF) + "/sem</b>");
+  if (totalNF > 0.005) s += kv("<b>Total à la charge de l'agence</b>", fmtE(totalNF) + "/sem", "tot");
   s += "</table>";
 
   s += "<h2>Logement</h2><table>";
-  if (m.F92 > 0) {
-    s += kv("Logement compris", "oui — coût " + fmtE(m.F92) + "/sem");
-    s += kv("Participation salarié (retenue nette)", fmtE(Math.max(0, -(inp.participationLibre || 0))) + "/sem");
-    s += kv("Part logement facturée au client", m.O52 > 0 ? fmtE(m.O52) + "/sem" : "non facturée");
+  if (logExiste) {
+    s += kv("Coût du logement", fmtE(m.F92) + "/sem");
+    s += kv("Participation salarié (retenue nette sur paie)", fmtE(partAct) + "/sem");
+    s += kv("Financé par l'agence", fmtE(logNet) + "/sem");
+    s += kv("Facturation au client", logFacture ? fmtE(m.O52) + "/sem (ligne dédiée)" : "non facturé — compris dans le taux global");
   } else {
-    s += kv("Logement compris", "non");
+    s += kv("Logement", "aucun");
   }
   s += "</table>";
 
   s += "<h2>Synthèse hebdomadaire</h2><table>";
   s += kv("CA HT", fmtE(m.O60));
-  s += kv("Coût global salarié", fmtE(m.F93));
-  s += kv("Marge brute", "<b>" + fmtE(m.O64) + " (" + N2.format(m.H17) + " %)</b>");
+  s += kv("Marge brute", fmtE(m.O64) + " (" + N2.format(m.H17) + " %)", "tot");
   s += kv("IFM / CP", (!inp.ifm && !inp.iccp) ? "mise en CET 100 %" : "paiement direct");
   s += "</table>";
 
