@@ -2934,11 +2934,6 @@ $("gs-net-apply").addEventListener("click", applyNetPlan);
  * Formalise l'offre pour le directeur commercial et sert au paramétrage du
  * compte client par la paie/facturation. Archivage : le nom de fichier PDF
  * reprend le client et la date. Logo/charte graphique : emplacement réservé. */
-function etudeFcPrime(p) {
-  if (p.fc === 0) return "non refacturée";
-  if (p.fc == null) return inp.refactPrimes ? "refacturée au coefficient (" + N4.format(inp.coeff) + ")" : "non refacturée";
-  return "refacturée coef " + N4.format(p.fc);
-}
 function buildEtudePrix() {
   readInputsFromForm();
   const M = compute(inp), m = M.main;
@@ -2954,13 +2949,19 @@ function buildEtudePrix() {
     (inp.dept ? " · mission : " + esc(inp.dept) : "") +
     (inp.niveauQualif && inp.sector === "tarifaire" && inp.branche === "btp" ? " · qualification " + esc(inp.niveauQualif) : "") + "</div>";
 
-  s += "<h2>Conditions tarifaires</h2><table>";
-  s += kv("Coefficient de facturation", N4.format(inp.coeff));
-  s += kv("Taux horaire facturé au taux normal (coefficient × brut)", fmtE(txNormal) + "/h");
+  /* ===== 1. L'OFFRE — expression commerciale (ce que voit le client) ===== */
+  const avecLog = m.O52 > 0;
+  const txGlobal = m.O62;            /* CA total ÷ heures : taux global tout intégré */
+  s += "<h2>L'offre commerciale</h2><table>";
+  s += kv("Coefficient de facturation", "<b>" + N4.format(inp.coeff) + "</b>");
+  s += kv("Taux global facturé HT " + (avecLog ? "(logement compris)" : "(sans logement)") +
+          " — jusqu'à la 43ᵉ heure", "<b>" + fmtE(txGlobal) + "/h</b>");
+  s += kv("Au-delà de la 43ᵉ heure (majoration 50 %)", fmtE(txGlobal * 1.5) + "/h");
+  if (avecLog) s += kv("Taux global hors logement", fmtE(m.O66) + "/h");
+  s += kv("Taux horaire au coefficient (coefficient × brut, avant majorations)", fmtE(txNormal) + "/h");
   s += kv("Base horaire de l'offre", N2.format(inp.heures) + " h/sem sur " + inp.jours + " j — " +
           N2.format(m.D24) + " h normales" + (m.D28 ? " + " + N2.format(m.D28) + " h à +25 %" : "") +
           (m.D29 ? " + " + N2.format(m.D29) + " h à +50 %" : ""));
-  s += kv("Heures facturées au taux normal", N2.format(m.L24) + " h/sem (au-delà : majorations 25/50 %)");
   const refacts = [inp.refactDim ? "dimanche" : null, inp.refactFerie ? "férié" : null, inp.refactNuit ? "nuit" : null].filter(Boolean);
   if (refacts.length) s += kv("Majorations refacturées", refacts.join(", "));
   if (inp.remisePct) s += kv("Remise fin d'année", N2.format(inp.remisePct) + " % × CA soumis à cotisations (" + fmtE(m.O42) + ")");
@@ -2974,20 +2975,45 @@ function buildEtudePrix() {
   s += kv("IFM / CP", (!inp.ifm && !inp.iccp) ? "mise en CET 100 %" : "paiement direct");
   s += "</table>";
 
-  const primes = inp.primes.filter(p => p.q * p.r > 0);
-  s += "<h2>Primes (soumises à cotisations)</h2><table>";
-  s += primes.length
-    ? primes.map(p => kv(esc(p.name) + " — " + N2.format(p.q) + " × " + fmtE(p.r) + " · " + etudeFcPrime(p), fmtE(p.q * p.r) + "/sem")).join("")
-    : kv("Aucune prime", "—");
+  /* ===== 2. ÉLÉMENTS FACTURÉS — paramétrage FACTURATION ===== */
+  const primesBilled = inp.primes.map((p, k) => ({ p, k, montant: m["O" + (37 + k)] || 0 }));
+  const indemBilled = inp.indemnites.map((p, k) => ({ p, k, montant: [m.O47, m.O48, m.OI3, m.OI4][k] || 0 }));
+  const primesFactTotal = primesBilled.reduce((t, x) => t + x.montant, 0);
+  s += "<h2>Éléments facturés — paramétrage facturation</h2><table>";
+  s += kv("Heures et majorations au coefficient " + N4.format(inp.coeff), fmtE(m.O42 - primesFactTotal) + "/sem");
+  if (m.O45) s += kv("Indemnité transport refacturée", fmtE(m.O45) + "/sem");
+  if (m.O46) s += kv("Indemnité repas refacturée", fmtE(m.O46) + "/sem");
+  primesBilled.filter(x => x.montant > 0.005).forEach(x => {
+    const modeP = x.p.fc == null ? "au coefficient " + N4.format(inp.coeff) : "coef " + N4.format(x.p.fc);
+    s += kv(esc(x.p.name) + " (prime soumise) — refacturée " + modeP, fmtE(x.montant) + "/sem");
+  });
+  indemBilled.filter(x => x.montant > 0.005).forEach(x => {
+    const coefI = x.p.fc == null ? 1 : x.p.fc;
+    s += kv(esc(x.p.name) + " (indemnité non soumise) — coef " + N4.format(coefI) +
+            (coefI === 1 ? " · <b>ligne visible sur la facture</b>" : ""), fmtE(x.montant) + "/sem");
+  });
+  if (m.O52 > 0.005) s += kv("Part logement facturée", fmtE(m.O52) + "/sem");
+  if (inp.remisePct) s += kv("Remise fin d'année (sur CA soumis à cotisations)", "−" + fmtE(m.O42 * inp.remisePct / 100).replace("-", "") + "/sem");
+  s += kv("<b>CA HT total</b>", "<b>" + fmtE(inp.remisePct ? m.O63 : m.O60) + "/sem</b>");
   s += "</table>";
+  s += '<p class="meta">Variante de facturation : toute ligne facturée peut aussi être <b>intégrée au taux global</b> (invisible pour le client — le taux horaire est alors majoré d\'autant et la ligne ne doit PAS apparaître sur la facture). Le paramétrage facturation doit impérativement choisir entre « ligne visible » et « intégré au taux » pour chaque élément ci-dessus.</p>';
 
-  const indems = inp.indemnites.filter(p => p.q * p.r > 0);
-  s += "<h2>Indemnités (non soumises)</h2><table>";
-  s += indems.length
-    ? indems.map(p => kv(esc(p.name) + " — " + N2.format(p.q) + " × " + fmtE(p.r) + " · " +
-        (p.fc === 0 ? "<b>NON facturée au client</b>" : (p.fc == null || p.fc === 1 ? "facturée à l'identique" : "facturée coef " + N4.format(p.fc))),
-        fmtE(p.q * p.r) + "/sem")).join("")
-    : kv("Aucune indemnité", "—");
+  /* ===== 3. ÉLÉMENTS PAYÉS NON FACTURÉS — à la charge de l'agence (paramétrage PAIE) ===== */
+  s += "<h2>Éléments payés et non facturés — paramétrage paie</h2><table>";
+  let totalNF = 0, nfRows = "";
+  inp.primes.forEach((p, k) => {
+    const paye = p.q * p.r, fact = primesBilled[k].montant;
+    if (paye > 0.005 && fact < 0.005) { totalNF += paye; nfRows += kv(esc(p.name) + " (prime soumise) — payée, non refacturée", fmtE(paye) + "/sem"); }
+  });
+  inp.indemnites.forEach((p, k) => {
+    const paye = p.q * p.r, fact = indemBilled[k].montant;
+    if (paye > 0.005 && fact < 0.005) { totalNF += paye; nfRows += kv(esc(p.name) + " (indemnité non soumise) — payée, <b>non facturée</b>", fmtE(paye) + "/sem"); }
+  });
+  const partAct = Math.max(0, -(inp.participationLibre || 0));
+  const logNet = Math.max(0, (m.F92 || 0) - partAct - (m.O52 || 0));
+  if (logNet > 0.005) { totalNF += logNet; nfRows += kv("Logement net (coût − participation salarié − part facturée)", fmtE(logNet) + "/sem"); }
+  s += nfRows || kv("Aucun élément à la charge de l'agence", "—");
+  if (totalNF > 0.005) s += kv("<b>Total à la charge de l'agence</b>", "<b>" + fmtE(totalNF) + "/sem</b>");
   s += "</table>";
 
   s += "<h2>Logement</h2><table>";
