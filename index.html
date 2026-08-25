@@ -2117,19 +2117,23 @@ function render(r) {
   const cetActif = !inp.iccp && !inp.ifm;
   const netRatio = m.F42 > 0 ? Math.max(0, (m.F42 - m.F88 - Math.max(0, m.F43)) / m.F42) : 0;
   const cetNet = cetActif ? m.D85 * netRatio : 0;
-  const cetUtilise = cetActif ? Math.min(avance, cetNet) : 0;
+  /* avance PLAFONNÉE AU NET PROMIS (même règle que le solveur) — le F58 du classeur
+   * pouvait pousser au-delà du promis, l'affichage divergeait du pilotage */
+  const avancePromis = (inp.netAttendu != null) ? Math.max(0, m.D13 - m.F90) : 0;
+  const cetUtilise = cetActif ? Math.min(avancePromis, cetNet) : 0;
   const cetRestant = cetActif ? cetNet - cetUtilise : 0;
-  const complement = avance - cetUtilise;   // à couvrir (baisse de participation / indemnités)
+  const complement = avancePromis - cetUtilise;   // à couvrir (baisse de participation / indemnités)
   const soldeQuasiNul = cetRestant <= Math.max(5, cetNet * 0.05);
   /* levier participation logement (outil de régulation du net constaté) */
   const partAct = Math.max(0, -(inp.participationLibre || 0));   // €/sem retenus
   const coutLog = m.F92 || 0;                                    // coût logement hebdo
-  const margePart = coutLog > 0 ? Math.max(0, coutLog - partAct) : 0;  // hausse possible
   const excesNet = (inp.netAttendu != null && cetActif) ? Math.max(0, m.F90 - m.D13) : 0; // net constaté > promis
   $("out-cetdispo").textContent = cetActif ? fmtE(cetNet) + " (brut " + fmtE(m.D85) + ")" : "— (paiement direct)";
   $("out-cetutilise").textContent = cetActif ? "−" + EUR.format(cetUtilise).replace("-", "") : "—";
-  /* hausse de participation utile : absorber l'excès de net, puis consommer du CET */
-  const hausse = Math.min(margePart, excesNet + cetRestant);
+  /* hausse de participation utile : absorber l'excès de net, puis consommer du CET.
+   * L'AJUSTEMENT peut dépasser le coût réel du logement (ou descendre en dessous) :
+   * l'équilibre de la société logement est l'ancrage, pas une limite (règle 25/08). */
+  const hausse = excesNet + cetRestant;
   const cetViaPart = Math.max(0, hausse - excesNet);           // CET consommé en plus via l'avance
   const restantApres = cetRestant - cetViaPart;
   const cr = $("out-cetrestant");
@@ -2151,33 +2155,36 @@ function render(r) {
       : "<b class='delta bad'>✗ sous le net promis : " + N2.format(netAtteint - inp.netAttendu) + " €/h</b>";
   } else { na.style.color = ""; $("atteint-hint").textContent = ""; }
   const ca = $("cet-alert");
+  const partCibleH = partAct + hausse;
   const conseilPart = hausse > 0.5
-    ? " <b>Régulation par la participation logement :</b> la porter à <b>" + fmtE(partAct + hausse) +
+    ? " <b>Régulation par la participation logement :</b> la porter à <b>" + fmtE(partCibleH) +
       "/sem</b> (au lieu de " + fmtE(partAct) + ")" +
-      (excesNet > 0.5 ? (hausse >= excesNet - 0.005 ? " ramène le net constaté au net promis" : " rapproche le net constaté du net promis (à hauteur du plafond logement)") : "") +
-      (cetViaPart > 0.5 ? (excesNet > 0.5 ? " et" : "") + " grossit l'avance de " + fmtE(cetViaPart) +
+      (coutLog > 0 && partCibleH > coutLog + 0.005 ? " — <b>au-dessus du coût réel du logement</b> (" + fmtE(coutLog) + ", excédent société logement " + fmtE(partCibleH - coutLog) + ")" : "") +
+      (excesNet > 0.5 ? " : ramène le net constaté au net promis" : "") +
+      (cetViaPart > 0.5 ? (excesNet > 0.5 ? " et" : " :") + " grossit l'avance de " + fmtE(cetViaPart) +
         " → CET restant " + fmtE(restantApres) : "") + "."
     : "";
   const conseilReliquat = r => r > Math.max(5, cetNet * 0.05)
-    ? " Le reliquat de <b>" + fmtE(r) + "</b> se résorbe par les avances des prochaines paies — minimum à solder au déblocage final" +
-      (coutLog > 0 && margePart < 0.5 ? " (participation déjà au plafond du coût du logement)." : ".")
+    ? " Le reliquat de <b>" + fmtE(r) + "</b> se résorbe par les avances des prochaines paies — minimum à solder au déblocage final."
     : "";
   if (cetActif && complement > 0.005) {
-    /* la participation ne descend jamais sous le coût du logement (société logement
-     * à l'équilibre) : seule la part AU-DESSUS du coût est réductible */
-    const baisse = Math.min(complement, Math.max(0, partAct - coutLog));
+    /* l'ajustement par le logement peut descendre SOUS le coût réel : la société
+     * logement finance alors la différence (signalé) */
+    const baisse = Math.min(complement, partAct);
+    const partApres = partAct - baisse;
     ca.hidden = false;
     ca.innerHTML = "<span class='conf-warn'>⚠ CET consommé en totalité (" + fmtE(cetUtilise) + ") — il manque <b>" +
       fmtE(complement) + "</b> pour le net promis.</span>" +
       (baisse > 0.5
-        ? " <b>Régulation par le logement :</b> réduire la participation à <b>" + fmtE(partAct - baisse) +
-          "/sem</b> (au lieu de " + fmtE(partAct) + ", sans passer sous le coût du logement) — le net remonte d'autant" +
+        ? " <b>Régulation par le logement :</b> réduire la participation à <b>" + fmtE(partApres) +
+          "/sem</b> (au lieu de " + fmtE(partAct) + ")" +
+          (coutLog > 0 && partApres < coutLog - 0.005 ? " — <b>sous le coût réel du logement</b> (" + fmtE(coutLog) + ") : la société logement finance " + fmtE(coutLog - partApres) : "") +
+          " — le net remonte d'autant" +
           (complement - baisse > 0.5 ? ", puis compléter avec " + fmtE(complement - baisse) + " d'indemnités nettes." : ".")
-        : " Compléter avec <b>" + fmtE(complement) + " d'indemnités nettes</b> (plafonds URSSAF) ou augmenter les heures" +
-          (partAct > 0.5 && coutLog > 0 ? " — la participation reste au niveau du coût du logement (société logement à l'équilibre)." : "."));
-  } else if (cetActif && avance > 0.005) {
+        : " Compléter avec <b>" + fmtE(complement) + " d'indemnités nettes</b> (plafonds URSSAF) ou augmenter les heures.");
+  } else if (cetActif && avancePromis > 0.005) {
     ca.hidden = false;
-    ca.innerHTML = "<span class='delta good'>✓ Avance maximale de " + fmtE(avance) +
+    ca.innerHTML = "<span class='delta good'>✓ Avance maximale de " + fmtE(avancePromis) +
       " vers le net promis, entièrement financée par le CET.</span>" +
       (soldeQuasiNul ? " CET quasi soldé — presque rien à solder au déblocage final." : conseilPart + conseilReliquat(restantApres));
   } else if (cetActif && (cetRestant > 0.005 || excesNet > 0.5)) {
@@ -2186,10 +2193,10 @@ function render(r) {
         ? "Net constaté <b>au-dessus du net promis</b> (+" + fmtE(excesNet) + "/sem)."
         : "Aucune avance nécessaire.") +
       conseilPart + conseilReliquat(restantApres);
-  } else if (!cetActif && avance > 0.005) {
+  } else if (!cetActif && avancePromis > 0.005) {
     ca.hidden = false;
-    ca.innerHTML = "⚠ Avance de " + fmtE(avance) + " non adossée à un CET (IFM/ICCP en paiement direct) — " +
-      (partAct > 0.5 ? "réduire la participation logement (jusqu'à −" + fmtE(Math.min(avance, partAct)) + "), " : "") +
+    ca.innerHTML = "⚠ Avance de " + fmtE(avancePromis) + " non adossée à un CET (IFM/ICCP en paiement direct) — " +
+      (partAct > 0.5 ? "réduire la participation logement (jusqu'à −" + fmtE(Math.min(avancePromis, partAct)) + "), " : "") +
       "ajouter des indemnités nettes ou passer en mise en CET.";
   } else {
     ca.hidden = true; ca.innerHTML = "";
@@ -2349,16 +2356,37 @@ function computeNetPlan(cible) {
     const part = Math.floor(pLo * 100) / 100;   // arrondi bas : le net ne passe pas sous la cible
     return Object.assign(base, { part, indem: 0, res: evalNetAtteint(cible, part, 0, idx, adjSet), statut: "regulation", manque: 0 });
   }
-  /* il manque du net : sans levier indemnités (décoché ou aucune ligne libre) → constat */
+  /* BAISSE de participation SOUS le coût du logement (autorisée : la société
+   * logement finance la différence, signalée) — la plus HAUTE part qui atteint la cible */
+  function tryLowerPart(indemFix) {
+    if (!usePart || partBase <= 0.005) return null;
+    const aZero = evalNetAtteint(cible, 0, indemFix, idx, adjSet);
+    if (!aZero || aZero.net < cible - 0.005) return null;   /* même à 0 : insuffisant */
+    let pLo = 0, pHi = partBase;
+    for (let k = 0; k < 22; k++) {
+      const mid = (pLo + pHi) / 2;
+      (evalNetAtteint(cible, mid, indemFix, idx, adjSet).net >= cible - 0.0001) ? pLo = mid : pHi = mid;
+    }
+    const part = Math.floor(pLo * 100) / 100;
+    return { part, res: evalNetAtteint(cible, part, indemFix, idx, adjSet) };
+  }
+  /* il manque du net : sans levier indemnités (décoché ou aucune ligne libre) →
+   * tenter la baisse de participation, sinon constat */
   if (!useIndem || idx < 0 || plafond <= 0.005) {
+    const low = tryLowerPart(0);
+    if (low) return Object.assign(base, { part: low.part, indem: 0, res: low.res, statut: "sousCout", manque: 0 });
     const statut = !useIndem ? "indemOff" : (idx < 0 ? "aucuneLigne" : "plafond");
     return Object.assign(base, { part: partBase, indem: 0, res: a0, statut,
                                  manque: (cible - a0.net) * a0.hN });
   }
   const aMax = evalNetAtteint(cible, partBase, plafond, idx, adjSet);
-  if (aMax.net < cible - 0.005)    /* même au plafond URSSAF restant on n'y arrive pas */
-    return Object.assign(base, { part: partBase, indem: plafond, res: aMax, statut: "plafond",
-                                 manque: (cible - aMax.net) * aMax.hN });
+  if (aMax.net < cible - 0.005) {   /* plafond URSSAF atteint : baisser la participation */
+    const low = tryLowerPart(plafond);
+    if (low) return Object.assign(base, { part: low.part, indem: plafond, res: low.res, statut: "sousCout", manque: 0 });
+    const resBest = evalNetAtteint(cible, usePart ? 0 : partBase, plafond, idx, adjSet);
+    return Object.assign(base, { part: usePart ? 0 : partBase, indem: plafond, res: resBest,
+                                 statut: "plafond", manque: (cible - resBest.net) * resBest.hN });
+  }
   /* PLUS PETITE indemnité qui atteint la cible (le CET finance le reste) */
   let iLo = 0, iHi = plafond;
   for (let k = 0; k < 26; k++) {
@@ -2379,12 +2407,17 @@ function renderNetPlan() {
     return;
   }
   outNet.textContent = N2.format(plan.res.net) + " €/h";
-  const partStatut = plan.usePart
-    ? (plan.coutLog > 0
-        ? (plan.statut === "regulation" ? " (au-dessus du coût : régulation du net)"
-                                        : " (= coût du logement — société logement à l'équilibre)")
-        : "")
-    : " (levier désactivé — participation inchangée)";
+  /* statut de la participation : elle PEUT être au-dessus ou en dessous du coût
+   * réel du logement (outil de régulation) — l'écart est toujours signalé */
+  let partStatut;
+  if (!plan.usePart) partStatut = " (levier désactivé — participation inchangée)";
+  else if (plan.coutLog > 0.005) {
+    if (plan.part > plan.coutLog + 0.005)
+      partStatut = " (<b>au-dessus du coût réel</b> " + fmtE(plan.coutLog) + " — régulation du net, excédent société logement " + fmtE(plan.part - plan.coutLog) + ")";
+    else if (plan.part < plan.coutLog - 0.005)
+      partStatut = " (<b>sous le coût réel</b> " + fmtE(plan.coutLog) + " — la société logement finance " + fmtE(plan.coutLog - plan.part) + ")";
+    else partStatut = " (= coût du logement — société logement à l'équilibre)";
+  } else partStatut = "";
   const ligneNom = plan.idx >= 0 ? esc(($("inn" + plan.idx) && $("inn" + plan.idx).value) || ("Indemnité " + (plan.idx + 1))) : "—";
   detNet.innerHTML = "<b>Plan net à atteindre :</b> participation logement <b>" + fmtE(plan.part) + "/sem</b>" + partStatut +
     (plan.useIndem
@@ -2396,7 +2429,7 @@ function renderNetPlan() {
     "Plafond URSSAF GD 4ᵉ-24ᵉ mois (" + (inp.gdLieu === "paris" ? "Paris" : "province") + ") : " + fmtE(plan.plafondTotal) + "/sem" +
     (plan.dejaVersees > 0.005 ? " − " + fmtE(plan.dejaVersees) + " d'indemnités déjà versées = <b>" + fmtE(plan.plafond) + " disponibles</b>" : "") + "." +
     (plan.statut === "plafond" ? " <span class='conf-warn'>⚠ plafond URSSAF atteint — il manque " + fmtE(plan.manque) +
-      " : augmenter les heures ou le brut (descendre la participation sous le coût du logement mettrait la société logement en déficit).</span>" : "") +
+      " même avec la participation à zéro : augmenter les heures ou le brut.</span>" : "") +
     (plan.statut === "indemOff" ? " <span class='conf-warn'>⚠ il manque " + fmtE(plan.manque) +
       " pour le net promis — activer l'ajustement par les indemnités ou augmenter les heures/le brut.</span>" : "") +
     (plan.statut === "aucuneLigne" ? " <span class='conf-warn'>⚠ il manque " + fmtE(plan.manque) +
