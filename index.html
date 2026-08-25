@@ -258,7 +258,10 @@ table.kv { width: 100%; border-collapse: collapse; font-size: 13px; }
 table.kv td { padding: 4px 2px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
 table.kv tr:last-child td { border-bottom: 0; }
 table.kv td.n { text-align: right; white-space: nowrap; font-weight: 600; }
-table.kv td .ref { color: var(--muted); font-weight: 400; font-size: 10.5px; margin-left: 5px; }
+/* références de cellules Excel (F42, D85…) : traçabilité interne uniquement —
+ * masquées à l'écran (25/08/2026, demande utilisateur) ; le moteur reste un
+ * portage cellule par cellule validé par les tests golden */
+table.kv td .ref, .ref { display: none; }
 table.kv tr.total td { border-top: 1.5px solid var(--line); font-weight: 700; }
 table.kv tr.sub td { color: var(--muted); }
 
