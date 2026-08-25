@@ -311,6 +311,23 @@ table.grille td.neg { color: var(--bad); }
 .aide p { font-size: 12.5px; margin: 6px 0; }
 .aide h3 { font-size: 13px; margin: 12px 0 2px; }
 
+/* ===== Étude de prix (impression PDF) ===== */
+#etude-print { display: none; }
+@media print {
+  body.print-etude header.top, body.print-etude #mbar, body.print-etude .alerts,
+  body.print-etude .wrap { display: none !important; }
+  body.print-etude #etude-print { display: block !important; }
+  #etude-print { font: 11pt/1.45 "Segoe UI", system-ui, sans-serif; color: #1a1a1a; }
+  #etude-print h1 { font: 700 17pt Cambria, Georgia, serif; margin: 0 0 2pt; }
+  #etude-print h2 { font: 700 11.5pt Cambria, Georgia, serif; margin: 11pt 0 3pt; border-bottom: 1.5px solid #8a7434; padding-bottom: 2pt; }
+  #etude-print table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+  #etude-print td { padding: 2.5pt 4pt; border-bottom: 0.5pt solid #ddd; vertical-align: top; }
+  #etude-print td.n { text-align: right; white-space: nowrap; font-weight: 600; }
+  #etude-print .meta { color: #555; font-size: 9pt; }
+  #etude-print .logo-slot { float: right; width: 150pt; height: 42pt; border: 1px dashed #bbb;
+    text-align: center; color: #999; font-size: 8pt; line-height: 42pt; }
+  #etude-print .foot { margin-top: 12pt; padding-top: 4pt; border-top: 0.5pt solid #bbb; color: #666; font-size: 8.5pt; }
+}
 @media print {
   /* palette claire forcée quel que soit le thème actif */
   :root, :root:not([data-theme="light"]), :root[data-theme="dark"] {
@@ -361,6 +378,7 @@ table.grille td.neg { color: var(--bad); }
            (agri → MSA, BTP → GRAND D, industrie → INDUSTRIE) — select caché pour l'état moteur -->
       <select id="in-mode" hidden aria-hidden="true" tabindex="-1"></select>
       <div class="top-actions">
+        <button class="btn primary" id="btn-etude" title="Génère l'étude de prix (synthèse de l'offre commerciale) et ouvre l'impression — choisir « Enregistrer en PDF ». Nom de fichier automatique : Etude de prix – client – date.">Étude de prix PDF</button>
         <button class="btn" id="btn-share" title="Copier un lien qui restaure ce scénario">Partager</button>
         <button class="btn" id="btn-reset">Réinitialiser</button>
       </div>
@@ -702,6 +720,9 @@ table.grille td.neg { color: var(--bad); }
     </details>
   </div>
 </div>
+
+<!-- étude de prix : rempli au clic, visible uniquement à l'impression -->
+<div id="etude-print"></div>
 
 <script>
 // généré par build_db_js.py — tables extraites des classeurs AGRI / TARIFAIRE (identiques)
@@ -2908,6 +2929,98 @@ $("gs-tx-apply").addEventListener("click", e => {
 });
 /* applique le plan du pilotage du net (recalculé à l'instant du clic) */
 $("gs-net-apply").addEventListener("click", applyNetPlan);
+
+/* ===== ÉTUDE DE PRIX (synthèse de l'offre commerciale, impression PDF) =====
+ * Formalise l'offre pour le directeur commercial et sert au paramétrage du
+ * compte client par la paie/facturation. Archivage : le nom de fichier PDF
+ * reprend le client et la date. Logo/charte graphique : emplacement réservé. */
+function etudeFcPrime(p) {
+  if (p.fc === 0) return "non refacturée";
+  if (p.fc == null) return inp.refactPrimes ? "refacturée au coefficient (" + N4.format(inp.coeff) + ")" : "non refacturée";
+  return "refacturée coef " + N4.format(p.fc);
+}
+function buildEtudePrix() {
+  readInputsFromForm();
+  const M = compute(inp), m = M.main;
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("fr-FR");
+  const secteur = inp.sector === "agri" ? "CDD saisonnier agricole (MSA · TO-DE)"
+                : (inp.branche === "btp" ? "Intérim BTP (RGDU)" : "Intérim Industrie (RGDU)");
+  const txNormal = inp.coeff * inp.thBrut;
+  const kv = (l, v) => "<tr><td>" + l + "</td><td class='n'>" + v + "</td></tr>";
+  let s = '<div class="logo-slot">logo / charte graphique à venir</div>' +
+    "<h1>Étude de prix — " + esc(inp.client || "(client à renseigner)") + "</h1>" +
+    '<div class="meta">' + esc(secteur) + " · établie le " + dateStr + " · année " + now.getFullYear() +
+    (inp.dept ? " · mission : " + esc(inp.dept) : "") +
+    (inp.niveauQualif && inp.sector === "tarifaire" && inp.branche === "btp" ? " · qualification " + esc(inp.niveauQualif) : "") + "</div>";
+
+  s += "<h2>Conditions tarifaires</h2><table>";
+  s += kv("Coefficient de facturation", N4.format(inp.coeff));
+  s += kv("Taux horaire facturé au taux normal (coefficient × brut)", fmtE(txNormal) + "/h");
+  s += kv("Base horaire de l'offre", N2.format(inp.heures) + " h/sem sur " + inp.jours + " j — " +
+          N2.format(m.D24) + " h normales" + (m.D28 ? " + " + N2.format(m.D28) + " h à +25 %" : "") +
+          (m.D29 ? " + " + N2.format(m.D29) + " h à +50 %" : ""));
+  s += kv("Heures facturées au taux normal", N2.format(m.L24) + " h/sem (au-delà : majorations 25/50 %)");
+  const refacts = [inp.refactDim ? "dimanche" : null, inp.refactFerie ? "férié" : null, inp.refactNuit ? "nuit" : null].filter(Boolean);
+  if (refacts.length) s += kv("Majorations refacturées", refacts.join(", "));
+  if (inp.remisePct) s += kv("Remise fin d'année", N2.format(inp.remisePct) + " % × CA soumis à cotisations (" + fmtE(m.O42) + ")");
+  s += "</table>";
+
+  s += "<h2>Base salariale</h2><table>";
+  s += kv("Taux horaire brut", fmtE(inp.thBrut) + "/h");
+  if (inp.netAttendu != null) s += kv("Taux horaire net promis (base de l'offre)", fmtE(inp.netAttendu) + "/h");
+  s += kv("Net atteint (avances, indemnités et primes incluses)", $("out-netifm").textContent + "/h");
+  s += kv("Taux AT", N2.format(inp.rates.atPat || 0) + " %");
+  s += kv("IFM / CP", (!inp.ifm && !inp.iccp) ? "mise en CET 100 %" : "paiement direct");
+  s += "</table>";
+
+  const primes = inp.primes.filter(p => p.q * p.r > 0);
+  s += "<h2>Primes (soumises à cotisations)</h2><table>";
+  s += primes.length
+    ? primes.map(p => kv(esc(p.name) + " — " + N2.format(p.q) + " × " + fmtE(p.r) + " · " + etudeFcPrime(p), fmtE(p.q * p.r) + "/sem")).join("")
+    : kv("Aucune prime", "—");
+  s += "</table>";
+
+  const indems = inp.indemnites.filter(p => p.q * p.r > 0);
+  s += "<h2>Indemnités (non soumises)</h2><table>";
+  s += indems.length
+    ? indems.map(p => kv(esc(p.name) + " — " + N2.format(p.q) + " × " + fmtE(p.r) + " · " +
+        (p.fc === 0 ? "<b>NON facturée au client</b>" : (p.fc == null || p.fc === 1 ? "facturée à l'identique" : "facturée coef " + N4.format(p.fc))),
+        fmtE(p.q * p.r) + "/sem")).join("")
+    : kv("Aucune indemnité", "—");
+  s += "</table>";
+
+  s += "<h2>Logement</h2><table>";
+  if (m.F92 > 0) {
+    s += kv("Logement compris", "oui — coût " + fmtE(m.F92) + "/sem");
+    s += kv("Participation salarié (retenue nette)", fmtE(Math.max(0, -(inp.participationLibre || 0))) + "/sem");
+    s += kv("Part logement facturée au client", m.O52 > 0 ? fmtE(m.O52) + "/sem" : "non facturée");
+  } else {
+    s += kv("Logement compris", "non");
+  }
+  s += "</table>";
+
+  s += "<h2>Synthèse hebdomadaire</h2><table>";
+  s += kv("CA HT", fmtE(m.O60));
+  s += kv("Coût global salarié", fmtE(m.F93));
+  s += kv("Marge brute", fmtE(m.O64) + " (" + N2.format(m.H17) + " %)");
+  s += "</table>";
+
+  s += '<div class="foot">Étude de prix établie avec le simulateur intérim — sert à la formalisation de l\'offre commerciale et au paramétrage du compte client (paie &amp; facturation). Barèmes et cotisations au droit courant à la date d\'édition.</div>';
+  $("etude-print").innerHTML = s;
+  return { client: (inp.client || "client").replace(/[\\/:*?"<>|]/g, "-"), dateISO: now.toISOString().slice(0, 10) };
+}
+$("btn-etude").addEventListener("click", () => {
+  const meta = buildEtudePrix();
+  const oldTitle = document.title;
+  /* le nom du PDF reprend le titre : archivage par client et par année */
+  document.title = "Etude de prix - " + meta.client + " - " + meta.dateISO;
+  document.body.classList.add("print-etude");
+  const done = () => { document.body.classList.remove("print-etude"); document.title = oldTitle; };
+  window.addEventListener("afterprint", done, { once: true });
+  try { window.print(); } catch (e) { done(); }
+  setTimeout(done, 4000);   /* secours si afterprint ne se déclenche pas (iOS) */
+});
 /* au blur, la case remonte visuellement au plancher SMIC si la saisie est en dessous */
 $("in-thbrut").addEventListener("change", () => {
   const s = (typeof official !== "undefined" && official && official.smic) ? official.smic.value : BAKED_OFFICIAL.smic.value;
