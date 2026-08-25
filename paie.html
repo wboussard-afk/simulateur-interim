@@ -8,22 +8,22 @@
 /* ===== Veille Paie : références réglementaires & conventionnelles =====
  * Même palette que le simulateur ; page en LECTURE seule (aucun calcul de marge). */
 :root {
-  --paper:#F6F1E4; --card:#FDFBF2; --card2:#F2ECDA; --ink:#26291D; --muted:#6E6A54;
-  --line:#DFD7BC; --line-soft:#EBE4CD; --brass:#96711D; --brass-deep:#7A5A16;
+  --paper:#F5F6F8; --card:#FFFFFF; --card2:#EFF1F4; --ink:#1F2328; --muted:#5F6670;
+  --line:#D9DDE3; --line-soft:#E8EBEF; --brass:#C8102E; --brass-deep:#9E0C24;
   --good:#47713E; --warn:#93660F; --warn-soft:#F1E6C8; --bad:#A8432A;
   --shadow:0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper:#191A11; --card:#22241A; --card2:#2A2C20; --ink:#EAE4CD; --muted:#A59F85;
-    --line:#3C3E2D; --line-soft:#333526; --brass:#D2A94E; --brass-deep:#E4C273;
+    --paper:#161719; --card:#1E2024; --card2:#262930; --ink:#ECEDEF; --muted:#9BA2AB;
+    --line:#373B42; --line-soft:#2C3037; --brass:#E4586C; --brass-deep:#F08A97;
     --good:#93BD82; --warn:#D9B45E; --warn-soft:#383018; --bad:#E08A6B;
     --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3);
   }
 }
 :root[data-theme="dark"] {
-  --paper:#191A11; --card:#22241A; --card2:#2A2C20; --ink:#EAE4CD; --muted:#A59F85;
-  --line:#3C3E2D; --line-soft:#333526; --brass:#D2A94E; --brass-deep:#E4C273;
+  --paper:#161719; --card:#1E2024; --card2:#262930; --ink:#ECEDEF; --muted:#9BA2AB;
+  --line:#373B42; --line-soft:#2C3037; --brass:#E4586C; --brass-deep:#F08A97;
   --good:#93BD82; --warn:#D9B45E; --warn-soft:#383018; --bad:#E08A6B;
   --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3);
 }
@@ -57,7 +57,15 @@ select, input[type=text], input[type=number] { width: 100%; padding: 7px 8px; bo
 .adr-sug .item:last-child { border-bottom: 0; }
 .adr-sug .item:hover, .adr-sug .item:active { background: var(--card2); }
 .adr-sug .ctx { color: var(--muted); font-size: 11.5px; display: block; }
-tr.cur td { background: rgba(150, 113, 29, .12); font-weight: 700; }
+tr.cur td { background: rgba(200, 16, 46, .10); font-weight: 700; }
+/* taux horaire brut du niveau sélectionné — EN GRAND (desktop & mobile) */
+.hero-brut { background: linear-gradient(160deg, var(--warn-soft), var(--card)); border: 1px solid var(--line);
+  border-radius: 10px; box-shadow: var(--shadow); padding: 14px 18px 12px; }
+.hero-brut .eyebrow-h { font: 600 10.5px "Segoe UI", sans-serif; text-transform: uppercase; letter-spacing: .12em; color: var(--brass-deep); }
+.hero-brut .num { font-family: Cambria, "Iowan Old Style", Georgia, serif; font-size: 46px; font-weight: 700;
+  line-height: 1.05; letter-spacing: -.5px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.hero-brut .sub { color: var(--muted); font-size: 12.5px; margin-top: 3px; }
+@media (max-width: 700px) { .hero-brut .num { font-size: 40px; } }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 td, th { padding: 5px 4px; border-bottom: 1px solid var(--line-soft); text-align: left; vertical-align: top; }
 th { font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
@@ -121,6 +129,13 @@ a { color: var(--brass-deep); }
       <p class="note">Un département appartient à une région : choisir un département sélectionne automatiquement sa région (et inversement, la région filtre la liste des départements). Zone BTP = distance <b>aller simple</b> à vol d'oiseau ; tranche URSSAF = kilomètres <b>réels aller-retour</b>. ⚠ certains départements appliquent la distance réelle routière pour la grille BTP (ex. Savoie) — corriger les km à la main.</p>
     </div>
   </section>
+
+  <!-- 1er élément déterminant d'un contrat : le taux horaire brut du niveau choisi, EN GRAND -->
+  <div class="hero-brut" id="hero-brut">
+    <span class="eyebrow-h" id="hero-brut-ctx">Taux horaire brut minimum</span>
+    <div class="num" id="hero-brut-num">—</div>
+    <div class="sub" id="hero-brut-sub"></div>
+  </div>
 
   <section class="card">
     <h2>Droit courant <span class="eyebrow">Décrets · actualisation automatique</span></h2>
@@ -1233,14 +1248,22 @@ function renderMinima() {
          "<td class='n'><b>" + fmtE(below ? smicNow : h) + "</b>" + (below ? " <span class='note'>(grille " + fmtE(h) + ")</span>" : "") + "</td></tr>";
   }
   $("tbl-minima").innerHTML = s;
-  /* hint sous le sélecteur de niveau : minimum applicable dans la région choisie */
+  /* hint sous le sélecteur de niveau + TAUX HORAIRE BRUT EN GRAND (1er élément d'un contrat) */
   const cSel = NIVEAU_COEF_BTP[lvlSel];
   const mSel = reg.cc1596[cSel];
   if (mSel) {
     const hSel = Math.round((mSel / BTP_MINIMA.diviseurHoraire) * 100) / 100;
-    $("niveau-hint").textContent = "minimum " + N2.format(Math.max(hSel, smicNow)) + " €/h — " + nom +
+    const applicable = Math.max(hSel, smicNow);
+    $("niveau-hint").textContent = "minimum " + N2.format(applicable) + " €/h — " + nom +
       (hSel < smicNow - 1e-9 ? " (plancher SMIC)" : " (officiel)");
-  } else { $("niveau-hint").textContent = ""; }
+    $("hero-brut-ctx").textContent = "Taux horaire brut minimum — " + lvlSel + " (coeff " + cSel + ") · " + nom;
+    $("hero-brut-num").textContent = N2.format(applicable) + " €/h";
+    $("hero-brut-sub").textContent = fmtE(mSel) + "/mois (151,67 h)" +
+      (hSel < smicNow - 1e-9 ? " — grille " + N2.format(hSel) + " €/h sous le SMIC : plancher légal appliqué ⚠" : " — minimum conventionnel officiel");
+  } else {
+    $("niveau-hint").textContent = "";
+    $("hero-brut-num").textContent = "—"; $("hero-brut-sub").textContent = "";
+  }
   $("note-minima").innerHTML = "Source officielle : code.travail.gouv.fr (site mis à jour au " + esc(BTP_MINIMA.siteMajLe) +
     ", relevé le " + esc(BTP_MINIMA.releveLe) + ", surveillance hebdomadaire)" +
     (BTP_MINIMA.accords[key] ? " — " + esc(BTP_MINIMA.accords[key]) : "") +

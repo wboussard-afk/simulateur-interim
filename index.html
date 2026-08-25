@@ -7,16 +7,16 @@
 <style>
 /* ================= TOKENS ================= */
 :root {
-  --paper: #F6F1E4;
-  --card: #FDFBF2;
-  --card2: #F2ECDA;
-  --ink: #26291D;
-  --muted: #6E6A54;
-  --line: #DFD7BC;
-  --line-soft: #EBE4CD;
-  --brass: #96711D;
-  --brass-deep: #7A5A16;
-  --brass-soft: #EFE3C2;
+  --paper: #F5F6F8;
+  --card: #FFFFFF;
+  --card2: #EFF1F4;
+  --ink: #1F2328;
+  --muted: #5F6670;
+  --line: #D9DDE3;
+  --line-soft: #E8EBEF;
+  --brass: #C8102E;
+  --brass-deep: #9E0C24;
+  --brass-soft: #FADDE1;
   --good: #47713E;
   --good-soft: #E3EBDB;
   --warn: #93660F;
@@ -25,23 +25,23 @@
   --bad-soft: #F3E0D8;
   --info: #45647D;
   --info-soft: #E0E7EC;
-  --chart-line: #7A5A16;
-  --chart-grid: #E7DfC8;
+  --chart-line: #9E0C24;
+  --chart-grid: #E4E7EB;
   --focus: #45647D;
   --shadow: 0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #191A11;
-    --card: #22241A;
-    --card2: #2A2C20;
-    --ink: #EAE4CD;
-    --muted: #A59F85;
-    --line: #3C3E2D;
-    --line-soft: #333526;
-    --brass: #D2A94E;
-    --brass-deep: #E4C273;
-    --brass-soft: #3A351F;
+    --paper: #161719;
+    --card: #1E2024;
+    --card2: #262930;
+    --ink: #ECEDEF;
+    --muted: #9BA2AB;
+    --line: #373B42;
+    --line-soft: #2C3037;
+    --brass: #E4586C;
+    --brass-deep: #F08A97;
+    --brass-soft: #3A2227;
     --good: #93BD82;
     --good-soft: #2A331F;
     --warn: #D9B45E;
@@ -50,23 +50,23 @@
     --bad-soft: #3B241B;
     --info: #93B1C9;
     --info-soft: #263039;
-    --chart-line: #D2A94E;
-    --chart-grid: #333526;
+    --chart-line: #E4586C;
+    --chart-grid: #2C3037;
     --focus: #93B1C9;
     --shadow: 0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3);
   }
 }
 :root[data-theme="dark"] {
-  --paper: #191A11;
-  --card: #22241A;
-  --card2: #2A2C20;
-  --ink: #EAE4CD;
-  --muted: #A59F85;
-  --line: #3C3E2D;
-  --line-soft: #333526;
-  --brass: #D2A94E;
-  --brass-deep: #E4C273;
-  --brass-soft: #3A351F;
+  --paper: #161719;
+  --card: #1E2024;
+  --card2: #262930;
+  --ink: #ECEDEF;
+  --muted: #9BA2AB;
+  --line: #373B42;
+  --line-soft: #2C3037;
+  --brass: #E4586C;
+  --brass-deep: #F08A97;
+  --brass-soft: #3A2227;
   --good: #93BD82;
   --good-soft: #2A331F;
   --warn: #D9B45E;
@@ -75,8 +75,8 @@
   --bad-soft: #3B241B;
   --info: #93B1C9;
   --info-soft: #263039;
-  --chart-line: #D2A94E;
-  --chart-grid: #333526;
+  --chart-line: #E4586C;
+  --chart-grid: #2C3037;
   --focus: #93B1C9;
   --shadow: 0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3);
 }
@@ -331,10 +331,10 @@ table.grille td.neg { color: var(--bad); }
   /* palette claire forcée quel que soit le thème actif */
   :root, :root:not([data-theme="light"]), :root[data-theme="dark"] {
     --paper: #fff; --card: #fff; --card2: #fff; --ink: #1a1a1a; --muted: #555;
-    --line: #ccc; --line-soft: #ddd; --brass: #7A5A16; --brass-deep: #5c4410;
-    --brass-soft: #f3ecd8; --good: #2e5e28; --good-soft: #eee; --warn: #7a5a16;
+    --line: #ccc; --line-soft: #ddd; --brass: #9E0C24; --brass-deep: #6E0817;
+    --brass-soft: #F8E3E6; --good: #2e5e28; --good-soft: #eee; --warn: #7a5a16;
     --warn-soft: #eee; --bad: #8a2f1a; --bad-soft: #eee; --info: #2f4b63;
-    --info-soft: #eee; --chart-line: #5c4410; --chart-grid: #ddd; --shadow: none;
+    --info-soft: #eee; --chart-line: #6E0817; --chart-grid: #ddd; --shadow: none;
   }
   header.top .top-actions, .col, .gs, .btn, #mbar { display: none !important; }
   .wrap { grid-template-columns: 1fr; }
@@ -3120,7 +3120,7 @@ const APPLE_ICON = "iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAP30lEQVR42u2d
     head.appendChild(v);
   }
   if (!head.querySelector('meta[name="theme-color"]')) {
-    for (const [scheme, color] of [["light", "#F6F1E4"], ["dark", "#191A11"]]) {
+    for (const [scheme, color] of [["light", "#F5F6F8"], ["dark", "#161719"]]) {
       const t = document.createElement("meta");
       t.name = "theme-color"; t.content = color; t.media = "(prefers-color-scheme: " + scheme + ")";
       head.appendChild(t);
