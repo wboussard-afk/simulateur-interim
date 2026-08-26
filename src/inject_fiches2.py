@@ -3,10 +3,14 @@
 [+ fiche 3255 (wn18y52ay) si présente] et REMPLACE le bloc de données dans conventions.html."""
 import json, io, sys, re, os
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-base = r"C:\Users\NatassaMarkopoulou\AppData\Local\Temp\claude\C--Users-NatassaMarkopoulou-OneDrive---Magen-Financial-LLC-Desktop\ab66d73f-efe1-40d7-96f5-62b4be56e0df\scratchpad"
-tasks = base + r"\..\tasks"
+base = os.path.dirname(os.path.abspath(__file__))
+tasks = base + r"\..\tasks"  # sorties de workflows (n'existe que dans le scratchpad d'origine — ignoré ailleurs)
 
 def load(task):
+    # 1) instantané durable à côté du script (wf_<id>.json) ; 2) sortie de workflow du scratchpad d'origine
+    p1 = os.path.join(base, "wf_" + task + ".json")
+    if os.path.exists(p1):
+        return json.load(open(p1, encoding='utf-8'))
     out = json.load(open(tasks + "\\" + task + ".output", encoding='utf-8'))["result"]
     return json.loads(out) if isinstance(out, str) else out
 

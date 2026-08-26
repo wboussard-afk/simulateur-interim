@@ -2,7 +2,7 @@
 """Fusionne les fiche_ml_*.json (une par IDCC) dans fiches_mainloop.json (idcc = clé, remplace si présent)."""
 import json, io, sys, glob, os
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-base = r"C:\Users\NatassaMarkopoulou\AppData\Local\Temp\claude\C--Users-NatassaMarkopoulou-OneDrive---Magen-Financial-LLC-Desktop\ab66d73f-efe1-40d7-96f5-62b4be56e0df\scratchpad"
+base = os.path.dirname(os.path.abspath(__file__))
 p = base + r"\fiches_mainloop.json"
 d = json.load(open(p, encoding='utf-8'))
 by_idcc = {f["idcc"]: f for f in d["fiches"]}

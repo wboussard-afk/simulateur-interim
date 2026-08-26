@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """Assemble the self-contained simulateur-agri.html (inline db.js + engine.js)."""
-import io, sys, re
+import io, sys, re, os
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-base = r"C:\Users\NatassaMarkopoulou\AppData\Local\Temp\claude\C--Users-NatassaMarkopoulou-OneDrive---Magen-Financial-LLC-Desktop\ab66d73f-efe1-40d7-96f5-62b4be56e0df\scratchpad"
+# base = dossier du script (fonctionne dans le scratchpad comme dans src/ du dépôt GitHub)
+base = os.path.dirname(os.path.abspath(__file__))
 app = open(base + r"\app\app.html", encoding='utf-8').read()
 db = open(base + r"\app\db.js", encoding='utf-8').read()
 eng = open(base + r"\app\engine.js", encoding='utf-8').read()
