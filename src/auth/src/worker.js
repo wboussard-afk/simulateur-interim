@@ -234,6 +234,22 @@ async function api(req, env, url, u) {
     return json({ ok: true });
   }
 
+  /* -- point d'envoi des routines (clé secrète NOTIFY_KEY) : expéditeur du domaine, destinataires =
+   *    tous les admins ACTIFS de la base (dynamique), ou une liste explicite via "dest" -- */
+  if (p === "/api/notifier" && req.method === "POST") {
+    const cle = req.headers.get("x-notify-key") || "";
+    if (!env.NOTIFY_KEY || !egaliteConstante(cle, env.NOTIFY_KEY)) return json({ erreur: "cle_invalide" }, 403);
+    const sujet = String(corps.sujet || "").slice(0, 200);
+    const texte = String(corps.texte || "").slice(0, 20000);
+    if (!sujet || !texte) return json({ erreur: "champs_manquants" }, 400);
+    let dests = Array.isArray(corps.dest) && corps.dest.length
+      ? corps.dest.map(d => String(d).trim().toLowerCase()).filter(d => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d)).slice(0, 20)
+      : (await env.DB.prepare("SELECT email FROM utilisateurs WHERE role IN ('admin','super_admin') AND actif = 1").all()).results.map(r => r.email);
+    const res = await envoyerEmail(env, dests, sujet, texte, { env, req });
+    await journal(env, req, null, "notifier", sujet.slice(0, 120) + " → " + dests.join(","));
+    return json({ resultats: res.map(r => ({ destinataire: r.dest, ok: r.ok, status: r.status })) });
+  }
+
   /* -- journal d'activité (balise des apps) -- */
   if (p === "/api/activite" && req.method === "POST") {
     if (!u) return json({ erreur: "non_connecte" }, 401);

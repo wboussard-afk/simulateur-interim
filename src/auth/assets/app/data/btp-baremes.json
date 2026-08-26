@@ -1,0 +1,1554 @@
+{
+ "schema": "btp-baremes/v1",
+ "updatedAt": "2026-08-24",
+ "updatedBy": "tâche planifiée verif-minima-btp — passage du 24/08/2026",
+ "sources": {
+  "salaires": [
+   "https://code.travail.gouv.fr/contribution/1596-quel-est-le-salaire-minimum",
+   "https://code.travail.gouv.fr/contribution/1597-quel-est-le-salaire-minimum"
+  ],
+  "kali": {
+   "idcc1596": "KALICONT000005635221",
+   "idcc1597": "KALICONT000005635220",
+   "miroirSansAuth": "https://raw.githubusercontent.com/SocialGouv/kali-data/master/data/KALICONT000005635221.json",
+   "fraicheur": "https://api.github.com/repos/SocialGouv/kali-data/commits?path=data/KALICONT000005635221.json&per_page=1",
+   "dilaIncrements": "https://echanges.dila.gouv.fr/OPENDATA/KALI/"
+  },
+  "note": "montants salaires = MENSUEL brut base 35 h (151,6667 h) ; horaire = mensuel / 151,6667 ; le minimum applicable est max(accord, SMIC), SMIC au 24/08/2026 = 1 867,02 €/mois soit 12,31 €/h. IPD : trajet SOUMIS à cotisations, transport NON soumis, repas = panier. Les clés de zones suivent le simulateur (1A, 1B, 2, 3, 4, 5) : quand un accord ne prévoit qu'une zone 1 de 0 à 10 km, son montant est reporté à l'identique sur 1A et 1B ; les zones 6 et 7 de certains accords sont conservées ici mais non affichées.",
+  "ipd": [
+   "conteneurs KALI via le miroir SocialGouv/kali-data (contenu des articles en HTML)",
+   "https://www.legifrance.gouv.fr/conv_coll/id/<KALITEXT...>"
+  ]
+ },
+ "current": {
+  "salaires": {
+   "Auvergne-Rhône-Alpes": {
+    "cc1596": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1909,
+     "210": 2099.14,
+     "230": 2277.47,
+     "250": 2449.27,
+     "270": 2597.13
+    },
+    "cc1597": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1909,
+     "210": 2099.14,
+     "230": 2277.47,
+     "250": 2449.27,
+     "270": 2597.13
+    },
+    "accord": "accord du 14/1/2026 (au 1/1/2026)"
+   },
+   "Bourgogne-Franche-Comté": {
+    "cc1596": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1874,
+     "210": 2051,
+     "230": 2193,
+     "250": 2335,
+     "270": 2477
+    },
+    "cc1597": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1874,
+     "210": 2051,
+     "230": 2193,
+     "250": 2335,
+     "270": 2477
+    },
+    "accord": "accord du 18/3/2024 (au 1/6/2024)"
+   },
+   "Bretagne": {
+    "cc1596": {
+     "150": 1867.02,
+     "170": 1868.17,
+     "185": 1917.7,
+     "210": 2064.78,
+     "230": 2234.67,
+     "250": 2404.54,
+     "270": 2574.41
+    },
+    "cc1597": {
+     "150": 1867.02,
+     "170": 1868.17,
+     "185": 1917.7,
+     "210": 2064.78,
+     "230": 2234.67,
+     "250": 2404.54,
+     "270": 2574.41
+    },
+    "accord": "accord du 27/11/2025 (au 1/1/2026)"
+   },
+   "Centre-Val de Loire": {
+    "cc1596": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1907,
+     "210": 2056,
+     "230": 2175,
+     "250": 2293,
+     "270": 2412
+    },
+    "cc1597": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1898,
+     "210": 2045,
+     "230": 2165,
+     "250": 2283,
+     "270": 2400
+    },
+    "accord": "cc1596 : barème 2026 relevé sur code.travail.gouv.fr (accord non encore publié dans KALI) ; cc1597 : avenant du 10/4/2026 (au 1/5/2026)"
+   },
+   "Corse": {
+    "cc1596": {
+     "150": 1867.02,
+     "170": 1870.6,
+     "185": 1932.59,
+     "210": 2100.92,
+     "230": 2274.76,
+     "250": 2448.6,
+     "270": 2622.44
+    },
+    "cc1597": {
+     "150": 1867.02,
+     "170": 1870.6,
+     "185": 1932.59,
+     "210": 2100.92,
+     "230": 2274.76,
+     "250": 2448.6,
+     "270": 2622.44
+    },
+    "accord": "accord du 15/12/2025 (au 1/4/2026)"
+   },
+   "Grand Est": {
+    "cc1596": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1896.79,
+     "210": 2101.77,
+     "230": 2237.79,
+     "250": 2394.78,
+     "270": 2578.38
+    },
+    "cc1597": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1896.79,
+     "210": 2101.77,
+     "230": 2237.79,
+     "250": 2394.78,
+     "270": 2578.38
+    },
+    "accord": "accord du 16/1/2025 (au 1/3/2025)"
+   },
+   "Hauts-de-France": {
+    "cc1596": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1955,
+     "210": 2111,
+     "230": 2269,
+     "250": 2469,
+     "270": 2650
+    },
+    "cc1597": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1955,
+     "210": 2111,
+     "230": 2269,
+     "250": 2469,
+     "270": 2650
+    },
+    "accord": "accord du 1/12/2025 (au 1/1/2026)"
+   },
+   "Île-de-France": {
+    "cc1596": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1899,
+     "210": 2038,
+     "230": 2164,
+     "250": 2292,
+     "270": 2510
+    },
+    "cc1597": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1899,
+     "210": 2038,
+     "230": 2164,
+     "250": 2292,
+     "270": 2510
+    },
+    "accord": "accord du 5/11/2025"
+   },
+   "Normandie": {
+    "cc1596": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1884.22,
+     "210": 2065.63,
+     "230": 2210.88,
+     "250": 2380.23,
+     "270": 2527.04
+    },
+    "cc1597": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1884.22,
+     "210": 2065.63,
+     "230": 2210.88,
+     "250": 2380.23,
+     "270": 2527.04
+    },
+    "accord": "accord du 10/2/2026 (au 1/4/2026)"
+   },
+   "Nouvelle-Aquitaine": {
+    "cc1596": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1912.56,
+     "210": 2073.33,
+     "230": 2229.55,
+     "250": 2399.42,
+     "270": 2560.19
+    },
+    "cc1597": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1912.56,
+     "210": 2073.33,
+     "230": 2229.55,
+     "250": 2399.42,
+     "270": 2560.19
+    },
+    "accord": "accord du 22/10/2025 (au 1/1/2026)"
+   },
+   "Occitanie": {
+    "cc1596": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1902.53,
+     "210": 2084.9,
+     "230": 2248.73,
+     "250": 2380.1,
+     "270": 2547.01
+    },
+    "cc1597": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1902.53,
+     "210": 2084.9,
+     "230": 2248.73,
+     "250": 2380.1,
+     "270": 2547.01
+    },
+    "accord": "accord du 13/2/2026 (au 1/5/2026)"
+   },
+   "Pays de la Loire": {
+    "cc1596": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1867.02,
+     "210": 2064.23,
+     "230": 2244.72,
+     "250": 2425.2,
+     "270": 2607.21
+    },
+    "cc1597": {
+     "150": 1867.02,
+     "170": 1867.02,
+     "185": 1867.02,
+     "210": 2064.23,
+     "230": 2244.72,
+     "250": 2425.2,
+     "270": 2607.21
+    },
+    "accord": "accord du 7/11/2025 (au 1/3/2026)"
+   },
+   "Provence-Alpes-Côte d'Azur": {
+    "cc1596": {
+     "150": 1867.02,
+     "170": 1868.43,
+     "185": 1975.12,
+     "210": 2170.8,
+     "230": 2340.59,
+     "250": 2510.38,
+     "270": 2680.18
+    },
+    "cc1597": {
+     "150": 1867.02,
+     "170": 1868.43,
+     "185": 1975.12,
+     "210": 2170.8,
+     "230": 2340.59,
+     "250": 2510.38,
+     "270": 2680.18
+    },
+    "accord": "accord du 30/9/2024 (au 1/11/2024)"
+   }
+  },
+  "ipd": {
+   "Auvergne-Rhône-Alpes": {
+    "zones": null,
+    "accord": "accords 2026 par territoire (voir variantes) — pas de grille régionale unique",
+    "idcc": "1596 + 1597",
+    "note": "Région NON UNIFORME : l'accord régional du 10/2/2026 ne couvre que l'Auvergne (Allier, Cantal, Haute-Loire, Puy-de-Dôme). Les départements de Rhône-Alpes relèvent chacun d'un accord départemental distinct. Aucune grille régionale unique ne peut être exposée sans se tromper : zones = null, le simulateur conserve sa grille classeur. Grilles réelles en variantes.",
+    "variantes": {
+     "Auvergne (Allier, Cantal, Haute-Loire, Puy-de-Dôme)": {
+      "repas": 12.0,
+      "vigueur": "2026-04-01",
+      "accord": "accord régional du 10/2/2026",
+      "kali": {
+       "1596": "KALITEXT000054177315",
+       "1597": "KALITEXT000054177336"
+      },
+      "zonage": "1A 0-5 km, 1B 5-10 km, puis 10/20/30/40/50 km",
+      "zones": {
+       "1A": {
+        "trajet": 0.66,
+        "transport": 0.86
+       },
+       "1B": {
+        "trajet": 1.4,
+        "transport": 1.96
+       },
+       "2": {
+        "trajet": 2.73,
+        "transport": 5.77
+       },
+       "3": {
+        "trajet": 3.97,
+        "transport": 9.1
+       },
+       "4": {
+        "trajet": 5.03,
+        "transport": 12.58
+       },
+       "5": {
+        "trajet": 6.57,
+        "transport": 15.9
+       }
+      }
+     },
+     "Ain": {
+      "repas": 12.06,
+      "vigueur": "2026-04-01",
+      "accord": "accord départemental du 21/1/2026",
+      "kali": {
+       "1596": "KALITEXT000054254038"
+      },
+      "zonage": "1a 0-4 km, 1b 4-10 km, puis 10/20/30/40/50 km ; majoration de 25 % du transport et du trajet pour les 130 communes classées zone de montagne (annexe à l'accord)",
+      "zones": {
+       "1A": {
+        "trajet": 0.54,
+        "transport": 0.86
+       },
+       "1B": {
+        "trajet": 1.28,
+        "transport": 3.0
+       },
+       "2": {
+        "trajet": 2.53,
+        "transport": 6.32
+       },
+       "3": {
+        "trajet": 3.84,
+        "transport": 10.58
+       },
+       "4": {
+        "trajet": 5.09,
+        "transport": 14.84
+       },
+       "5": {
+        "trajet": 6.54,
+        "transport": 19.08
+       }
+      }
+     },
+     "Drôme-Ardèche": {
+      "repas": 12.0,
+      "vigueur": "2026-01-01",
+      "accord": "accord départemental du 10/12/2025",
+      "kali": {
+       "1596": "KALITEXT000054370756"
+      },
+      "zonage": "1a 0-5 km, 1b 5-10 km, puis 10/20/30/40/50 km",
+      "zones": {
+       "1A": {
+        "trajet": 0.85,
+        "transport": 1.9
+       },
+       "1B": {
+        "trajet": 1.49,
+        "transport": 3.2
+       },
+       "2": {
+        "trajet": 2.96,
+        "transport": 6.03
+       },
+       "3": {
+        "trajet": 4.27,
+        "transport": 9.68
+       },
+       "4": {
+        "trajet": 5.8,
+        "transport": 13.57
+       },
+       "5": {
+        "trajet": 7.1,
+        "transport": 17.3
+       }
+      }
+     },
+     "Isère": {
+      "repas": 12.06,
+      "vigueur": "2026-01-01",
+      "accord": "accord départemental du 15/12/2025",
+      "kali": {
+       "1596": "KALITEXT000053914156",
+       "1597": "KALITEXT000053914168"
+      },
+      "zonage": "1A 0-5 km, 1B 5-10 km, puis 10/20/30/40/50 km ; distances en km réels par le trajet le plus court",
+      "zones": {
+       "1A": {
+        "trajet": 0.69,
+        "transport": 1.12
+       },
+       "1B": {
+        "trajet": 2.02,
+        "transport": 3.4
+       },
+       "2": {
+        "trajet": 3.72,
+        "transport": 6.66
+       },
+       "3": {
+        "trajet": 5.75,
+        "transport": 10.89
+       },
+       "4": {
+        "trajet": 7.78,
+        "transport": 15.11
+       },
+       "5": {
+        "trajet": 9.71,
+        "transport": 19.04
+       }
+      }
+     },
+     "Loire": {
+      "repas": 12.11,
+      "vigueur": "2026-01-01",
+      "accord": "accord départemental du 15/1/2026",
+      "kali": {
+       "1596": "KALITEXT000054177325"
+      },
+      "zonage": "1A 0-5 km, 1B 5-10 km (mêmes montants), puis 10/20/30/40/50 km",
+      "note": "le titre KALI annonce « à compter du 1er avril 2026 » alors que l'article 2 de l'accord dit « à compter du 1er janvier 2026 » (modifDate KALI = 2026-01-01) — divergence NON tranchée, à vérifier sur l'arrêté d'extension",
+      "zones": {
+       "1A": {
+        "trajet": 1.54,
+        "transport": 3.34
+       },
+       "1B": {
+        "trajet": 1.54,
+        "transport": 3.34
+       },
+       "2": {
+        "trajet": 3.14,
+        "transport": 6.78
+       },
+       "3": {
+        "trajet": 4.68,
+        "transport": 11.04
+       },
+       "4": {
+        "trajet": 6.32,
+        "transport": 15.5
+       },
+       "5": {
+        "trajet": 8.15,
+        "transport": 20.2
+       }
+      }
+     },
+     "Rhône — entreprises de la métropole de Lyon (tableau A)": {
+      "repas": 12.35,
+      "vigueur": "2026-01-01",
+      "accord": "avenant départemental du 1/12/2025",
+      "kali": {
+       "1596": "KALITEXT000053748273",
+       "1597": "KALITEXT000053748283"
+      },
+      "zonage": "zone I unique 0-10 km (pas de sous-zone), puis 10/20/30/40/50 km",
+      "zones": {
+       "1A": {
+        "trajet": 1.6,
+        "transport": 4.45
+       },
+       "1B": {
+        "trajet": 1.6,
+        "transport": 4.45
+       },
+       "2": {
+        "trajet": 2.94,
+        "transport": 8.01
+       },
+       "3": {
+        "trajet": 4.22,
+        "transport": 12.13
+       },
+       "4": {
+        "trajet": 5.5,
+        "transport": 16.59
+       },
+       "5": {
+        "trajet": 6.7,
+        "transport": 20.8
+       }
+      }
+     },
+     "Rhône — entreprises hors métropole de Lyon (tableau B)": {
+      "repas": 12.35,
+      "vigueur": "2026-01-01",
+      "accord": "avenant départemental du 1/12/2025",
+      "kali": {
+       "1596": "KALITEXT000053748273",
+       "1597": "KALITEXT000053748283"
+      },
+      "zonage": "I a 0-4 km, I b 4-10 km, puis 10/20/30/40/50 km",
+      "zones": {
+       "1A": {
+        "trajet": 0.98,
+        "transport": 3.67
+       },
+       "1B": {
+        "trajet": 1.6,
+        "transport": 4.45
+       },
+       "2": {
+        "trajet": 2.94,
+        "transport": 8.01
+       },
+       "3": {
+        "trajet": 4.22,
+        "transport": 12.13
+       },
+       "4": {
+        "trajet": 5.5,
+        "transport": 16.59
+       },
+       "5": {
+        "trajet": 6.7,
+        "transport": 20.8
+       }
+      }
+     },
+     "Savoie": {
+      "repas": null,
+      "vigueur": "2026-01-01",
+      "accord": "accord paritaire du 16/12/2025",
+      "kali": {
+       "1596": "KALITEXT000054033876"
+      },
+      "zonage": "5 zones concentriques de 10 km ; si le kilométrage réel dépasse la distance à vol d'oiseau, c'est la zone du km réel qui s'applique (adaptation montagne)",
+      "note": "indemnité de repas NON LUE : l'accord ne revalorise que le transport (+0,50 %) et le trajet (+1 %)",
+      "zones": {
+       "1A": {
+        "trajet": 1.97,
+        "transport": 4.33
+       },
+       "1B": {
+        "trajet": 1.97,
+        "transport": 4.33
+       },
+       "2": {
+        "trajet": 3.83,
+        "transport": 8.67
+       },
+       "3": {
+        "trajet": 5.91,
+        "transport": 13.0
+       },
+       "4": {
+        "trajet": 7.67,
+        "transport": 17.34
+       },
+       "5": {
+        "trajet": 9.65,
+        "transport": 21.67
+       }
+      }
+     },
+     "Haute-Savoie": {
+      "repas": 12.88,
+      "vigueur": "2026-01-01",
+      "accord": "accord départemental du 16/12/2025",
+      "kali": {
+       "1596": "KALITEXT000053973275",
+       "1597": "KALITEXT000053973304"
+      },
+      "zonage": "1A 0-5 km, 1B 5-10 km, puis 10/20/30/40/50 km",
+      "zones": {
+       "1A": {
+        "trajet": 0.92,
+        "transport": 1.9
+       },
+       "1B": {
+        "trajet": 1.52,
+        "transport": 2.84
+       },
+       "2": {
+        "trajet": 3.01,
+        "transport": 6.59
+       },
+       "3": {
+        "trajet": 4.42,
+        "transport": 10.39
+       },
+       "4": {
+        "trajet": 5.75,
+        "transport": 14.4
+       },
+       "5": {
+        "trajet": 7.35,
+        "transport": 18.23
+       }
+      }
+     }
+    }
+   },
+   "Bourgogne-Franche-Comté": {
+    "repas": 11.44,
+    "vigueur": "2024-06-01",
+    "accord": "accord du 18/3/2024 (au 1/6/2024)",
+    "idcc": "1596 + 1597 (accords jumeaux, montants identiques)",
+    "kali": {
+     "1596": "KALITEXT000049869696",
+     "1597": "KALITEXT000049869716"
+    },
+    "zonage": "zone 1 unique 0-10 km (reportée sur 1A et 1B), puis 10/20/30/40/50 km",
+    "zones": {
+     "1A": {
+      "trajet": 1.76,
+      "transport": 2.65
+     },
+     "1B": {
+      "trajet": 1.76,
+      "transport": 2.65
+     },
+     "2": {
+      "trajet": 3.38,
+      "transport": 5.57
+     },
+     "3": {
+      "trajet": 4.7,
+      "transport": 9.06
+     },
+     "4": {
+      "trajet": 6.6,
+      "transport": 11.67
+     },
+     "5": {
+      "trajet": 7.77,
+      "transport": 14.51
+     }
+    },
+    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000049869696"
+   },
+   "Bretagne": {
+    "repas": 12.3,
+    "vigueur": "2026-01-01",
+    "accord": "accord du 27/11/2025 (au 1/1/2026)",
+    "idcc": "1596 + 1597 (accord commun)",
+    "kali": {
+     "1596": "KALITEXT000053715867",
+     "1597": "KALITEXT000053715867"
+    },
+    "extension": "arrêté du 3/2/2026 (JORFTEXT000053440246)",
+    "zonage": "1A 0-4 km, 1B 4-10 km, puis 10/20/30/40/50 km",
+    "note": "en zone 1A, l'ouvrier bénéficiant d'une pause méridienne d'au moins 1 h 30 est réputé déjeuner à sa résidence : pas d'indemnité de repas, sauf circonstances contraires",
+    "zones": {
+     "1A": {
+      "trajet": 0.47,
+      "transport": 0.58
+     },
+     "1B": {
+      "trajet": 1.51,
+      "transport": 2.86
+     },
+     "2": {
+      "trajet": 2.08,
+      "transport": 5.73
+     },
+     "3": {
+      "trajet": 3.11,
+      "transport": 7.86
+     },
+     "4": {
+      "trajet": 4.36,
+      "transport": 10.08
+     },
+     "5": {
+      "trajet": 5.21,
+      "transport": 12.27
+     }
+    },
+    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000053715867"
+   },
+   "Centre-Val de Loire": {
+    "repas": 11.0,
+    "vigueur": "2025-03-01",
+    "accord": "avenant du 3/2/2025 (au 1/3/2025) — IDCC 1596",
+    "idcc": "1596 (grille exposée) ; 1597 DIFFÉRENT, voir variantes",
+    "kali": {
+     "1596": "KALITEXT000051664767"
+    },
+    "zonage": "1a jusqu'à 3 km, 1b 3-10 km, puis 10/20/30/40/50 km",
+    "note": "SEULE région où les deux IDCC divergent : le 1597 a un avenant plus récent (10/4/2026, au 1/5/2026) que le 1596 (3/2/2025). Le simulateur raisonnant en cc1596, c'est la grille 1596 qui est exposée ; la grille 1597 est en variantes.",
+    "zones": {
+     "1A": {
+      "trajet": 0.41,
+      "transport": 0.53
+     },
+     "1B": {
+      "trajet": 2.59,
+      "transport": 3.76
+     },
+     "2": {
+      "trajet": 4.23,
+      "transport": 7.91
+     },
+     "3": {
+      "trajet": 5.2,
+      "transport": 11.69
+     },
+     "4": {
+      "trajet": 6.52,
+      "transport": 16.19
+     },
+     "5": {
+      "trajet": 8.13,
+      "transport": 20.71
+     }
+    },
+    "variantes": {
+     "IDCC 1597 (> 10 salariés)": {
+      "repas": 11.17,
+      "vigueur": "2026-05-01",
+      "accord": "avenant du 10/4/2026",
+      "kali": {
+       "1597": "KALITEXT000054434524"
+      },
+      "zonage": "1a jusqu'à 3 km, 1b 3-10 km, puis 10/20/30/40/50 km",
+      "zones": {
+       "1A": {
+        "trajet": 0.42,
+        "transport": 0.54
+       },
+       "1B": {
+        "trajet": 2.62,
+        "transport": 3.8
+       },
+       "2": {
+        "trajet": 4.27,
+        "transport": 7.99
+       },
+       "3": {
+        "trajet": 5.25,
+        "transport": 11.8
+       },
+       "4": {
+        "trajet": 6.59,
+        "transport": 16.35
+       },
+       "5": {
+        "trajet": 8.22,
+        "transport": 20.92
+       }
+      }
+     }
+    },
+    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000051664767"
+   },
+   "Corse": {
+    "repas": 11.0,
+    "vigueur": "2026-04-01",
+    "accord": "accord du 15/12/2025 (au 1/4/2026)",
+    "idcc": "1596 + 1597 (accord commun)",
+    "kali": {
+     "1596": "KALITEXT000054092035",
+     "1597": "KALITEXT000054092035"
+    },
+    "zonage": "zone 1 unique 0-10 km (reportée sur 1A et 1B), puis 10/20/30/40/50 km ; zones 6 (50-65 km) et 7 (65-80 km) en plus — non affichées par le simulateur qui n'a que 6 zones",
+    "zones": {
+     "1A": {
+      "trajet": 1.56,
+      "transport": 2.54
+     },
+     "1B": {
+      "trajet": 1.56,
+      "transport": 2.54
+     },
+     "2": {
+      "trajet": 2.9,
+      "transport": 5.26
+     },
+     "3": {
+      "trajet": 4.24,
+      "transport": 8.22
+     },
+     "4": {
+      "trajet": 5.69,
+      "transport": 11.26
+     },
+     "5": {
+      "trajet": 8.55,
+      "transport": 14.36
+     },
+     "6": {
+      "trajet": 10.89,
+      "transport": 18.18
+     },
+     "7": {
+      "trajet": 12.91,
+      "transport": 22.25
+     }
+    },
+    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000054092035"
+   },
+   "Grand Est": {
+    "repas": 11.8,
+    "vigueur": "2025-03-01",
+    "zones": null,
+    "accord": "accord du 16/1/2025 (au 1/3/2025) — barèmes distincts Alsace / Lorraine / Champagne-Ardenne",
+    "idcc": "1596 + 1597 (accords jumeaux, montants identiques)",
+    "kali": {
+     "1596": "KALITEXT000051664746",
+     "1597": "KALITEXT000051664788"
+    },
+    "note": "Région NON UNIFORME : un seul accord régional mais TROIS barèmes de transport (Alsace / Lorraine / Champagne-Ardenne), le trajet ne divergeant qu'en zone 5. Aucune grille unique ne peut être exposée sans se tromper sur deux territoires sur trois : zones = null, le simulateur conserve sa grille classeur. Le repas 11,80 € est uniforme sur la région.",
+    "variantes": {
+     "Alsace": {
+      "repas": 11.8,
+      "zonage": "5 zones de 10 km (0-10, 10-20, 20-30, 30-40, 40-50)",
+      "zones": {
+       "1A": {
+        "trajet": 2.0,
+        "transport": 2.8
+       },
+       "1B": {
+        "trajet": 2.0,
+        "transport": 2.8
+       },
+       "2": {
+        "trajet": 3.15,
+        "transport": 3.95
+       },
+       "3": {
+        "trajet": 4.6,
+        "transport": 5.0
+       },
+       "4": {
+        "trajet": 5.75,
+        "transport": 6.9
+       },
+       "5": {
+        "trajet": 7.0,
+        "transport": 8.2
+       }
+      }
+     },
+     "Lorraine": {
+      "repas": 11.8,
+      "zonage": "5 zones de 10 km",
+      "zones": {
+       "1A": {
+        "trajet": 2.0,
+        "transport": 2.8
+       },
+       "1B": {
+        "trajet": 2.0,
+        "transport": 2.8
+       },
+       "2": {
+        "trajet": 3.15,
+        "transport": 4.7
+       },
+       "3": {
+        "trajet": 4.6,
+        "transport": 7.6
+       },
+       "4": {
+        "trajet": 5.75,
+        "transport": 11.45
+       },
+       "5": {
+        "trajet": 7.4,
+        "transport": 13.35
+       }
+      }
+     },
+     "Champagne-Ardenne": {
+      "repas": 11.8,
+      "zonage": "5 zones de 10 km",
+      "zones": {
+       "1A": {
+        "trajet": 2.0,
+        "transport": 2.8
+       },
+       "1B": {
+        "trajet": 2.0,
+        "transport": 2.8
+       },
+       "2": {
+        "trajet": 3.15,
+        "transport": 4.7
+       },
+       "3": {
+        "trajet": 4.6,
+        "transport": 7.45
+       },
+       "4": {
+        "trajet": 5.75,
+        "transport": 9.8
+       },
+       "5": {
+        "trajet": 8.25,
+        "transport": 11.8
+       }
+      }
+     }
+    },
+    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000051664746"
+   },
+   "Hauts-de-France": {
+    "repas": 14.0,
+    "vigueur": "2026-01-01",
+    "accord": "accord du 1/12/2025 (au 1/1/2026)",
+    "idcc": "1596 + 1597 (accords jumeaux, montants identiques)",
+    "kali": {
+     "1596": "KALITEXT000053973265",
+     "1597": "KALITEXT000053973294"
+    },
+    "zonage": "zone 1 unique 0-10 km (reportée sur 1A et 1B), puis 10/20/30/40/50 km",
+    "zones": {
+     "1A": {
+      "trajet": 1.57,
+      "transport": 2.71
+     },
+     "1B": {
+      "trajet": 1.57,
+      "transport": 2.71
+     },
+     "2": {
+      "trajet": 3.14,
+      "transport": 6.44
+     },
+     "3": {
+      "trajet": 4.71,
+      "transport": 9.96
+     },
+     "4": {
+      "trajet": 6.28,
+      "transport": 13.09
+     },
+     "5": {
+      "trajet": 7.86,
+      "transport": 16.74
+     }
+    },
+    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000053973265"
+   },
+   "Île-de-France": {
+    "repas": 11.85,
+    "vigueur": "2026-02-06",
+    "accord": "accord du 5/11/2025",
+    "idcc": "1596 + 1597 (accords jumeaux, montants identiques)",
+    "kali": {
+     "1596": "KALITEXT000053504204",
+     "1597": "KALITEXT000053504249"
+    },
+    "extension": "arrêté du 27/1/2026 (JORFTEXT000053440212)",
+    "zonage": "zone 1 unique (reportée sur 1A et 1B) ; 6e zone concentrique créée par l'accord du 7/11/2024 — non affichée par le simulateur qui n'a que 6 zones",
+    "note": "accord de convergence : barème unique pour les 8 départements franciliens, Seine-et-Marne comprise (fin du barème séparé)",
+    "zones": {
+     "1A": {
+      "trajet": 2.54,
+      "transport": 2.69
+     },
+     "1B": {
+      "trajet": 2.54,
+      "transport": 2.69
+     },
+     "2": {
+      "trajet": 3.44,
+      "transport": 3.39
+     },
+     "3": {
+      "trajet": 5.07,
+      "transport": 5.07
+     },
+     "4": {
+      "trajet": 5.78,
+      "transport": 6.33
+     },
+     "5": {
+      "trajet": 7.29,
+      "transport": 8.07
+     },
+     "6": {
+      "trajet": 8.23,
+      "transport": 9.55
+     }
+    },
+    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000053504204"
+   },
+   "Normandie": {
+    "repas": 12.5,
+    "vigueur": "2026-04-01",
+    "accord": "accord du 10/2/2026 (au 1/4/2026)",
+    "idcc": "1596 + 1597 (accord commun)",
+    "kali": {
+     "1596": "KALITEXT000054303871",
+     "1597": "KALITEXT000054303871"
+    },
+    "zonage": "zone 1 unique 0-10 km (reportée sur 1A et 1B), puis 10/20/30/40/50 km",
+    "zones": {
+     "1A": {
+      "trajet": 1.68,
+      "transport": 3.04
+     },
+     "1B": {
+      "trajet": 1.68,
+      "transport": 3.04
+     },
+     "2": {
+      "trajet": 3.36,
+      "transport": 6.7
+     },
+     "3": {
+      "trajet": 5.03,
+      "transport": 10.05
+     },
+     "4": {
+      "trajet": 6.67,
+      "transport": 14.08
+     },
+     "5": {
+      "trajet": 8.39,
+      "transport": 18.1
+     }
+    },
+    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000054303871"
+   },
+   "Nouvelle-Aquitaine": {
+    "repas": 11.2,
+    "vigueur": "2026-01-01",
+    "accord": "accord du 22/10/2025",
+    "idcc": "1596 + 1597 (accord commun)",
+    "kali": {
+     "1596": "KALITEXT000053497386",
+     "1597": "KALITEXT000053497386"
+    },
+    "zonage": "sous-zones 1 A et 1 B distinctes ; bornes kilométriques NON précisées dans l'article extrait (à confirmer sur l'arrêté d'extension)",
+    "zones": {
+     "1A": {
+      "trajet": 0.74,
+      "transport": 0.89
+     },
+     "1B": {
+      "trajet": 1.67,
+      "transport": 2.35
+     },
+     "2": {
+      "trajet": 3.45,
+      "transport": 5.12
+     },
+     "3": {
+      "trajet": 4.9,
+      "transport": 8.5
+     },
+     "4": {
+      "trajet": 6.37,
+      "transport": 11.93
+     },
+     "5": {
+      "trajet": 7.88,
+      "transport": 15.33
+     }
+    },
+    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000053497386"
+   },
+   "Occitanie": {
+    "repas": 13.2,
+    "vigueur": "2026-05-01",
+    "accord": "accord du 13/2/2026 (au 1/5/2026)",
+    "idcc": "1596 + 1597 (accord commun)",
+    "kali": {
+     "1596": "KALITEXT000054337431",
+     "1597": "KALITEXT000054337431"
+    },
+    "zonage": "zones 1A et 1B distinctes mais AU MÊME MONTANT dans l'accord, puis 10/20/30/40/50 km",
+    "zones": {
+     "1A": {
+      "trajet": 2.06,
+      "transport": 3.19
+     },
+     "1B": {
+      "trajet": 2.06,
+      "transport": 3.19
+     },
+     "2": {
+      "trajet": 4.38,
+      "transport": 6.43
+     },
+     "3": {
+      "trajet": 5.58,
+      "transport": 9.59
+     },
+     "4": {
+      "trajet": 7.42,
+      "transport": 12.7
+     },
+     "5": {
+      "trajet": 9.4,
+      "transport": 16.13
+     }
+    },
+    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000054337431"
+   },
+   "Pays de la Loire": {
+    "repas": 12.0,
+    "vigueur": "2026-03-01",
+    "accord": "accord du 7/11/2025 (au 1/3/2026)",
+    "idcc": "1596 + 1597 (accord commun)",
+    "kali": {
+     "1596": "KALITEXT000053504226",
+     "1597": "KALITEXT000053504226"
+    },
+    "zonage": "1-A 0-5 km, 1-B 5-10 km, puis 10/20/30/40/50 km ; zones 6 (50-65 km) et 7 (65-80 km) en plus — non affichées par le simulateur qui n'a que 6 zones",
+    "note": "l'accord du 7/11/2025 ne revalorise que les indemnités de transport ; les indemnités de trajet sont reconduites à l'identique",
+    "zones": {
+     "1A": {
+      "trajet": 0.48,
+      "transport": 0.9
+     },
+     "1B": {
+      "trajet": 0.67,
+      "transport": 1.14
+     },
+     "2": {
+      "trajet": 1.9,
+      "transport": 4.46
+     },
+     "3": {
+      "trajet": 4.08,
+      "transport": 8.42
+     },
+     "4": {
+      "trajet": 5.12,
+      "transport": 12.88
+     },
+     "5": {
+      "trajet": 6.11,
+      "transport": 19.19
+     },
+     "6": {
+      "trajet": 6.86,
+      "transport": 20.54
+     },
+     "7": {
+      "trajet": 8.17,
+      "transport": 24.88
+     }
+    },
+    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000053504226"
+   },
+   "Provence-Alpes-Côte d'Azur": {
+    "repas": 12.2,
+    "vigueur": "2024-11-01",
+    "accord": "accord du 30/9/2024 (au 1/11/2024)",
+    "idcc": "1596 + 1597 (accords jumeaux, montants identiques)",
+    "kali": {
+     "1596": "KALITEXT000050962265",
+     "1597": "KALITEXT000050962290"
+    },
+    "zonage": "zone 1 unique 0-10 km (reportée sur 1A et 1B), puis 10/20/30/40/50 km",
+    "zones": {
+     "1A": {
+      "trajet": 2.05,
+      "transport": 3.65
+     },
+     "1B": {
+      "trajet": 2.05,
+      "transport": 3.65
+     },
+     "2": {
+      "trajet": 3.25,
+      "transport": 6.42
+     },
+     "3": {
+      "trajet": 4.38,
+      "transport": 8.63
+     },
+     "4": {
+      "trajet": 5.81,
+      "transport": 11.26
+     },
+     "5": {
+      "trajet": 6.9,
+      "transport": 14.8
+     }
+    },
+    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000050962265"
+   }
+  }
+ },
+ "reperages_pour_la_veille": {
+  "note": "état au 24/08/2026 après extraction complète des accords IPD et salaires des deux conteneurs KALI. Fraîcheur du miroir kali-data : commit a6b8da8 du 21/07/2026. Incréments DILA du 18, 20 et 21/08/2026 inspectés : aucun ne concerne KALICONT000005635220/21.",
+  "a_surveiller": [
+   "Centre-Val de Loire IDCC 1596 : KALI s'arrête à l'avenant du 3/2/2025 (1 884 € au coef 185) alors que code.travail.gouv.fr publie déjà un barème 2026 (1 907 €). Reprendre la référence d'accord dès sa parution dans KALI.",
+   "Corse : divergence de source sur le coefficient 170 (accord 1 870,60 € vs code.travail.gouv.fr 1 823,20 €). Le texte de l'accord a été retenu — à reconfirmer au prochain accord régional.",
+   "Auvergne-Rhône-Alpes : pas de barème IPD régional unique — l'accord régional du 10/2/2026 ne vaut que pour l'Allier, le Cantal, la Haute-Loire et le Puy-de-Dôme ; 7 accords départementaux couvrent Rhône-Alpes (dont le Rhône avec deux tableaux selon que l'entreprise est ou non dans la métropole de Lyon). Tous relevés dans current.ipd.variantes.",
+   "Grand Est : un seul accord IPD mais trois barèmes de transport (Alsace / Lorraine / Champagne-Ardenne) et un trajet qui diverge en zone 5. Aucune grille unique exposée.",
+   "Loire (AURA) : le titre KALI dit « au 1er avril 2026 », l'article dit « au 1er janvier 2026 ». À trancher sur l'arrêté d'extension.",
+   "Savoie (AURA) : indemnité de repas non lue dans l'accord du 16/12/2025 (non revalorisée).",
+   "Nouvelle-Aquitaine : bornes kilométriques des sous-zones 1 A / 1 B non précisées dans l'article extrait.",
+   "Accords IPD les plus anciens, donc les plus susceptibles d'être renégociés : PACA (30/9/2024), Bourgogne-Franche-Comté (18/3/2024), Grand Est (16/1/2025), Centre-Val de Loire 1596 (3/2/2025).",
+   "Salaires : Bourgogne-Franche-Comté n'a pas bougé depuis l'accord du 18/3/2024 et PACA depuis le 30/9/2024 — renégociations attendues."
+  ],
+  "arretes_extension_releves": {
+   "Bretagne IPD 27/11/2025": "arrêté du 3/2/2026 (JORFTEXT000053440246)",
+   "Île-de-France IPD 5/11/2025": "arrêté du 27/1/2026 (JORFTEXT000053440212)",
+   "Centre-Val de Loire salaires 1597 10/4/2026": "arrêté du 6/7/2026",
+   "Grand Est salaires 16/1/2025": "arrêté du 29/4/2025"
+  }
+ },
+ "history": [
+  {
+   "date": "2026-08-20",
+   "type": "salaires",
+   "idcc": "1596+1597",
+   "source": "code.travail.gouv.fr (contribution pages, « Mis à jour le 01/06/2026 »)",
+   "commentaire": "relevé initial des 13 régions métropole — validé sur Bretagne N2 = 1 917,70 €/mois = 12,64 €/h"
+  },
+  {
+   "date": "2026-08-24",
+   "type": "salaires",
+   "idcc": "1596",
+   "region": "Corse",
+   "coefficient": "170",
+   "ancienne": 1867.02,
+   "nouvelle": 1870.6,
+   "accord": "accord du 15/12/2025 relatif aux salaires minimaux, applicable au 1/4/2026",
+   "kali": "KALITEXT000054092025 (art. KALIARTI000054092029)",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000054092025",
+   "commentaire": "le relevé initial retenait 1 867,02 € (plancher SMIC) alors que l'accord fixe 1 870,60 € (12,33 €/h), au-dessus du SMIC : le minimum conventionnel était sous-évalué de 3,58 €/mois. DIVERGENCE DE SOURCE : code.travail.gouv.fr affiche 1 823,20 € pour ce coefficient ; c'est le texte de l'accord (Légifrance/KALI) qui fait foi et qui est retenu."
+  },
+  {
+   "date": "2026-08-24",
+   "type": "salaires",
+   "idcc": "1597",
+   "region": "Corse",
+   "coefficient": "170",
+   "ancienne": 1867.02,
+   "nouvelle": 1870.6,
+   "accord": "accord du 15/12/2025 relatif aux salaires minimaux, applicable au 1/4/2026",
+   "kali": "KALITEXT000054092025 (art. KALIARTI000054092029)",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000054092025",
+   "commentaire": "le relevé initial retenait 1 867,02 € (plancher SMIC) alors que l'accord fixe 1 870,60 € (12,33 €/h), au-dessus du SMIC : le minimum conventionnel était sous-évalué de 3,58 €/mois. DIVERGENCE DE SOURCE : code.travail.gouv.fr affiche 1 823,20 € pour ce coefficient ; c'est le texte de l'accord (Légifrance/KALI) qui fait foi et qui est retenu."
+  },
+  {
+   "date": "2026-08-24",
+   "type": "salaires — libellés d'accord",
+   "idcc": "1596+1597",
+   "region": "13 régions métropole",
+   "changements": [
+    {
+     "region": "Auvergne-Rhône-Alpes",
+     "ancienne": null,
+     "nouvelle": "accord du 14/1/2026 (au 1/1/2026)"
+    },
+    {
+     "region": "Bourgogne-Franche-Comté",
+     "ancienne": null,
+     "nouvelle": "accord du 18/3/2024 (au 1/6/2024)"
+    },
+    {
+     "region": "Bretagne",
+     "ancienne": "accord du 3/12/2024 (au 1/1/2025)",
+     "nouvelle": "accord du 27/11/2025 (au 1/1/2026)"
+    },
+    {
+     "region": "Centre-Val de Loire",
+     "ancienne": null,
+     "nouvelle": "cc1596 : barème 2026 relevé sur code.travail.gouv.fr (accord non encore publié dans KALI) ; cc1597 : avenant du 10/4/2026 (au 1/5/2026)"
+    },
+    {
+     "region": "Corse",
+     "ancienne": null,
+     "nouvelle": "accord du 15/12/2025 (au 1/4/2026)"
+    },
+    {
+     "region": "Hauts-de-France",
+     "ancienne": "accord du 25/11/2024",
+     "nouvelle": "accord du 1/12/2025 (au 1/1/2026)"
+    },
+    {
+     "region": "Île-de-France",
+     "ancienne": "accord du 7/11/2024",
+     "nouvelle": "accord du 5/11/2025"
+    },
+    {
+     "region": "Normandie",
+     "ancienne": null,
+     "nouvelle": "accord du 10/2/2026 (au 1/4/2026)"
+    },
+    {
+     "region": "Nouvelle-Aquitaine",
+     "ancienne": "accord régional du 22/10/2025",
+     "nouvelle": "accord du 22/10/2025 (au 1/1/2026)"
+    },
+    {
+     "region": "Occitanie",
+     "ancienne": null,
+     "nouvelle": "accord du 13/2/2026 (au 1/5/2026)"
+    },
+    {
+     "region": "Pays de la Loire",
+     "ancienne": "accord du 10/10/2023",
+     "nouvelle": "accord du 7/11/2025 (au 1/3/2026)"
+    }
+   ],
+   "source": "conteneurs KALI KALICONT000005635221 (1596) et KALICONT000005635220 (1597), miroir SocialGouv/kali-data au commit a6b8da8 du 21/07/2026",
+   "commentaire": "MONTANTS INCHANGÉS : les 7 coefficients des 12 régions lisibles dans KALI ont été recomparés un à un aux accords (168 cellules, plancher SMIC 1 867,02 €/mois appliqué) — seul l'écart Corse coef 170 ci-dessus a été trouvé. Seules les références d'accord, restées sur des textes 2023-2024, sont mises à jour."
+  },
+  {
+   "date": "2026-08-24",
+   "type": "ipd",
+   "idcc": "1596 + 1597",
+   "region": "Auvergne-Rhône-Alpes",
+   "ancienne": null,
+   "nouvelle": "grille régionale NON EXPOSÉE (région non uniforme) — variantes : Auvergne (Allier, Cantal, Haute-Loire, Puy-de-Dôme), Ain, Drôme-Ardèche, Isère, Loire, Rhône — entreprises de la métropole de Lyon (tableau A), Rhône — entreprises hors métropole de Lyon (tableau B), Savoie, Haute-Savoie",
+   "vigueur": null,
+   "accord": "accords 2026 par territoire (voir variantes) — pas de grille régionale unique",
+   "kali": null,
+   "extension": null,
+   "source": null,
+   "commentaire": "première intégration : current.ipd était vide depuis le relevé initial"
+  },
+  {
+   "date": "2026-08-24",
+   "type": "ipd",
+   "idcc": "1596 + 1597 (accords jumeaux, montants identiques)",
+   "region": "Bourgogne-Franche-Comté",
+   "ancienne": null,
+   "nouvelle": "repas 11.44 € ; trajet 1.76/1.76/3.38/4.7/6.6/7.77 ; transport 2.65/2.65/5.57/9.06/11.67/14.51",
+   "vigueur": "2024-06-01",
+   "accord": "accord du 18/3/2024 (au 1/6/2024)",
+   "kali": {
+    "1596": "KALITEXT000049869696",
+    "1597": "KALITEXT000049869716"
+   },
+   "extension": null,
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000049869696",
+   "commentaire": "première intégration : current.ipd était vide depuis le relevé initial"
+  },
+  {
+   "date": "2026-08-24",
+   "type": "ipd",
+   "idcc": "1596 + 1597 (accord commun)",
+   "region": "Bretagne",
+   "ancienne": null,
+   "nouvelle": "repas 12.3 € ; trajet 0.47/1.51/2.08/3.11/4.36/5.21 ; transport 0.58/2.86/5.73/7.86/10.08/12.27",
+   "vigueur": "2026-01-01",
+   "accord": "accord du 27/11/2025 (au 1/1/2026)",
+   "kali": {
+    "1596": "KALITEXT000053715867",
+    "1597": "KALITEXT000053715867"
+   },
+   "extension": "arrêté du 3/2/2026 (JORFTEXT000053440246)",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000053715867",
+   "commentaire": "première intégration : current.ipd était vide depuis le relevé initial"
+  },
+  {
+   "date": "2026-08-24",
+   "type": "ipd",
+   "idcc": "1596 (grille exposée) ; 1597 DIFFÉRENT, voir variantes",
+   "region": "Centre-Val de Loire",
+   "ancienne": null,
+   "nouvelle": "repas 11.0 € ; trajet 0.41/2.59/4.23/5.2/6.52/8.13 ; transport 0.53/3.76/7.91/11.69/16.19/20.71",
+   "vigueur": "2025-03-01",
+   "accord": "avenant du 3/2/2025 (au 1/3/2025) — IDCC 1596",
+   "kali": {
+    "1596": "KALITEXT000051664767"
+   },
+   "extension": null,
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000051664767",
+   "commentaire": "première intégration : current.ipd était vide depuis le relevé initial"
+  },
+  {
+   "date": "2026-08-24",
+   "type": "ipd",
+   "idcc": "1596 + 1597 (accord commun)",
+   "region": "Corse",
+   "ancienne": null,
+   "nouvelle": "repas 11.0 € ; trajet 1.56/1.56/2.9/4.24/5.69/8.55/10.89/12.91 ; transport 2.54/2.54/5.26/8.22/11.26/14.36/18.18/22.25",
+   "vigueur": "2026-04-01",
+   "accord": "accord du 15/12/2025 (au 1/4/2026)",
+   "kali": {
+    "1596": "KALITEXT000054092035",
+    "1597": "KALITEXT000054092035"
+   },
+   "extension": null,
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000054092035",
+   "commentaire": "première intégration : current.ipd était vide depuis le relevé initial"
+  },
+  {
+   "date": "2026-08-24",
+   "type": "ipd",
+   "idcc": "1596 + 1597 (accords jumeaux, montants identiques)",
+   "region": "Grand Est",
+   "ancienne": null,
+   "nouvelle": "grille régionale NON EXPOSÉE (région non uniforme) — variantes : Alsace, Lorraine, Champagne-Ardenne",
+   "vigueur": "2025-03-01",
+   "accord": "accord du 16/1/2025 (au 1/3/2025) — barèmes distincts Alsace / Lorraine / Champagne-Ardenne",
+   "kali": {
+    "1596": "KALITEXT000051664746",
+    "1597": "KALITEXT000051664788"
+   },
+   "extension": null,
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000051664746",
+   "commentaire": "première intégration : current.ipd était vide depuis le relevé initial"
+  },
+  {
+   "date": "2026-08-24",
+   "type": "ipd",
+   "idcc": "1596 + 1597 (accords jumeaux, montants identiques)",
+   "region": "Hauts-de-France",
+   "ancienne": null,
+   "nouvelle": "repas 14.0 € ; trajet 1.57/1.57/3.14/4.71/6.28/7.86 ; transport 2.71/2.71/6.44/9.96/13.09/16.74",
+   "vigueur": "2026-01-01",
+   "accord": "accord du 1/12/2025 (au 1/1/2026)",
+   "kali": {
+    "1596": "KALITEXT000053973265",
+    "1597": "KALITEXT000053973294"
+   },
+   "extension": null,
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000053973265",
+   "commentaire": "première intégration : current.ipd était vide depuis le relevé initial"
+  },
+  {
+   "date": "2026-08-24",
+   "type": "ipd",
+   "idcc": "1596 + 1597 (accords jumeaux, montants identiques)",
+   "region": "Île-de-France",
+   "ancienne": null,
+   "nouvelle": "repas 11.85 € ; trajet 2.54/2.54/3.44/5.07/5.78/7.29/8.23 ; transport 2.69/2.69/3.39/5.07/6.33/8.07/9.55",
+   "vigueur": "2026-02-06",
+   "accord": "accord du 5/11/2025",
+   "kali": {
+    "1596": "KALITEXT000053504204",
+    "1597": "KALITEXT000053504249"
+   },
+   "extension": "arrêté du 27/1/2026 (JORFTEXT000053440212)",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000053504204",
+   "commentaire": "première intégration : current.ipd était vide depuis le relevé initial"
+  },
+  {
+   "date": "2026-08-24",
+   "type": "ipd",
+   "idcc": "1596 + 1597 (accord commun)",
+   "region": "Normandie",
+   "ancienne": null,
+   "nouvelle": "repas 12.5 € ; trajet 1.68/1.68/3.36/5.03/6.67/8.39 ; transport 3.04/3.04/6.7/10.05/14.08/18.1",
+   "vigueur": "2026-04-01",
+   "accord": "accord du 10/2/2026 (au 1/4/2026)",
+   "kali": {
+    "1596": "KALITEXT000054303871",
+    "1597": "KALITEXT000054303871"
+   },
+   "extension": null,
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000054303871",
+   "commentaire": "première intégration : current.ipd était vide depuis le relevé initial"
+  },
+  {
+   "date": "2026-08-24",
+   "type": "ipd",
+   "idcc": "1596 + 1597 (accord commun)",
+   "region": "Nouvelle-Aquitaine",
+   "ancienne": null,
+   "nouvelle": "repas 11.2 € ; trajet 0.74/1.67/3.45/4.9/6.37/7.88 ; transport 0.89/2.35/5.12/8.5/11.93/15.33",
+   "vigueur": "2026-01-01",
+   "accord": "accord du 22/10/2025",
+   "kali": {
+    "1596": "KALITEXT000053497386",
+    "1597": "KALITEXT000053497386"
+   },
+   "extension": null,
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000053497386",
+   "commentaire": "première intégration : current.ipd était vide depuis le relevé initial"
+  },
+  {
+   "date": "2026-08-24",
+   "type": "ipd",
+   "idcc": "1596 + 1597 (accord commun)",
+   "region": "Occitanie",
+   "ancienne": null,
+   "nouvelle": "repas 13.2 € ; trajet 2.06/2.06/4.38/5.58/7.42/9.4 ; transport 3.19/3.19/6.43/9.59/12.7/16.13",
+   "vigueur": "2026-05-01",
+   "accord": "accord du 13/2/2026 (au 1/5/2026)",
+   "kali": {
+    "1596": "KALITEXT000054337431",
+    "1597": "KALITEXT000054337431"
+   },
+   "extension": null,
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000054337431",
+   "commentaire": "première intégration : current.ipd était vide depuis le relevé initial"
+  },
+  {
+   "date": "2026-08-24",
+   "type": "ipd",
+   "idcc": "1596 + 1597 (accord commun)",
+   "region": "Pays de la Loire",
+   "ancienne": null,
+   "nouvelle": "repas 12.0 € ; trajet 0.48/0.67/1.9/4.08/5.12/6.11/6.86/8.17 ; transport 0.9/1.14/4.46/8.42/12.88/19.19/20.54/24.88",
+   "vigueur": "2026-03-01",
+   "accord": "accord du 7/11/2025 (au 1/3/2026)",
+   "kali": {
+    "1596": "KALITEXT000053504226",
+    "1597": "KALITEXT000053504226"
+   },
+   "extension": null,
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000053504226",
+   "commentaire": "première intégration : current.ipd était vide depuis le relevé initial"
+  },
+  {
+   "date": "2026-08-24",
+   "type": "ipd",
+   "idcc": "1596 + 1597 (accords jumeaux, montants identiques)",
+   "region": "Provence-Alpes-Côte d'Azur",
+   "ancienne": null,
+   "nouvelle": "repas 12.2 € ; trajet 2.05/2.05/3.25/4.38/5.81/6.9 ; transport 3.65/3.65/6.42/8.63/11.26/14.8",
+   "vigueur": "2024-11-01",
+   "accord": "accord du 30/9/2024 (au 1/11/2024)",
+   "kali": {
+    "1596": "KALITEXT000050962265",
+    "1597": "KALITEXT000050962290"
+   },
+   "extension": null,
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000050962265",
+   "commentaire": "première intégration : current.ipd était vide depuis le relevé initial"
+  }
+ ]
+}

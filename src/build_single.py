@@ -88,4 +88,13 @@ if os.path.isdir(os.path.join(base, "auth")):
                                ("salaires-europe-final.html", "salaires-europe.html")]:
         data = open(base + r"\app" + "\\" + src_name, encoding='utf-8').read()
         open(os.path.join(auth_app, dst_name), 'w', encoding='utf-8').write(data)
-    print("auth/assets/app/ alimenté (5 pages protégées)")
+    # barèmes BTP rechargés à l'exécution par le simulateur (fetch relatif "data/btp-baremes.json") :
+    # canonique = <racine du dépôt>/data/btp-baremes.json (historique versionné) ; secours = app/data/
+    for cand in [os.path.join(os.path.dirname(base), "data", "btp-baremes.json"),
+                 os.path.join(base, "app", "data", "btp-baremes.json")]:
+        if os.path.isfile(cand):
+            os.makedirs(os.path.join(auth_app, "data"), exist_ok=True)
+            open(os.path.join(auth_app, "data", "btp-baremes.json"), 'w', encoding='utf-8').write(open(cand, encoding='utf-8').read())
+            print("auth/assets/app/data/btp-baremes.json copié depuis", cand)
+            break
+    print("auth/assets/app/ alimenté (5 pages protégées + barèmes BTP)")
