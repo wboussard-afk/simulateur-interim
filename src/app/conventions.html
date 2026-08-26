@@ -322,10 +322,12 @@ async function demanderFiche(n, zone) {
 
 function boutonCopie(n, zone) {
   const b = document.createElement("button");
-  b.className = "btn"; b.textContent = "📋 Copier la demande pour Claude";
+  b.className = "btn"; b.textContent = "📋 Copier la demande d'ajout";
   b.addEventListener("click", async () => {
-    const msg = "Crée la fiche IDCC " + n + " dans l'application Veille Conventions (mêmes thèmes et format que les autres fiches) et déploie-la.";
-    try { await navigator.clipboard.writeText(msg); b.textContent = "✓ Copié — collez-le dans Claude"; }
+    const msg = "Demande d'ajout de fiche — Veille Conventions AB2Pro\nIDCC " + n +
+      (IDCC_LIBELLES[parseInt(n, 10)] ? " (" + IDCC_LIBELLES[parseInt(n, 10)] + ")" : "") +
+      "\nÀ transmettre à l'administrateur de l'application, qui fera constituer la fiche (délai : quelques minutes).";
+    try { await navigator.clipboard.writeText(msg); b.textContent = "✓ Copié — envoyez-le à l'administrateur"; }
     catch (e) { zone.appendChild(Object.assign(document.createElement("p"), { className: "note", textContent: msg })); }
   });
   zone.appendChild(b);
@@ -381,7 +383,7 @@ function ficheIDCC(idcc, contexteEntreprise) {
     s += "<p class='note'>Le détail chiffré local (horaire, plancher SMIC, paniers, zones transport/trajet par département) vit dans l'application <b>Veille Paie</b> — mise à jour par la même veille hebdomadaire.</p>";
   }
   if (!f && !(n === 1413 || n === 2378 || n === 1596 || n === 1597)) {
-    s += "<p class='note'>Fiche résumée pas encore intégrée pour cet IDCC. <b>Envoyez simplement le numéro à Claude</b> : la fiche (minima, nuit, HS, fériés, paniers, primes et conditions, annualisation, saisonniers…) est constituée sur sources officielles et déployée en quelques minutes, puis suivie par la veille hebdomadaire.</p>";
+    s += "<p class='note'>Fiche résumée pas encore intégrée pour cet IDCC. <b>Demandez son ajout</b> : la fiche (minima, nuit, HS, fériés, paniers, primes et conditions, annualisation, saisonniers…) est constituée sur sources officielles en quelques minutes, puis suivie par la veille hebdomadaire.</p>";
     s += "<div id='zone-demande' data-idcc='" + n + "' style='margin-top:8px'></div>";
   }
   s += "<p class='note' style='margin-top:12px'>Textes complets : <a target='_blank' rel='noopener' href='" + lienKali(n) + "'>code.travail.gouv.fr</a> · " +
