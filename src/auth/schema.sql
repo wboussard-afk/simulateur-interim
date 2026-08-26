@@ -33,6 +33,16 @@ CREATE TABLE IF NOT EXISTS demandes_acces (
   traite_le TEXT
 );
 
+CREATE TABLE IF NOT EXISTS demandes_fiches (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  idcc TEXT NOT NULL,
+  demandeur_email TEXT NOT NULL DEFAULT '',
+  demandeur_nom TEXT NOT NULL DEFAULT '',
+  statut TEXT NOT NULL DEFAULT 'en_attente' CHECK (statut IN ('en_attente','traitee','rejetee')),
+  cree_le TEXT NOT NULL DEFAULT (datetime('now')),
+  traite_le TEXT
+);
+
 CREATE TABLE IF NOT EXISTS activites (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER,

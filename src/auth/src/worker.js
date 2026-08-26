@@ -192,6 +192,23 @@ async function api(req, env, url, u) {
     return json({ ok: true });
   }
 
+  /* -- demande de fiche IDCC (utilisateur connecté) → base + e-mail immédiat aux admins -- */
+  if (p === "/api/demande-fiche" && req.method === "POST") {
+    if (!u) return json({ erreur: "non_connecte" }, 401);
+    const idcc = String(corps.idcc || "").trim();
+    if (!/^\d{2,4}$/.test(idcc)) return json({ erreur: "idcc_invalide" }, 400);
+    const attente = await env.DB.prepare("SELECT id FROM demandes_fiches WHERE idcc = ? AND statut = 'en_attente'").bind(idcc).first();
+    if (attente) return json({ ok: true, deja: true });
+    await env.DB.prepare("INSERT INTO demandes_fiches (idcc, demandeur_email, demandeur_nom) VALUES (?,?,?)")
+      .bind(idcc, u.email, u.nom || "").run();
+    await journal(env, req, u, "demande_fiche", idcc);
+    await envoyerEmail(env, ADMINS, "AB2Pro — demande de fiche IDCC " + idcc,
+      `${u.nom || u.email} (${u.email}) demande l'ajout de la fiche de la convention IDCC ${idcc} dans Veille Conventions.\n\n` +
+      `Traitement automatique : sous ~30 minutes, la fiche est constituée sur sources officielles, déployée, et le demandeur est prévenu par e-mail.\n` +
+      `Pour la créer immédiatement : demandez-le à Claude.`);
+    return json({ ok: true });
+  }
+
   /* -- journal d'activité (balise des apps) -- */
   if (p === "/api/activite" && req.method === "POST") {
     if (!u) return json({ erreur: "non_connecte" }, 401);
