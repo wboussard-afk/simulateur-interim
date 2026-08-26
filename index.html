@@ -324,11 +324,17 @@ table.grille td.neg { color: var(--bad); }
   #etude-print td { padding: 2.5pt 4pt; border-bottom: 0.5pt solid #ddd; vertical-align: top; }
   #etude-print td.n { text-align: right; white-space: nowrap; font-weight: 600; }
   #etude-print .meta { color: #555; font-size: 9pt; }
-  #etude-print .logo-etude { float: right; height: 34pt; margin-left: 12pt; }
+  #etude-print .entete { text-align: center; margin-bottom: 6pt; }
+  #etude-print .entete h1 { margin: 0; }
+  #etude-print .logo-etude { display: block; height: 36pt; margin: 0 auto 4pt; }
+  #etude-print .synthbox { border: 1.5pt solid #9E0C24; background: #FBEFF1; border-radius: 6pt;
+    padding: 2pt 12pt 8pt; margin: 4pt 0 8pt; page-break-inside: avoid; }
+  #etude-print .synthbox h2 { border-bottom: 0; color: #9E0C24; margin: 6pt 0 2pt; }
+  #etude-print .valbox { display: inline-block; border: 1.2pt solid #9E0C24; border-radius: 4pt;
+    padding: 1.5pt 8pt; color: #9E0C24; font-weight: 700; }
   /* mises en valeur : coefficient (élément n°1 de l'offre), base horaire, coefs par ligne */
   #etude-print .kv-big td { font-size: 12.5pt; padding: 5pt 4pt; }
   #etude-print .kv-big td.n { font-weight: 700; }
-  #etude-print .coefbig { font-size: 20pt; font-weight: 700; color: #9E0C24; }
   #etude-print .coefv { font-size: 12pt; font-weight: 700; color: #9E0C24; }
   #etude-print .sublet { display: block; color: #666; font-size: 9pt; font-weight: 400; }
   /* MONTANTS mis en valeur (colonne de droite) ; lignes de total en rouge marqué */
@@ -3005,11 +3011,24 @@ function buildEtudePrix() {
   /* coefficient CONTRACTUEL : arrondi au centième SUPÉRIEUR (1,8867 -> 1,89) */
   const coefAff = Math.ceil(inp.coeff * 100 - 1e-9) / 100;
   const kv = (l, v, cls) => "<tr" + (cls ? " class='" + cls + "'" : "") + "><td>" + l + "</td><td class='n'>" + v + "</td></tr>";
-  let s = '<img class="logo-etude" src="' + LOGO_AB2PRO + '" alt="AB2Pro — Groupe Triangle Solutions RH">' +
-    "<h1>Étude de prix — " + esc(inp.client || "(client à renseigner)") + "</h1>" +
+  /* en-tête CENTRÉ : logo AB2Pro au-dessus du titre « Synthèse étude de prix » */
+  let s = '<div class="entete">' +
+    '<img class="logo-etude" src="' + LOGO_AB2PRO + '" alt="AB2Pro — Groupe Triangle Solutions RH">' +
+    "<h1>Synthèse étude de prix — " + esc(inp.client || "(client à renseigner)") + "</h1>" +
     '<div class="meta">' + esc(secteur) + " · établie le " + dateStr + " · année " + now.getFullYear() +
     (inp.dept ? " · mission : " + esc(inp.dept) : "") +
-    (inp.niveauQualif && inp.sector === "tarifaire" && inp.branche === "btp" ? " · qualification " + esc(inp.niveauQualif) : "") + "</div>";
+    (inp.niveauQualif && inp.sector === "tarifaire" && inp.branche === "btp" ? " · qualification " + esc(inp.niveauQualif) : "") +
+    "</div></div>";
+
+  /* ===== SYNTHÈSE RENTABILITÉ HEBDOMADAIRE — encadré en tête de document ===== */
+  const mCET = (!inp.ifm && !inp.iccp) ? m : compute(Object.assign({}, inp, { ifm: false, iccp: false })).main;
+  const mDirect = (inp.ifm || inp.iccp) ? m : compute(Object.assign({}, inp, { ifm: true, iccp: true })).main;
+  s += '<div class="synthbox"><h2>Synthèse rentabilité hebdomadaire</h2><table>';
+  s += kv("CA HT", fmtE(m.O60));
+  s += kv("Volume de marge brute", fmtE(m.O64), "tot");
+  s += kv("Taux de marge brute avec CET", N2.format(mCET.H17) + " %");
+  s += kv("Taux de marge brute sans CET (IFM/CP payés)", N2.format(mDirect.H17) + " %");
+  s += "</table></div>";
 
   /* ===== 1. L'OFFRE — expression commerciale (ce que voit le client) =====
    * Logement NON facturé à part = « logement compris » dans le taux global ;
@@ -3023,10 +3042,10 @@ function buildEtudePrix() {
   const txGlobal = logFacture ? m.O66 : m.O62;   /* facturé à part -> taux hors logement */
   s += "<h2>L'offre commerciale</h2><table>";
   s += kv("Coefficient de facturation (arrondi au centième supérieur)",
-          "<span class='coefbig'>" + N2.format(coefAff) + "</span>", "kv-big");
+          "<span class='valbox'>" + N2.format(coefAff) + "</span>");
   if (isBTPe) {
     s += kv("Taux global facturé HT " + libLog + " — jusqu'à la 43ᵉ heure",
-            "<b>" + fmtE(txGlobal) + "/h</b>", "kv-big");
+            "<span class='valbox'>" + fmtE(txGlobal) + "/h</span>");
     s += kv("Au-delà de la 43ᵉ heure (majoration 50 %)", fmtE(txGlobal * 1.5) + "/h");
   } else {
     s += kv("Taux global facturé HT " + libLog, "<b>" + fmtE(txGlobal) + "/h</b>");
@@ -3052,17 +3071,20 @@ function buildEtudePrix() {
   const primesFactTotal = primesBilled.reduce((t, x) => t + x.montant, 0);
   s += "<h2>Éléments facturés — paramétrage facturation</h2><table>";
   const coefTag = c => "<span class='coefv'>" + N2.format(c) + "</span>";
+  /* détail « x €/jour × n j » (le nombre correspond aux jours) — sauf Ajustement net (hebdo seul) */
+  const detailJour = p => ((p.name || "").trim().toLowerCase() === "ajustement net" || !(p.q > 0 && p.r > 0))
+    ? "" : " · " + N2.format(p.r) + " €/jour × " + (p.q % 1 ? N2.format(p.q) : String(p.q)) + " j";
   s += kv("Heures et majorations au coefficient " + coefTag(coefAff), fmtE(m.O42 - primesFactTotal) + "/sem");
   if (m.O45) s += kv("Indemnité transport refacturée", fmtE(m.O45) + "/sem");
   if (m.O46) s += kv("Indemnité repas refacturée", fmtE(m.O46) + "/sem");
   primesBilled.filter(x => x.montant > 0.005).forEach(x => {
     const modeP = x.p.fc == null ? "au coefficient " + coefTag(coefAff) : "coef " + coefTag(x.p.fc);
-    s += kv(esc(x.p.name) + " (prime soumise) — refacturée " + modeP, fmtE(x.montant) + "/sem");
+    s += kv(esc(x.p.name) + " (prime soumise) — refacturée " + modeP + detailJour(x.p), fmtE(x.montant) + "/sem");
   });
   indemBilled.filter(x => x.montant > 0.005).forEach(x => {
     const coefI = x.p.fc == null ? 1 : x.p.fc;
     s += kv(esc(x.p.name) + " (indemnité non soumise) — coef " + coefTag(coefI) +
-            (coefI === 1 ? " · <b>ligne visible sur la facture</b>" : ""), fmtE(x.montant) + "/sem");
+            (coefI === 1 ? " · <b>ligne visible sur la facture</b>" : "") + detailJour(x.p), fmtE(x.montant) + "/sem");
   });
   if (m.O52 > 0.005) s += kv("Part logement facturée", fmtE(m.O52) + "/sem");
   if (inp.remisePct) s += kv("Remise fin d'année (sur CA soumis à cotisations)", "−" + fmtE(m.O42 * inp.remisePct / 100).replace("-", "") + "/sem");
@@ -3075,11 +3097,11 @@ function buildEtudePrix() {
   let totalNF = 0, nfRows = "";
   inp.primes.forEach((p, k) => {
     const paye = p.q * p.r, fact = primesBilled[k].montant;
-    if (paye > 0.005 && fact < 0.005) { totalNF += paye; nfRows += kv(esc(p.name) + " (prime soumise) — payée, non refacturée", fmtE(paye) + "/sem"); }
+    if (paye > 0.005 && fact < 0.005) { totalNF += paye; nfRows += kv(esc(p.name) + " (prime soumise) — payée, non refacturée" + detailJour(p), fmtE(paye) + "/sem"); }
   });
   inp.indemnites.forEach((p, k) => {
     const paye = p.q * p.r, fact = indemBilled[k].montant;
-    if (paye > 0.005 && fact < 0.005) { totalNF += paye; nfRows += kv(esc(p.name) + " (indemnité non soumise) — payée, <b>non facturée</b>", fmtE(paye) + "/sem"); }
+    if (paye > 0.005 && fact < 0.005) { totalNF += paye; nfRows += kv(esc(p.name) + " (indemnité non soumise) — payée, <b>non facturée</b>" + detailJour(p), fmtE(paye) + "/sem"); }
   });
   const partAct = Math.max(0, -(inp.participationLibre || 0));
   const logNet = Math.max(0, (m.F92 || 0) - partAct - (m.O52 || 0));
@@ -3103,11 +3125,6 @@ function buildEtudePrix() {
   }
   s += "</table>";
 
-  s += "<h2>Synthèse hebdomadaire</h2><table>";
-  s += kv("CA HT", fmtE(m.O60));
-  s += kv("Marge brute", fmtE(m.O64) + " (" + N2.format(m.H17) + " %)", "tot");
-  s += kv("IFM / CP", (!inp.ifm && !inp.iccp) ? "mise en CET 100 %" : "paiement direct");
-  s += "</table>";
 
   s += '<div class="foot">Étude de prix établie avec le simulateur intérim — sert à la formalisation de l\'offre commerciale et au paramétrage du compte client (paie &amp; facturation). Barèmes et cotisations au droit courant à la date d\'édition.</div>';
   $("etude-print").innerHTML = s;
@@ -3117,12 +3134,12 @@ $("btn-etude").addEventListener("click", () => {
   const meta = buildEtudePrix();
   const oldTitle = document.title;
   /* le nom du PDF reprend le titre : archivage par client et par année */
-  document.title = "Etude de prix - " + meta.client + " - " + meta.dateISO;
+  document.title = "Synthese etude de prix - " + meta.client + " - " + meta.dateISO;
   document.body.classList.add("print-etude");
   const done = () => { document.body.classList.remove("print-etude"); document.title = oldTitle; };
   window.addEventListener("afterprint", done, { once: true });
   try { window.print(); } catch (e) { done(); }
-  setTimeout(done, 4000);   /* secours si afterprint ne se déclenche pas (iOS) */
+  setTimeout(done, 45000);  /* secours long : l'aperçu iOS relit le titre bien après l'ouverture */
 });
 /* au blur, la case remonte visuellement au plancher SMIC si la saisie est en dessous */
 $("in-thbrut").addEventListener("change", () => {
