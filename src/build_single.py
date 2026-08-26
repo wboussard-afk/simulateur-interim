@@ -43,6 +43,18 @@ open(base + r"\app\artifact-paie.html", 'w', encoding='utf-8').write(artp)
 assert '<html' not in artp and '</body>' not in artp and '<title>' in artp[:8000]
 print("artifact-paie.html:", len(artp), "bytes")
 
+# ===== Portail (accès unique aux 3 apps) — geo.js seul (logo) =====
+port = open(base + r"\app\portail.html", encoding='utf-8').read()
+outport = port.replace('<script src="geo.js?r1"></script>', '<script>\n' + geo + '</script>')
+assert 'src="geo.js' not in outport
+open(base + r"\app\portail-github.html", 'w', encoding='utf-8').write(outport)
+print("portail-github.html:", len(outport), "bytes")
+outportb = outport.replace('href="simulateur.html"', 'href="Simulateur Intérim.html"') \
+                  .replace('href="paie.html"', 'href="Veille Paie.html"') \
+                  .replace('href="conventions.html"', 'href="Veille Conventions.html"')
+open(base + r"\app\portail-bureau.html", 'w', encoding='utf-8').write(outportb)
+print("portail-bureau.html:", len(outportb), "bytes")
+
 # ===== Veille Conventions (IDCC & accords) — engine.js (grilles BTP) + geo.js (logo) =====
 conv = open(base + r"\app\conventions.html", encoding='utf-8').read()
 outc = conv.replace('<script src="engine.js?r1"></script>', '<script>\n' + eng + '</script>')

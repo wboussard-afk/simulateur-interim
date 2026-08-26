@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AB2Pro — Portail des outils</title>
+<style>
+/* ===== Portail AB2Pro : accès unique aux 3 applications ===== */
+:root {
+  --paper:#F5F6F8; --card:#FFFFFF; --card2:#EFF1F4; --ink:#1F2328; --muted:#5F6670;
+  --line:#D9DDE3; --line-soft:#E8EBEF; --brass:#C8102E; --brass-deep:#9E0C24;
+  --shadow:0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:#161719; --card:#1E2024; --card2:#262930; --ink:#ECEDEF; --muted:#9BA2AB;
+    --line:#373B42; --line-soft:#2C3037; --brass:#E4586C; --brass-deep:#F08A97;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"] {
+  --paper:#161719; --card:#1E2024; --card2:#262930; --ink:#ECEDEF; --muted:#9BA2AB;
+  --line:#373B42; --line-soft:#2C3037; --brass:#E4586C; --brass-deep:#F08A97;
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.5 "Segoe UI", system-ui, sans-serif; min-height: 100vh; }
+h1, h2 { font-family: Cambria, "Iowan Old Style", Georgia, serif; }
+header { background: var(--card); border-bottom: 1px solid var(--line); padding: 22px 20px; text-align: center; }
+header img { height: 46px; border-radius: 5px; }
+header h1 { margin: 10px 0 2px; font-size: 26px; } header h1 b { color: var(--brass); }
+header .sub { color: var(--muted); font-size: 13px; }
+.wrap { max-width: 660px; margin: 0 auto; padding: 22px 18px 60px; display: flex; flex-direction: column; gap: 14px; }
+a.appcard { display: flex; align-items: center; gap: 16px; background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; box-shadow: var(--shadow); padding: 18px 18px; text-decoration: none; color: var(--ink);
+  transition: transform .08s ease, border-color .08s ease; }
+a.appcard:hover, a.appcard:active { border-color: var(--brass); transform: translateY(-1px); }
+.ico { font-size: 34px; line-height: 1; flex: 0 0 auto; }
+.tt { flex: 1 1 auto; min-width: 0; }
+.tt h2 { margin: 0 0 2px; font-size: 18.5px; }
+.tt p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.go { flex: 0 0 auto; color: var(--brass); font-weight: 700; font-size: 20px; }
+.foot { color: var(--muted); font-size: 11.5px; text-align: center; line-height: 1.5; margin-top: 10px; }
+@media (max-width: 480px) { .ico { font-size: 30px; } .tt h2 { font-size: 17px; } }
+</style>
+</head>
+<body>
+<header>
+  <img id="brand-logo" alt="AB2Pro — Groupe Triangle Solutions RH">
+  <h1><b>AB2Pro</b> — Portail des outils</h1>
+  <span class="sub">Intérim &amp; CDD saisonnier · paie &amp; conventions collectives</span>
+</header>
+
+<div class="wrap">
+  <a class="appcard" href="simulateur.html">
+    <span class="ico">🌾</span>
+    <span class="tt">
+      <h2>Simulateur Intérim</h2>
+      <p>Étude de prix et construction du net : coefficient, marge, CET, participation logement, indemnités — BTP, industrie, CDD saisonnier agricole. Synthèse PDF client.</p>
+    </span>
+    <span class="go">→</span>
+  </a>
+
+  <a class="appcard" href="paie.html">
+    <span class="ico">🧾</span>
+    <span class="tt">
+      <h2>Veille Paie</h2>
+      <p>Références du gestionnaire de paie : SMIC en direct, minima BTP par région et niveau, paniers, zones transport/trajet, adresses et distances.</p>
+    </span>
+    <span class="go">→</span>
+  </a>
+
+  <a class="appcard" href="conventions.html">
+    <span class="ico">📜</span>
+    <span class="tt">
+      <h2>Veille Conventions</h2>
+      <p>Fiches résumées par convention (26 IDCC) : minima, nuit, HS, fériés, paniers, primes et conditions — recherche par entreprise, SIREN ou n° IDCC, redirection des anciens codes.</p>
+    </span>
+    <span class="go">→</span>
+  </a>
+
+  <p class="foot">Mise à jour continue — les grilles et fiches sont surveillées par une veille hebdomadaire.<br>
+  Groupe Triangle Solutions RH · AB2Pro. Usage interne.</p>
+</div>
+
+<script src="geo.js?r1"></script>
+<script>
+document.getElementById("brand-logo").src = LOGO_AB2PRO;
+</script>
+</body>
+</html>
