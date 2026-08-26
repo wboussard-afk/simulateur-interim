@@ -77,6 +77,13 @@ input[type=number] { width: 160px; padding: 9px 10px; border: 1px solid var(--li
         Bulgarie : passée à l'euro au 01/01/2026 — minimum 620,20 €/mois (7,31 BGN/h convertis).
         Roumanie : 4 050 RON au 01/01/2026 puis <b>4 325 RON au 01/07/2026</b> (net estimé ≈ 2 739 RON avec la franchise de 300 RON).
         Base : impôts et cotisations SALARIÉ du pays (HU : 15 % IR + 18,5 % cotisations ; BG : ≈ 13,8 % cotisations puis 10 % IR ; RO : 25 % CAS + 10 % CASS + 10 % IR après franchise).
+        Pologne : 4 806 PLN au 01/01/2026 (+3 %) — moins de 26 ans exonérés d'impôt (net réel supérieur).
+        Portugal (920 €) et Espagne (SMI 1 221 €) : versés sur 14 MOIS — les colonnes € intègrent l'annualisation (× 14 ÷ 12).
+        Croatie : 1 050 € au 01/01/2026 (+16,7 %). Serbie (hors UE — permis de travail requis) : minimum défini officiellement en NET horaire ; équivalent ≈ 743 € brut.
+        Mention « net estimé » = calcul indicatif, affiné par la veille mensuelle.
+        AGRICOLE — minima SPÉCIFIQUES du travail agricole au Maghreb (saisonniers OFII) : Maroc SMAG **97,44 MAD/JOUR** (≈ 9,25 €/jour) au 01/04/2026 ;
+        Tunisie SMAG **21,336 TND/jour** (≈ 6,25 €/jour) au 01/01/2026. Ukraine : 8 647 UAH/mois au 01/01/2026 (≈ 173 €), horaire minimum ≈ 1,04 €.
+        Maroc/Tunisie/Ukraine : hors UE — recrutement via introduction OFII / autorisations de travail.
       </p>
     </div>
   </section>
@@ -105,11 +112,19 @@ input[type=number] { width: 160px; padding: 9px 10px; border: 1px solid var(--li
   <p class="note" style="text-align:center">Relevé le <b id="releve-le"></b> · sources : gouvernements nationaux, presse sociale spécialisée, KSH, taux BCE · <b>mise à jour automatique mensuelle</b> (taux de change et minima).</p>
 </div>
 
-<script id="donnees-salaires" type="application/json">{"releveLe":"27/08/2026","fx":{"HUF":363.9,"RON":5.238},"pays":[
+<script id="donnees-salaires" type="application/json">{"releveLe":"27/08/2026","fx":{"HUF":363.9,"RON":5.238,"PLN":4.26,"MAD":10.53,"TND":3.42},"pays":[
 {"code":"HU","nom":"🇭🇺 Hongrie — minimum général","devise":"HUF","brut":322800,"netRatio":0.665,"heures":174},
 {"code":"HU2","nom":"🇭🇺 Hongrie — minimum QUALIFIÉ","devise":"HUF","brut":373200,"netRatio":0.665,"heures":174},
-{"code":"BG","nom":"🇧🇬 Bulgarie (en euro depuis 01/2026)","devise":"EUR","brut":620.20,"netRatio":0.77598,"heures":168},
 {"code":"RO","nom":"🇷🇴 Roumanie (au 01/07/2026)","devise":"RON","brut":4325,"netMensuelLocal":2739,"heures":168},
+{"code":"BG","nom":"🇧🇬 Bulgarie (en euro depuis 01/2026)","devise":"EUR","brut":620.20,"netRatio":0.77598,"heures":168},
+{"code":"RS","nom":"🇷🇸 Serbie (net estimé)","devise":"EUR","brut":743,"netRatio":0.715,"heures":174},
+{"code":"PL","nom":"🇵🇱 Pologne (net estimé)","devise":"PLN","brut":4806,"netRatio":0.75,"heures":168},
+{"code":"HR","nom":"🇭🇷 Croatie (net estimé)","devise":"EUR","brut":1050,"netRatio":0.80,"heures":168},
+{"code":"UA","nom":"🇺🇦 Ukraine (net estimé)","devise":"EUR","brut":173,"netRatio":0.805,"heures":166},
+{"code":"MA","nom":"🇲🇦 Maroc — SMIG (net estimé)","devise":"MAD","brut":3423,"netRatio":0.91,"heures":191},
+{"code":"TN","nom":"🇹🇳 Tunisie — SMIG 48 h (net estimé)","devise":"TND","brut":554.74,"netRatio":0.908,"heures":208},
+{"code":"PT","nom":"🇵🇹 Portugal (× 14 mois intégrés)","devise":"EUR","brut":920,"paiements":14,"netRatio":0.89,"heures":173.33},
+{"code":"ES","nom":"🇪🇸 Espagne — SMI (× 14 mois intégrés)","devise":"EUR","brut":1221,"paiements":14,"netRatio":0.935,"heures":173.33},
 {"code":"FR","nom":"🇫🇷 France — SMIC (référence)","devise":"EUR","brut":1823.04,"netRatio":0.78,"heures":151.67}
 ]}</script>
 <script src="geo.js?r1"></script>
@@ -124,9 +139,10 @@ const fmtLocal = (v, dev) => dev === "EUR"
   : v.toLocaleString("fr-FR") + " " + dev;
 const PAYS = DS.pays.map(p => {
   const tx = p.devise === "EUR" ? 1 : FX[p.devise];
-  const netLocal = p.netMensuelLocal != null ? p.netMensuelLocal : p.brut * p.netRatio;
-  return { code: p.code, nom: p.nom, brutLocal: fmtLocal(p.brut, p.devise),
-           brutEur: p.brut / tx, netEur: netLocal / tx, netH: netLocal / tx / p.heures };
+  const pai = p.paiements || 12;                     // Portugal/Espagne : 14 paiements/an intégrés
+  const netLocal = (p.netMensuelLocal != null ? p.netMensuelLocal : p.brut * p.netRatio) * pai / 12;
+  return { code: p.code, nom: p.nom, brutLocal: fmtLocal(p.brut, p.devise) + (pai !== 12 ? " × " + pai : ""),
+           brutEur: p.brut * pai / 12 / tx, netEur: netLocal / tx, netH: netLocal / tx / p.heures };
 });
 const eur = v => v.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
 
