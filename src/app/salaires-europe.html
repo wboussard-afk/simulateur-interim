@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AB2Pro — Repères salaires Europe</title>
+<title>AB2Pro — Repères salaires Europe &amp; Maghreb</title>
 <style>
 :root { --paper:#F5F6F8; --card:#FFFFFF; --card2:#EFF1F4; --ink:#1F2328; --muted:#5F6670;
   --line:#D9DDE3; --line-soft:#E8EBEF; --brass:#C8102E; --brass-deep:#9E0C24;
@@ -48,9 +48,9 @@ input[type=number] { width: 160px; padding: 9px 10px; border: 1px solid var(--li
 <header>
   <div class="ligne">
     <img id="brand-logo" alt="AB2Pro — Groupe Triangle Solutions RH">
-    <h1><b>Repères salaires</b> — Europe de l'Est</h1>
+    <h1><b>Repères salaires</b> — Europe &amp; Maghreb</h1>
   </div>
-  <span class="sub">Minima légaux 2026 en net €/heure (Hongrie, Bulgarie, Roumanie) · comparateur pour objectiver les propositions de rémunération.</span>
+  <span class="sub">Minima légaux 2026 en net €/heure (12 pays d'origine BTP · industrie · agricole · intérim) · comparateur pour objectiver les propositions de rémunération.</span>
 </header>
 
 <div class="wrap">
@@ -91,16 +91,11 @@ input[type=number] { width: 160px; padding: 9px 10px; border: 1px solid var(--li
   <section class="card">
     <h2>Repères de réalité <span class="eyebrow">Salaires moyens</span></h2>
     <div class="b">
-      <table>
-        <tr><th>Pays</th><th class="n">Salaire MOYEN brut/mois</th><th class="n">≈ en €</th><th class="n">≈ net €/h</th></tr>
-        <tr><td>🇭🇺 Hongrie (KSH, 2025)</td><td class="n">≈ 570 000 HUF</td><td class="n">≈ 1 566 €</td><td class="net">≈ 5,99 €/h</td></tr>
-        <tr><td>🇧🇬 Bulgarie (indicatif)</td><td class="n">≈ 1 300 €</td><td class="n">1 300 €</td><td class="net">≈ 6,00 €/h</td></tr>
-        <tr><td>🇷🇴 Roumanie (indicatif)</td><td class="n">≈ 8 500 RON</td><td class="n">≈ 1 623 €</td><td class="net">≈ 5,90 €/h</td></tr>
-        <tr><td>🇫🇷 France — SMIC (référence)</td><td class="n">1 823,04 €</td><td class="n">1 823 €</td><td class="net">≈ 9,49 €/h</td></tr>
-      </table>
+      <table id="t-moyennes"></table>
       <p class="note" style="margin-top:8px">Moyennes TOUS secteurs et toutes qualifications confondues (cadres inclus) — un ouvrier de production
-      gagne généralement MOINS que la moyenne nationale. Valeurs bulgares et roumaines indicatives (ordres de grandeur,
-      affinées par la veille) ; moyenne hongroise sourcée KSH 2025. SMIC français : net estimé ≈ 78 % du brut.</p>
+      gagne généralement MOINS que la moyenne nationale. Ordres de grandeur : sourcés instituts nationaux quand indiqué
+      (KSH, GUS, DZS, RZS, INSEE), sinon INDICATIFS ; entretenus par la veille (contrôle trimestriel). Maroc/Tunisie :
+      salariat formel (l'informel est en deçà). France : moyenne en équivalent temps plein, à comparer au SMIC du tableau ci-dessus.</p>
     </div>
   </section>
 
@@ -126,6 +121,19 @@ input[type=number] { width: 160px; padding: 9px 10px; border: 1px solid var(--li
 {"code":"PT","nom":"🇵🇹 Portugal (× 14 mois intégrés)","devise":"EUR","brut":920,"paiements":14,"netRatio":0.89,"heures":173.33},
 {"code":"ES","nom":"🇪🇸 Espagne — SMI (× 14 mois intégrés)","devise":"EUR","brut":1221,"paiements":14,"netRatio":0.935,"heures":173.33},
 {"code":"FR","nom":"🇫🇷 France — SMIC (référence)","devise":"EUR","brut":1823.04,"netRatio":0.78,"heures":151.67}
+],"moyennes":[
+{"nom":"🇹🇳 Tunisie (indicatif)","brutAffiche":"≈ 1 400 TND","brutEur":409,"netH":1.75},
+{"nom":"🇺🇦 Ukraine (T2 2026)","brutAffiche":"≈ 30 500 UAH","brutEur":660,"netH":3.20},
+{"nom":"🇲🇦 Maroc (salariat formel)","brutAffiche":"≈ 8 000 MAD","brutEur":760,"netH":3.45},
+{"nom":"🇷🇸 Serbie (RZS, 03/2026)","brutAffiche":"≈ 167 000 RSD","brutEur":1425,"netH":5.95},
+{"nom":"🇭🇺 Hongrie (KSH, 2025)","brutAffiche":"≈ 570 000 HUF","brutEur":1566,"netH":5.99},
+{"nom":"🇧🇬 Bulgarie (indicatif)","brutAffiche":"≈ 1 300 €","brutEur":1300,"netH":6.00},
+{"nom":"🇷🇴 Roumanie (indicatif)","brutAffiche":"≈ 8 500 RON","brutEur":1623,"netH":6.00},
+{"nom":"🇵🇹 Portugal (indicatif, × 14 intégrés)","brutAffiche":"≈ 1 700 € × 14","brutEur":1983,"netH":8.90},
+{"nom":"🇭🇷 Croatie (DZS, 03/2026)","brutAffiche":"≈ 2 180 €","brutEur":2180,"netH":9.30},
+{"nom":"🇵🇱 Pologne (GUS, 01/2026)","brutAffiche":"≈ 9 350 PLN","brutEur":2195,"netH":9.40},
+{"nom":"🇪🇸 Espagne (indicatif, × 14 intégrés)","brutAffiche":"≈ 2 300 € annualisé","brutEur":2300,"netH":10.40},
+{"nom":"🇫🇷 France — moyenne (INSEE, EQTP)","brutAffiche":"≈ 3 500 €","brutEur":3500,"netH":18.00}
 ]}</script>
 <script src="geo.js?r1"></script>
 <script>
@@ -147,6 +155,14 @@ const PAYS = DS.pays.map(p => {
 const eur = v => v.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
 
 document.getElementById("releve-le").textContent = DS.releveLe;
+
+/* bloc « repères de réalité » : rendu depuis DS.moyennes (entretenu par la veille) */
+const tm = document.getElementById("t-moyennes");
+tm.innerHTML = "<tr><th>Pays</th><th class='n'>Salaire MOYEN brut/mois</th><th class='n'>≈ en €</th><th class='n'>≈ net €/h</th></tr>" +
+  DS.moyennes.map(m => "<tr><td>" + m.nom + "</td><td class='n'>" + m.brutAffiche + "</td><td class='n'>" +
+    m.brutEur.toLocaleString("fr-FR") + " €</td><td class='net'>≈ " +
+    m.netH.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €/h</td></tr>").join("");
+
 const t = document.getElementById("t-minima");
 t.innerHTML = "<tr><th>Pays — minimum légal</th><th class='n'>Brut/mois (local)</th><th class='n'>≈ Brut €</th><th class='n'>≈ Net €/mois</th><th class='n'>Net €/HEURE</th></tr>" +
   PAYS.map(p => "<tr><td>" + p.nom + "</td><td class='n'>" + p.brutLocal + "</td><td class='n'>" + eur(p.brutEur) +
