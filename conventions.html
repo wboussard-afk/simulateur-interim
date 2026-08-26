@@ -1291,7 +1291,7 @@ function ficheIDCC(idcc, contexteEntreprise) {
     s += "<p class='note'>Le détail chiffré local (horaire, plancher SMIC, paniers, zones transport/trajet par département) vit dans l'application <b>Veille Paie</b> — mise à jour par la même veille hebdomadaire.</p>";
   }
   if (!f && !(n === 1413 || n === 2378 || n === 1596 || n === 1597)) {
-    s += "<p class='note'>Fiche résumée (majorations nuit/HS/week-end/fériés, repas, transport, primes et conditions d'accès, annualisation, saisonniers) : <b>constituée par la veille au premier relevé de cet IDCC</b>. Demandez l'ajout de cet IDCC à la liste de suivi pour recevoir la fiche et les alertes de changement par e-mail.</p>";
+    s += "<p class='note'>Fiche résumée pas encore intégrée pour cet IDCC. <b>Envoyez simplement le numéro à Claude</b> : la fiche (minima, nuit, HS, fériés, paniers, primes et conditions, annualisation, saisonniers…) est constituée sur sources officielles et déployée en quelques minutes, puis suivie par la veille hebdomadaire.</p>";
   }
   s += "<p class='note' style='margin-top:12px'>Textes complets : <a target='_blank' rel='noopener' href='" + lienKali(n) + "'>code.travail.gouv.fr</a> · " +
        "<a target='_blank' rel='noopener' href='" + lienLegifrance(n) + "'>Légifrance (KALI)</a>" +
