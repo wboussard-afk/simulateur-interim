@@ -5,6 +5,12 @@
  * Les fichiers statiques (assets/) ne sont servis qu'après session valide. */
 
 const ADMINS = ["wboussard@gmail.com", "urgensv@gmail.com"];
+/* Hiérarchie : super_admin (les 2 fondateurs, intouchables) > admin > user.
+ * admin : gère les utilisateurs simples et les demandes d'accès (rôle user).
+ * super_admin seul : promouvoir/rétrograder un admin, désactiver un admin, approuver en admin,
+ * réinviter un admin/super_admin. Un super_admin ne peut JAMAIS être rétrogradé ni désactivé. */
+const estAdmin = x => !!x && (x.role === "admin" || x.role === "super_admin");
+const estSuper = x => !!x && x.role === "super_admin";
 const SESSION_MS = 12 * 3600 * 1000;       // 12 h glissantes
 const INVITE_MS = 72 * 3600 * 1000;        // lien d'invitation 72 h
 const PBKDF2_ITER = 100000;
@@ -99,7 +105,7 @@ export default {
     /* --- panneau admin --- */
     if (p === "/admin" || p === "/admin.html") {
       if (!u) return Response.redirect(url.origin + "/", 302);
-      if (u.role !== "admin") return new Response("Accès réservé aux administrateurs.", { status: 403 });
+      if (!estAdmin(u)) return new Response("Accès réservé aux administrateurs.", { status: 403 });
       return env.ASSETS.fetch(new Request(url.origin + "/admin.html", req));
     }
 
@@ -233,7 +239,7 @@ async function api(req, env, url, u) {
   /* -- administration -- */
   if (p.startsWith("/api/admin/")) {
     if (!u) return json({ erreur: "non_connecte" }, 401);
-    if (u.role !== "admin") return json({ erreur: "reserve_admin" }, 403);
+    if (!estAdmin(u)) return json({ erreur: "reserve_admin" }, 403);
 
     if (p === "/api/admin/apercu") {
       const dem = await env.DB.prepare("SELECT * FROM demandes_acces WHERE statut = 'en_attente' ORDER BY id DESC").all();
@@ -262,6 +268,7 @@ async function api(req, env, url, u) {
     }
 
     if (p === "/api/admin/approuver" && req.method === "POST") {
+      if (corps.role === "admin" && !estSuper(u)) return json({ erreur: "reserve_super_admin" }, 403);
       const d = await env.DB.prepare("SELECT * FROM demandes_acces WHERE id = ? AND statut = 'en_attente'").bind(corps.id | 0).first();
       if (!d) return json({ erreur: "demande_introuvable" }, 404);
       const invite = alea(24);
@@ -286,8 +293,10 @@ async function api(req, env, url, u) {
     }
 
     if (p === "/api/admin/role" && req.method === "POST") {
+      if (!estSuper(u)) return json({ erreur: "reserve_super_admin" }, 403);   // seuls les super admins promeuvent/rétrogradent
       const cible = await env.DB.prepare("SELECT * FROM utilisateurs WHERE id = ?").bind(corps.id | 0).first();
       if (!cible) return json({ erreur: "utilisateur_introuvable" }, 404);
+      if (cible.role === "super_admin") return json({ erreur: "intouchable" }, 403);  // un super admin ne se rétrograde JAMAIS
       if (cible.email === u.email) return json({ erreur: "pas_soi_meme" }, 400);
       const role = corps.role === "admin" ? "admin" : "user";
       await env.DB.prepare("UPDATE utilisateurs SET role = ? WHERE id = ?").bind(role, cible.id).run();
@@ -298,6 +307,8 @@ async function api(req, env, url, u) {
     if (p === "/api/admin/actif" && req.method === "POST") {
       const cible = await env.DB.prepare("SELECT * FROM utilisateurs WHERE id = ?").bind(corps.id | 0).first();
       if (!cible) return json({ erreur: "utilisateur_introuvable" }, 404);
+      if (cible.role === "super_admin") return json({ erreur: "intouchable" }, 403); // un super admin ne se désactive JAMAIS
+      if (cible.role === "admin" && !estSuper(u)) return json({ erreur: "reserve_super_admin" }, 403);
       if (cible.email === u.email) return json({ erreur: "pas_soi_meme" }, 400);
       const actif = corps.actif ? 1 : 0;
       await env.DB.prepare("UPDATE utilisateurs SET actif = ? WHERE id = ?").bind(actif, cible.id).run();
@@ -309,6 +320,8 @@ async function api(req, env, url, u) {
     if (p === "/api/admin/reinviter" && req.method === "POST") {
       const cible = await env.DB.prepare("SELECT * FROM utilisateurs WHERE id = ?").bind(corps.id | 0).first();
       if (!cible) return json({ erreur: "utilisateur_introuvable" }, 404);
+      if ((cible.role === "admin" || cible.role === "super_admin") && !estSuper(u))
+        return json({ erreur: "reserve_super_admin" }, 403); // réinitialiser l'accès d'un admin = pouvoir sensible
       const invite = alea(24);
       await env.DB.prepare("UPDATE utilisateurs SET invite_token = ?, invite_expire = ?, doit_changer_mdp = 1 WHERE id = ?")
         .bind(invite, Date.now() + INVITE_MS, cible.id).run();
@@ -365,7 +378,7 @@ const BALISE_ACTIVITE = `<script>
       var p = location.pathname;
       var estPortail = (p === "/app" || p === "/app/" || p === "/app/index.html");
       if (!estPortail) barre.appendChild(btn("⌂ Portail", "/app/", "#C8102E"));
-      if (moi.role === "admin") barre.appendChild(btn("🛡 Admin", "/admin", "#1F2328"));
+      if (moi.role === "admin" || moi.role === "super_admin") barre.appendChild(btn("🛡 Admin", "/admin", "#1F2328"));
       var dec = btn("Quitter", "#", "#5F6670");
       dec.addEventListener("click", async function (e) {
         e.preventDefault();
