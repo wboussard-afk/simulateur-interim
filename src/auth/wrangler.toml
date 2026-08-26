@@ -1,6 +1,8 @@
 ﻿name = "ab2pro-outils"
 main = "src/worker.js"
 compatibility_date = "2026-08-01"
+workers_dev = true
+preview_urls = false
 
 routes = [
   { pattern = "ab2pro-simulateur.com", custom_domain = true },
@@ -25,6 +27,7 @@ database_id = "5ced4603-9318-4f6a-b372-85da4f2fa910"   # <- coller l'id renvoyÃ
 # Variable optionnelle :
 [vars]
 EMAIL_FROM = "AB2Pro <acces@ab2pro-simulateur.com>"
+
 
 
 
