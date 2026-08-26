@@ -88,6 +88,11 @@ async function utilisateurDeSession(env, req) {
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
+    /* adresse canonique : www → racine (les cookies de session ne se partagent pas entre les deux hôtes) */
+    if (url.hostname.startsWith("www.")) {
+      url.hostname = url.hostname.slice(4);
+      return Response.redirect(url.toString(), 301);
+    }
     const p = url.pathname;
     const u = await utilisateurDeSession(env, req);
 
