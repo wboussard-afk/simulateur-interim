@@ -30,17 +30,31 @@ const json = (o, status = 200, entetes = {}) =>
 const cookieSession = (token, maxAge) =>
   `session=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAge}`;
 
-async function envoyerEmail(env, dest, sujet, texte) {
-  if (!env.RESEND_API_KEY) return false;
-  try {
-    const r = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, "content-type": "application/json" },
-      body: JSON.stringify({ from: env.EMAIL_FROM || "AB2Pro <onboarding@resend.dev>",
-                             to: Array.isArray(dest) ? dest : [dest], subject: sujet, text: texte }),
-    });
-    return r.ok;
-  } catch (e) { return false; }
+/* Envoi INDIVIDUEL par destinataire : un refus (ex. mode test Resend limité au titulaire
+ * du compte) ne bloque pas les autres ; chaque échec est journalisé et visible dans /admin. */
+async function envoyerEmail(env, dest, sujet, texte, journalCtx) {
+  const dests = Array.isArray(dest) ? dest : [dest];
+  const resultats = [];
+  for (const d of dests) {
+    if (!env.RESEND_API_KEY) { resultats.push({ dest: d, ok: false, status: 0, corps: "RESEND_API_KEY absent" }); continue; }
+    try {
+      const r = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, "content-type": "application/json" },
+        body: JSON.stringify({ from: env.EMAIL_FROM || "AB2Pro <onboarding@resend.dev>",
+                               to: [d], subject: sujet, text: texte }),
+      });
+      const corps = await r.text().catch(() => "");
+      resultats.push({ dest: d, ok: r.ok, status: r.status, corps: corps.slice(0, 300) });
+    } catch (e) { resultats.push({ dest: d, ok: false, status: -1, corps: String(e).slice(0, 200) }); }
+  }
+  if (journalCtx) {
+    for (const r of resultats) {
+      if (!r.ok) await journal(journalCtx.env, journalCtx.req, null, "email_echec",
+        r.dest + " [" + r.status + "] " + r.corps, sujet.slice(0, 80));
+    }
+  }
+  return resultats;
 }
 
 async function journal(env, req, u, type, details = "", page = "") {
@@ -188,7 +202,7 @@ async function api(req, env, url, u) {
     await journal(env, req, null, "demande_acces", email);
     await envoyerEmail(env, ADMINS, "AB2Pro — demande d'accès de " + nom,
       `Nouvelle demande d'accès aux outils AB2Pro :\n\nNom : ${nom}\nE-mail : ${email}\nMotif : ${motif || "(non précisé)"}\n\n` +
-      `Approuver ou refuser : ${url.origin}/admin (onglet Demandes).`);
+      `Approuver ou refuser : ${url.origin}/admin (onglet Demandes).`, { env, req });
     return json({ ok: true });
   }
 
@@ -205,7 +219,7 @@ async function api(req, env, url, u) {
     await envoyerEmail(env, ADMINS, "AB2Pro — demande de fiche IDCC " + idcc,
       `${u.nom || u.email} (${u.email}) demande l'ajout de la fiche de la convention IDCC ${idcc} dans Veille Conventions.\n\n` +
       `Traitement automatique : sous ~30 minutes, la fiche est constituée sur sources officielles, déployée, et le demandeur est prévenu par e-mail.\n` +
-      `Pour la créer immédiatement : demandez-le à Claude.`);
+      `Pour la créer immédiatement : demandez-le à Claude.`, { env, req });
     return json({ ok: true });
   }
 
@@ -225,6 +239,13 @@ async function api(req, env, url, u) {
       const dem = await env.DB.prepare("SELECT * FROM demandes_acces WHERE statut = 'en_attente' ORDER BY id DESC").all();
       const usr = await env.DB.prepare("SELECT id, email, nom, role, actif, doit_changer_mdp, cree_le, cree_par FROM utilisateurs ORDER BY id").all();
       return json({ demandes: dem.results, utilisateurs: usr.results });
+    }
+
+    if (p === "/api/admin/test-email") {
+      const res = await envoyerEmail(env, ADMINS, "AB2Pro — test e-mail du portail",
+        "Test de la messagerie demandé par " + u.email + ". Si vous lisez ceci, l'envoi vers votre adresse fonctionne.",
+        { env, req });
+      return json({ resultats: res.map(r => ({ destinataire: r.dest, ok: r.ok, status: r.status, reponse: r.corps })) });
     }
 
     if (p === "/api/admin/logs") {
@@ -252,7 +273,7 @@ async function api(req, env, url, u) {
       const lien = url.origin + "/motdepasse.html?invite=" + invite;
       await envoyerEmail(env, d.email, "AB2Pro — votre accès est ouvert",
         `Bonjour ${d.nom},\n\nVotre accès aux outils AB2Pro a été approuvé par ${u.email}.\n` +
-        `Définissez votre mot de passe (lien valable 72 h) :\n${lien}\n\nPortail : ${url.origin}/app/`);
+        `Définissez votre mot de passe (lien valable 72 h) :\n${lien}\n\nPortail : ${url.origin}/app/`, { env, req });
       await journal(env, req, u, "admin_approbation", d.email);
       return json({ ok: true, lien });
     }
@@ -293,7 +314,7 @@ async function api(req, env, url, u) {
         .bind(invite, Date.now() + INVITE_MS, cible.id).run();
       const lien = url.origin + "/motdepasse.html?invite=" + invite;
       await envoyerEmail(env, cible.email, "AB2Pro — réinitialisation de votre mot de passe",
-        `Bonjour,\n\nDéfinissez un nouveau mot de passe (lien valable 72 h) :\n${lien}`);
+        `Bonjour,\n\nDéfinissez un nouveau mot de passe (lien valable 72 h) :\n${lien}`, { env, req });
       await journal(env, req, u, "admin_reinvitation", cible.email);
       return json({ ok: true, lien });
     }
