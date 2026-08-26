@@ -1,0 +1,358 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Tests moteur — golden vectors Excel</title>
+<style>
+ body { font-family: Consolas, monospace; font-size: 13px; background:#fff; color:#111; }
+ .fail { color: #b00020; font-weight: bold; }
+ .pass { color: #0a7d33; }
+ td { padding: 1px 8px; border-bottom: 1px solid #eee; }
+</style>
+<h1 id="verdict">running…</h1>
+<table id="out"></table>
+<script src="db.js?r1"></script>
+<script src="engine.js?r1"></script>
+<script>
+"use strict";
+const isOui = s => String(s == null ? "" : s).trim().toUpperCase() === "OUI";
+const num = v => (v == null || v === "") ? 0 : (typeof v === "number" ? v : parseFloat(v));
+
+function wbToInputs(wb, sector) {
+  const base = defaultInputs(DB, sector);
+  // constantes ÉPINGLÉES aux valeurs des classeurs : les défauts de l'UI suivent
+  // désormais le droit courant, mais les vecteurs golden restent fidèles à l'Excel
+  Object.assign(base, {
+    gdAvanceAuto: true,   // mécanisme classeur : avance convertie en repas GD/transport (F49/F51)
+    smicClasseur: 11.88,
+    plafondSSMois: sector === "agri" ? 3925 : 3864,
+    todeSeuilTot: 1.25, todeSeuilMax: 1.6,
+    todeRates: TODE_RATES_CLASSEUR,
+    tauxReduits: true,
+    exoFormule: "fillon",
+    pasMode: "classeur", pasContratCourt: false,
+    rates: Object.assign({}, sector === "agri" ? RATES_AGRI : RATES_TARIFAIRE),
+    ratesBase: Object.assign({}, sector === "agri" ? RATES_AGRI : RATES_TARIFAIRE)
+  });
+  return Object.assign(base, {
+    mode: wb.D3, client: wb.D8 || "", dept: "",
+    thBrut: num(wb.D11),
+    netAttendu: (typeof wb.D12 === "number") ? wb.D12 : null,
+    ifm: isOui(wb.F11), iccp: isOui(wb.F12), attestation: isOui(wb.F13),
+    logement: isOui(wb.H11),
+    logementHebdo: sector === "agri" ? num(wb.H12) : 0,
+    logementHoraire: sector === "agri" ? 0 : num(wb.I12),
+    logementHeures: 43,
+    redevanceClient: num(wb.H21),
+    baremeRepasPD: num(wb.H13), baremeRepasGD: num(wb.I13),
+    jours: num(wb.D16), heures: num(wb.D17), hNuit: num(wb.D18), hDim: num(wb.D19), hFerie: num(wb.D20),
+    anRepasConsomme: isOui(wb.D21), zonePD: wb.F16, repasClient: num(wb.F17), transpClient: num(wb.F18),
+    anRepasClient: num(wb.F21), participationLibre: num(wb.F19),
+    coeff: num(wb.H16), coeffHDN: num(wb.N27),
+    majoDimLabel: wb.C25, majoFerieLabel: wb.C26, majoNuitLabel: wb.C27,
+    hSupLabel: wb.C28, majoNormLabel: wb.C30,
+    majoNormQty: num(wb.D30), baseIFM: num(wb.D32),
+    /* fc null = classeur M34 (refactPrimes → coeff ou 0) ; indemnités : M47/M48 */
+    primes: [[wb.D37, wb.E37], [wb.D38, wb.E38], [wb.D39, wb.E39], [wb.D40, wb.E40], [wb.D41, wb.E41]]
+            .map(p => ({ q: num(p[0]), r: num(p[1]), fc: null })),
+    ticketsQty: num(wb.D44), ticketsVal: num(wb.E44),
+    indemnites: [[wb.D47, wb.E47, wb.M47 != null ? num(wb.M47) : (sector === "agri" ? 0 : 1)],
+                 [wb.D48, wb.E48, wb.M48 != null ? num(wb.M48) : 1]]
+                .map(p => ({ q: num(p[0]), r: num(p[1]), fc: p[2] })),
+    indemDecoucheRate: num(wb.E50),
+    participationChoice: wb.C52, coutLogementFacture: num(wb.M52), retraitANRepas: isOui(wb.M54),
+    remisePct: num(wb.M63), refactPrimes: isOui(wb.L18), refactDim: isOui(wb.L19),
+    refactFerie: isOui(wb.L20), refactNuit: isOui(wb.L21), annualisation: isOui(wb.L22),
+    heuresFactNormal: num(wb.L24),
+    cibleTauxFact: num(wb.L14), cibleMargePct: num(wb.L17)
+  });
+}
+
+/* adresses TODE de la feuille cachée agri → champs du moteur */
+const TODE_MAP = { D118: "eligibilite", D127: "msa", D130: "retraite",
+                   D131: "B21", D132: "B22", D133: "B23", D134: "B24" };
+
+const rows = [];
+let nFail = 0, nPass = 0;
+
+function check(name, addr, expected, actual) {
+  if (expected == null || typeof expected === "string" && isNaN(parseFloat(expected))) {
+    if (typeof expected === "string") {
+      const ok = String(actual) === expected;
+      rows.push([name, addr, expected, actual, ok]); ok ? nPass++ : nFail++;
+    }
+    return;
+  }
+  const e = Number(expected), a = Number(actual);
+  const tol = Math.max(1e-6, Math.abs(e) * 1e-9);
+  const ok = isFinite(a) && Math.abs(a - e) <= tol;
+  rows.push([name, addr, e, a, ok]); ok ? nPass++ : nFail++;
+}
+
+function runCase(name, gcase, sector) {
+  const inp = wbToInputs(gcase.inputs, sector);
+  const r = compute(inp);
+  for (const [addr, exp] of Object.entries(gcase.golden || {})) {
+    if (addr === "F13") continue;
+    check(name + "/main", addr, exp, r.main[addr]);
+  }
+  for (const [addr, exp] of Object.entries(gcase.golden_hidden || {})) {
+    const actual = TODE_MAP[addr] ? r.hidden.tode[TODE_MAP[addr]] : r.hidden[addr];
+    check(name + "/hidden", addr, exp, actual);
+  }
+  if (gcase.tode) {
+    const t = r.main.tode;
+    const m = { B2: r.main.D24, B5: r.main.F42, B6: r.main.F42 - r.main.F28 - r.main.F29,
+                B8: t.eligibilite, B17: t.msa, B20: t.retraite,
+                B21: t.B21, B22: t.B22, B23: t.B23, B24: t.B24 };
+    for (const [addr, exp] of Object.entries(gcase.tode)) check(name + "/tode", addr, exp, m[addr]);
+  }
+  // aller-retour de la recherche de coefficient
+  const c = coeffPourMarge(inp, r.main.H17);
+  if (c != null) check(name + "/goalseek", "coeff(H17)", inp.coeff, c);
+}
+
+runCase("V1", GOLDEN_V1, "agri");
+runCase("NEW", GOLDEN_NEW, "agri");
+runCase("TARI", GOLDEN_TARIFAIRE, "tarifaire");
+
+/* --- invariants de régression (branches hors vecteurs Excel, validées
+ *     formule par formule contre les dumps par revue adversariale) --- */
+(function regressions() {
+  // AGRI — tickets restaurant : SIMULATOR F90 exclut F44, la feuille cachée l'inclut
+  const base = wbToInputs(GOLDEN_NEW.inputs, "agri");
+  const t = Object.assign({}, base, { ticketsQty: 10, ticketsVal: 8 });
+  const r = compute(t);
+  check("REG-tickets/main", "F44", -32, r.main.F44);
+  check("REG-tickets/main", "F90 = F89 − F44 + F49 + F51", r.main.F89 - r.main.F44 + r.main.F49 + r.main.F51, r.main.F90);
+  check("REG-tickets/hidden", "F90 = F89 + F49 + F51", r.hidden.F89 + r.hidden.F49 + r.hidden.F51, r.hidden.F90);
+
+  // AGRI — base ligne 69 : plafonnée (D63) sur SIMULATOR, non plafonnée (D62) côté caché
+  const hi = Object.assign({}, base, { thBrut: 24 });
+  const rh = compute(hi);
+  check("REG-plafond/main", "F69 base D63", Math.min(rh.main.D62, rh.main.D107) * 6.9 / 100, rh.main.F69);
+  check("REG-plafond/hidden", "F69 base D62", rh.hidden.D62 * 6.9 / 100, rh.hidden.F69);
+  if (rh.hidden.D62 <= rh.hidden.D107) { rows.push(["REG-plafond", "setup", "D62>D107", "D62<=D107", false]); nFail++; }
+
+  // AGRI — taux littéraux de la feuille cachée
+  const rates = Object.assign({}, RATES_AGRI, { ssPlafSal: 12.34, atPat: 3.33 });
+  const rr = compute(Object.assign({}, base, { rates }));
+  const rdef = compute(base);
+  check("REG-rates/main", "ssPlafSal appliqué", rr.main.D69 * 12.34 / 100, rr.main.F69);
+  check("REG-rates/hidden", "ssPlafSal littéral inchangé", rdef.hidden.F69, rr.hidden.F69);
+  check("REG-rates/hidden", "atPat lié suit l'édition", rr.hidden.D62 * 3.33 / 100, rr.hidden.H68);
+
+  // TARIFAIRE — IFM/ICCP : D32 SIMULATOR sans F30, caché avec F30 ; D33 = D32+F32
+  const tb = wbToInputs(GOLDEN_TARIFAIRE.inputs, "tarifaire");
+  const ti = Object.assign({}, tb, { ifm: true, iccp: true, majoNormQty: 4 });
+  const rt = compute(ti);
+  check("REG-ifm/main", "D32 = Σ lignes − F30", rt.hidden.D32 - rt.main.F30, rt.main.D32);
+  check("REG-ifm/main", "F32 = D32 × 10 %", rt.main.D32 * 0.1, rt.main.F32);
+  check("REG-ifm/main", "D33 = D32 + F32", rt.main.D32 + rt.main.F32, rt.main.D33);
+  check("REG-ifm/main", "F33 = D33 × 10 %", rt.main.D33 * 0.1, rt.main.F33);
+
+  // TARIFAIRE — mode BTP GRAND D : DFS 0,9 sur la feuille principale + Fillon min(D105,E105)
+  const btp = Object.assign({}, tb, { mode: "SIMULATEUR BTP GRAND D" });
+  const rb = compute(btp);
+  check("REG-btp/main", "D62 = max(0,9×F42 ; assiette mini)", Math.max(rb.main.F42 * 0.9, rb.main.D102), rb.main.D62);
+  check("REG-btp/main", "H83 = min(D105, E105)", Math.min(rb.main.D105, rb.main.E105), rb.main.H83);
+  const ind = compute(tb);
+  check("REG-btp/main", "INDUSTRIE : H83 = D104", ind.main.D104, ind.main.H83);
+
+  // TARIFAIRE — logement : F92 = €/h × heures logement ; O52 = min(heures,35) × prix/h
+  const lg = Object.assign({}, tb, { coutLogementFacture: 2.5 });
+  const rl = compute(lg);
+  check("REG-log/main", "F92 = 3,5 × 43", 3.5 * 43, rl.main.F92);
+  check("REG-log/main", "O52 = 35 × 2,5", 35 * 2.5, rl.main.O52);
+  // provision CET quand ni IFM ni ICCP (tarifaire par défaut)
+  check("REG-cet/main", "D85 = D32 × 21 %", rl.main.D32 * 0.21, rl.main.D85);
+
+  // RGDU 2026 — formule contre calcul manuel (état golden tarifaire, formule sélectionnée)
+  // paramètres décret via OpenFisca : Tmin 0,02, Tdelta petite 0,3781, P 1,75, plafond 3 SMIC
+  const rg = compute(Object.assign({}, tb, { exoFormule: "rgdu" }));
+  {
+    const smicParam = 12.02 * 43, F42 = rg.main.F42;
+    const t = Math.min(1, 0.5 * (3 * smicParam / F42 - 1));
+    const coeff = Math.round((0.02 + 0.3781 * Math.pow(t, 1.75)) * 10000) / 10000;
+    check("REG-rgdu/main", "coefficient RGDU", coeff, rg.main.rgduCoeff);
+    check("REG-rgdu/main", "montant brut = coeff × brut × 1,1", coeff * F42 * 1.1, rg.main.rgduAmount);
+    check("REG-rgdu/main", "H83 = montant plafonné au panier éligible",
+          Math.round(Math.min(rg.main.rgduAmount, rg.main.rgduPanier) * 100) / 100, Math.round(rg.main.H83 * 100) / 100);
+    check("REG-rgdu/main", "Fillon conservé en parallèle", compute(tb).main.H83, rg.main.H83_fillon);
+  }
+  // ≥ 3 SMIC → 0 ; bas salaire → plafond Tmax ; FNAL 0,50 % ; sans majoration intérim
+  const rgHi = compute(Object.assign({}, tb, { exoFormule: "rgdu", thBrut: 40 }));
+  check("REG-rgdu/seuil", "0 dès 3 SMIC", 0, rgHi.main.rgduAmount);
+  const rgLo = compute(Object.assign({}, tb, { exoFormule: "rgdu", thBrut: 9 }));
+  check("REG-rgdu/plafond", "coeff = Tmax 0,3981", 0.3981, rgLo.main.rgduCoeff);
+  // surcharges "droit courant" : Tdelta/P/plafond injectés (mise à jour OpenFisca)
+  const rgOv = compute(Object.assign({}, tb, { exoFormule: "rgdu",
+    rgdu: { smicRef: 12.02, fnal050: false, interim: true, tdeltaPetite: 0.5, tmin: 0.03, p: 2, plafondSmic: 2 } }));
+  {
+    const smicParam = 12.02 * 43, F42 = rgOv.main.F42;
+    const elig = F42 < 2 * smicParam;
+    const t = Math.min(1, 0.5 * (2 * smicParam / F42 - 1));
+    const coeff = elig ? Math.round(Math.min(0.03 + 0.5 * Math.pow(t, 2), 0.53) * 10000) / 10000 : 0;
+    check("REG-rgdu/override", "paramètres surchargés", coeff, rgOv.main.rgduCoeff);
+  }
+  // constantes classeur surchargées : SMIC → TO-DE/Fillon ; plafond SS → D107
+  const smicUp = compute(Object.assign({}, base, { smicClasseur: 12.31 }));
+  check("REG-const/agri", "TO-DE seuil totale = 12,31 × h × 1,25", 12.31 * smicUp.main.D24 * 1.25, smicUp.main.tode.seuilTotale);
+  const pssUp = compute(Object.assign({}, base, { plafondSSMois: 4005 }));
+  check("REG-const/agri", "D107 = 4005/30 × jours", 4005 / 30 * 5, pssUp.main.D107);
+
+  // les DÉFAUTS de l'interface suivent le droit courant intégré (BAKED_OFFICIAL + taux 2026)
+  for (const s of ["agri", "tarifaire"]) {
+    const d = defaultInputs(DB, s);
+    check("DEFAULTS/" + s, "thBrut prérempli au SMIC (plancher automatique)", BAKED_OFFICIAL.smic.value, d.thBrut);
+    check("DEFAULTS/" + s, "heures = 0 à l'ouverture", 0, d.heures);
+    check("DEFAULTS/" + s, "coeff = 0 à l'ouverture", 0, d.coeff);
+    check("DEFAULTS/" + s, "net attendu vide à l'ouverture", "ras-nr", d.netAttendu == null ? "ras-nr" : String(d.netAttendu));
+    check("DEFAULTS/" + s, "smicClasseur = SMIC courant", BAKED_OFFICIAL.smic.value, d.smicClasseur);
+    check("DEFAULTS/" + s, "plafond SS courant", BAKED_OFFICIAL.pss.value, d.plafondSSMois);
+    check("DEFAULTS/" + s, "barème repas PD 2026", BAKED_OFFICIAL.repasLieuTravail.value, d.baremeRepasPD);
+    check("DEFAULTS/" + s, "barème repas GD 2026", BAKED_OFFICIAL.repasRestaurant.value, d.baremeRepasGD);
+    check("DEFAULTS/" + s, "AT-MP moyen 2026", 2.08, d.rates.atPat);
+    check("DEFAULTS/" + s, "vieillesse déplaf. pat. 2026", 2.11, d.rates.ssDeplafPat);
+    check("DEFAULTS/" + s, "chômage 4,00 + AGS ETT", 4.03, d.rates.chomagePat);
+    check("DEFAULTS/" + s, "CET patronal 2026", 0.21, d.rates.cetPat);
+  }
+  check("DEFAULTS/tarifaire", "mutuelle Intérimaires Santé 2026", 0.0874, defaultInputs(DB, "tarifaire").rates.mutuellePat);
+
+  // 3 types de fonctionnement : agri (MSA·TO-DE) / BTP (CPAM·RGDU) / Industrie (CPAM·RGDU)
+  {
+    const dT = defaultInputs(DB, "tarifaire");
+    check("TYPES/tarifaire", "branche par défaut = industrie", "industrie", dT.branche);
+    check("TYPES/tarifaire", "niveau qualification par défaut", "N1P1", dT.niveauQualif);
+    check("TYPES/tarifaire", "modes BTP disponibles", 2, SECTORS.tarifaire.modes.filter(m => m.indexOf("BTP") >= 0).length);
+    check("TYPES/tarifaire", "mode industrie disponible", 1, SECTORS.tarifaire.modes.filter(m => m.indexOf("BTP") < 0).length);
+    // défauts logement : 0 partout (demande du 20/08/2026 — aucune valeur arbitraire prépositionnée)
+    for (const s2 of ["agri", "tarifaire"]) {
+      const d2 = defaultInputs(DB, s2);
+      check("TYPES/" + s2, "coût logement défaut 0", 0, (d2.logementHebdo || 0) + (d2.logementHoraire || 0));
+      check("TYPES/" + s2, "participation logement défaut 0", 0, d2.participationLibre);
+      check("TYPES/" + s2, "logement facturé défaut 0", 0, d2.coutLogementFacture);
+    }
+    // agri : TO-DE appliquée à H83, RGDU équivalente calculée pour le comparatif (non
+    // cumulables) — scénario explicite (les défauts s'ouvrent désormais à zéro)
+    const rA = compute(Object.assign({}, defaultInputs(DB, "agri"), { thBrut: 12.31, heures: 35, jours: 5, netAttendu: 10 }));
+    check("TYPES/agri", "H83 = TO-DE (pas la RGDU)", rA.main.tode.total, rA.main.H83);
+    if (!(rA.main.rgduAmount > 0)) { rows.push(["TYPES/agri", "rgduAmount comparatif > 0", ">0", rA.main.rgduAmount, false]); nFail++; }
+    // grille BTP : niveaux présents dans la base département (référence qualification)
+    const d13 = DB.departments.find(x => x.dept.indexOf("13 ") === 0);
+    check("TYPES/btp", "grille 13 N3P1 (classeur)", 12.61, Math.round(d13.rates.N3P1 * 100) / 100);
+    check("TYPES/btp", "grille 13 panier non soumis", 9.5, d13.panierNonSoumis);
+
+    // minima BTP OFFICIELS (code.travail.gouv.fr IDCC 1596/1597, relevés 20/08/2026) —
+    // exemple validé par l'utilisateur : Bretagne N2 = 1 917,70 €/mois ÷ 151,67 = 12,64 €/h
+    check("MINIMA-BTP", "Bretagne N2 = 12,64 €/h", 12.64, btpMinimaHoraire("Bretagne", "N2", "cc1596"));
+    check("MINIMA-BTP", "label classeur avec suffixe / accents", 12.64, btpMinimaHoraire("Bretagne / BRE", "N2", "cc1596"));
+    check("MINIMA-BTP", "Île-de-France coeff 185 mensuel", 1899, (btpMinimaRegion("Île-de-France") || { cc1596: {} }).cc1596[185]);
+    check("MINIMA-BTP", "PACA N3P2 mensuel", 2340.59, BTP_MINIMA.regions.PROVENCEALPESCOTEDAZUR.cc1596[230]);
+    check("MINIMA-BTP", "13 régions couvertes", 13, Object.keys(BTP_MINIMA.regions).length);
+    check("MINIMA-BTP", "1597 Centre-Val de Loire coeff 270", 2400, BTP_MINIMA.regions.CENTREVALDELOIRE.cc1597[270]);
+    check("MINIMA-BTP", "région inconnue -> null (repli classeur)", "ras-nr", btpMinimaHoraire("Guadeloupe", "N2") === null ? "ras-nr" : "trouvé");
+
+    // 20/08/2026 : coût logement / participation ne touchent JAMAIS le CA (le classeur
+    // convertissait l'avance en repas GD refacturés — gdAvanceAuto false par défaut)
+    const gdBase = Object.assign({}, defaultInputs(DB, "tarifaire"),
+      { mode: "SIMULATEUR BTP GRAND D", thBrut: 12.31, heures: 43, jours: 5, coeff: 1.78,
+        netAttendu: 14.5, logement: true, logementHoraire: 180 / 43 });
+    const gdSans = compute(gdBase);
+    const gdPart = compute(Object.assign({}, gdBase, { participationLibre: -180 }));
+    check("REG-ca-logement", "participation -180 : CA inchangé", Math.round(gdSans.main.O60 * 100) / 100, Math.round(gdPart.main.O60 * 100) / 100);
+    check("REG-ca-logement", "participation : repas GD auto O49 = 0", 0, gdPart.main.O49);
+    check("REG-ca-logement", "opération blanche : coût 180 − participation 180", Math.round((gdSans.main.F93 - 180) * 100) / 100, Math.round(gdPart.main.F93 * 100) / 100);
+    const gdXls = compute(Object.assign({}, gdBase, { participationLibre: -180, gdAvanceAuto: true }));
+    if (!(gdXls.main.O60 > gdPart.main.O60 + 0.005)) { rows.push(["REG-ca-logement", "classeur (gdAvanceAuto) refacture bien F49", ">CA", gdXls.main.O60, false]); nFail++; }
+  }
+
+  // taux réduits maladie/famille : supprimés hors TO-DE (tarifaire), maintenus TO-DE (agri)
+  const dt = Object.assign(defaultInputs(DB, "tarifaire"), { thBrut: 12.31, heures: 43, jours: 5 });
+  const da = Object.assign(defaultInputs(DB, "agri"), { thBrut: 12.31, heures: 35, jours: 5 });
+  const rFlat = compute(Object.assign({}, dt, { thBrut: 12.31 }));
+  check("REG-reduits/tarifaire", "maladie 13 % à bas salaire", 13, rFlat.main.G62);
+  check("REG-reduits/tarifaire", "famille 5,25 % à bas salaire", 5.25, rFlat.main.G74);
+  const rAgri = compute(da);
+  check("REG-reduits/agri", "maladie 7 % (résiduel TO-DE)", 7, rAgri.main.G62);
+
+  // panier TO-DE 2026 : 2,11 / 0,49 / 4,00 → MSA = 26,00 % du brut
+  check("REG-tode2026/agri", "somme MSA 26,00 %", rAgri.main.F42 * 0.2600, rAgri.main.tode.msa);
+  check("REG-tode2026/agri", "retraite 6,01 %", rAgri.main.F42 * 0.0601, rAgri.main.tode.retraite);
+
+  // Retenue à la source — deux régimes selon la résidence (case attestation)
+  {
+    const w = 12 / 52;
+    // RÉSIDENT (attestation NON) → grille PAS BOFiP, abattement contrat court
+    const daRes = Object.assign({}, da, { attestation: false });
+    const r = compute(daRes);
+    check("REG-pas/regime", "résident → grille PAS", "pas", r.main.pasRegime);
+    const b = Math.max(0, r.main.F14 - 766 * w);
+    let rate = 9.9;
+    for (const [lim, rr] of PAS_GRILLE_2026) { if (b < lim * w) { rate = rr; break; } }
+    check("REG-pas/grille", "F43 = base abattue × taux de tranche", b * rate / 100, r.main.F43);
+    const rNoCC = compute(Object.assign({}, daRes, { pasContratCourt: false }));
+    let rate2 = 9.9;
+    for (const [lim, rr] of PAS_GRILLE_2026) { if (rNoCC.main.F14 < lim * w) { rate2 = rr; break; } }
+    check("REG-pas/grille", "sans abattement", Math.max(0, rNoCC.main.F14) * rate2 / 100, rNoCC.main.F43);
+    // NON-RÉSIDENT (attestation OUI) → barème 182 A 2026 (0/12/20 %, seuils/312 × jours)
+    const rNR = compute(da);   // défauts agri : attestation = true
+    check("REG-ras/regime", "non-résident → 182 A", "ras-nr", rNR.main.pasRegime === "182A" ? "ras-nr" : String(rNR.main.pasRegime));
+    const bNR = Math.max(0, rNR.main.F14 * 0.9);
+    const l1 = RASNR_2026.t1Annuel / RASNR_2026.joursAnnee * da.jours;
+    const l2 = RASNR_2026.t2Annuel / RASNR_2026.joursAnnee * da.jours;
+    const expNR = Math.max(0, Math.min(bNR, l2) - l1) * RASNR_2026.tauxMid + Math.max(0, bNR - l2) * RASNR_2026.tauxHaut;
+    check("REG-ras/182A", "F43 = tranches 12/20 % sur F14×0,9", expNR, rNR.main.F43);
+    // tranche 20 % atteinte à haut salaire
+    const rHi = compute(Object.assign({}, da, { thBrut: 45 }));
+    if (!(rHi.main.F14 * 0.9 > l2)) { rows.push(["REG-ras/setup", "base > seuil 20 %", ">", "<=", false]); nFail++; }
+    else {
+      const bHi = rHi.main.F14 * 0.9;
+      const expHi = (l2 - l1) * RASNR_2026.tauxMid + (bHi - l2) * RASNR_2026.tauxHaut;
+      check("REG-ras/182A", "tranche 20 % appliquée", expHi, rHi.main.F43);
+    }
+  }
+
+  // indemnités 3-4 (extension web, modèle ligne 48) : paie, coût et facturation
+  {
+    const r0 = compute(tb);
+    const r3 = compute(Object.assign({}, tb, {
+      indemnites: [tb.indemnites[0], tb.indemnites[1], { q: 1, r: 100, fc: 1 }, { q: 2, r: 50, fc: 0 }]
+    }));
+    check("REG-indem34", "F89 +100 (i3) +100 (i4)", r0.main.F89 + 200, r3.main.F89);
+    check("REG-indem34", "F93 +200", r0.main.F93 + 200, r3.main.F93);
+    check("REG-indem34", "O60 +100 (i3 fc=1, i4 fc=0 non facturée)", r0.main.O60 + 100, r3.main.O60);
+  }
+
+  // défaut : RGDU appliquée (le Fillon ne subsiste qu'en mode classeur)
+  check("DEFAULTS/tarifaire", "exoFormule = rgdu", "rgdu", defaultInputs(DB, "tarifaire").exoFormule);
+  // 22/08/2026 : l'imputation RGDU est plafonnée aux cotisations dues du panier éligible
+  {
+    const rDt = compute(dt).main;
+    check("REG-exo/tarifaire", "H83 = min(RGDU, panier éligible)",
+          Math.round(Math.min(rDt.rgduAmount, rDt.rgduPanier) * 100) / 100, Math.round(rDt.H83 * 100) / 100);
+    const rSmic = compute(Object.assign({}, defaultInputs(DB, "tarifaire"),
+      { thBrut: 12.31, heures: 35, jours: 5 })).main;
+    if (!(rSmic.H83 <= rSmic.rgduPanier + 1e-6)) { rows.push(["REG-rgdu/plafond", "H83 <= panier au SMIC", "<=", rSmic.H83, false]); nFail++; }
+    if (!(rSmic.rgduAmount > rSmic.rgduPanier)) { rows.push(["REG-rgdu/plafond", "×1,1 dépasse bien le panier au SMIC (cap actif)", ">", rSmic.rgduAmount, false]); nFail++; }
+  }
+  const rgF = compute(Object.assign({}, tb, { exoFormule: "rgdu", rgdu: { smicRef: 12.02, fnal050: true, interim: true } }));
+  if (!(rgF.main.rgduCoeff > rg.main.rgduCoeff)) { rows.push(["REG-rgdu/fnal", "tdelta 0,3813 > 0,3773", ">", "<=", false]); nFail++; }
+  else { rows.push(["REG-rgdu/fnal", "tdelta 0,3813 > 0,3773", "ok", "ok", true]); nPass++; }
+  const rgNI = compute(Object.assign({}, tb, { exoFormule: "rgdu", rgdu: { smicRef: 12.02, fnal050: false, interim: false } }));
+  check("REG-rgdu/interim", "sans ×1,1", rgNI.main.rgduCoeff * rgNI.main.F42, rgNI.main.rgduAmount);
+  // agri : TO-DE inchangé même si exoFormule = rgdu
+  const agriR = compute(Object.assign({}, base, { exoFormule: "rgdu" }));
+  check("REG-rgdu/agri", "H83 reste TO-DE", compute(base).main.H83, agriR.main.H83);
+})();
+
+const tbl = document.getElementById("out");
+for (const [name, addr, e, a, ok] of rows) {
+  const tr = document.createElement("tr");
+  tr.innerHTML = "<td>" + name + "</td><td>" + addr + "</td><td>" + e + "</td><td>" + a +
+                 "</td><td class='" + (ok ? "pass'>PASS" : "fail'>FAIL") + "</td>";
+  if (!ok) tbl.prepend(tr); else tbl.appendChild(tr);
+}
+document.getElementById("verdict").textContent =
+  (nFail === 0 ? "✅ " : "❌ ") + nPass + " PASS / " + nFail + " FAIL (" + rows.length + " comparaisons)";
+window.__testResults = { pass: nPass, fail: nFail,
+  failures: rows.filter(r => !r[4]).map(r => ({ case: r[0], addr: r[1], expected: r[2], actual: r[3] })) };
+</script>

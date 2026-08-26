@@ -1,0 +1,2463 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulateur Intérim</title>
+<style>
+/* ================= TOKENS ================= */
+:root {
+  --paper: #F5F6F8;
+  --card: #FFFFFF;
+  --card2: #EFF1F4;
+  --ink: #1F2328;
+  --muted: #5F6670;
+  --line: #D9DDE3;
+  --line-soft: #E8EBEF;
+  --brass: #C8102E;
+  --brass-deep: #9E0C24;
+  --brass-soft: #FADDE1;
+  --good: #47713E;
+  --good-soft: #E3EBDB;
+  --warn: #93660F;
+  --warn-soft: #F1E6C8;
+  --bad: #A8432A;
+  --bad-soft: #F3E0D8;
+  --info: #45647D;
+  --info-soft: #E0E7EC;
+  --chart-line: #9E0C24;
+  --chart-grid: #E4E7EB;
+  --focus: #45647D;
+  --shadow: 0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #161719;
+    --card: #1E2024;
+    --card2: #262930;
+    --ink: #ECEDEF;
+    --muted: #9BA2AB;
+    --line: #373B42;
+    --line-soft: #2C3037;
+    --brass: #E4586C;
+    --brass-deep: #F08A97;
+    --brass-soft: #3A2227;
+    --good: #93BD82;
+    --good-soft: #2A331F;
+    --warn: #D9B45E;
+    --warn-soft: #383018;
+    --bad: #E08A6B;
+    --bad-soft: #3B241B;
+    --info: #93B1C9;
+    --info-soft: #263039;
+    --chart-line: #E4586C;
+    --chart-grid: #2C3037;
+    --focus: #93B1C9;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #161719;
+  --card: #1E2024;
+  --card2: #262930;
+  --ink: #ECEDEF;
+  --muted: #9BA2AB;
+  --line: #373B42;
+  --line-soft: #2C3037;
+  --brass: #E4586C;
+  --brass-deep: #F08A97;
+  --brass-soft: #3A2227;
+  --good: #93BD82;
+  --good-soft: #2A331F;
+  --warn: #D9B45E;
+  --warn-soft: #383018;
+  --bad: #E08A6B;
+  --bad-soft: #3B241B;
+  --info: #93B1C9;
+  --info-soft: #263039;
+  --chart-line: #E4586C;
+  --chart-grid: #2C3037;
+  --focus: #93B1C9;
+  --shadow: 0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3);
+}
+
+/* ================= BASE ================= */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font: 14px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, .hero-num, .brand {
+  font-family: Cambria, "Iowan Old Style", Georgia, "Times New Roman", serif;
+}
+.num, td.n, .tile-num, input[type=number], .gs-out, .hero-num, .hero-pct {
+  font-variant-numeric: tabular-nums;
+}
+button { font: inherit; cursor: pointer; }
+:is(button, input, select):focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* visibilité par secteur */
+body:not(.sector-tarifaire) .only-tarifaire { display: none !important; }
+body.sector-tarifaire .only-agri { display: none !important; }
+body:not(.branche-btp) .only-btp { display: none !important; }
+
+/* ================= HEADER ================= */
+header.top {
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+  padding: 18px 24px 14px;
+}
+.top-inner { max-width: 1340px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: flex-end; }
+.brand { display: flex; align-items: baseline; gap: 12px; }
+.brand h1 { font-size: 26px; margin: 0; letter-spacing: .2px; text-wrap: balance; }
+.brand .wheat { color: var(--brass); }
+.brand .sub { color: var(--muted); font-size: 12.5px; font-family: "Segoe UI", system-ui, sans-serif; }
+.top-fields { display: flex; gap: 14px; flex-wrap: wrap; margin-left: auto; align-items: flex-end; }
+.top-fields .field { min-width: 150px; }
+.top-actions { display: flex; gap: 8px; }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { flex: 1; padding: 6px 12px; background: var(--card2); border: 0; color: var(--muted); font-size: 13px; white-space: nowrap; }
+.seg button[aria-pressed="true"] { background: var(--brass); color: var(--card); font-weight: 600; }
+
+/* ================= LAYOUT ================= */
+.wrap { max-width: 1340px; margin: 0 auto; padding: 20px 24px 80px; display: grid; grid-template-columns: minmax(430px, 1fr) 430px; gap: 20px; align-items: start; }
+
+/* barre résumé mobile (masquée sur desktop) */
+#mbar { display: none; }
+
+@media (max-width: 1020px) {
+  .wrap { grid-template-columns: 1fr; padding: 14px 14px 60px;
+          padding-left: calc(14px + env(safe-area-inset-left)); padding-right: calc(14px + env(safe-area-inset-right)); }
+  .rail { position: static !important; max-height: none; overflow: visible; padding-right: 0; }
+  #mbar {
+    position: sticky; top: 0; z-index: 30; display: flex; gap: 10px; align-items: baseline;
+    background: var(--card); border-bottom: 1px solid var(--line); box-shadow: var(--shadow);
+    padding: 9px 16px; padding-left: calc(16px + env(safe-area-inset-left)); padding-right: calc(16px + env(safe-area-inset-right));
+    cursor: pointer; font-size: 13px; color: var(--muted);
+  }
+  #mbar b { font-family: Cambria, "Iowan Old Style", Georgia, serif; font-size: 19px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  #mbar .pct { color: var(--brass-deep); font-weight: 600; }
+  #mbar.neg b, #mbar.neg .pct { color: var(--bad); }
+  #mbar .go { margin-left: auto; color: var(--brass-deep); font-weight: 600; }
+  .hero-num { font-size: 36px; }
+  header.top { padding-left: calc(24px + env(safe-area-inset-left)); padding-right: calc(24px + env(safe-area-inset-right)); }
+  body { padding-bottom: env(safe-area-inset-bottom); }
+}
+.rail { position: sticky; top: 14px; display: flex; flex-direction: column; gap: 14px; max-height: calc(100vh - 28px); overflow-y: auto; padding-right: 2px; }
+.col { display: flex; flex-direction: column; gap: 14px; }
+
+/* ================= CARDS ================= */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+.card > .card-h {
+  padding: 10px 16px; border-bottom: 1px solid var(--line-soft);
+  display: flex; align-items: center; gap: 10px;
+}
+.card > .card-h h2 { font-size: 16px; margin: 0; }
+.card > .card-h .eyebrow { margin-left: auto; }
+.card-b { padding: 14px 16px 16px; }
+.eyebrow { font-size: 10.5px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 600; }
+
+/* ================= FORMS ================= */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 12px; }
+.grid .wide { grid-column: 1 / -1; }
+/* tableau strict à 2 colonnes (demande utilisateur) */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+.grid2 .span2 { grid-column: 1 / -1; }
+.grid2 .rowspan2 { grid-row: span 2; display: flex; flex-direction: column; justify-content: center; }
+.grid2 .tlabel { font-size: 12.5px; font-weight: 600; color: var(--muted); align-self: center; }
+.grid2 .check-cell { align-self: center; }
+.field-bold label:not(.check) { font-size: 13px; color: var(--ink); font-weight: 700; }
+.field-bold input { font-weight: 700; font-size: 15px; }
+.ro-calc { background: var(--line-soft) !important; border-style: dashed !important; color: var(--brass-deep) !important; font-weight: 600; cursor: default; }
+.field label:not(.check) { display: block; font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
+.field input[type=text], .field input[type=number], .field select {
+  width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 7px;
+  background: var(--card2); color: var(--ink); font-size: 13.5px;
+}
+.field input[readonly] { opacity: .6; }
+.check { display: flex; align-items: center; gap: 7px; font-size: 13px; padding: 5px 0; }
+.check input { width: 15px; height: 15px; accent-color: var(--brass); }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.chip {
+  border: 1px solid var(--line); background: var(--card2); border-radius: 20px;
+  font-size: 11.5px; padding: 2px 9px; color: var(--ink);
+}
+.chip b { color: var(--brass-deep); }
+.chip:hover { border-color: var(--brass); }
+.hint { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+/* autocomplétion d'adresses : liste déroulante tactile sous le champ */
+.adr-wrap { position: relative; }
+.adr-sug {
+  position: absolute; left: 0; right: 0; top: 100%; z-index: 40;
+  background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: var(--shadow); max-height: 260px; overflow-y: auto;
+}
+.adr-sug .item { padding: 9px 11px; cursor: pointer; font-size: 13.5px; border-bottom: 1px solid var(--line-soft); }
+.adr-sug .item:last-child { border-bottom: 0; }
+.adr-sug .item:hover, .adr-sug .item:active { background: var(--card2); }
+.adr-sug .ctx { color: var(--muted); font-size: 11.5px; display: block; }
+.btn {
+  border: 1px solid var(--line); background: var(--card2); color: var(--ink);
+  border-radius: 7px; padding: 6px 12px; font-size: 13px;
+}
+.btn:hover { border-color: var(--brass); }
+.btn.primary { background: var(--brass); border-color: var(--brass); color: var(--card); font-weight: 600; }
+.btn.primary:hover { background: var(--brass-deep); border-color: var(--brass-deep); }
+
+/* rows of prime/indemnité (nom · nombre · coef fact · montant · total) */
+.rowline { display: grid; grid-template-columns: 1fr 62px 68px 84px 78px; gap: 8px; align-items: center; margin-bottom: 6px; }
+/* indemnités : 6ᵉ colonne « Ajust. » (ligne modifiable par le pilotage du net) */
+.rowline.adj6 { grid-template-columns: 1fr 62px 68px 84px 26px 78px; }
+.adjbox { width: 16px; height: 16px; accent-color: var(--brass); justify-self: center; }
+.rowline input { width: 100%; padding: 5px 7px; border: 1px solid var(--line); border-radius: 7px; background: var(--card2); color: var(--ink); font-size: 13px; }
+.rowline .amt { text-align: right; font-size: 13px; color: var(--muted); }
+.rowhead { font-size: 10.5px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 600; }
+
+/* mobile : 16px minimum (sinon Safari iOS zoome au focus) ; cibles tactiles 42px.
+   Placé APRÈS les règles de base .field/.rowline/.btn pour gagner la cascade. */
+@media (max-width: 1020px) {
+  .field input[type=text], .field input[type=number], .field select, .rowline input, .btn {
+    font-size: 16px; min-height: 42px;
+  }
+  .check input { width: 19px; height: 19px; }
+  .check { padding: 8px 0; }
+  .rowline { grid-template-columns: 1fr 52px 56px 72px 64px; gap: 5px; }
+  .rowline.adj6 { grid-template-columns: 1fr 52px 56px 72px 24px 64px; }
+  .seg button { min-height: 42px; }
+}
+
+/* ================= RESULTS ================= */
+.hero { background: linear-gradient(160deg, var(--brass-soft), var(--card)); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); padding: 16px 18px 14px; }
+.hero .eyebrow { color: var(--brass-deep); }
+.hero-num { font-size: 44px; font-weight: 700; line-height: 1.05; letter-spacing: -.5px; margin: 2px 0 0; }
+.hero-pct { font-size: 19px; font-weight: 600; color: var(--brass-deep); }
+.hero-sub { display: flex; gap: 16px; margin-top: 8px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+.hero-sub b { color: var(--ink); font-weight: 600; }
+.hero.neg { background: linear-gradient(160deg, var(--bad-soft), var(--card)); }
+.hero.neg .hero-pct, .hero.neg .eyebrow { color: var(--bad); }
+
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; box-shadow: var(--shadow); }
+.tile .eyebrow { display: block; margin-bottom: 3px; }
+.tile-num { font-size: 19px; font-weight: 700; }
+.tile-sub { font-size: 11.5px; color: var(--muted); }
+.badge { display: inline-block; border-radius: 20px; font-size: 10.5px; font-weight: 700; padding: 1px 9px; letter-spacing: .05em; }
+.badge.good { background: var(--good-soft); color: var(--good); }
+.badge.warn { background: var(--warn-soft); color: var(--warn); }
+.badge.bad  { background: var(--bad-soft);  color: var(--bad); }
+.badge.info { background: var(--info-soft); color: var(--info); }
+.delta.good { color: var(--good); font-weight: 600; }
+.delta.bad { color: var(--bad); font-weight: 600; }
+
+/* key-value tables */
+table.kv { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.kv td { padding: 4px 2px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+table.kv tr:last-child td { border-bottom: 0; }
+table.kv td.n { text-align: right; white-space: nowrap; font-weight: 600; }
+/* références de cellules Excel (F42, D85…) : traçabilité interne uniquement —
+ * masquées à l'écran (25/08/2026, demande utilisateur) ; le moteur reste un
+ * portage cellule par cellule validé par les tests golden */
+table.kv td .ref, .ref { display: none; }
+table.kv tr.total td { border-top: 1.5px solid var(--line); font-weight: 700; }
+table.kv tr.sub td { color: var(--muted); }
+
+/* accordions */
+details.acc { border: 1px solid var(--line); border-radius: 10px; background: var(--card); box-shadow: var(--shadow); }
+details.acc > summary {
+  cursor: pointer; padding: 9px 14px; font-weight: 600; font-size: 13.5px;
+  list-style: none; display: flex; align-items: center; gap: 8px;
+}
+details.acc > summary::-webkit-details-marker { display: none; }
+details.acc > summary::after { content: "+"; margin-left: auto; color: var(--muted); font-size: 15px; }
+details.acc[open] > summary::after { content: "–"; }
+details.acc[open] > summary { border-bottom: 1px solid var(--line-soft); }
+details.acc .card-b { overflow-x: auto; }
+
+/* goal seek */
+.gs { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: end; margin-bottom: 8px; }
+.gs .gs-out { align-self: center; font-size: 15px; font-weight: 700; color: var(--brass-deep); min-width: 74px; text-align: right; padding-bottom: 6px; }
+
+/* chart */
+.chart-box { position: relative; }
+.chart-tip {
+  position: absolute; pointer-events: none; background: var(--card); border: 1px solid var(--line);
+  border-radius: 7px; padding: 4px 8px; font-size: 11.5px; box-shadow: var(--shadow); display: none; white-space: nowrap;
+}
+/* grille de prix */
+table.grille { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.grille th { text-align: right; font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 4px 6px; border-bottom: 1px solid var(--line); }
+table.grille th:first-child { text-align: left; }
+table.grille td { padding: 3px 6px; text-align: right; border-bottom: 1px solid var(--line-soft); font-variant-numeric: tabular-nums; }
+table.grille td:first-child { text-align: left; font-weight: 600; }
+table.grille tr.cur td { background: var(--brass-soft); font-weight: 700; }
+table.grille td.neg { color: var(--bad); }
+
+.note { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+
+/* bandeau d'alertes (changements de taux détectés à l'ouverture) */
+.alerts { max-width: 1340px; margin: 12px auto 0; padding: 0 24px; display: flex; flex-direction: column; gap: 6px; }
+.alert-item {
+  background: var(--warn-soft); color: var(--warn); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 12px; font-size: 13px; display: flex; gap: 10px; align-items: baseline;
+}
+.alert-item .dismiss { margin-left: auto; background: none; border: 0; color: var(--warn); font-weight: 700; cursor: pointer; font-size: 14px; }
+.conf-warn { color: var(--bad); font-weight: 600; }
+.chip.below { border-color: var(--bad); color: var(--bad); }
+.chip.below b { color: var(--bad); }
+.aide p { font-size: 12.5px; margin: 6px 0; }
+.aide h3 { font-size: 13px; margin: 12px 0 2px; }
+
+/* ===== Étude de prix (impression PDF) ===== */
+#etude-print { display: none; }
+@media print {
+  body.print-etude header.top, body.print-etude #mbar, body.print-etude .alerts,
+  body.print-etude .wrap { display: none !important; }
+  body.print-etude #etude-print { display: block !important; }
+  #etude-print { font: 11pt/1.45 "Segoe UI", system-ui, sans-serif; color: #1a1a1a; }
+  #etude-print h1 { font: 700 17pt Cambria, Georgia, serif; margin: 0 0 2pt; }
+  #etude-print h2 { font: 700 11.5pt Cambria, Georgia, serif; margin: 11pt 0 3pt; border-bottom: 1.5px solid #8a7434; padding-bottom: 2pt; }
+  #etude-print table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+  #etude-print td { padding: 2.5pt 4pt; border-bottom: 0.5pt solid #ddd; vertical-align: top; }
+  #etude-print td.n { text-align: right; white-space: nowrap; font-weight: 600; }
+  #etude-print .meta { color: #555; font-size: 9pt; }
+  #etude-print .entete { text-align: center; margin-bottom: 6pt; }
+  #etude-print .entete h1 { margin: 0; }
+  #etude-print .logo-etude { display: block; height: 36pt; margin: 0 auto 4pt; }
+  #etude-print .synthbox { border: 1.5pt solid #9E0C24; background: #FBEFF1; border-radius: 6pt;
+    padding: 2pt 12pt 8pt; margin: 4pt 0 8pt; page-break-inside: avoid; }
+  #etude-print .synthbox h2 { border-bottom: 0; color: #9E0C24; margin: 6pt 0 2pt; }
+  #etude-print .valbox { display: inline-block; border: 1.2pt solid #9E0C24; border-radius: 4pt;
+    padding: 1.5pt 8pt; color: #9E0C24; font-weight: 700; }
+  /* mises en valeur : coefficient (élément n°1 de l'offre), base horaire, coefs par ligne */
+  #etude-print .kv-big td { font-size: 12.5pt; padding: 5pt 4pt; }
+  #etude-print .kv-big td.n { font-weight: 700; }
+  #etude-print .coefv { font-size: 12pt; font-weight: 700; color: #9E0C24; }
+  #etude-print .sublet { display: block; color: #666; font-size: 9pt; font-weight: 400; }
+  /* MONTANTS mis en valeur (colonne de droite) ; lignes de total en rouge marqué */
+  #etude-print td.n { font-weight: 700; font-size: 11pt; }
+  #etude-print tr.tot td { border-top: 1.2pt solid #9E0C24; border-bottom: 0; font-size: 11.5pt; }
+  #etude-print tr.tot td.n { color: #9E0C24; font-size: 12.5pt; }
+  /* marges gérées par la page elle-même : supprime l'URL/date ajoutées par le
+   * navigateur dans les marges d'impression (mention wboussard inutile) */
+  @page { margin: 0; }
+  body.print-etude #etude-print { padding: 13mm 12mm 12mm; }
+  #etude-print .foot { margin-top: 12pt; padding-top: 4pt; border-top: 0.5pt solid #bbb; color: #666; font-size: 8.5pt; }
+}
+@media print {
+  /* palette claire forcée quel que soit le thème actif */
+  :root, :root:not([data-theme="light"]), :root[data-theme="dark"] {
+    --paper: #fff; --card: #fff; --card2: #fff; --ink: #1a1a1a; --muted: #555;
+    --line: #ccc; --line-soft: #ddd; --brass: #9E0C24; --brass-deep: #6E0817;
+    --brass-soft: #F8E3E6; --good: #2e5e28; --good-soft: #eee; --warn: #7a5a16;
+    --warn-soft: #eee; --bad: #8a2f1a; --bad-soft: #eee; --info: #2f4b63;
+    --info-soft: #eee; --chart-line: #6E0817; --chart-grid: #ddd; --shadow: none;
+  }
+  header.top .top-actions, .col, .gs, .btn, #mbar { display: none !important; }
+  .wrap { grid-template-columns: 1fr; }
+  .rail { position: static; max-height: none; overflow: visible; }
+  body { background: #fff; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <img id="brand-logo" alt="AB2Pro — Groupe Triangle Solutions RH" style="height:34px; align-self:center; border-radius:4px">
+      <h1><span class="wheat">Simulateur</span> Intérim</h1>
+      <span class="sub" id="brand-sub">Marge brute &amp; construction du net</span>
+    </div>
+    <div class="top-fields">
+      <!-- 2 blocs (20/08/2026) : « Intérim » (BTP | Industrie) en premier — usage principal —
+           puis « CDD saisonnier » (Agricole) -->
+      <div class="field">
+        <div style="display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap">
+          <div>
+            <label id="lbl-interim">Intérim</label>
+            <div class="seg" role="group" aria-labelledby="lbl-interim">
+              <button type="button" id="sector-btp" aria-pressed="false">BTP</button>
+              <button type="button" id="sector-industrie" aria-pressed="false">Industrie</button>
+            </div>
+          </div>
+          <div>
+            <label id="lbl-cdd">CDD saisonnier</label>
+            <div class="seg" role="group" aria-labelledby="lbl-cdd">
+              <button type="button" id="sector-agri" aria-pressed="true">Agricole</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="field"><label for="in-client">Client</label><input type="text" id="in-client" placeholder="Nom du client"></div>
+      <div class="field"><label for="in-dept">Département de mission</label><select id="in-dept"><option value="">—</option></select>
+        <span class="hint only-btp" id="dept-region"></span></div>
+      <!-- « Type de simulateur » supprimé (20/08/2026) : le mode est déduit du secteur
+           (agri → MSA, BTP → GRAND D, industrie → INDUSTRIE) — select caché pour l'état moteur -->
+      <select id="in-mode" hidden aria-hidden="true" tabindex="-1"></select>
+      <div class="top-actions">
+        <button class="btn primary" id="btn-etude" title="Génère l'étude de prix (synthèse de l'offre commerciale) et ouvre l'impression — choisir « Enregistrer en PDF ». Nom de fichier automatique : Etude de prix – client – date.">Étude de prix PDF</button>
+        <button class="btn" id="btn-share" title="Copier un lien qui restaure ce scénario">Partager</button>
+        <button class="btn" id="btn-reset">Réinitialiser</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div id="mbar" role="button" tabindex="0" aria-label="Aller aux résultats">
+  Marge&nbsp;<b id="mbar-mb">—</b><span class="pct" id="mbar-pct">—</span>
+  <span id="mbar-ca">—</span><span class="go">Résultats ↓</span>
+</div>
+
+<div id="alerts" class="alerts" hidden></div>
+
+<div class="wrap">
+  <!-- ================= INPUTS ================= -->
+  <div class="col">
+
+    <section class="card">
+      <div class="card-h"><h2>Mission &amp; salarié</h2><span class="eyebrow">Heures · taux</span></div>
+      <div class="card-b">
+        <div class="grid2">
+          <!-- ligne 1-2 : brut (fusionné, gras) face à la paire net promis / net constaté -->
+          <div class="field field-bold rowspan2"><label for="in-thbrut">Tx horaire brut (€)</label><input type="number" id="in-thbrut" step="0.01" min="0" title="Prérempli au SMIC en vigueur (suivi automatique des décrets) — plancher : ne peut pas être inférieur au SMIC, modifiable à la hausse">
+            <span class="hint" id="smic-hint"></span></div>
+          <div class="field"><label for="in-net">Tx net promis (€/h)</label><input type="number" id="in-net" step="0.01" min="0"></div>
+          <div class="field"><label for="ro-netatteint">Tx net atteint (€/h)</label><input type="text" id="ro-netatteint" readonly class="ro-calc" tabindex="-1" title="Net réellement versé : salaire + primes + indemnités + avances − participation logement. Vert = net promis atteint ou dépassé, rouge = en dessous.">
+            <span class="hint" id="atteint-hint"></span></div>
+          <!-- point de départ : net du seul salaire (brut × heures) -->
+          <div class="field"><label for="ro-netconstate">Tx net constaté (€/h, salaire seul)</label><input type="text" id="ro-netconstate" readonly class="ro-calc" tabindex="-1" title="Net issu du seul taux brut × heures (majorations comprises) — hors IFM/CP, hors primes et indemnités, hors participation logement, avant avances">
+            <span class="hint" id="net-delta-hint"></span></div>
+          <div></div>
+          <!-- ligne 3 -->
+          <div class="field"><label for="in-jours">Nombre de jours travaillés / sem</label><input type="number" id="in-jours" step="1" min="0"></div>
+          <div class="field"><label for="in-heures">Heures travaillées globales / sem</label><input type="number" id="in-heures" step="0.5" min="0"></div>
+          <!-- lignes 4-6 : libellé à gauche, valeur calculée à droite -->
+          <div class="tlabel">Heures normales (35 ou moins)</div>
+          <div class="field"><input type="text" id="ro-hnorm" readonly class="ro-calc" tabindex="-1" aria-label="Heures normales calculées"></div>
+          <div class="tlabel">Heures supp à +25 % (36ᵉ–43ᵉ)</div>
+          <div class="field"><input type="text" id="ro-hs25" readonly class="ro-calc" tabindex="-1" aria-label="Heures à 25 % calculées"></div>
+          <div class="tlabel">Heures supp à +50 % (au-delà de la 43ᵉ)</div>
+          <div class="field"><input type="text" id="ro-hs50" readonly class="ro-calc" tabindex="-1" aria-label="Heures à 50 % calculées"></div>
+          <!-- ligne 7 : taux AT | pas de net attendu -->
+          <div class="field"><label for="in-atmp">Tx AT en % (défaut moyen, saisie manuelle)</label><input type="number" id="in-atmp" step="0.01" min="0" title="Taux accident du travail notifié par la CARSAT — pèse directement sur la marge. Défaut : moyenne nationale 2026 (2,08 %)."></div>
+          <div class="check-cell"><label class="check" style="margin:0"><input type="checkbox" id="in-nonet"> Pas de tx net attendu</label></div>
+          <!-- ligne 8 : IFM/CP paiement direct | mise en CET -->
+          <div class="span2"><label id="lbl-ifmcp" class="tlabel" style="display:block; margin-bottom:3px">IFM &amp; CP</label>
+            <div class="seg" role="group" aria-labelledby="lbl-ifmcp">
+              <button type="button" id="ifmcp-direct" aria-pressed="true">Paiement direct</button>
+              <button type="button" id="ifmcp-cet" aria-pressed="false">Mise en CET 100 %</button>
+            </div>
+          </div>
+          <!-- ligne 9 -->
+          <div class="check-cell"><label class="check" style="margin:0"><input type="checkbox" id="in-attest" title="Résident fiscal étranger : exonération de CSG/CRDS (maladie salariale 5,5 % à la place) — améliore le net de l'intérimaire"> Attestation fiscale étrangère (exo CSG/CRDS)</label></div>
+          <div class="check-cell"><label class="check" style="margin:0"><input type="checkbox" id="in-annu"> Annualisation</label></div>
+        </div>
+        <div id="dept-hint" class="hint"></div>
+        <p class="hint" id="conf-hint" hidden></p>
+        <div class="grid" style="margin-top:10px">
+          <div class="field"><label for="in-hnuit">… dont heures de nuit</label><input type="number" id="in-hnuit" step="0.5" min="0"></div>
+          <div class="field"><label for="in-hdim">… dont heures dimanche</label><input type="number" id="in-hdim" step="0.5" min="0"></div>
+          <div class="field"><label for="in-hferie">… dont heures férié</label><input type="number" id="in-hferie" step="0.5" min="0"></div>
+          <div class="field"><label for="in-hsup">Heures supplémentaires (36ᵉ–43ᵉ)</label><select id="in-hsup"></select></div>
+          <div class="field"><label for="in-majonorm">Heures spécifiques majorées</label><select id="in-majonorm"></select></div>
+          <div class="field"><label for="in-majonormq">Nb heures spécifiques</label><input type="number" id="in-majonormq" step="0.5" min="0"></div>
+          <div class="field"><label for="in-majonuit">Majoration nuit</label><select id="in-majonuit"></select></div>
+          <div class="field"><label for="in-majoferie">Majoration férié</label><select id="in-majoferie"></select></div>
+          <div class="field"><label for="in-majodim">Majoration dimanche</label><select id="in-majodim"></select></div>
+        </div>
+        <p class="hint"><b>Mise en CET</b> : 100 % des IFM/ICCP placés sur le compte épargne temps — le classeur provisionne 21 % de la base + 45 % de charges (D85/H85) au lieu de payer les indemnités en paie ; déblocage conseillé à l'issue du 2ᵉ contrat de prolongation. <span id="cet-eco"></span><br>
+        Attestation fiscale <b>OUI</b> : maladie salariale 5,5&nbsp;% et pas de CSG/CRDS. <b>NON</b> : CSG/CRDS, pas de maladie salariale.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h"><h2>Logement</h2><span class="eyebrow">Coût · participation · facturation</span></div>
+      <div class="card-b">
+        <div class="grid">
+          <div class="field"><label for="in-loghebdo">Coût du logement (€/sem)</label><input type="number" id="in-loghebdo" step="0.01" min="0"></div>
+          <div class="field"><label for="in-partlog">Participation logement salarié (€/sem)</label><input type="number" id="in-partlog" step="1" min="0" title="Montant retenu sur le net du salarié (ex. 180 pour une reprise de 180 €/semaine)"></div>
+          <div class="field"><label for="in-logfact" id="lbl-logfact">Logement facturé au client (€/sem)</label><input type="number" id="in-logfact" step="0.01" min="0"></div>
+        </div>
+        <p class="hint">Participation = retenue nette hebdomadaire sur le salarié (0 = aucune). Coût à 0 = pas de logement pris en charge.
+        <span class="only-tarifaire">Facturation = min(heures ; 35) × prix €/h.</span></p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h"><h2>Références barèmes</h2><span class="eyebrow">URSSAF 2026 · grilles régionales BTP</span></div>
+      <div class="card-b">
+        <div class="grid">
+          <div class="field only-btp"><label for="in-niveau">Niveau de qualification (grille BTP)</label>
+            <select id="in-niveau">
+              <option value="N1P1">N1P1 — coeff 150</option>
+              <option value="N1P2">N1P2 — coeff 170</option>
+              <option value="N2">N2 — coeff 185</option>
+              <option value="N3P1">N3P1 — coeff 210</option>
+              <option value="N3P2">N3P2 — coeff 230</option>
+              <option value="N4P1">N4P1 — coeff 250</option>
+              <option value="N4P2">N4P2 — coeff 270</option>
+              <option value="AUTRE">Autre</option>
+            </select>
+            <span class="hint" id="niveau-hint"></span></div>
+          <div class="field wide"><label for="in-adr-dom">Adresse domicile / siège social</label>
+            <div class="adr-wrap"><input type="text" id="in-adr-dom" placeholder="ex. 27 rue du Gros Chêne — puis choisir la ville" autocomplete="off">
+              <div class="adr-sug" id="sug-adr-dom" hidden></div></div></div>
+          <div class="field wide"><label for="in-adr-cha" id="lbl-adr-cha">Adresse du chantier (BTP)</label>
+            <div class="adr-wrap"><input type="text" id="in-adr-cha" placeholder="adresse de la mission — ou « 35 Saint-Malo »" autocomplete="off">
+              <div class="adr-sug" id="sug-adr-cha" hidden></div></div></div>
+          <div class="field only-btp"><label for="in-dist">Distance aller à vol d'oiseau (km) — zones BTP</label>
+            <input type="number" id="in-dist" step="0.1" min="0" title="Distance orthodromique ALLER SIMPLE — détermine la zone BTP (IA à V) des grilles régionales transport/trajet. Corrigeable à la main."></div>
+          <div class="field"><label for="in-distar">Distance réelle aller-retour (km) — barème URSSAF</label>
+            <div style="display:flex; gap:6px"><input type="number" id="in-distar" step="0.1" min="0" style="flex:1" title="Kilomètres RÉELS (itinéraire routier) aller-retour — sélectionne la tranche du barème transport URSSAF (plafonds d'exonération). Corrigeable à la main.">
+              <button type="button" class="btn" id="btn-dist">Calculer</button></div>
+            <span class="hint" id="dist-hint"></span></div>
+          <div class="field"><label for="in-zone">Distance (petits déplacements, aller-retour)</label><select id="in-zone"></select>
+            <span class="hint" id="zone-hint"></span></div>
+          <div class="field"><label for="in-gdduree">Durée du grand déplacement</label>
+            <select id="in-gdduree">
+              <option value="0">3 premiers mois</option>
+              <option value="1">du 4ᵉ au 24ᵉ mois (−15 %)</option>
+              <option value="2">au-delà de 24 mois (−30 %)</option>
+            </select></div>
+          <div class="field"><label for="in-gdlieu">Lieu du grand déplacement</label>
+            <select id="in-gdlieu">
+              <option value="province">Province</option>
+              <option value="paris">Paris + 92 / 93 / 94</option>
+            </select></div>
+        </div>
+        <table class="kv" id="tbl-ref" style="margin-top:8px"></table>
+        <p class="note">Montants actualisés automatiquement : barèmes URSSAF vérifiés multi-sources (repas et GD au 01/01/2026, abattements 15 % / 30 % selon la durée — BOSS), grille régionale BTP du classeur rattachée automatiquement à la région d'après le <b>département de mission choisi en haut de page</b>. La distance choisie alimente aussi l'exonération transport du calcul. Transport (prime, par zone) = <b>non soumis</b> à cotisations ; trajet (indemnité de temps, par zone) = <b>soumis</b> à cotisations.
+        <span class="only-btp"><b>Minima salariaux : source officielle</b> <a href="https://code.travail.gouv.fr/contribution/1596-quel-est-le-salaire-minimum" target="_blank" rel="noopener">code.travail.gouv.fr — IDCC 1596/1597 (ouvriers BTP)</a>, site mis à jour au 01/06/2026 (mensuel brut ÷ 151,67 = horaire) — jamais affichés sous le SMIC en vigueur (plancher signalé ⚠). Transport, trajet et panier : grille régionale du classeur en attendant le branchement Légifrance ; surveillance automatique hebdomadaire avec alerte e-mail.</span></p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h"><h2>Primes &amp; indemnités</h2><span class="eyebrow">Éléments contractuels</span></div>
+      <div class="card-b">
+        <div class="rowline rowhead"><span>Prime (soumise à cotisations)</span><span>Nombre</span><span>Coef fact.</span><span>Montant (€)</span><span style="text-align:right">Total</span></div>
+        <div id="primes"></div>
+        <div class="rowline rowhead adj6" style="margin-top:10px"><span>Indemnité (non soumise)</span><span>Nombre</span><span>Coef fact.</span><span>Montant (€)</span><span title="Coché = ajustable par le pilotage du net ; décoché = ligne protégée (client)">Ajust.</span><span style="text-align:right">Total</span></div>
+        <div id="indems"></div>
+        <p class="hint">Coef fact. = coefficient de facturation de la ligne. Primes : vide = coefficient de la mission ; indemnités : <b>défaut 0 = non refacturée</b> (pratique maison — les indemnités d'ajustement du net restent à votre charge) ; 1 = refacturée à l'identique ; toute autre valeur possible.
+        <b>Ajust.</b> = coché, la ligne peut être modifiée par le pilotage du net (indemnité agence) ; décoché, la ligne est <b>protégée</b> — indemnité propre au client, jamais touchée par l'ajustement.
+        Ex. découché GD : renommer une ligne d'indemnité « Découché GD », nombre = nuits, montant = €/nuit (barème 2026 : 76,60 € Paris / 56,80 € province), coef 1.</p>
+        <div class="grid only-agri" style="margin-top:10px">
+          <div class="field"><label for="in-ifm">Base IFM — spécifique CDD agricole (scénario IFM+CP du classeur)</label><input type="number" id="in-ifm" step="0.01" min="0" title="N'existe que pour le CDD saisonnier agricole : base de calcul de l'IFM dans le scénario comparatif « IFM + ICCP » du classeur MSA. Sans effet sur le calcul principal. Laisser 0 si non utilisé."></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h"><h2>Facturation &amp; commercial</h2><span class="eyebrow">Coefficients · refacturation</span></div>
+      <div class="card-b">
+        <div class="grid">
+          <div class="field"><label for="in-coeff">Coefficient</label><input type="number" id="in-coeff" step="0.0001" min="0" placeholder="à renseigner">
+            <span class="hint" id="coeff-hint" style="cursor:pointer" title="Coefficient au seuil de rentabilité (marge nulle) — cliquer pour l'appliquer"></span></div>
+          <div class="field"><label for="in-hfact">Heures facturées au taux normal</label><input type="number" id="in-hfact" step="0.5" min="0" placeholder="auto : min(35 ; heures)" title="Heures facturées au taux normal (coefficient × brut). Le surplus (heures travaillées − cette valeur) est facturé aux taux majorés 25 %/50 %. Vide = automatique min(35 ; heures travaillées)."></div>
+          <div class="field"><label for="in-remise">Remise fin d'année (%)</label><input type="number" id="in-remise" step="0.1" min="0" title="RFA calculée sur le CA HT des seuls éléments SOUMIS à cotisations (heures, majorations, primes refacturées) — indemnités refacturées et logement facturé exclus de l'assiette.">
+            <span class="hint">assiette : CA soumis à cotisations (indemnités &amp; logement exclus)</span></div>
+        </div>
+        <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:8px">
+          <label class="check"><input type="checkbox" id="in-refprimes" title="Coefficient appliqué aux primes automatiques (repas/transport/AN) et aux lignes de prime dont le coef fact. est vide"> Primes refacturées au coefficient</label>
+          <label class="check"><input type="checkbox" id="in-refdim"> Dimanche refacturé</label>
+          <label class="check"><input type="checkbox" id="in-refferie"> Férié refacturé</label>
+          <label class="check"><input type="checkbox" id="in-refnuit"> Nuit refacturée</label>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h"><h2>Pilotage du coefficient</h2><span class="eyebrow">Objectifs</span></div>
+      <div class="card-b">
+        <div class="gs">
+          <div class="field"><label for="in-cibletx" id="lbl-cibletx">Taux facturé cible hors logement (€/h)</label><input type="number" id="in-cibletx" step="0.01" min="0"></div>
+          <div class="gs-out" id="gs-tx">—</div>
+          <button class="btn primary" id="gs-tx-apply">Appliquer</button>
+        </div>
+        <div class="gs">
+          <div class="field"><label for="in-ciblemarge">Taux de marge cible (%)</label><input type="number" id="in-ciblemarge" step="0.1"></div>
+          <div class="gs-out" id="gs-marge">—</div>
+          <button class="btn primary" id="gs-marge-apply">Appliquer</button>
+        </div>
+        <!-- pilotage du NET à atteindre : participation logement en priorité, puis
+             indemnités plafonnées URSSAF GD (4e-24e mois : 5 nuitées + 5 midi + 5 soir) -->
+        <div class="gs">
+          <div class="field"><label for="in-ciblenet">Tx net à atteindre (€/h)</label><input type="number" id="in-ciblenet" step="0.01" min="0" placeholder="ex. 14,50"></div>
+          <div class="gs-out" id="gs-net">—</div>
+          <button class="btn primary" id="gs-net-apply">Appliquer</button>
+        </div>
+        <div style="display:flex; gap:18px; flex-wrap:wrap">
+          <label class="check"><input type="checkbox" id="pilot-part" checked title="La participation est ramenée au coût du logement (plancher — société logement à l'équilibre) et peut monter au-delà pour rabaisser un net trop haut. Décochée : la participation saisie n'est jamais modifiée."> Ajuster par la participation logement</label>
+          <label class="check"><input type="checkbox" id="pilot-indem" checked title="L'ajustement s'écrit sur une ligne dédiée « Ajustement net » (non facturée) — les indemnités propres au client (facturées) ne sont JAMAIS touchées. Plafond URSSAF GD 4ᵉ-24ᵉ mois, déduction faite des indemnités déjà versées."> Ajuster par les indemnités (plafonds URSSAF)</label>
+        </div>
+        <p class="note" id="gs-net-detail"></p>
+        <p class="note">Le coefficient résolu donne exactement la cible (le classeur affichait seulement l'écart). Coût salarié indépendant du coefficient.</p>
+        <div class="chart-box">
+          <svg id="chart" width="100%" height="180" role="img" aria-label="Taux de marge en fonction du coefficient"></svg>
+          <div class="chart-tip" id="chart-tip"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h"><h2>Allègement patronal</h2><span class="eyebrow">RGDU 2026 <span class="only-agri">· comparatif TO-DE</span></span></div>
+      <div class="card-b">
+        <div class="grid">
+          <div class="field"><label for="in-rgdusmic">SMIC réf. RGDU (€/h, 01/01/2026)</label><input type="number" id="in-rgdusmic" step="0.01" min="0"></div>
+          <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-rgdufnal"> ≥ 50 salariés (FNAL 0,50 %)</label></div>
+          <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-rgduinterim"> Majoration intérim ×1,1</label></div>
+        </div>
+        <p class="note">RGDU 2026 : coefficient = Tmin + Tdelta × [½ × (3 × SMIC réf / rémunération − 1)]^P, plafonné à Tmin+Tdelta, <b>nul dès 3 SMIC</b>, arrondi à 4 décimales. Paramètres du décret <b>actualisés automatiquement depuis OpenFisca</b> (au 01/01/2026 : Tmin 0,02 · Tdelta 0,3781 / 0,3821 selon la taille · P 1,75). Majoration intérim ×1,1 <b>confirmée</b> (art. D.241-10 III CSS, hors CDI intérimaire). L'ancien Fillon n'est conservé que par le bouton « constantes du classeur » (reproduction Excel).
+        <span class="only-agri"><b>Agricole (CDD saisonnier)</b> : la TO-DE est appliquée au calcul ; la RGDU équivalente est affichée en comparaison dans le détail des cotisations — les deux dispositifs <b>ne se cumulent pas</b>, l'employeur opte salarié par salarié pour le plus favorable.</span></p>
+      </div>
+    </section>
+
+    <details class="acc" id="acc-official">
+      <summary>Paramètres officiels — actualisation automatique</summary>
+      <div class="card-b">
+        <p class="note" id="official-status">Chargement des paramètres officiels…</p>
+        <table class="kv" id="tbl-official"></table>
+        <p class="note">Source : <b>OpenFisca France</b> (codification du droit par la DINUM, api.fr.openfisca.org). Les paramètres de droit courant (RGDU, seuils TO-DE) sont appliqués automatiquement ; les constantes du classeur (SMIC des formules, plafond SS) ne changent qu'avec le bouton « Appliquer », pour rester comparable à l'Excel d'origine.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Taux de cotisations &amp; constantes (avancé)</summary>
+      <div class="card-b">
+        <p class="note" id="const-note"></p>
+        <p><button class="btn" id="btn-classeur">Rétablir les constantes du classeur d'origine</button>
+        <span class="note">— pour reproduire l'Excel à l'identique (SMIC 11,88 · plafond 3 925/3 864 · barèmes 7,40/21,10 ou 7,30/20,70)</span></p>
+        <div class="grid" style="margin-bottom:10px">
+          <div class="field"><label for="in-smicclasseur">SMIC des formules (€/h)</label><input type="number" id="in-smicclasseur" step="0.01" min="0"></div>
+          <div class="field"><label for="in-plafondss">Plafond SS mensuel (€)</label><input type="number" id="in-plafondss" step="1" min="0"></div>
+          <div class="field"><label for="in-todetot">Seuil TO-DE exo totale (× SMIC)</label><input type="number" id="in-todetot" step="0.01" min="0"></div>
+          <div class="field"><label for="in-todemax">Seuil TO-DE maximal (× SMIC)</label><input type="number" id="in-todemax" step="0.01" min="0"></div>
+          <div class="field"><label for="in-pasmode">Retenue à la source</label>
+            <select id="in-pasmode">
+              <option value="grille">Barèmes 2026 (182 A non-résident / grille PAS résident)</option>
+              <option value="classeur">Formule linéaire du classeur</option>
+            </select>
+          </div>
+          <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-pascc" title="Missions ≤ 2 mois : abattement de 766 €/mois (converti en hebdomadaire) sur la base du taux neutre — BOFiP"> Abattement contrat court (766 €)</label></div>
+          <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-tauxreduits" title="Taux réduits maladie 7 % / famille 3,45 % sous seuils — supprimés au 01/01/2026 (RGDU) mais maintenus à titre résiduel pour les contrats TO-DE (agricole)"> Taux réduits maladie/famille (TO-DE)</label></div>
+        </div>
+        <p class="note">Taux 2026 vérifiés multi-sources le 19/08/2026 (Légifrance · Unédic · LégiSocial). Le taux AT-MP (champ « Mission ») et les « autres contributions » (CSA, FNAL, formation ETT 1,30 %, apprentissage…) sont <b>à personnaliser</b> selon votre agence. Prévoyance (comp. IID) : taux de branche du classeur.</p>
+        <div class="grid" id="rates-grid"></div>
+      </div>
+    </details>
+
+    <details class="acc aide">
+      <summary>Aide &amp; règles (documentation du classeur)</summary>
+      <div class="card-b">
+        <h3>La règle « tout compris garanti »</h3>
+        <p>Taux horaire : … euros net = (SMIC français + indemnités — fin de mission, congés payés, découchés, repas, voyage détente − acompte) / nombre d'heures travaillées.</p>
+        <h3>Grands déplacements (GD)</h3>
+        <p>Découché : ne jamais dépasser le barème URSSAF de 51,60&nbsp;€ par découché (206,40&nbsp;€ / 4 nuits). Au-delà, passage en prime découché. Le barème diminue après 3 mois de mission sur le même chantier.</p>
+        <p>Participation frais de logement max 170&nbsp;€ (150&nbsp;€ loyer + 25&nbsp;€ franchise de frais / semaine). Remboursement voyage sur justificatifs, max 250&nbsp;€.</p>
+        <h3>Autres règles</h3>
+        <p>Jours fériés payés sur une base de 64&nbsp;€ net/jour. Intempéries payées à partir de la 2ᵉ heure. Mutuelle « Intérimaires Santé » prise en charge au bout de 414&nbsp;h de mission. Prise en charge de 4 à 6&nbsp;% des impôts prélevés à la source. Prime parrainage 75&nbsp;€ (+150&nbsp;h de mission).</p>
+        <h3>Net promis</h3>
+        <p>La paie compense chaque mois la différence avec le net promis (avance sur salaire), reprise ensuite en cas de dépassement.</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- ================= RESULTS RAIL ================= -->
+  <div class="rail">
+    <div class="hero" id="hero">
+      <span class="eyebrow">Marge brute standard (après remise)</span>
+      <div style="display:flex; align-items:baseline; gap:14px; flex-wrap:wrap">
+        <div class="hero-num" id="out-mb">—</div>
+        <div class="hero-pct" id="out-mbpct">—</div>
+      </div>
+      <div class="hero-sub">
+        <span>CA HT <b id="out-ca">—</b></span>
+        <span>Coût global <b id="out-cout">—</b></span>
+        <span>Marge horaire <b id="out-mbh">—</b></span>
+      </div>
+    </div>
+
+    <div class="tiles">
+      <div class="tile"><span class="eyebrow">Coût global salarié</span>
+        <div class="tile-num" id="out-mbhdn">—</div><div class="tile-sub" id="out-mbhdnpct">—</div></div>
+      <div class="tile"><span class="eyebrow">Scénario IFM + ICCP</span>
+        <div class="tile-num" id="out-mbifm">—</div><div class="tile-sub" id="out-mbifmpct">—</div></div>
+      <div class="tile"><span class="eyebrow" id="tile-exo-label">TO-DE (exonération)</span>
+        <div class="tile-num" id="out-tode">—</div><div class="tile-sub"><span class="badge" id="out-todebadge">—</span></div></div>
+      <div class="tile"><span class="eyebrow">Tx facturé HT / h — avec logement</span>
+        <div class="tile-num" id="out-txh">—</div></div>
+    </div>
+
+    <section class="card">
+      <div class="card-h"><h2>Salarié</h2><span class="eyebrow">Contrôle du net</span></div>
+      <div class="card-b">
+        <table class="kv">
+          <tr><td>Salaire brut total<span class="ref">F42</span></td><td class="n" id="out-brut">—</td></tr>
+          <tr><td>Net réel avant régul / h (indemnités et participation incluses)<span class="ref">D14</span></td><td class="n" id="out-neth">—</td></tr>
+          <tr><td>Net attendu / h<span class="ref">D12</span></td><td class="n" id="out-netatt">—</td></tr>
+          <tr><td>Écart net réel − attendu</td><td class="n" id="out-netdelta">—</td></tr>
+          <tr><td>Net atteint / h (avances, indemnités et primes incluses)</td><td class="n" id="out-netifm">—</td></tr>
+          <tr><td><span id="lbl-ras">Retenue à la source</span><span class="ref">F43</span></td><td class="n" id="out-ras">—</td></tr>
+          <tr><td>Avance sur salaire (régul)<span class="ref">F57/F58</span></td><td class="n" id="out-avance">—</td></tr>
+          <tr><td>CET disponible (net estimé)<span class="ref">D85</span></td><td class="n" id="out-cetdispo">—</td></tr>
+          <tr><td>… dont consommé par l'avance</td><td class="n" id="out-cetutilise">—</td></tr>
+          <tr><td>CET restant</td><td class="n" id="out-cetrestant">—</td></tr>
+        </table>
+        <p class="hint" id="cet-alert" hidden></p>
+      </div>
+    </section>
+
+    <details class="acc" open>
+      <summary>Grille de prix</summary>
+      <div class="card-b">
+        <table class="grille" id="grille"></table>
+        <p class="note">Ligne dorée : coefficient actuel. Taux HN = taux horaire facturé heure normale.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary>Décomposition de la paie</summary>
+      <div class="card-b"><table class="kv" id="tbl-paie"></table></div>
+    </details>
+
+    <details class="acc">
+      <summary id="sum-cotis">Cotisations &amp; exonération</summary>
+      <div class="card-b"><table class="kv" id="tbl-cotis"></table></div>
+    </details>
+
+    <details class="acc">
+      <summary>Facturation détaillée</summary>
+      <div class="card-b"><table class="kv" id="tbl-fact"></table></div>
+    </details>
+
+    <details class="acc">
+      <summary>Scénario IFM + ICCP (feuille cachée)</summary>
+      <div class="card-b"><table class="kv" id="tbl-hidden"></table>
+      <p class="note" id="hidden-note"></p></div>
+    </details>
+  </div>
+</div>
+
+<!-- étude de prix : rempli au clic, visible uniquement à l'impression -->
+<div id="etude-print"></div>
+
+<script src="db.js?r1"></script>
+<script src="engine.js?r1"></script>
+<script src="geo.js?r1"></script>
+<script>
+"use strict";
+/* ================= HELPERS ================= */
+const $ = id => document.getElementById(id);
+const EUR = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
+const EUR0 = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+const N2 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const N4 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+const fmtE = v => isFinite(v) ? EUR.format(v) : "—";
+const fmtP = v => isFinite(v) ? N2.format(v) + " %" : "—";
+const num = el => { const v = parseFloat(el.value); return isFinite(v) ? v : 0; };
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+/* ================= STATE ================= */
+let inp = defaultInputs(DB, "agri");
+
+/* ================= POPULATE SELECTS ================= */
+function fillSelect(id, table, selected) {
+  const s = $(id);
+  s.innerHTML = "";
+  for (const row of table) {
+    const o = document.createElement("option");
+    o.value = row.label; o.textContent = row.label.toLowerCase().replace(/^./, c => c.toUpperCase());
+    s.appendChild(o);
+  }
+  s.value = selected;
+}
+function fillModeSelect(sector, selected, branche) {
+  const s = $("in-mode");
+  s.innerHTML = "";
+  let modes = SECTORS[sector].modes;
+  /* en tarifaire, la branche (BTP / Industrie) filtre les types de simulateur */
+  if (sector === "tarifaire" && branche)
+    modes = modes.filter(m => (m.indexOf("BTP") >= 0) === (branche === "btp"));
+  for (const m of modes) {
+    const o = document.createElement("option");
+    o.value = m; o.textContent = m;
+    s.appendChild(o);
+  }
+  if (selected && modes.indexOf(selected) === -1) {
+    const o = document.createElement("option");
+    o.value = selected; o.textContent = selected;
+    s.appendChild(o);
+  }
+  s.value = selected || modes[0];
+}
+{
+  const s = $("in-dept");
+  for (const d of DB.departments) {
+    const o = document.createElement("option");
+    o.value = d.dept; o.textContent = d.dept;
+    s.appendChild(o);
+  }
+}
+
+/* primes / indemnités rows */
+const primeNames = ["Prime 1", "Prime 2", "Prime 3", "Prime 4"];        // 4 lignes visibles (la 5ᵉ du classeur reste à 0)
+const indemNames = ["Indemnité 1", "Indemnité 2", "Indemnité 3", "Indemnité 4"];
+function buildRows(containerId, names, arr, prefix, kind) {
+  const c = $(containerId);
+  c.innerHTML = "";
+  const fcPlaceholder = kind === "prime" ? "coef" : "1";
+  const isIndem = kind !== "prime";
+  names.forEach((name, k) => {
+    const div = document.createElement("div");
+    div.className = "rowline" + (isIndem ? " adj6" : "");
+    const label = arr[k].name || name;
+    const fcVal = (arr[k].fc == null || arr[k].fc === "coef") ? "" : arr[k].fc;
+    div.innerHTML = '<input type="text" id="' + prefix + 'n' + k + '" value="' + esc(label) + '" aria-label="Nom ' + kind + ' ' + (k + 1) + '">' +
+      '<input type="number" step="0.5" min="0" id="' + prefix + 'q' + k + '" value="' + arr[k].q + '" aria-label="Nombre ' + kind + ' ' + (k + 1) + '">' +
+      '<input type="number" step="0.0001" min="0" id="' + prefix + 'f' + k + '" value="' + fcVal + '" placeholder="' + fcPlaceholder + '" aria-label="Coefficient de facturation ' + kind + ' ' + (k + 1) + '" title="Vide = ' + (kind === "prime" ? "coefficient de la mission" : "1 (à l’identique)") + ' ; 0 = non refacturée">' +
+      '<input type="number" step="0.01" id="' + prefix + 'r' + k + '" value="' + arr[k].r + '" aria-label="Montant ' + kind + ' ' + (k + 1) + '">' +
+      (isIndem
+        ? '<input type="checkbox" class="adjbox" id="' + prefix + 'aj' + k + '"' + (arr[k].adj ? " checked" : "") +
+          ' aria-label="Indemnité ' + (k + 1) + ' ajustable" title="Coché = le pilotage du net peut modifier cette ligne (indemnité agence). Décoché = ligne PROTÉGÉE (indemnité propre au client, jamais touchée).">'
+        : "") +
+      '<span class="amt" id="' + prefix + 'a' + k + '">—</span>';
+    c.appendChild(div);
+  });
+}
+buildRows("primes", primeNames, inp.primes, "pr", "prime");
+buildRows("indems", indemNames, inp.indemnites, "in", "indemnité");
+
+/* rates grid (advanced) */
+const RATE_DEFS = [
+  ["maladieSal", "Maladie salariale % (E62)"], ["compIIDT1Sal", "Comp. IID T1 sal. % (E63)"], ["compIIDT1Pat", "Comp. IID T1 pat. % (G63)"],
+  ["nonCsgT1Pat", "Comp. IID non-CSG T1 pat. % (G64)"],
+  ["compIIDT2Sal", "Comp. IID T2 sal. % (E65)"], ["compIIDT2Pat", "Comp. IID T2 pat. % (G65)"],
+  ["nonCsgT2Sal", "Comp. IID non-CSG T2 sal. % (E66)"], ["nonCsgT2Pat", "Comp. IID non-CSG T2 pat. % (G66)"],
+  ["mutuelleSal", "Mutuelle sal. (E67)"], ["mutuellePat", "Mutuelle pat. (G67)"],
+  ["ssPlafSal", "SS plafonnée sal. % (E69)"], ["ssPlafPat", "SS plafonnée pat. % (G69)"],
+  ["ssDeplafSal", "SS déplafonnée sal. % (E70)"], ["ssDeplafPat", "SS déplafonnée pat. % (G70)"],
+  ["compT1Sal", "Complémentaire T1 sal. % (E71)"], ["compT1Pat", "Complémentaire T1 pat. % (G71)"],
+  ["compT2Sal", "Complémentaire T2 sal. % (E72)"], ["compT2Pat", "Complémentaire T2 pat. % (G72)"],
+  ["cetSal", "CET sal. % (E73)"], ["cetPat", "CET pat. % (G73)"], ["chomagePat", "Assurance chômage pat. % (G75)"],
+  ["redSalHSup", "Réduction salariale HS % (E76)"], ["autresSal", "Autres contributions sal. % (E77)"],
+  ["autresPat", "Autres contributions pat. % (G77)"], ["statutairesPat", "Cotis. statutaires pat. % (G78)"],
+  ["csgDedSal", "CSG déductible % (E79)"], ["csgNonDedSal", "CSG/CRDS non déd. % (E80)"],
+  ["csgNonDedHSSal", "CSG/CRDS non déd. HS % (E81)"], ["redPatHSupParH", "Réduction pat. €/h sup (G82)"]
+];
+function buildRatesGrid() {
+  const g = $("rates-grid");
+  g.innerHTML = "";
+  for (const [key, label] of RATE_DEFS) {
+    const d = document.createElement("div");
+    d.className = "field";
+    d.innerHTML = '<label for="rate-' + key + '">' + label + '</label>' +
+      '<input type="number" step="0.0001" id="rate-' + key + '" value="' + inp.rates[key] + '">';
+    g.appendChild(d);
+    d.querySelector("input").addEventListener("input", onChange);
+  }
+}
+
+/* ================= SECTOR ================= */
+function applySector(sector, preset, brancheArg) {
+  inp = preset || defaultInputs(DB, sector);
+  /* 3 types de fonctionnement : agri (MSA · TO-DE) / BTP (CPAM · RGDU) / Industrie (CPAM · RGDU) */
+  const branche = sector === "tarifaire"
+    ? (brancheArg || inp.branche || (String(inp.mode).indexOf("BTP") >= 0 ? "btp" : "industrie"))
+    : null;
+  if (sector === "tarifaire") {
+    inp.branche = branche;
+    /* type de simulateur déduit automatiquement (menu supprimé de l'UI) — coercition
+     * seulement en cas d'incohérence, pour préserver un PETIT D restauré d'un lien */
+    const isBtpMode = String(inp.mode).indexOf("BTP") >= 0;
+    if (branche === "btp" && !isBtpMode) inp.mode = "SIMULATEUR BTP GRAND D";
+    if (branche === "industrie" && isBtpMode) inp.mode = "SIMULATEUR INDUSTRIE";
+  }
+  document.body.classList.toggle("sector-tarifaire", sector === "tarifaire");
+  document.body.classList.toggle("branche-btp", branche === "btp");
+  $("sector-agri").setAttribute("aria-pressed", sector === "agri" ? "true" : "false");
+  $("sector-btp").setAttribute("aria-pressed", branche === "btp" ? "true" : "false");
+  $("sector-industrie").setAttribute("aria-pressed", branche === "industrie" ? "true" : "false");
+  fillModeSelect(sector, inp.mode, branche);
+  fillSelect("in-majodim", DB.majoDimanche, inp.majoDimLabel);
+  fillSelect("in-majoferie", DB.majoFerie, inp.majoFerieLabel);
+  fillSelect("in-majonuit", DB.majoNuit, inp.majoNuitLabel);
+  fillSelect("in-hsup", DB.heuresSup, inp.hSupLabel);
+  fillSelect("in-majonorm", DB.majoNormales, inp.majoNormLabel);
+  fillSelect("in-zone", DB.zonesKmPD, inp.zonePD);
+  /* le montant exonéré apparaît directement dans les options kilométrage */
+  for (const o of $("in-zone").options) {
+    const row = DB.zonesKmPD.find(r => r.label === o.value);
+    if (row && row.value) o.textContent = o.textContent.split(" — ")[0] + " — " + N2.format(row.value) + " €";
+  }
+  /* sous-titre statique (le descriptif de secteur a été retiré à la demande de l'utilisateur) */
+  if (sector === "agri") {
+    $("tile-exo-label").textContent = "TO-DE (exonération)";
+    $("sum-cotis").textContent = "Cotisations & TO-DE";
+    $("lbl-logfact").textContent = "Logement facturé au client (€/sem)";
+    $("lbl-cibletx").textContent = "Taux facturé cible hors logement (€/h)";
+    $("const-note").innerHTML = "Secteur AGRI (MSA). Les défauts suivent le <b>droit courant</b> (SMIC et plafond SS actualisés en direct) ; le bouton ci-dessous rétablit les constantes du classeur Excel. Plafonds 2,5/3,5 SMIC figés au 31/12/2023 sur <b>11,52&nbsp;€</b> ; retenue à la source 55&nbsp;€/j ; abattement DFS 20&nbsp;% (scénario IFM+CP) ; mutuelle en % du plafond — taux de cotisations du classeur.";
+    $("hidden-note").innerHTML = "Variante du classeur : IFM et ICCP forcés, assiette de cotisations avec abattement DFS 20&nbsp;% (bornée par l'assiette minimale), logement non facturé.";
+  } else {
+    $("tile-exo-label").textContent = "Allègement RGDU";
+    $("sum-cotis").textContent = "Cotisations & RGDU";
+    $("lbl-logfact").textContent = "Logement facturé au client (€/heure)";
+    $("lbl-cibletx").textContent = "Taux facturé global cible (€/h)";
+    $("const-note").innerHTML = "Secteur TARIFAIRE (Industrie/BTP). Les défauts suivent le <b>droit courant</b> (SMIC et plafond SS actualisés en direct) ; le bouton ci-dessous rétablit les constantes du classeur 11/2024. Retenue à la source 54&nbsp;€/j ; abattement DFS 10&nbsp;% (hors mode industrie) ; Fillon majoré ×1,1 (intérim), plafonné en BTP GD à min(×1,3&nbsp;; variante DFS) ; mutuelle en <b>€ par heure</b> — taux de cotisations du classeur.";
+    $("hidden-note").innerHTML = "Variante du classeur : IFM et ICCP forcés (base IFM = ensemble des éléments de paie, ICCP sur base + IFM). Assiette DFS 10&nbsp;% hors mode industrie.";
+  }
+  buildRatesGrid();
+  setFormFromInputs();
+  // ré-applique le droit courant (RGDU, TO-DE) après un changement de secteur ;
+  // applyOfficialLawParams se termine par son propre render — un seul rendu par bascule
+  if (typeof official !== "undefined" && official) applyOfficialLawParams();
+  else render(compute(inp));
+}
+
+/* ================= INPUT WIRING ================= */
+function setFormFromInputs() {
+  $("in-client").value = inp.client;
+  $("in-dept").value = inp.dept || "";
+  $("in-thbrut").value = inp.thBrut;
+  /* vide ≠ « pas de net attendu » coché : les deux donnent netAttendu null au moteur,
+   * mais la case ne se coche que sur action explicite (noNet) */
+  $("in-nonet").checked = inp.noNet === true;
+  $("in-net").value = inp.netAttendu == null ? "" : inp.netAttendu;
+  $("in-net").disabled = inp.noNet === true;
+  $("in-jours").value = inp.jours; $("in-heures").value = inp.heures;
+  $("in-hnuit").value = inp.hNuit; $("in-hdim").value = inp.hDim; $("in-hferie").value = inp.hFerie;
+  $("in-majodim").value = inp.majoDimLabel; $("in-majoferie").value = inp.majoFerieLabel;
+  $("in-majonuit").value = inp.majoNuitLabel; $("in-hsup").value = inp.hSupLabel;
+  $("in-majonorm").value = inp.majoNormLabel; $("in-majonormq").value = inp.majoNormQty;
+  $("in-atmp").value = inp.rates.atPat;
+  /* IFM/ICCP : « paiement direct » (indemnités payées en paie) ou « mise en CET »
+   * (non payées → provision CET 21 % + 45 % du classeur, D85/H85) */
+  const direct = !!inp.iccp || !!inp.ifm;
+  $("ifmcp-direct").setAttribute("aria-pressed", direct ? "true" : "false");
+  $("ifmcp-cet").setAttribute("aria-pressed", direct ? "false" : "true");
+  $("in-attest").checked = inp.attestation; $("in-annu").checked = inp.annualisation;
+  /* coût logement affiché en €/semaine dans les deux secteurs ; en tarifaire le
+   * classeur calcule en €/h × heures logement → conversion transparente */
+  $("in-loghebdo").value = inp.sector === "agri"
+    ? inp.logementHebdo
+    : Math.round(inp.logementHoraire * (inp.logementHeures || 43) * 100) / 100;
+  /* participation : saisie positive = retenue hebdomadaire sur le net (F19 = −valeur) */
+  $("in-partlog").value = Math.abs(Math.min(0, inp.participationLibre));
+  $("in-logfact").value = inp.coutLogementFacture;
+  $("in-zone").value = inp.zonePD;
+  $("in-gdduree").value = String(inp.gdDuree || 0);
+  $("in-niveau").value = inp.niveauQualif || "N1P1";
+  $("in-adr-dom").value = inp.adrDomicile || ""; $("in-adr-cha").value = inp.adrChantier || "";
+  $("in-dist").value = inp.distAller || ""; $("in-distar").value = inp.distReelAR || "";
+  $("lbl-adr-cha").textContent = (inp.sector === "tarifaire" && inp.branche === "btp")
+    ? "Adresse du chantier (BTP)" : "Adresse de l'entreprise utilisatrice";
+  $("in-gdlieu").value = inp.gdLieu || "province";
+  inp.primes.forEach((p, k) => { if (!$("prq" + k)) return;
+                                 $("prq" + k).value = p.q; $("prr" + k).value = p.r; $("prn" + k).value = p.name || primeNames[k] || ("Prime " + (k + 1));
+                                 $("prf" + k).value = (p.fc == null || p.fc === "coef") ? "" : p.fc; });
+  inp.indemnites.forEach((p, k) => { if (!$("inq" + k)) return;
+                                     $("inq" + k).value = p.q; $("inr" + k).value = p.r; $("inn" + k).value = p.name || indemNames[k];
+                                     $("inf" + k).value = (p.fc == null) ? "" : p.fc;
+                                     if ($("inaj" + k)) $("inaj" + k).checked = !!p.adj; });
+  $("in-ifm").value = inp.baseIFM;
+  $("in-coeff").value = inp.coeff;
+  $("in-hfact").value = inp.heuresFactNormal == null ? "" : inp.heuresFactNormal;
+  $("in-remise").value = inp.remisePct;
+  $("in-refprimes").checked = inp.refactPrimes; $("in-refdim").checked = inp.refactDim;
+  $("in-refferie").checked = inp.refactFerie; $("in-refnuit").checked = inp.refactNuit;
+  $("in-cibletx").value = inp.cibleTauxFact; $("in-ciblemarge").value = inp.cibleMargePct;
+  $("in-rgdusmic").value = inp.rgdu.smicRef;
+  $("in-rgdufnal").checked = !!inp.rgdu.fnal050;
+  $("in-rgduinterim").checked = inp.rgdu.interim !== false;
+  $("in-smicclasseur").value = inp.smicClasseur;
+  $("in-plafondss").value = inp.plafondSSMois;
+  $("in-todetot").value = inp.todeSeuilTot;
+  $("in-todemax").value = inp.todeSeuilMax;
+  $("in-pasmode").value = inp.pasMode || "grille";
+  $("in-pascc").checked = inp.pasContratCourt !== false;
+  $("in-tauxreduits").checked = inp.tauxReduits !== false;
+  for (const [key] of RATE_DEFS) { const el = $("rate-" + key); if (el) el.value = inp.rates[key]; }
+  $("in-mode").value = inp.mode;
+}
+
+function readInputsFromForm() {
+  inp.client = $("in-client").value;
+  inp.mode = $("in-mode").value;
+  inp.dept = $("in-dept").value;
+  /* plancher SMIC automatique (21/08/2026) : le brut ne peut jamais être inférieur au
+   * SMIC en vigueur (suivi des décrets via OpenFisca) — hausse manuelle libre */
+  const smicPlancher = (typeof official !== "undefined" && official && official.smic) ? official.smic.value : BAKED_OFFICIAL.smic.value;
+  inp.thBrut = Math.max(num($("in-thbrut")), smicPlancher);
+  inp.noNet = $("in-nonet").checked;
+  inp.netAttendu = (inp.noNet || $("in-net").value === "") ? null : num($("in-net"));
+  $("in-net").disabled = inp.noNet;
+  inp.jours = num($("in-jours")); inp.heures = num($("in-heures"));
+  inp.hNuit = num($("in-hnuit")); inp.hDim = num($("in-hdim")); inp.hFerie = num($("in-hferie"));
+  inp.majoDimLabel = $("in-majodim").value; inp.majoFerieLabel = $("in-majoferie").value;
+  inp.majoNuitLabel = $("in-majonuit").value; inp.hSupLabel = $("in-hsup").value;
+  inp.majoNormLabel = $("in-majonorm").value; inp.majoNormQty = num($("in-majonormq"));
+  const direct = $("ifmcp-direct").getAttribute("aria-pressed") === "true";
+  inp.ifm = direct;   // ignoré sur la feuille principale agri (pas de ligne IFM) ; forcé OUI côté caché
+  inp.iccp = direct;
+  inp.attestation = $("in-attest").checked; inp.annualisation = $("in-annu").checked;
+  inp.logement = true; // (bascule supprimée : coût à 0 = pas de logement)
+  const hebdo = num($("in-loghebdo"));
+  if (inp.sector === "agri") { inp.logementHebdo = hebdo; }
+  else {
+    inp.logementHeures = inp.logementHeures || 43;
+    inp.logementHoraire = hebdo / inp.logementHeures; // le moteur remultiplie ×heures (classeur)
+  }
+  inp.redevanceClient = 0; // champ supprimé (F53 inchangé : 0)
+  inp.coutLogementFacture = num($("in-logfact"));
+  inp.zonePD = $("in-zone").value;
+  inp.gdDuree = parseInt($("in-gdduree").value, 10) || 0;
+  inp.niveauQualif = $("in-niveau").value;
+  inp.adrDomicile = $("in-adr-dom").value; inp.adrChantier = $("in-adr-cha").value;
+  inp.distAller = num($("in-dist")); inp.distReelAR = num($("in-distar"));
+  inp.gdLieu = $("in-gdlieu").value;
+  /* champs supprimés de l'interface (repas/transport client, AN, tickets, barèmes) :
+   * les valeurs moteur restent à leurs défauts (0 / barèmes URSSAF intégrés) */
+  const readFc = id => { const raw = $(id).value.trim(); if (raw === "") return null; const v = parseFloat(raw.replace(",", ".")); return isFinite(v) ? v : null; };
+  inp.primes = inp.primes.map((p, k) => $("prq" + k)
+    ? { q: num($("prq" + k)), r: num($("prr" + k)), name: $("prn" + k).value, fc: readFc("prf" + k) } : p);
+  inp.indemnites = inp.indemnites.map((p, k) => $("inq" + k)
+    ? { q: num($("inq" + k)), r: num($("inr" + k)), name: $("inn" + k).value, fc: readFc("inf" + k),
+        adj: $("inaj" + k) ? $("inaj" + k).checked : !!p.adj } : p);
+  inp.participationChoice = "PARTICIPATION LIBRE";
+  inp.participationLibre = -Math.abs(num($("in-partlog"))); // positif saisi = retenue (F19 négatif)
+  inp.baseIFM = num($("in-ifm")); // indemDecoucheRate : plus de champ dédié — utiliser une ligne d'indemnité
+  inp.coeff = num($("in-coeff")); // coeffHDN : champ supprimé (variante nuit non pratiquée) — valeur conservée du classeur
+  /* champ vide = automatique DYNAMIQUE (null -> le moteur applique min(35 ; heures)
+   * à chaque calcul). Ne JAMAIS matérialiser l'auto en nombre : à l'ouverture à zéro
+   * il se figeait à « 0 » et toutes les heures partaient en facturation +25 %. */
+  inp.heuresFactNormal = $("in-hfact").value === "" ? null : num($("in-hfact"));
+  inp.remisePct = num($("in-remise"));
+  inp.refactPrimes = $("in-refprimes").checked; inp.refactDim = $("in-refdim").checked;
+  inp.refactFerie = $("in-refferie").checked; inp.refactNuit = $("in-refnuit").checked;
+  inp.cibleTauxFact = num($("in-cibletx")); inp.cibleMargePct = num($("in-ciblemarge"));
+  inp.rgdu = Object.assign({}, inp.rgdu, {
+    smicRef: num($("in-rgdusmic")) || RGDU_DEFAULTS.smicRef,
+    fnal050: $("in-rgdufnal").checked,
+    interim: $("in-rgduinterim").checked });
+  inp.smicClasseur = num($("in-smicclasseur")) || CONST.SMIC;
+  inp.plafondSSMois = num($("in-plafondss")) || SECTORS[inp.sector].plafondSSMois;
+  inp.todeSeuilTot = num($("in-todetot")) || 1.25;
+  inp.todeSeuilMax = num($("in-todemax")) || 1.6;
+  inp.pasMode = $("in-pasmode").value;
+  inp.pasContratCourt = $("in-pascc").checked;
+  inp.tauxReduits = $("in-tauxreduits").checked;
+  for (const [key] of RATE_DEFS) { const el = $("rate-" + key); if (el) inp.rates[key] = num(el); }
+  inp.rates.atPat = num($("in-atmp"));
+}
+
+/* ================= RENDER ================= */
+function badgeFor(elig) {
+  return elig === "TOTALE" ? ["good", "Exonération totale"] :
+         elig === "PARTIELLE" ? ["warn", "Exonération partielle"] : ["bad", "Non éligible"];
+}
+function kvRow(label, ref, val, cls) {
+  return "<tr" + (cls ? ' class="' + cls + '"' : "") + "><td>" + label +
+         (ref ? '<span class="ref">' + ref + "</span>" : "") + '</td><td class="n">' + val + "</td></tr>";
+}
+
+function render(r) {
+  const m = r.main, h = r.hidden;
+  const cfg = SECTORS[inp.sector];
+  const neg = m.O64 < 0;
+  $("hero").classList.toggle("neg", neg);
+  $("out-mb").textContent = fmtE(m.O64);
+  $("out-mbpct").textContent = fmtP(m.H17);
+  $("out-ca").textContent = fmtE(m.O60);
+  $("out-cout").textContent = fmtE(m.F93);
+  $("out-mbh").textContent = inp.heures ? fmtE(m.O64 / inp.heures) + "/h" : "—";
+  $("out-mbhdn").textContent = fmtE(m.F93);
+  $("out-mbhdnpct").textContent = inp.heures ? fmtE(m.F93 / inp.heures) + "/h" : "—";
+  $("out-mbifm").textContent = fmtE(h.O64);
+  $("out-mbifmpct").textContent = fmtP(m.I17) + (inp.sector === "agri" ? " · avec DFS 20 %" : " · IFM + ICCP forcés");
+  $("out-tode").textContent = fmtE(m.H83);
+  const badge = $("out-todebadge");
+  if (cfg.exo === "tode") {
+    const [bc, bt] = badgeFor(m.tode.eligibilite);
+    badge.className = "badge " + bc; badge.textContent = bt;
+  } else if (inp.exoFormule === "rgdu") {
+    $("tile-exo-label").textContent = "Allègement RGDU 2026";
+    badge.className = "badge info";
+    badge.textContent = "coeff " + N4.format(m.rgduCoeff) + (inp.rgdu.interim !== false ? " ×1,1" : "");
+  } else {
+    $("tile-exo-label").textContent = "Allègement Fillon";
+    badge.className = "badge info";
+    badge.textContent = (inp.mode === "SIMULATEUR BTP GRAND D") ? "Fillon min(×1,3 ; DFS)" : "Fillon ×1,1 intérim";
+  }
+
+  $("out-txh").textContent = inp.heures ? fmtE(m.O62) + "/h" : "—";
+
+  /* barre résumé mobile */
+  $("mbar").classList.toggle("neg", neg);
+  $("mbar-mb").textContent = fmtE(m.O64);
+  $("mbar-pct").textContent = fmtP(m.H17);
+  $("mbar-ca").textContent = "CA " + fmtE(m.O60);
+
+  $("out-brut").textContent = fmtE(m.F42);
+  $("out-neth").textContent = inp.heures ? fmtE(m.D14) : "—";
+  $("out-netatt").textContent = inp.netAttendu == null ? "pas de net attendu" : fmtE(inp.netAttendu);
+  const nd = $("out-netdelta");
+  if (inp.netAttendu == null || !inp.heures) { nd.textContent = "—"; nd.className = "n"; }
+  else {
+    const d = m.D14 - inp.netAttendu;
+    nd.textContent = (d >= 0 ? "+" : "") + N2.format(d) + " €/h";
+    nd.className = "n delta " + (d >= -1e-9 ? "good" : "bad");
+  }
+  /* net atteint : rempli dans le bloc cascade (dépend des avances FINANCÉES par le CET) */
+  $("out-ras").textContent = fmtE(m.F43);
+  $("lbl-ras").textContent = m.pasRegime === "182A" ? "Retenue à la source (non-résident, art. 182 A)"
+    : m.pasRegime === "pas" ? "Retenue à la source (PAS taux neutre, résident)"
+    : "Retenue à la source (formule classeur)";
+  const avance = Math.max(m.F57, m.F58);
+  $("out-avance").textContent = fmtE(avance);
+
+  /* CET vs avance : le brut placé au CET (provision D85 = IFM+ICCP non payés)
+   * est converti en net (ratio net/brut de la fiche) pour financer l'avance
+   * jusqu'au net promis — alerte si insuffisant (→ + d'indemnités ou d'heures) */
+  /* Cascade de financement du net promis (ordre voulu par l'utilisateur) :
+   * 1. consommer le CET en priorité et LE PLUS POSSIBLE (objectif : solde ≈ 0 à
+   *    l'issue de la 2ᵉ prolongation) ; 2. compléter en indemnités nettes ;
+   * 3. l'avance est PLAFONNÉE AU NET PROMIS (jamais de net versé au-dessus) : le
+   *    CET se résorbe par le maximum d'avances chaque paie, pour qu'il reste le
+   *    moins possible à solder au moment du déblocage final ;
+   * 4. la PARTICIPATION LOGEMENT est l'outil de RÉGULATION : la monter rabaisse le
+   *    net constaté vers le promis (et grossit l'avance -> consomme plus de CET),
+   *    la baisser fait remonter le net quand le promis n'est pas atteint. */
+  const cetActif = !inp.iccp && !inp.ifm;
+  const netRatio = m.F42 > 0 ? Math.max(0, (m.F42 - m.F88 - Math.max(0, m.F43)) / m.F42) : 0;
+  const cetNet = cetActif ? m.D85 * netRatio : 0;
+  /* avance PLAFONNÉE AU NET PROMIS (même règle que le solveur) — le F58 du classeur
+   * pouvait pousser au-delà du promis, l'affichage divergeait du pilotage */
+  const avancePromis = (inp.netAttendu != null) ? Math.max(0, m.D13 - m.F90) : 0;
+  const cetUtilise = cetActif ? Math.min(avancePromis, cetNet) : 0;
+  const cetRestant = cetActif ? cetNet - cetUtilise : 0;
+  const complement = avancePromis - cetUtilise;   // à couvrir (baisse de participation / indemnités)
+  const soldeQuasiNul = cetRestant <= Math.max(5, cetNet * 0.05);
+  /* levier participation logement (outil de régulation du net constaté) */
+  const partAct = Math.max(0, -(inp.participationLibre || 0));   // €/sem retenus
+  const coutLog = m.F92 || 0;                                    // coût logement hebdo
+  const excesNet = (inp.netAttendu != null && cetActif) ? Math.max(0, m.F90 - m.D13) : 0; // net constaté > promis
+  $("out-cetdispo").textContent = cetActif ? fmtE(cetNet) + " (brut " + fmtE(m.D85) + ")" : "— (paiement direct)";
+  $("out-cetutilise").textContent = cetActif ? "−" + EUR.format(cetUtilise).replace("-", "") : "—";
+  /* hausse de participation utile : absorber l'excès de net, puis consommer du CET.
+   * L'AJUSTEMENT peut dépasser le coût réel du logement (ou descendre en dessous) :
+   * l'équilibre de la société logement est l'ancrage, pas une limite (règle 25/08). */
+  const hausse = excesNet + cetRestant;
+  const cetViaPart = Math.max(0, hausse - excesNet);           // CET consommé en plus via l'avance
+  const restantApres = cetRestant - cetViaPart;
+  const cr = $("out-cetrestant");
+  cr.innerHTML = cetActif
+    ? fmtE(cetRestant) + (soldeQuasiNul ? " <span class='badge good'>soldé ✓</span>"
+                                        : " <span class='badge warn'>à résorber par avances</span>")
+    : "—";
+  /* NET ATTEINT = net réellement versé et FINANÇABLE : salaire + primes + indemnités
+   * − participation + avances couvertes par le CET (une avance sans fonds ne compte pas) */
+  const netAtteint = m.D31 ? (m.F90 + cetUtilise) / m.D31 : 0;
+  $("out-netifm").textContent = inp.heures ? fmtE(netAtteint) : "—";
+  const na = $("ro-netatteint");
+  na.value = inp.heures ? N2.format(netAtteint) + " €/h" : "—";
+  if (inp.netAttendu != null && inp.heures) {
+    const ok = netAtteint >= inp.netAttendu - 0.005;
+    na.style.color = ok ? "var(--good)" : "var(--bad)";
+    $("atteint-hint").innerHTML = ok
+      ? "<b class='delta good'>✓ net promis " + (netAtteint > inp.netAttendu + 0.005 ? "dépassé (+" + N2.format(netAtteint - inp.netAttendu) + " €/h)" : "atteint") + "</b>"
+      : "<b class='delta bad'>✗ sous le net promis : " + N2.format(netAtteint - inp.netAttendu) + " €/h</b>";
+  } else { na.style.color = ""; $("atteint-hint").textContent = ""; }
+  const ca = $("cet-alert");
+  const partCibleH = partAct + hausse;
+  const conseilPart = hausse > 0.5
+    ? " <b>Régulation par la participation logement :</b> la porter à <b>" + fmtE(partCibleH) +
+      "/sem</b> (au lieu de " + fmtE(partAct) + ")" +
+      (coutLog > 0 && partCibleH > coutLog + 0.005 ? " — <b>au-dessus du coût réel du logement</b> (" + fmtE(coutLog) + ", excédent société logement " + fmtE(partCibleH - coutLog) + ")" : "") +
+      (excesNet > 0.5 ? " : ramène le net constaté au net promis" : "") +
+      (cetViaPart > 0.5 ? (excesNet > 0.5 ? " et" : " :") + " grossit l'avance de " + fmtE(cetViaPart) +
+        " → CET restant " + fmtE(restantApres) : "") + "."
+    : "";
+  const conseilReliquat = r => r > Math.max(5, cetNet * 0.05)
+    ? " Le reliquat de <b>" + fmtE(r) + "</b> se résorbe par les avances des prochaines paies — minimum à solder au déblocage final."
+    : "";
+  if (cetActif && complement > 0.005) {
+    /* l'ajustement par le logement peut descendre SOUS le coût réel : la société
+     * logement finance alors la différence (signalé) */
+    const baisse = Math.min(complement, partAct);
+    const partApres = partAct - baisse;
+    ca.hidden = false;
+    ca.innerHTML = "<span class='conf-warn'>⚠ CET consommé en totalité (" + fmtE(cetUtilise) + ") — il manque <b>" +
+      fmtE(complement) + "</b> pour le net promis.</span>" +
+      (baisse > 0.5
+        ? " <b>Régulation par le logement :</b> réduire la participation à <b>" + fmtE(partApres) +
+          "/sem</b> (au lieu de " + fmtE(partAct) + ")" +
+          (coutLog > 0 && partApres < coutLog - 0.005 ? " — <b>sous le coût réel du logement</b> (" + fmtE(coutLog) + ") : la société logement finance " + fmtE(coutLog - partApres) : "") +
+          " — le net remonte d'autant" +
+          (complement - baisse > 0.5 ? ", puis compléter avec " + fmtE(complement - baisse) + " d'indemnités nettes." : ".")
+        : " Compléter avec <b>" + fmtE(complement) + " d'indemnités nettes</b> (plafonds URSSAF) ou augmenter les heures.");
+  } else if (cetActif && avancePromis > 0.005) {
+    ca.hidden = false;
+    ca.innerHTML = "<span class='delta good'>✓ Avance maximale de " + fmtE(avancePromis) +
+      " vers le net promis, entièrement financée par le CET.</span>" +
+      (soldeQuasiNul ? " CET quasi soldé — presque rien à solder au déblocage final." : conseilPart + conseilReliquat(restantApres));
+  } else if (cetActif && (cetRestant > 0.005 || excesNet > 0.5)) {
+    ca.hidden = false;
+    ca.innerHTML = (excesNet > 0.5
+        ? "Net constaté <b>au-dessus du net promis</b> (+" + fmtE(excesNet) + "/sem)."
+        : "Aucune avance nécessaire.") +
+      conseilPart + conseilReliquat(restantApres);
+  } else if (!cetActif && avancePromis > 0.005) {
+    ca.hidden = false;
+    ca.innerHTML = "⚠ Avance de " + fmtE(avancePromis) + " non adossée à un CET (IFM/ICCP en paiement direct) — " +
+      (partAct > 0.5 ? "réduire la participation logement (jusqu'à −" + fmtE(Math.min(avancePromis, partAct)) + "), " : "") +
+      "ajouter des indemnités nettes ou passer en mise en CET.";
+  } else {
+    ca.hidden = true; ca.innerHTML = "";
+  }
+
+  inp.primes.forEach((p, k) => { const el = $("pra" + k); if (el) el.textContent = fmtE(p.q * p.r); });
+  inp.indemnites.forEach((p, k) => { const el = $("ina" + k); if (el) el.textContent = fmtE(p.q * p.r); });
+
+  /* goal seek — la cible de taux suit le secteur (O66 agri, O62 tarifaire) */
+  const cTx = coeffPourTauxSecteur(inp, inp.cibleTauxFact);
+  /* seuil de rentabilité (marge nulle) affiché sous le champ Coefficient.
+   * NET PROMIS FINANCÉ (22/08/2026) : quand un net est promis, le seuil intègre
+   * les indemnités nettes qu'il faudra verser AU-DELÀ du CET pour l'honorer —
+   * sinon le seuil paraît « impossible » (ex. 1,35) car il laisse le salarié
+   * loin du net promis. CA(c) est linéaire en c : résolution directe. */
+  let cSeuil = null, seuilAvecPromesse = false;
+  if (inp.heures && inp.thBrut) {
+    const cetActifS = !inp.iccp && !inp.ifm;
+    const ratioS = m.F42 > 0 ? Math.max(0, (m.F42 - m.F88 - Math.max(0, m.F43)) / m.F42) : 0;
+    const cetNetS = cetActifS ? m.D85 * ratioS : 0;
+    const avanceS = Math.max(m.F57, m.F58);
+    const complementS = Math.max(0, avanceS - cetNetS);   // indemnités nécessaires hors CET
+    if (complementS > 0.005) {
+      const o1 = compute(Object.assign({}, inp, { coeff: 1 })).main.O60;
+      const o2 = compute(Object.assign({}, inp, { coeff: 2 })).main.O60;
+      const pente = o2 - o1;
+      cSeuil = pente > 0 ? Math.round((1 + (m.F93 + complementS - o1) / pente) * 10000) / 10000 : null;
+      seuilAvecPromesse = true;
+    } else {
+      cSeuil = coeffPourMarge(inp, 0);
+    }
+  }
+  const ch = $("coeff-hint");
+  ch.textContent = cSeuil != null
+    ? "seuil de rentabilité" + (seuilAvecPromesse ? " (net promis financé)" : "") + " : " +
+      N4.format(cSeuil) + " (cliquer pour appliquer)"
+    : "";
+  ch.dataset.coeff = cSeuil != null ? cSeuil : "";
+
+  const cMg = coeffPourMarge(inp, inp.cibleMargePct);
+  $("gs-tx").textContent = cTx == null ? "—" : N4.format(cTx);
+  $("gs-marge").textContent = cMg == null ? "—" : N4.format(cMg);
+  $("gs-tx-apply").disabled = cTx == null;
+  $("gs-marge-apply").disabled = cMg == null;
+  $("gs-tx-apply").dataset.coeff = cTx == null ? "" : cTx;
+  $("gs-marge-apply").dataset.coeff = cMg == null ? "" : cMg;
+
+  /* date du SMIC en vigueur sous la case du brut (mise à jour automatique par décret) */
+  const smicInfo = (typeof official !== "undefined" && official && official.smic) ? official.smic : BAKED_OFFICIAL.smic;
+  $("smic-hint").textContent = "SMIC " + N2.format(smicInfo.value) + " €/h depuis le " +
+    (smicInfo.date || "").split("-").reverse().join("/") + " — plancher automatique";
+
+  /* cellules calculées du tableau Mission (décomposition auto des heures + net constaté) */
+  $("ro-hnorm").value = N2.format(m.D24) + " h";
+  $("ro-hs25").value = N2.format(m.D28) + " h";
+  $("ro-hs50").value = N2.format(m.D29) + " h";
+  /* net constaté SALAIRE SEUL (définition utilisateur) : issu du taux brut × heures
+   * uniquement — variante recalculée sans primes, indemnités, participation ni tickets */
+  const baseVar = compute(Object.assign({}, inp, {
+    primes: inp.primes.map(p => Object.assign({}, p, { q: 0, r: 0 })),
+    indemnites: inp.indemnites.map(p => Object.assign({}, p, { q: 0, r: 0 })),
+    participationLibre: 0, ticketsQty: 0, anRepasClient: 0, anRepasConsomme: false
+  })).main;
+  const netSalaire = baseVar.D31 ? baseVar.F89 / baseVar.D31 : 0;
+  $("ro-netconstate").value = inp.heures ? N2.format(netSalaire) + " €/h" : "—";
+  const ndh = $("net-delta-hint");
+  if (inp.netAttendu != null && inp.heures) {
+    const d = netSalaire - inp.netAttendu;
+    ndh.innerHTML = "écart vs promis : <b class='delta " + (d >= -1e-9 ? "good" : "bad") + "'>" +
+      (d >= 0 ? "+" : "") + N2.format(d) + " €/h</b>";
+  } else { ndh.textContent = ""; }
+
+  /* ===== Pilotage du net à atteindre ===== (résolu sur le moteur complet) */
+  renderNetPlan();
+  renderTail(m, h);
+}
+
+/* Pilotage du net : résolution SUR LE MOTEUR COMPLET (primes, indemnités 2-4,
+ * retenue à la source, CET… tout l'état courant est conservé). Cible = NET ATTEINT
+ * réel : salaire + indemnités − participation + AVANCE FINANCÉE PAR LE CET
+ * (consommé au maximum — c'est ce qui rendait 285 € suffisants là où une formule
+ * sans CET exigeait ~340 €). Doctrine groupe : participation plancher = coût du
+ * logement (société logement jamais déficitaire) ; hausse au-delà du coût
+ * uniquement pour rabaisser un net trop haut. */
+/* Lignes AJUSTABLES ligne à ligne (case « Ajust. ») : cochée = le pilotage peut la
+ * modifier (indemnité agence) ; décochée = PROTÉGÉE (indemnité propre au client,
+ * facturée — jamais touchée). Les lignes cochées sont CONSOLIDÉES sur une ligne
+ * principale (« Ajustement net » si présente parmi elles, sinon la première cochée,
+ * sinon la première ligne vide quand rien n'est coché). */
+function findAdjustTargets() {
+  const adjSet = new Set(inp.indemnites.map((p, k) => p.adj ? k : -1).filter(k => k >= 0));
+  let idx = -1;
+  for (const k of adjSet)
+    if ((inp.indemnites[k].name || "").trim().toLowerCase() === "ajustement net") { idx = k; break; }
+  if (idx < 0 && adjSet.size) idx = Math.min.apply(null, Array.from(adjSet));
+  if (idx < 0) idx = inp.indemnites.findIndex(p => !(p.q * p.r));
+  return { idx, adjSet };
+}
+function evalNetAtteint(cible, part, indem1, idx, adjSet) {
+  const t = Object.assign({}, inp, {
+    netAttendu: cible, noNet: false,
+    participationLibre: -part,
+    indemnites: inp.indemnites.map((p, k) => k === idx
+      ? Object.assign({}, p, { q: indem1 > 0 ? 1 : 0, r: Math.round(indem1 * 100) / 100, fc: 0 })
+      : (adjSet && adjSet.has(k) ? Object.assign({}, p, { q: 0, r: 0 }) : p))
+  });
+  const M = compute(t).main;
+  const hN = M.D31 || 0;
+  if (!hN) return null;
+  const cetActif = !inp.iccp && !inp.ifm;
+  const ratio = M.F42 > 0 ? Math.max(0, (M.F42 - M.F88 - Math.max(0, M.F43)) / M.F42) : 0;
+  const cet = cetActif ? M.D85 * ratio : 0;
+  const d13 = cible * hN;
+  /* net versé finançable : avance CET jusqu'au promis, jamais au-delà du promis */
+  const netHebdo = M.F90 >= d13 ? M.F90 : Math.min(d13, M.F90 + cet);
+  return { net: netHebdo / hN, avance: Math.max(0, Math.min(d13 - M.F90, cet)), cet, hN, f90: M.F90 };
+}
+function computeNetPlan(cible) {
+  if (!(cible > 0) || !(inp.heures > 0) || !(inp.thBrut > 0)) return null;
+  const usePart = $("pilot-part").checked, useIndem = $("pilot-indem").checked;
+  const cur = compute(inp).main;
+  const coutLog = cur.F92 || 0;
+  const partAct = Math.max(0, -(inp.participationLibre || 0));
+  const plancher = coutLog > 0 ? coutLog : 0;
+  /* participation de départ : au coût du logement si le levier est actif, sinon figée */
+  const partBase = usePart ? plancher : partAct;
+  const cibles = useIndem ? findAdjustTargets() : { idx: -1, adjSet: new Set() };
+  const idx = cibles.idx, adjSet = cibles.adjSet;
+  const nuitee = (inp.gdLieu === "paris" ? BAKED_OFFICIAL.nuiteeGDParisPeriodes : BAKED_OFFICIAL.nuiteeGDProvincePeriodes)[1];
+  const repas = Math.round(BAKED_OFFICIAL.repasRestaurant.value * 0.85 * 100) / 100;
+  const plafondTotal = 5 * nuitee + 10 * repas;
+  /* le plafond URSSAF couvre TOUTES les indemnités exonérées : on retranche les
+   * lignes PROTÉGÉES (client) ; les lignes ajustables sont des variables consolidées */
+  const dejaVersees = inp.indemnites.reduce((s, p, k) =>
+    s + (k === idx || adjSet.has(k) ? 0 : (p.q * p.r || 0)), 0);
+  const montantConsolide = inp.indemnites.reduce((s, p, k) =>
+    s + (k !== idx && adjSet.has(k) ? (p.q * p.r || 0) : 0), 0);
+  const plafond = Math.max(0, plafondTotal - dejaVersees);
+  const a0 = evalNetAtteint(cible, partBase, 0, idx, adjSet);
+  if (!a0) return null;
+  const base = { plancher, coutLog, partAct, nuitee, repas, plafondTotal, dejaVersees, plafond,
+                 cible, usePart, useIndem, idx, adjSet, montantConsolide,
+                 nbConsolidees: Array.from(adjSet).filter(k => k !== idx && inp.indemnites[k].q * inp.indemnites[k].r > 0).length };
+  if (a0.net >= cible - 0.005) {
+    if (a0.net <= cible + 0.005)   /* déjà au promis, sans indemnité d'ajustement */
+      return Object.assign(base, { part: partBase, indem: 0, res: a0, statut: "ok", manque: 0 });
+    if (!usePart)                  /* net trop haut mais levier participation désactivé */
+      return Object.assign(base, { part: partBase, indem: 0, res: a0, statut: "tropHaut",
+                                   manque: (a0.net - cible) * a0.hN });
+    /* net trop haut : hausse de participation (régulation) — la PLUS HAUTE part
+     * qui laisse net >= cible (consomme le CET au maximum) */
+    let pLo = partBase, pHi = partBase + (a0.net - cible) * a0.hN + a0.cet + 10;
+    for (let k = 0; k < 22; k++) {
+      const mid = (pLo + pHi) / 2;
+      (evalNetAtteint(cible, mid, 0, idx, adjSet).net >= cible - 0.005) ? pLo = mid : pHi = mid;
+    }
+    const part = Math.floor(pLo * 100) / 100;   // arrondi bas : le net ne passe pas sous la cible
+    return Object.assign(base, { part, indem: 0, res: evalNetAtteint(cible, part, 0, idx, adjSet), statut: "regulation", manque: 0 });
+  }
+  /* BAISSE de participation SOUS le coût du logement (autorisée : la société
+   * logement finance la différence, signalée) — la plus HAUTE part qui atteint la cible */
+  function tryLowerPart(indemFix) {
+    if (!usePart || partBase <= 0.005) return null;
+    const aZero = evalNetAtteint(cible, 0, indemFix, idx, adjSet);
+    if (!aZero || aZero.net < cible - 0.005) return null;   /* même à 0 : insuffisant */
+    let pLo = 0, pHi = partBase;
+    for (let k = 0; k < 22; k++) {
+      const mid = (pLo + pHi) / 2;
+      (evalNetAtteint(cible, mid, indemFix, idx, adjSet).net >= cible - 0.0001) ? pLo = mid : pHi = mid;
+    }
+    const part = Math.floor(pLo * 100) / 100;
+    return { part, res: evalNetAtteint(cible, part, indemFix, idx, adjSet) };
+  }
+  /* il manque du net : sans levier indemnités (décoché ou aucune ligne libre) →
+   * tenter la baisse de participation, sinon constat */
+  if (!useIndem || idx < 0 || plafond <= 0.005) {
+    const low = tryLowerPart(0);
+    if (low) return Object.assign(base, { part: low.part, indem: 0, res: low.res, statut: "sousCout", manque: 0 });
+    const statut = !useIndem ? "indemOff" : (idx < 0 ? "aucuneLigne" : "plafond");
+    return Object.assign(base, { part: partBase, indem: 0, res: a0, statut,
+                                 manque: (cible - a0.net) * a0.hN });
+  }
+  const aMax = evalNetAtteint(cible, partBase, plafond, idx, adjSet);
+  if (aMax.net < cible - 0.005) {   /* plafond URSSAF atteint : baisser la participation */
+    const low = tryLowerPart(plafond);
+    if (low) return Object.assign(base, { part: low.part, indem: plafond, res: low.res, statut: "sousCout", manque: 0 });
+    const resBest = evalNetAtteint(cible, usePart ? 0 : partBase, plafond, idx, adjSet);
+    return Object.assign(base, { part: usePart ? 0 : partBase, indem: plafond, res: resBest,
+                                 statut: "plafond", manque: (cible - resBest.net) * resBest.hN });
+  }
+  /* PLUS PETITE indemnité qui atteint la cible (le CET finance le reste) */
+  let iLo = 0, iHi = plafond;
+  for (let k = 0; k < 26; k++) {
+    const mid = (iLo + iHi) / 2;
+    /* tolérance en €/h très fine (0,0001 ≈ 0,004 €/sem) : pas de manque résiduel */
+    (evalNetAtteint(cible, partBase, mid, idx, adjSet).net >= cible - 0.0001) ? iHi = mid : iLo = mid;
+  }
+  /* arrondi au centime SUPÉRIEUR + 1 centime de marge : jamais un manque résiduel */
+  const indem = Math.min(plafond, Math.ceil(iHi * 100) / 100 + 0.01);
+  return Object.assign(base, { part: partBase, indem, res: evalNetAtteint(cible, partBase, indem, idx, adjSet), statut: "ok", manque: 0 });
+}
+function renderNetPlan() {
+  const cibleNet = num($("in-ciblenet"));
+  const outNet = $("gs-net"), detNet = $("gs-net-detail"), btnNet = $("gs-net-apply");
+  const plan = cibleNet > 0 ? computeNetPlan(cibleNet) : null;
+  if (!plan) {
+    outNet.textContent = "—"; detNet.innerHTML = ""; btnNet.disabled = true;
+    return;
+  }
+  outNet.textContent = N2.format(plan.res.net) + " €/h";
+  /* statut de la participation : elle PEUT être au-dessus ou en dessous du coût
+   * réel du logement (outil de régulation) — l'écart est toujours signalé */
+  let partStatut;
+  if (!plan.usePart) partStatut = " (levier désactivé — participation inchangée)";
+  else if (plan.coutLog > 0.005) {
+    if (plan.part > plan.coutLog + 0.005)
+      partStatut = " (<b>au-dessus du coût réel</b> " + fmtE(plan.coutLog) + " — régulation du net, excédent société logement " + fmtE(plan.part - plan.coutLog) + ")";
+    else if (plan.part < plan.coutLog - 0.005)
+      partStatut = " (<b>sous le coût réel</b> " + fmtE(plan.coutLog) + " — la société logement finance " + fmtE(plan.coutLog - plan.part) + ")";
+    else partStatut = " (= coût du logement — société logement à l'équilibre)";
+  } else partStatut = "";
+  const ligneNom = plan.idx >= 0 ? esc(($("inn" + plan.idx) && $("inn" + plan.idx).value) || ("Indemnité " + (plan.idx + 1))) : "—";
+  detNet.innerHTML = "<b>Plan net à atteindre :</b> participation logement <b>" + fmtE(plan.part) + "/sem</b>" + partStatut +
+    (plan.useIndem
+      ? " · indemnité d'ajustement <b>" + fmtE(plan.indem) + "/sem</b> (ligne « " + ligneNom + " », non facturée — les indemnités client restent intactes)"
+      : " · indemnités : levier désactivé") +
+    (plan.res.avance > 0.5 ? " · avance financée par le CET <b>" + fmtE(plan.res.avance) + "</b>" +
+      (plan.res.cet - plan.res.avance < Math.max(5, plan.res.cet * 0.05) ? " (CET soldé ✓)" : " (reste " + fmtE(plan.res.cet - plan.res.avance) + " au CET)") : "") +
+    " → net <b>" + fmtE(plan.res.net) + "/h</b>. " +
+    "Plafond URSSAF GD 4ᵉ-24ᵉ mois (" + (inp.gdLieu === "paris" ? "Paris" : "province") + ") : " + fmtE(plan.plafondTotal) + "/sem" +
+    (plan.dejaVersees > 0.005 ? " − " + fmtE(plan.dejaVersees) + " d'indemnités déjà versées = <b>" + fmtE(plan.plafond) + " disponibles</b>" : "") + "." +
+    (plan.statut === "plafond" ? " <span class='conf-warn'>⚠ plafond URSSAF atteint — il manque " + fmtE(plan.manque) +
+      " même avec la participation à zéro : augmenter les heures ou le brut.</span>" : "") +
+    (plan.statut === "indemOff" ? " <span class='conf-warn'>⚠ il manque " + fmtE(plan.manque) +
+      " pour le net promis — activer l'ajustement par les indemnités ou augmenter les heures/le brut.</span>" : "") +
+    (plan.statut === "aucuneLigne" ? " <span class='conf-warn'>⚠ il manque " + fmtE(plan.manque) +
+      " et les 4 lignes d'indemnités sont occupées — libérer une ligne pour l'ajustement.</span>" : "") +
+    (plan.statut === "tropHaut" ? " <span class='conf-warn'>⚠ net au-dessus de la cible de " + fmtE(plan.manque) +
+      " — activer l'ajustement par la participation pour le rabaisser.</span>" : "") +
+    (plan.nbConsolidees > 0 ? " <br>ℹ " + plan.nbConsolidees + " ligne(s) cochée(s) « Ajust. » (" + fmtE(plan.montantConsolide) +
+      ") seront consolidées dans « Ajustement net » à l'application — les lignes non cochées (client) ne bougent jamais." : "");
+  btnNet.disabled = false;
+}
+function applyNetPlan() {
+  /* recalcule TOUJOURS sur l'état visible au moment du clic (pas de plan mémorisé) */
+  readInputsFromForm();
+  const cible = num($("in-ciblenet"));
+  const plan = cible > 0 ? computeNetPlan(cible) : null;
+  if (!plan) return;
+  if (plan.usePart) $("in-partlog").value = plan.part;
+  if (plan.useIndem && plan.idx >= 0) {
+    /* ligne principale, renommée pour être réutilisée aux prochains plans — fc 0 :
+     * l'ajustement n'est jamais refacturé (les indemnités client, elles, gardent leur fc) */
+    $("inn" + plan.idx).value = "Ajustement net";
+    $("inq" + plan.idx).value = plan.indem > 0 ? 1 : 0;
+    $("inr" + plan.idx).value = plan.indem;
+    $("inf" + plan.idx).value = 0;
+    if ($("inaj" + plan.idx)) $("inaj" + plan.idx).checked = true;
+    /* les AUTRES lignes cochées « Ajust. » sont consolidées dans la principale :
+     * on les remet à zéro (noms conservés) ; les lignes protégées ne bougent jamais */
+    plan.adjSet.forEach(k => {
+      if (k === plan.idx) return;
+      $("inq" + k).value = 0; $("inr" + k).value = 0;
+    });
+  }
+  $("in-net").value = plan.cible;
+  $("in-nonet").checked = false;
+  readInputsFromForm(); render(compute(inp));
+}
+function renderTail(m, h) {
+
+  /* impact de la mise en CET vs paiement direct des IFM/ICCP */
+  if (!inp.iccp && !inp.ifm) {
+    const altDirect = compute(Object.assign({}, inp, { ifm: true, iccp: true }));
+    const d = m.O64 - altDirect.main.O64;
+    $("cet-eco").innerHTML = "Impact vs paiement direct : <b class='delta " + (d >= 0 ? "good" : "bad") + "'>" +
+      (d >= 0 ? "+" : "") + N2.format(d) + " € de marge</b> (provision " + fmtE(m.D85 + m.H85) + ").";
+  } else {
+    $("cet-eco").textContent = "";
+  }
+
+  /* conformité : taux horaire brut sous le SMIC en vigueur (revalorisations en cours d'année) */
+  const conf = $("conf-hint");
+  if (official && official.smic && inp.thBrut > 0 && inp.thBrut < official.smic.value - 1e-9) {
+    conf.hidden = false;
+    conf.innerHTML = '<span class="conf-warn">⚠ Taux horaire brut (' + N2.format(inp.thBrut) +
+      " €) inférieur au SMIC en vigueur (" + N2.format(official.smic.value) + " € depuis le " +
+      official.smic.date.split("-").reverse().join("/") + ").</span> " +
+      '<button class="btn" id="conf-fix">Rehausser au SMIC</button>';
+    const b = $("conf-fix");
+    if (b) b.addEventListener("click", () => { $("in-thbrut").value = official.smic.value; onChange(); });
+  } else {
+    conf.hidden = true;
+    conf.innerHTML = "";
+  }
+
+  renderPaie(m); renderCotis(m); renderFact(m); renderHidden(h, m); renderGrille(); renderChart();
+  renderDeptHint(); renderRef(m);
+}
+
+function renderPaie(m) {
+  const pn = k => esc($("prn" + k) ? $("prn" + k).value : primeNames[k]);
+  const inn = k => esc($("inn" + k) ? $("inn" + k).value : indemNames[k]);
+  let s = "";
+  s += kvRow("Heures normales — " + N2.format(m.D24) + " h × " + fmtE(m.E24), "F24", fmtE(m.F24));
+  if (m.F25) s += kvRow("Majoration dimanche — " + N2.format(m.D25) + " h × " + fmtE(m.E25), "F25", fmtE(m.F25));
+  if (m.F26) s += kvRow("Majoration férié — " + N2.format(m.D26) + " h × " + fmtE(m.E26), "F26", fmtE(m.F26));
+  if (m.F27) s += kvRow("Majoration nuit — " + N2.format(m.D27) + " h × " + fmtE(m.E27), "F27", fmtE(m.F27));
+  if (m.F28) s += kvRow("Heures sup — " + N2.format(m.D28) + " h × " + fmtE(m.E28), "F28", fmtE(m.F28));
+  if (m.F29) s += kvRow("Heures sup 50 % — " + N2.format(m.D29) + " h × " + fmtE(m.E29), "F29", fmtE(m.F29));
+  if (m.F30) s += kvRow("Heures spécifiques majorées — " + N2.format(m.D30) + " × " + fmtE(m.E30), "F30", fmtE(m.F30));
+  if (m.F32) s += kvRow("IFM 10 % (base " + fmtE(m.D32) + ")", "F32", fmtE(m.F32));
+  s += kvRow("ICCP 10 %" + (m.F33 ? "" : " (désactivé)"), "F33", fmtE(m.F33));
+  if (m.F34) s += kvRow("Prime repas &gt; plafond URSSAF", "F34", fmtE(m.F34));
+  if (m.F35) s += kvRow("Prime transport &gt; plafond URSSAF", "F35", fmtE(m.F35));
+  if (m.F36) s += kvRow("Avantage en nature repas client", "F36", fmtE(m.F36));
+  for (let k = 0; k < 5; k++) if (m["F" + (37 + k)]) s += kvRow(pn(k) + " (soumise)", "F" + (37 + k), fmtE(m["F" + (37 + k)]));
+  s += kvRow("Salaire brut total", "F42", fmtE(m.F42), "total");
+  if (m.F44) s += kvRow("Tickets restaurant (part salariale)", "F44", fmtE(m.F44));
+  if (m.F45) s += kvRow("Indemnité transport", "F45", fmtE(m.F45));
+  if (m.F46) s += kvRow("Indemnité repas", "F46", fmtE(m.F46));
+  for (let k = 0; k < 4; k++) if (m.FI && m.FI[k]) s += kvRow(inn(k) + " (non soumise)", k < 2 ? "F" + (47 + k) : "", fmtE(m.FI[k]));
+  if (m.F49) s += kvRow("Indemnité repas GD auto", "F49", fmtE(m.F49));
+  if (m.F50) s += kvRow("Indemnité découché GD", "F50", fmtE(m.F50));
+  if (m.F51) s += kvRow("Indemnité transport auto (industrie)", "F51", fmtE(m.F51));
+  if (m.F52) s += kvRow("Participation logement salarié", "F52", fmtE(m.F52));
+  if (m.F53) s += kvRow("Participation logement client", "F53", fmtE(m.F53));
+  if (m.F54) s += kvRow("Retrait avantage en nature repas", "F54", fmtE(m.F54));
+  s += kvRow("Net avant régularisation", "F89", fmtE(m.F89), "total");
+  s += kvRow("Net après régularisation (avances)", "F91", fmtE(m.F91), "total");
+  $("tbl-paie").innerHTML = s;
+}
+
+function renderCotis(m) {
+  let s = "";
+  s += kvRow("<b>Salariales</b>", "", "", "sub");
+  const rows = [
+    ["Maladie 5,5 % (attestation fiscale)", "F62", m.F62], ["Comp. IID T1", "F63", m.F63],
+    ["Comp. IID T2", "F65", m.F65], ["Comp. IID non-CSG T2", "F66", m.F66], ["Mutuelle", "F67", m.F67],
+    ["SS plafonnée", "F69", m.F69], ["SS déplafonnée", "F70", m.F70],
+    ["Complémentaire T1", "F71", m.F71], ["Complémentaire T2", "F72", m.F72], ["CET", "F73", m.F73],
+    ["Réduction salariale heures sup", "F76", m.F76], ["Autres contributions", "F77", m.F77],
+    ["CSG déductible", "F79", m.F79], ["CSG/CRDS non déductible", "F80", m.F80], ["CSG/CRDS sur HS", "F81", m.F81]
+  ];
+  for (const [l, ref, v] of rows) if (Math.abs(v) > 1e-9) s += kvRow(l, ref, fmtE(v));
+  s += kvRow("Total salarial", "F88", fmtE(m.F88), "total");
+  s += kvRow("<b>Patronales</b>", "", "", "sub");
+  const prows = [
+    ["Maladie (" + N2.format(m.G62) + " %)", "H62", m.H62], ["Comp. IID T1", "H63", m.H63],
+    ["Comp. IID non-CSG T1", "H64", m.H64], ["Comp. IID T2", "H65", m.H65], ["Comp. IID non-CSG T2", "H66", m.H66],
+    ["Mutuelle", "H67", m.H67], ["AT-MP", "H68", m.H68], ["SS plafonnée", "H69", m.H69],
+    ["SS déplafonnée", "H70", m.H70], ["Complémentaire T1", "H71", m.H71], ["Complémentaire T2", "H72", m.H72],
+    ["CET", "H73", m.H73], ["Famille (" + N2.format(m.G74) + " %)", "H74", m.H74], ["Assurance chômage", "H75", m.H75],
+    ["Autres contributions", "H77", m.H77], ["Statutaires", "H78", m.H78],
+    ["Réduction patronale heures sup", "H82", m.H82], ["Part patronale tickets resto", "H44", m.H44]
+  ];
+  for (const [l, ref, v] of prows) if (Math.abs(v) > 1e-9) s += kvRow(l, ref, fmtE(v));
+  if (SECTORS[inp.sector].exo === "tode") {
+    s += kvRow("TO-DE : exonération <b>" + m.tode.eligibilite + "</b> (seuils " + fmtE(m.tode.seuilTotale) + " / " + fmtE(m.tode.seuilMax) + ")", "H83", "−" + EUR.format(m.H83).replace("-", ""));
+    /* TO-DE et réduction générale ne se cumulent pas : option par salarié pour le plus favorable */
+    s += kvRow("RGDU équivalente (non cumulable avec la TO-DE — option par salarié)" +
+               (m.rgduAmount > m.H83 + 0.005 ? " — <b>serait plus favorable ⚠</b>" : " — TO-DE plus favorable ✓"),
+               "", fmtE(m.rgduAmount));
+  } else if (inp.exoFormule === "rgdu") {
+    s += kvRow("Allègement RGDU 2026 (coeff " + N4.format(m.rgduCoeff) + " × brut" +
+               (inp.rgdu.interim !== false ? " × 1,1" : "") + ") — Fillon classeur : " + fmtE(m.H83_fillon), "H83", "−" + EUR.format(m.H83).replace("-", ""));
+  } else {
+    s += kvRow("Allègement Fillon (coeff " + N4.format(m.D100) + " × brut × 1,1" +
+               (inp.mode === "SIMULATEUR BTP GRAND D" ? ", plafonné BTP GD" : "") + ") — RGDU 2026 : " + fmtE(m.rgduAmount), "H83", "−" + EUR.format(m.H83).replace("-", ""));
+  }
+  if (m.D85) s += kvRow("Provision CET 21 % (ni IFM ni ICCP) + charges 45 %", "D85/H85", fmtE(m.D85 + m.H85));
+  s += kvRow("Total patronal (après exonération)", "H88", fmtE(m.H88), "total");
+  s += kvRow("Coût global salarié", "F93", fmtE(m.F93), "total");
+  $("tbl-cotis").innerHTML = s;
+}
+
+function renderFact(m) {
+  let s = "";
+  s += kvRow("Heures au taux normal — " + N2.format(m.L24) + " h × " + fmtE(m.H14), "O24", fmtE(m.O24));
+  if (m.O25) s += kvRow("Heures dimanche", "O25", fmtE(m.O25));
+  if (m.O26) s += kvRow("Heures férié", "O26", fmtE(m.O26));
+  if (m.O27) s += kvRow("Majoration nuit", "O27", fmtE(m.O27));
+  if (m.O28) s += kvRow("Heures sup 25 %", "O28", fmtE(m.O28));
+  if (m.O29) s += kvRow("Heures sup 50 % (&gt;43 h)", "O29", fmtE(m.O29));
+  if (m.O30) s += kvRow("Heures spécifiques majorées", "O30", fmtE(m.O30));
+  for (const r of [34, 35, 36, 37, 38, 39, 40, 41]) if (m["O" + r]) s += kvRow("Prime refacturée (ligne " + r + ")", "O" + r, fmtE(m["O" + r]));
+  s += kvRow("Sous-total facturé au coefficient (heures + majorations + primes)", "O42", fmtE(m.O42), "total");
+  const inn2 = k => esc($("inn" + k) ? $("inn" + k).value : indemNames[k]);
+  for (const [l, ref] of [["Indemnité transport refacturée", "O45"], ["Indemnité repas refacturée", "O46"],
+                          [inn2(0) + " refacturée (coef " + N2.format(m.O47 && m.F47 ? m.O47 / m.F47 : 0) + ")", "O47"],
+                          [inn2(1) + " refacturée (coef " + N2.format(m.O48 && m.F48 ? m.O48 / m.F48 : 0) + ")", "O48"],
+                          [inn2(2) + " refacturée", "OI3"], [inn2(3) + " refacturée", "OI4"],
+                          ["Repas GD refacturé", "O49"], ["Découché GD refacturé", "O50"]])
+    if (m[ref]) s += kvRow(l, ref.startsWith("OI") ? "" : ref, fmtE(m[ref]));
+  if (m.O52) s += kvRow(inp.sector === "agri" ? "Logement facturé" : "Logement facturé — " + N2.format(m.L52) + " h × " + fmtE(inp.coutLogementFacture), "O52", fmtE(m.O52));
+  if (m.O54) s += kvRow("Retrait AN repas", "O54", fmtE(m.O54));
+  s += kvRow("CA HT total", "O60", fmtE(m.O60), "total");
+  if (inp.remisePct) s += kvRow("Remise fin d'année " + N2.format(inp.remisePct) + " % × CA soumis à cotisations (" + fmtE(m.O42) + ")", "M63", fmtE(-m.O42 * inp.remisePct / 100));
+  s += kvRow("Volume de marge brute", "O64", fmtE(m.O64), "total");
+  s += kvRow("Taux de marge", "H17", fmtP(m.H17), "total");
+  $("tbl-fact").innerHTML = s;
+}
+
+function renderHidden(h, m) {
+  let s = "";
+  s += kvRow("IFM 10 % (base " + fmtE(h.D32) + ")", "F32", fmtE(h.F32));
+  s += kvRow("ICCP 10 %", "F33", fmtE(h.F33));
+  s += kvRow("Salaire brut total", "F42", fmtE(h.F42), "total");
+  s += kvRow("Assiette de cotisations", "D62", fmtE(h.D62));
+  s += kvRow(SECTORS[inp.sector].exo === "tode" ? "TO-DE (" + h.tode.eligibilite + ")" : "Allègement Fillon", "H83", fmtE(h.H83));
+  s += kvRow("Coût global salarié", "F93", fmtE(h.F93), "total");
+  s += kvRow(SECTORS[inp.sector].o52Mode === "flat" ? "CA HT (sans logement facturé)"
+             : (h.O52 ? "CA HT (logement facturé inclus)" : "CA HT"), "O60", fmtE(h.O60));
+  s += kvRow("Marge brute", "O64", fmtE(h.O64), "total");
+  s += kvRow("Taux de marge", "I17", fmtP(m.I17), "total");
+  s += kvRow("Net / h avec IFM + ICCP", "D15", inp.heures ? fmtE(h.F91 / h.D31) : "—");
+  $("tbl-hidden").innerHTML = s;
+}
+
+function renderGrille() {
+  const cur = Math.round(inp.coeff * 10000) / 10000;
+  const coeffs = [];
+  for (let d = -0.3; d <= 0.3001; d += 0.05) coeffs.push(Math.round((cur + d) * 10000) / 10000);
+  let s = "<tr><th>Coeff</th><th>Taux HN €/h</th><th>CA HT</th><th>Marge €</th><th>Marge %</th></tr>";
+  for (const c of coeffs) {
+    const r = compute(Object.assign({}, inp, { coeff: c }));
+    const isCur = Math.abs(c - cur) < 1e-9;
+    s += '<tr class="' + (isCur ? "cur" : "") + '"><td>' + N4.format(c) + "</td><td>" + N2.format(r.main.H14) +
+         "</td><td>" + N2.format(r.main.O60) + "</td><td" + (r.main.O64 < 0 ? ' class="neg"' : "") + ">" + N2.format(r.main.O64) +
+         "</td><td" + (r.main.O64 < 0 ? ' class="neg"' : "") + ">" + N2.format(r.main.H17) + "</td></tr>";
+  }
+  $("grille").innerHTML = s;
+}
+
+/* margin curve: marge % vs coefficient */
+let chartPts = [];
+function renderChart() {
+  const svg = $("chart");
+  const W = svg.clientWidth || 380, H = 180, padL = 38, padR = 12, padT = 12, padB = 24;
+  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+  const c0 = Math.max(0.9, inp.coeff - 0.45), c1 = inp.coeff + 0.45;
+  chartPts = [];
+  for (let k = 0; k <= 40; k++) {
+    const c = c0 + (c1 - c0) * k / 40;
+    const r = compute(Object.assign({}, inp, { coeff: c }));
+    chartPts.push({ c, pct: r.main.H17, mb: r.main.O64 });
+  }
+  const ys = chartPts.map(p => p.pct).filter(isFinite);
+  let y0 = Math.min(...ys, 0), y1 = Math.max(...ys, inp.cibleMargePct || 0);
+  const span = (y1 - y0) || 1; y0 -= span * .08; y1 += span * .08;
+  const X = c => padL + (c - c0) / (c1 - c0) * (W - padL - padR);
+  const Y = v => padT + (1 - (v - y0) / (y1 - y0)) * (H - padT - padB);
+  let g = "";
+  const step = niceStep(y1 - y0);
+  for (let v = Math.ceil(y0 / step) * step; v <= y1; v += step) {
+    g += '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="var(--chart-grid)" stroke-width="1"/>';
+    g += '<text x="' + (padL - 5) + '" y="' + (Y(v) + 3.5) + '" text-anchor="end" font-size="10" fill="var(--muted)">' + N2.format(v) + '</text>';
+  }
+  for (const c of [c0, (c0 + c1) / 2, c1]) {
+    g += '<text x="' + X(c) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="10" fill="var(--muted)">' + N2.format(c) + '</text>';
+  }
+  if (y0 < 0 && y1 > 0) g += '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + Y(0) + '" y2="' + Y(0) + '" stroke="var(--bad)" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>';
+  if (isFinite(inp.cibleMargePct) && inp.cibleMargePct > y0 && inp.cibleMargePct < y1) {
+    g += '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + Y(inp.cibleMargePct) + '" y2="' + Y(inp.cibleMargePct) + '" stroke="var(--info)" stroke-width="1.5" stroke-dasharray="5 4"/>';
+    g += '<text x="' + (W - padR) + '" y="' + (Y(inp.cibleMargePct) - 4) + '" text-anchor="end" font-size="10" fill="var(--info)">cible ' + N2.format(inp.cibleMargePct) + ' %</text>';
+  }
+  let path = "";
+  chartPts.forEach((p, k) => { path += (k ? "L" : "M") + X(p.c).toFixed(1) + " " + Y(p.pct).toFixed(1) + " "; });
+  g += '<path d="' + path + '" fill="none" stroke="var(--chart-line)" stroke-width="2" stroke-linejoin="round"/>';
+  const rNow = compute(inp);
+  g += '<circle cx="' + X(inp.coeff) + '" cy="' + Y(rNow.main.H17) + '" r="4.5" fill="var(--chart-line)" stroke="var(--card)" stroke-width="2"/>';
+  g += '<text x="' + padL + '" y="' + (padT - 1) + '" font-size="10" fill="var(--muted)">Marge % selon coefficient</text>';
+  svg.innerHTML = g;
+  svg.__map = { X, Y, c0, c1 };
+}
+function niceStep(range) {
+  const raw = range / 4, pow = Math.pow(10, Math.floor(Math.log10(raw)));
+  for (const m of [1, 2, 5, 10]) if (raw <= m * pow) return m * pow;
+  return 10 * pow;
+}
+$("chart").addEventListener("mousemove", e => {
+  const svg = $("chart"), tip = $("chart-tip");
+  if (!svg.__map || !chartPts.length) return;
+  const rect = svg.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const { c0, c1 } = svg.__map;
+  const c = c0 + (x - 38) / (rect.width - 50) * (c1 - c0);
+  let best = chartPts[0];
+  for (const p of chartPts) if (Math.abs(p.c - c) < Math.abs(best.c - c)) best = p;
+  tip.style.display = "block";
+  tip.style.left = Math.min(x + 10, rect.width - 130) + "px";
+  tip.style.top = "8px";
+  tip.innerHTML = "coeff <b>" + N4.format(best.c) + "</b> · marge <b>" + N2.format(best.pct) + " %</b> · " + fmtE(best.mb);
+});
+$("chart").addEventListener("mouseleave", () => { $("chart-tip").style.display = "none"; });
+
+/* Références barèmes — tout est recalculé à chaque changement :
+ * repas petits déplacements (3 types, URSSAF 2026), transport/trajet de la grille
+ * régionale BTP (classeur, sélectionnée via le département), exonération URSSAF de
+ * la distance choisie, grand déplacement (nuitée + 2 repas/jour) selon durée et lieu. */
+const ZONE_REGIONALE = { "5 km et 10 km": 0, "10 km et 20 km": 1, "20 km et 30 km": 2, "30 km et 40 km": 2, "40 km et 50 km": 3, "50 km et 60 km": 3, "60 km et 70 km": 4, "70 km et 80 km": 4, "80 km et 90 km": 5, "90 km et 100 km": 5 }; /* tranches URSSAF aller-retour -> zones BTP aller simple (correspondance AB/AC du classeur) */
+/* minimum horaire d'un niveau : minima OFFICIEL (code.travail.gouv.fr, IDCC 1596) si la
+ * région est couverte, sinon grille du classeur ; jamais restitué sous le SMIC courant */
+function nivHoraireBTP(d, lvl, smicNow) {
+  const h = btpMinimaHoraire(d.region, lvl, "cc1596");
+  const raw = h != null ? h : (d.rates ? d.rates[lvl] : null);
+  if (raw == null) return null;
+  return { raw, shown: Math.max(Math.round(raw * 100) / 100, smicNow), below: raw < smicNow - 1e-9, officiel: h != null };
+}
+
+function renderRef(m) {
+  const d = DB.departments.find(x => x.dept === inp.dept);
+  const duree = inp.gdDuree || 0;
+  const abat = [1, 0.85, 0.70][duree];
+  const nuitee = (inp.gdLieu === "paris" ? BAKED_OFFICIAL.nuiteeGDParisPeriodes : BAKED_OFFICIAL.nuiteeGDProvincePeriodes)[duree];
+  const repasGD = BAKED_OFFICIAL.repasRestaurant.value * abat;
+  const isBTP = inp.sector === "tarifaire" && inp.branche === "btp";
+  let s = "";
+  /* BTP : grille régionale — région + niveau de qualification -> minimum de salaire, panier */
+  const smicNow = (typeof official !== "undefined" && official && official.smic) ? official.smic.value : BAKED_OFFICIAL.smic.value;
+  const regionNom = d ? esc((d.region || "").split("/")[0].trim()) : "";
+  if (isBTP) {
+    s += "<tr class='sub'><td colspan='2'><b>Grille BTP régionale</b> — " +
+         (d ? "région " + regionNom + " (département " + esc(d.dept) + ")" : "choisir le département de mission en haut de page") + "</td></tr>";
+    if (d) {
+      const lvl = inp.niveauQualif || "N1P1";
+      const rOff = btpMinimaRegion(d.region);
+      const coef = NIVEAU_COEF_BTP[lvl];
+      const m96 = rOff && coef ? rOff.cc1596[coef] : null;
+      if (m96) {
+        /* minima OFFICIELS (code.travail.gouv.fr) : mensuel brut ÷ 151,67 = horaire */
+        const div = BTP_MINIMA.diviseurHoraire;
+        const h96 = Math.round(m96 / div * 100) / 100;
+        const below = h96 < smicNow - 1e-9;
+        s += kvRow("Salaire minimum " + esc(lvl) + " — IDCC 1596 (≤ 10 sal.)" + (below ? " — plancher SMIC appliqué ⚠" : ""), "",
+                   fmtE(Math.max(h96, smicNow)) + "/h (" + fmtE(m96) + "/mois)");
+        const m97 = rOff.cc1597 ? rOff.cc1597[coef] : null;
+        if (m97 && Math.abs(m97 - m96) > 0.005) {
+          const h97 = Math.round(m97 / div * 100) / 100;
+          s += kvRow("&nbsp;&nbsp;· IDCC 1597 (> 10 sal.)", "", fmtE(Math.max(h97, smicNow)) + "/h (" + fmtE(m97) + "/mois)");
+        }
+        const acc = BTP_MINIMA.accords[normRegionBTP(d.region)];
+        s += kvRow("Source officielle — code.travail.gouv.fr (màj " + BTP_MINIMA.siteMajLe + ")", "", acc || "grille en vigueur");
+      } else if (d.rates && d.rates[lvl] != null) {
+        const g = d.rates[lvl];
+        s += kvRow("Salaire minimum " + esc(lvl) + " (grille classeur — région hors source officielle)" + (g < smicNow - 1e-9 ? " ⚠" : ""), "",
+                   fmtE(Math.max(g, smicNow)));
+      } else {
+        s += kvRow("Salaire minimum " + esc(lvl), "", lvl === "AUTRE" ? "saisie libre — plancher SMIC " + fmtE(smicNow) : "n.c.");
+      }
+      /* panier : accord régional de la base de veille si disponible, sinon classeur —
+       * décomposition RECALCULÉE sur la limite URSSAF courante */
+      const limRepas = BAKED_OFFICIAL.repasHorsLocaux.value;
+      const ipdP = (BTP_IPD || {})[normRegionBTP(d.region)] || null;
+      const panier = ipdP && ipdP.repas != null ? ipdP.repas : d.panier;
+      s += kvRow("Panier repas BTP — total" + (ipdP && ipdP.repas != null ? " (" + esc(ipdP.accord || "accord à jour") + ")" : " (grille classeur)"), "",
+                 panier != null ? fmtE(panier) : "n.c.");
+      if (panier != null) {
+        const nsPan = Math.min(panier, limRepas), soPan = Math.max(0, panier - limRepas);
+        s += kvRow("&nbsp;&nbsp;· part <b>non soumise</b> à cotisations (exonérée, limite URSSAF " + fmtE(limRepas) + ")", "", fmtE(nsPan));
+        s += kvRow("&nbsp;&nbsp;· part <b>soumise</b> à cotisations (au-delà de la limite)", "", soPan > 1e-9 ? fmtE(soPan) : "0,00 € (sous la limite)");
+      }
+    }
+  }
+  s += "<tr class='sub'><td colspan='2'><b>Repas petits déplacements</b> (exonération URSSAF / repas, 2026)</td></tr>";
+  s += kvRow("Repas atelier / sur le lieu de travail", "", fmtE(BAKED_OFFICIAL.repasLieuTravail.value));
+  s += kvRow("Repas chantier (hors des locaux, sans restaurant)", "", fmtE(BAKED_OFFICIAL.repasHorsLocaux.value));
+  s += kvRow("Repas au restaurant", "", fmtE(BAKED_OFFICIAL.repasRestaurant.value));
+  s += "<tr class='sub'><td colspan='2'><b>Transport — distance sélectionnée</b></td></tr>";
+  s += kvRow("Exonération URSSAF quotidienne (tranche BTP/ETT)", "", fmtE(m.H18));
+  const normZ = z => (z || "").replace(/ /g, " ").trim();
+  const ziEntry = Object.entries(ZONE_REGIONALE).find(e => normZ(e[0]) === normZ(inp.zonePD));
+  /* zone BTP = ALLER SIMPLE : la distance orthodromique calculée prime sur la
+   * correspondance approximative tranches URSSAF (aller-retour) -> zones */
+  const zi = (inp.distAller > 0) ? zoneBTPFromAller(inp.distAller) : (ziEntry ? ziEntry[1] : null);
+  /* BTP : grilles complètes par zone — transport (prime, NON soumise) et trajet (SOUMIS
+   * à cotisations) ; accord régional de la base de veille prioritaire sur le classeur */
+  const ipdG = (isBTP && d && BTP_IPD) ? (BTP_IPD[normRegionBTP(d.region)] || null) : null;
+  const IPD_KEYS = ["1A", "1B", "2", "3", "4", "5"];
+  if (isBTP && d && ipdG && ipdG.zones) {
+    s += "<tr class='sub'><td colspan='2'><b>Transport par zone</b> — " + esc(ipdG.accord || "accord régional") + " (prime de transport, <b>non soumise</b> à cotisations)</td></tr>";
+    IPD_KEYS.forEach((zk, z) => { const v = ipdG.zones[zk];
+      if (v && v.transport != null) s += kvRow("Zone " + ZONE_NOMS[z] + (z === zi ? " ◀ distance sélectionnée" : ""), "", fmtE(v.transport)); });
+    s += "<tr class='sub'><td colspan='2'><b>Trajet par zone</b> — " + esc(ipdG.accord || "accord régional") + " (indemnité de trajet, <b>soumise</b> à cotisations)</td></tr>";
+    IPD_KEYS.forEach((zk, z) => { const v = ipdG.zones[zk];
+      if (v && v.trajet != null) s += kvRow("Zone " + ZONE_NOMS[z] + (z === zi ? " ◀ distance sélectionnée" : ""), "", fmtE(v.trajet)); });
+  } else if (isBTP && d && d.transport) {
+    s += "<tr class='sub'><td colspan='2'><b>Transport par zone</b> — grille " + regionNom + " (prime de transport, <b>non soumise</b> à cotisations, grille classeur)</td></tr>";
+    for (let z = 0; z < ZONE_NOMS.length; z++) if (d.transport[z] != null)
+      s += kvRow("Zone " + ZONE_NOMS[z] + (z === zi ? " ◀ distance sélectionnée" : ""), "", fmtE(d.transport[z]));
+    s += "<tr class='sub'><td colspan='2'><b>Trajet par zone</b> — grille " + regionNom + " (indemnité de trajet, <b>soumise</b> à cotisations, grille classeur)</td></tr>";
+    for (let z = 0; z < ZONE_NOMS.length; z++) if (d.trajet[z] != null)
+      s += kvRow("Zone " + ZONE_NOMS[z] + (z === zi ? " ◀ distance sélectionnée" : ""), "", fmtE(d.trajet[z]));
+  } else if (isBTP) {
+    s += kvRow("Grilles régionales transport/trajet par zone", "", "choisir le département de mission en haut de page");
+  }
+  s += "<tr class='sub'><td colspan='2'><b>Grand déplacement</b> — " +
+       (inp.gdLieu === "paris" ? "Paris + 92/93/94" : "province") + ", " +
+       ["3 premiers mois", "4ᵉ-24ᵉ mois (−15 %)", "au-delà de 24 mois (−30 %)"][duree] + "</td></tr>";
+  s += kvRow("Nuitée (logement + petit-déjeuner) / jour", "", fmtE(nuitee));
+  s += kvRow("Repas GD (midi + soir = 2 repas) / jour", "", fmtE(2 * repasGD) + " (" + fmtE(repasGD) + " × 2)");
+  s += kvRow("Total GD / jour (nuitée + 2 repas)", "", fmtE(nuitee + 2 * repasGD), "total");
+  $("tbl-ref").innerHTML = s;
+
+  /* hints réactifs sous les sélecteurs : le salaire apparaît dès le choix du niveau,
+   * le montant exonéré dès le choix du kilométrage */
+  $("zone-hint").textContent = m.H18 ? "exonération " + fmtE(m.H18) + " / jour" : "";
+  const selN = $("in-niveau");
+  if (isBTP && d) {
+    const lvl = inp.niveauQualif || "N1P1";
+    const nv = nivHoraireBTP(d, lvl, smicNow);
+    $("niveau-hint").textContent = nv
+      ? "minimum " + fmtE(nv.shown) + "/h — " + (d.region || "").split("/")[0].trim() +
+        (nv.officiel ? " (officiel)" : " (classeur)") + (nv.below ? " · plancher SMIC" : "")
+      : "n.c. dans la grille régionale";
+    /* options enrichies : « N3P2 — coeff 230 · 14,73 € » (officiel, plancher SMIC) —
+     * cache par département + SMIC pour se rafraîchir quand le SMIC officiel arrive */
+    const enrichKey = inp.dept + "|" + smicNow;
+    if (selN.dataset.key !== enrichKey) {
+      for (const o of selN.options) {
+        const base = o.textContent.split(" · ")[0];
+        const v = nivHoraireBTP(d, o.value, smicNow);
+        o.textContent = v ? base + " · " + N2.format(v.shown) + " €" : base;
+      }
+      selN.dataset.key = enrichKey;
+    }
+  } else {
+    $("niveau-hint").textContent = isBTP ? "choisir le département de mission en haut de page" : "";
+    if (selN.dataset.key) {
+      for (const o of selN.options) o.textContent = o.textContent.split(" · ")[0];
+      delete selN.dataset.key;
+    }
+  }
+}
+
+function renderDeptHint() {
+  const el = $("dept-hint");
+  const d = DB.departments.find(x => x.dept === inp.dept);
+  /* rattachement automatique département -> région, affiché sous le sélecteur d'en-tête */
+  $("dept-region").textContent = d ? "Région : " + (d.region || "").split("/")[0].trim() : "";
+  if (!d) { el.innerHTML = ""; return; }
+  const isBTP = inp.sector === "tarifaire" && inp.branche === "btp";
+  let chips = "";
+  const smicNow = (typeof official !== "undefined" && official && official.smic) ? official.smic.value : BAKED_OFFICIAL.smic.value;
+  /* chips de qualification (BTP) : minima OFFICIELS (repli classeur), jamais affichés
+   * sous le SMIC — la valeur appliquée au taux brut est la valeur plancher */
+  if (isBTP) for (const k of Object.keys(NIVEAU_COEF_BTP)) {
+    const nv = nivHoraireBTP(d, k, smicNow);
+    if (!nv) continue;
+    chips += '<button class="chip' + (nv.below ? " below" : "") + '" data-rate="' + nv.shown +
+      '" title="' + (nv.officiel ? "Minima officiel IDCC 1596" : "Grille classeur") +
+      (nv.below ? " (" + N2.format(nv.raw) + " €) — sous le SMIC, plancher appliqué" : " — appliquer au taux horaire brut") + '">' +
+      k + " <b>" + N2.format(nv.shown) + "</b>" + (nv.below ? " ⚠" : "") + "</button>";
+  }
+  el.innerHTML = esc(d.dept) +
+    (isBTP && d.panier != null ? " — panier " + N2.format(d.panier) + " €" +
+      " (non soumis " + N2.format(Math.min(d.panier, BAKED_OFFICIAL.repasHorsLocaux.value)) + " €)" : "") +
+    '<span class="chips">' + chips + "</span>";
+  el.querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => {
+    $("in-thbrut").value = Math.round(parseFloat(b.dataset.rate) * 100) / 100;
+    onChange();
+  }));
+}
+
+/* ================= EVENTS ================= */
+let raf = 0;
+function onChange() {
+  cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(() => { readInputsFromForm(); render(compute(inp)); });
+}
+document.querySelectorAll("input, select").forEach(el => {
+  el.addEventListener("input", onChange);
+  el.addEventListener("change", onChange);
+});
+/* préremplissage logement depuis la table Excel LOGEMT supprimé (20/08/2026) :
+ * données 2024 sans valeur — le coût du logement se saisit librement */
+/* ===== Distance orthodromique (adresses -> km ALLER SIMPLE) =====
+ * Géocodage Base Adresse Nationale (api-adresse.data.gouv.fr, licence ouverte,
+ * CORS ouvert — même modèle qu'OpenFisca). Zone BTP = ALLER SIMPLE (grilles
+ * régionales) ; tranche URSSAF = ALLER-RETOUR (2 × aller) — les deux barèmes ne
+ * mesurent pas la même chose. ⚠ Certains départements appliquent la distance
+ * RÉELLE routière (ex. Savoie) : corriger alors le champ km à la main. */
+wireAdrAutocomplete("in-adr-dom", "sug-adr-dom");
+wireAdrAutocomplete("in-adr-cha", "sug-adr-cha");
+/* deux modalités : zone BTP (orthodromique ALLER, BTP seulement) et tranche URSSAF
+ * (km RÉELS ALLER-RETOUR — industrie ET btp) */
+function refreshDistHint(infoGeo) {
+  const isBTP = inp.sector === "tarifaire" && inp.branche === "btp";
+  const kmO = num($("in-dist")), kmAR = num($("in-distar"));
+  const zi = zoneBTPFromAller(kmO);
+  let s = infoGeo ? infoGeo + "<br>" : "";
+  if (isBTP && kmO > 0)
+    s += "grille BTP : aller à vol d'oiseau <b>" + N2.format(kmO) + " km</b> → <b>" +
+         (zi != null ? "zone " + ZONE_NOMS[zi] : "hors zones PD (&gt; 50 km : grand déplacement)") + "</b><br>";
+  if (kmAR > 0) {
+    const tranche = trancheURSSAFFromAR(kmAR);
+    s += "URSSAF : réel aller-retour <b>" + N2.format(kmAR) + " km</b> → " +
+         (tranche !== "PAS DE TRANSPORT PD" ? "tranche « " + esc(tranche.toLowerCase()) + " » appliquée" : "pas d'exonération transport") + "<br>";
+  }
+  s += "⚠ grilles BTP : certains départements appliquent la distance réelle routière (ex. Savoie) — corriger les km à la main si nécessaire.";
+  $("dist-hint").innerHTML = s;
+}
+function applyTrancheURSSAF(kmAR) {
+  if (kmAR > 0) {
+    const tranche = trancheURSSAFFromAR(kmAR);
+    const sz = $("in-zone");
+    if (Array.from(sz.options).some(o => o.value === tranche)) sz.value = tranche;
+  }
+  refreshDistHint("");
+  onChange();
+}
+$("btn-dist").addEventListener("click", async () => {
+  const isBTP = inp.sector === "tarifaire" && inp.branche === "btp";
+  const qd = $("in-adr-dom").value.trim(), qc = $("in-adr-cha").value.trim();
+  if (!qd || !qc) {
+    $("dist-hint").textContent = "Renseigner les deux adresses (domicile/siège ET " +
+      (isBTP ? "chantier" : "entreprise utilisatrice") + ") — ou saisir les km à la main.";
+    return;
+  }
+  $("dist-hint").textContent = "Géocodage et itinéraire en cours…";
+  try {
+    const both = await Promise.all([geocodeBAN(qd), geocodeBAN(qc)]);
+    if (!both[0] || !both[1]) {
+      $("dist-hint").textContent = "Adresse introuvable (" + (!both[0] ? "domicile/siège" : (isBTP ? "chantier" : "entreprise utilisatrice")) + ") — préciser, ou saisir les km à la main.";
+      return;
+    }
+    const kmO = Math.round(haversineKm(both[0], both[1]) * 10) / 10;
+    $("in-dist").value = kmO;                       /* zones BTP : aller à vol d'oiseau */
+    let geoTxt = "✓ " + esc(both[0].label) + " → " + esc(both[1].label);
+    try {
+      const reelAller = await routeReelKm(both[0], both[1]);
+      const kmAR = Math.round(reelAller * 2 * 10) / 10;
+      $("in-distar").value = kmAR;                  /* URSSAF : réel aller-retour */
+      const tranche = trancheURSSAFFromAR(kmAR);
+      const sz = $("in-zone");
+      if (Array.from(sz.options).some(o => o.value === tranche)) sz.value = tranche;
+    } catch (e2) {
+      geoTxt += " — <b>itinéraire routier indisponible</b> : saisir le réel AR à la main";
+    }
+    refreshDistHint(geoTxt);
+    onChange();
+  } catch (e) {
+    $("dist-hint").textContent = "Géocodage indisponible ici (réseau bloqué) — saisir les km à la main.";
+  }
+});
+$("in-dist").addEventListener("change", () => { refreshDistHint(""); onChange(); });
+$("in-distar").addEventListener("change", () => applyTrancheURSSAF(num($("in-distar"))));
+
+/* BTP : sélectionner un niveau de qualification APPLIQUE son minimum (officiel,
+ * plancher SMIC) au taux horaire brut de la mission. Au changement de département,
+ * le brut suit la nouvelle région seulement s'il n'a pas été modifié à la main. */
+function applyNiveauBrut(force) {
+  if (!(inp.sector === "tarifaire" && inp.branche === "btp")) return;
+  const d = DB.departments.find(x => x.dept === $("in-dept").value);
+  const lvl = $("in-niveau").value;
+  if (!d || lvl === "AUTRE") return;
+  const smicNow = (typeof official !== "undefined" && official && official.smic) ? official.smic.value : BAKED_OFFICIAL.smic.value;
+  const nv = nivHoraireBTP(d, lvl, smicNow);
+  if (!nv) return;
+  const cur = $("in-thbrut");
+  if (!force && cur.value !== cur.dataset.autoNiveau) return;   // saisie manuelle : on ne touche pas
+  cur.value = nv.shown;
+  cur.dataset.autoNiveau = String(nv.shown);
+  onChange();
+}
+$("in-niveau").addEventListener("change", () => applyNiveauBrut(true));
+$("in-dept").addEventListener("change", () => applyNiveauBrut(false));
+$("sector-agri").addEventListener("click", () => { if (inp.sector !== "agri") applySector("agri"); });
+$("sector-btp").addEventListener("click", () => {
+  if (inp.sector === "tarifaire" && inp.branche === "btp") return;
+  /* même moteur tarifaire : on conserve les saisies en basculant BTP <-> Industrie */
+  if (inp.sector === "tarifaire") readInputsFromForm();
+  applySector("tarifaire", inp.sector === "tarifaire" ? inp : undefined, "btp");
+});
+$("sector-industrie").addEventListener("click", () => {
+  if (inp.sector === "tarifaire" && inp.branche === "industrie") return;
+  if (inp.sector === "tarifaire") readInputsFromForm();
+  applySector("tarifaire", inp.sector === "tarifaire" ? inp : undefined, "industrie");
+});
+$("ifmcp-direct").addEventListener("click", () => {
+  $("ifmcp-direct").setAttribute("aria-pressed", "true"); $("ifmcp-cet").setAttribute("aria-pressed", "false");
+  onChange();
+});
+$("ifmcp-cet").addEventListener("click", () => {
+  $("ifmcp-direct").setAttribute("aria-pressed", "false"); $("ifmcp-cet").setAttribute("aria-pressed", "true");
+  onChange();
+});
+$("gs-tx-apply").addEventListener("click", e => {
+  const c = parseFloat(e.currentTarget.dataset.coeff);
+  if (isFinite(c)) { $("in-coeff").value = Math.round(c * 10000) / 10000; onChange(); }
+});
+/* applique le plan du pilotage du net (recalculé à l'instant du clic) */
+$("gs-net-apply").addEventListener("click", applyNetPlan);
+
+/* ===== ÉTUDE DE PRIX (synthèse de l'offre commerciale, impression PDF) =====
+ * Formalise l'offre pour le directeur commercial et sert au paramétrage du
+ * compte client par la paie/facturation. Archivage : le nom de fichier PDF
+ * reprend le client et la date. Logo/charte graphique : emplacement réservé. */
+function buildEtudePrix() {
+  readInputsFromForm();
+  const M = compute(inp), m = M.main;
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("fr-FR");
+  const secteur = inp.sector === "agri" ? "CDD saisonnier agricole (MSA · TO-DE)"
+                : (inp.branche === "btp" ? "Intérim BTP (RGDU)" : "Intérim Industrie (RGDU)");
+  /* coefficient CONTRACTUEL : arrondi au centième SUPÉRIEUR (1,8867 -> 1,89) */
+  const coefAff = Math.ceil(inp.coeff * 100 - 1e-9) / 100;
+  const kv = (l, v, cls) => "<tr" + (cls ? " class='" + cls + "'" : "") + "><td>" + l + "</td><td class='n'>" + v + "</td></tr>";
+  /* en-tête CENTRÉ : logo AB2Pro au-dessus du titre « Synthèse étude de prix » */
+  let s = '<div class="entete">' +
+    '<img class="logo-etude" src="' + LOGO_AB2PRO + '" alt="AB2Pro — Groupe Triangle Solutions RH">' +
+    "<h1>Synthèse étude de prix — " + esc(inp.client || "(client à renseigner)") + "</h1>" +
+    '<div class="meta">' + esc(secteur) + " · établie le " + dateStr + " · année " + now.getFullYear() +
+    (inp.dept ? " · mission : " + esc(inp.dept) : "") +
+    (inp.niveauQualif && inp.sector === "tarifaire" && inp.branche === "btp" ? " · qualification " + esc(inp.niveauQualif) : "") +
+    "</div></div>";
+
+  /* ===== SYNTHÈSE RENTABILITÉ HEBDOMADAIRE — encadré en tête de document ===== */
+  const mCET = (!inp.ifm && !inp.iccp) ? m : compute(Object.assign({}, inp, { ifm: false, iccp: false })).main;
+  const mDirect = (inp.ifm || inp.iccp) ? m : compute(Object.assign({}, inp, { ifm: true, iccp: true })).main;
+  s += '<div class="synthbox"><h2>Synthèse rentabilité hebdomadaire</h2><table>';
+  s += kv("CA HT", fmtE(m.O60));
+  s += kv("Volume de marge brute", fmtE(m.O64), "tot");
+  s += kv("Taux de marge brute avec CET", N2.format(mCET.H17) + " %");
+  s += kv("Taux de marge brute sans CET (IFM/CP payés)", N2.format(mDirect.H17) + " %");
+  s += "</table></div>";
+
+  /* ===== 1. L'OFFRE — expression commerciale (ce que voit le client) =====
+   * Logement NON facturé à part = « logement compris » dans le taux global ;
+   * facturé à part = taux hors logement + ligne dédiée. Les mentions « 43ᵉ heure »
+   * sont une pratique BTP uniquement. Le COEFFICIENT (arrondi supérieur) est
+   * l'élément mis en avant — surtout en Industrie. */
+  const isBTPe = inp.sector === "tarifaire" && inp.branche === "btp";
+  const logFacture = m.O52 > 0.005;
+  const logExiste = (m.F92 || 0) > 0.005;
+  const libLog = logFacture ? "(logement facturé en sus)" : (logExiste ? "(logement compris)" : "(sans logement)");
+  const txGlobal = logFacture ? m.O66 : m.O62;   /* facturé à part -> taux hors logement */
+  s += "<h2>L'offre commerciale</h2><table>";
+  s += kv("Coefficient de facturation (arrondi au centième supérieur)",
+          "<span class='valbox'>" + N2.format(coefAff) + "</span>");
+  if (isBTPe) {
+    s += kv("Taux global facturé HT " + libLog + " — jusqu'à la 43ᵉ heure",
+            "<span class='valbox'>" + fmtE(txGlobal) + "/h</span>");
+    s += kv("Au-delà de la 43ᵉ heure (majoration 50 %)", fmtE(txGlobal * 1.5) + "/h");
+  } else {
+    s += kv("Taux global facturé HT " + libLog, "<b>" + fmtE(txGlobal) + "/h</b>");
+  }
+  s += kv("Base horaire de l'offre",
+          "<b>" + N2.format(inp.heures) + " h/sem sur " + inp.jours + " j</b>" +
+          "<span class='sublet'>" + N2.format(m.D24) + " h normales" +
+          (m.D28 ? " + " + N2.format(m.D28) + " h à +25 %" : "") +
+          (m.D29 ? " + " + N2.format(m.D29) + " h à +50 %" : "") + "</span>", "kv-big");
+  const refacts = [inp.refactDim ? "dimanche" : null, inp.refactFerie ? "férié" : null, inp.refactNuit ? "nuit" : null].filter(Boolean);
+  if (refacts.length) s += kv("Majorations refacturées", refacts.join(", "));
+  if (inp.remisePct) s += kv("Remise fin d'année", N2.format(inp.remisePct) + " % × CA soumis à cotisations (" + fmtE(m.O42) + ")");
+  s += "</table>";
+
+  s += "<h2>Base salariale</h2><table>";
+  s += kv("Taux horaire brut", fmtE(inp.thBrut) + "/h");
+  if (inp.netAttendu != null) s += kv("Taux horaire net promis (base de l'offre — paramétrage paie)", fmtE(inp.netAttendu) + "/h");
+  s += "</table>";
+
+  /* ===== 2. ÉLÉMENTS FACTURÉS — paramétrage FACTURATION ===== */
+  const primesBilled = inp.primes.map((p, k) => ({ p, k, montant: m["O" + (37 + k)] || 0 }));
+  const indemBilled = inp.indemnites.map((p, k) => ({ p, k, montant: [m.O47, m.O48, m.OI3, m.OI4][k] || 0 }));
+  const primesFactTotal = primesBilled.reduce((t, x) => t + x.montant, 0);
+  s += "<h2>Éléments facturés — paramétrage facturation</h2><table>";
+  const coefTag = c => "<span class='coefv'>" + N2.format(c) + "</span>";
+  /* détail « x €/jour × n j » (le nombre correspond aux jours) — sauf Ajustement net (hebdo seul) */
+  const detailJour = p => ((p.name || "").trim().toLowerCase() === "ajustement net" || !(p.q > 0 && p.r > 0))
+    ? "" : " · " + N2.format(p.r) + " €/jour × " + (p.q % 1 ? N2.format(p.q) : String(p.q)) + " j";
+  s += kv("Heures et majorations au coefficient " + coefTag(coefAff), fmtE(m.O42 - primesFactTotal) + "/sem");
+  if (m.O45) s += kv("Indemnité transport refacturée", fmtE(m.O45) + "/sem");
+  if (m.O46) s += kv("Indemnité repas refacturée", fmtE(m.O46) + "/sem");
+  primesBilled.filter(x => x.montant > 0.005).forEach(x => {
+    const modeP = x.p.fc == null ? "au coefficient " + coefTag(coefAff) : "coef " + coefTag(x.p.fc);
+    s += kv(esc(x.p.name) + " (prime soumise) — refacturée " + modeP + detailJour(x.p), fmtE(x.montant) + "/sem");
+  });
+  indemBilled.filter(x => x.montant > 0.005).forEach(x => {
+    const coefI = x.p.fc == null ? 1 : x.p.fc;
+    s += kv(esc(x.p.name) + " (indemnité non soumise) — coef " + coefTag(coefI) +
+            (coefI === 1 ? " · <b>ligne visible sur la facture</b>" : "") + detailJour(x.p), fmtE(x.montant) + "/sem");
+  });
+  if (m.O52 > 0.005) s += kv("Part logement facturée", fmtE(m.O52) + "/sem");
+  if (inp.remisePct) s += kv("Remise fin d'année (sur CA soumis à cotisations)", "−" + fmtE(m.O42 * inp.remisePct / 100).replace("-", "") + "/sem");
+  s += kv("<b>CA HT total</b>", fmtE(inp.remisePct ? m.O63 : m.O60) + "/sem", "tot");
+  s += "</table>";
+  s += '<p class="meta">Variante de facturation : toute ligne facturée peut aussi être <b>intégrée au taux global</b> (invisible pour le client — le taux horaire est alors majoré d\'autant et la ligne ne doit PAS apparaître sur la facture). Le paramétrage facturation doit impérativement choisir entre « ligne visible » et « intégré au taux » pour chaque élément ci-dessus.</p>';
+
+  /* ===== 3. ÉLÉMENTS PAYÉS NON FACTURÉS — à la charge de l'agence (paramétrage PAIE) ===== */
+  s += "<h2>Éléments payés et non facturés — paramétrage paie</h2><table>";
+  let totalNF = 0, nfRows = "";
+  inp.primes.forEach((p, k) => {
+    const paye = p.q * p.r, fact = primesBilled[k].montant;
+    if (paye > 0.005 && fact < 0.005) { totalNF += paye; nfRows += kv(esc(p.name) + " (prime soumise) — payée, non refacturée" + detailJour(p), fmtE(paye) + "/sem"); }
+  });
+  inp.indemnites.forEach((p, k) => {
+    const paye = p.q * p.r, fact = indemBilled[k].montant;
+    if (paye > 0.005 && fact < 0.005) { totalNF += paye; nfRows += kv(esc(p.name) + " (indemnité non soumise) — payée, <b>non facturée</b>" + detailJour(p), fmtE(paye) + "/sem"); }
+  });
+  const partAct = Math.max(0, -(inp.participationLibre || 0));
+  const logNet = Math.max(0, (m.F92 || 0) - partAct - (m.O52 || 0));
+  if (logNet > 0.005) {
+    totalNF += logNet;
+    nfRows += kv("Logement — la participation salarié couvre " + fmtE(partAct) +
+                 " sur un coût de " + fmtE(m.F92) + " : l'agence finance", fmtE(logNet) + "/sem");
+  }
+  s += nfRows || kv("Aucun élément à la charge de l'agence", "—");
+  if (totalNF > 0.005) s += kv("<b>Total à la charge de l'agence</b>", fmtE(totalNF) + "/sem", "tot");
+  s += "</table>";
+
+  s += "<h2>Logement</h2><table>";
+  if (logExiste) {
+    s += kv("Coût du logement", fmtE(m.F92) + "/sem");
+    s += kv("Participation salarié (retenue nette sur paie)", fmtE(partAct) + "/sem");
+    s += kv("Financé par l'agence", fmtE(logNet) + "/sem");
+    s += kv("Facturation au client", logFacture ? fmtE(m.O52) + "/sem (ligne dédiée)" : "non facturé — compris dans le taux global");
+  } else {
+    s += kv("Logement", "aucun");
+  }
+  s += "</table>";
+
+
+  s += '<div class="foot">Étude de prix établie avec le simulateur intérim — sert à la formalisation de l\'offre commerciale et au paramétrage du compte client (paie &amp; facturation). Barèmes et cotisations au droit courant à la date d\'édition.</div>';
+  $("etude-print").innerHTML = s;
+  return { client: (inp.client || "client").replace(/[\\/:*?"<>|]/g, "-"), dateISO: now.toISOString().slice(0, 10) };
+}
+$("btn-etude").addEventListener("click", () => {
+  const meta = buildEtudePrix();
+  const oldTitle = document.title;
+  /* le nom du PDF reprend le titre : archivage par client et par année */
+  document.title = "Synthese etude de prix - " + meta.client + " - " + meta.dateISO;
+  document.body.classList.add("print-etude");
+  const done = () => { document.body.classList.remove("print-etude"); document.title = oldTitle; };
+  window.addEventListener("afterprint", done, { once: true });
+  try { window.print(); } catch (e) { done(); }
+  setTimeout(done, 45000);  /* secours long : l'aperçu iOS relit le titre bien après l'ouverture */
+});
+/* au blur, la case remonte visuellement au plancher SMIC si la saisie est en dessous */
+$("in-thbrut").addEventListener("change", () => {
+  const s = (typeof official !== "undefined" && official && official.smic) ? official.smic.value : BAKED_OFFICIAL.smic.value;
+  if (num($("in-thbrut")) < s) { $("in-thbrut").value = s; onChange(); }
+});
+$("coeff-hint").addEventListener("click", e => {
+  const c = parseFloat(e.currentTarget.dataset.coeff);
+  if (isFinite(c)) { $("in-coeff").value = Math.round(c * 10000) / 10000; onChange(); }
+});
+$("gs-marge-apply").addEventListener("click", e => {
+  const c = parseFloat(e.currentTarget.dataset.coeff);
+  if (isFinite(c)) { $("in-coeff").value = Math.round(c * 10000) / 10000; onChange(); }
+});
+$("btn-reset").addEventListener("click", () => {
+  applySector(inp.sector, undefined, inp.branche);
+  history.replaceState(null, "", location.pathname + location.search);
+});
+/* constantes du classeur d'origine (comparabilité Excel) */
+$("btn-classeur").addEventListener("click", () => {
+  const agri = inp.sector === "agri";
+  readInputsFromForm();
+  /* millésime complet du classeur : taux, panier TO-DE, taux réduits, formule PAS, constantes */
+  inp.rates = Object.assign({}, SECTORS[inp.sector].ratesClasseur);
+  inp.ratesBase = Object.assign({}, SECTORS[inp.sector].ratesClasseur);
+  inp.tauxReduits = true;
+  inp.todeRates = TODE_RATES_CLASSEUR;
+  inp.exoFormule = "fillon";
+  inp.pasMode = "classeur";
+  inp.pasContratCourt = false;
+  inp.smicClasseur = 11.88;
+  inp.plafondSSMois = agri ? 3925 : 3864;
+  inp.baremeRepasPD = agri ? 7.4 : 7.3;
+  inp.baremeRepasGD = agri ? 21.1 : 20.7;
+  inp.thBrut = 11.88;
+  inp.todeSeuilTot = 1.25; inp.todeSeuilMax = 1.6;
+  setFormFromInputs();
+  render(compute(inp));
+});
+$("btn-share").addEventListener("click", async () => {
+  readInputsFromForm();
+  const hash = "#s=" + encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(inp)))));
+  const url = location.origin + location.pathname + location.search + hash;
+  history.replaceState(null, "", hash);
+  try { await navigator.clipboard.writeText(url); $("btn-share").textContent = "Lien copié ✓"; }
+  catch (_) { prompt("Copier ce lien :", url); }
+  setTimeout(() => { $("btn-share").textContent = "Partager"; }, 1800);
+});
+
+/* ================= INIT ================= */
+/* Méta mobiles (iOS) — injectées si absentes (la page artifact n'a pas de <head> à nous) */
+const APPLE_ICON = "iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAP30lEQVR42u2daVRbZRqAv5sFskEgAcKSAAUStpZ9rW2hy2BXCl2tWsepS9tjZ8aOOselRx1HPVZHPY6dHo86HZ1xqT0t3WiVWrVFukJpy1bWsAQIhCXsISSQ+YHQQHIvWW4Cbd7nF9zc3CV58q3v917s4F4RAgBjUOAjAEAOAOQAQA4A5ABADgDkAEAOAOQAQA4A5AAAkAMAOQCQAwA5AJADADkAkAMAOQCQAwA5AADkAEAOAOQAQA4A5ABADgDkAEAOAOQAQA4AADkAkAMAOQCQAwA5AJADADkAkAMAOQCQAwA5AADkAEAOAOQAQA4A5ABADgDkAEAOAOQAHA/anL0ynrfYNzhJ4B/N9QzkuPnQnVlUKl2rVY8MDwz0yPs6mxSyUrm0sEtePdeufFH2vsjUbeN/Xzz6auX1YyAHOTDY7uHJmyXxmW6e8wxfpTux6E4stquXwD9aHLcOIdTXJau+cbLi6neqge65cP1UmlNIzJrJf0MTskEOEnBmusYue2r+A49Qac6mv8uVL0rI2BO77OnaW2dL8r/sbvutIGFyeJv2Hme5eCCExkY1n70UY5+7mDd/hTPTdfJf78BYrmdgb0cDtDksJzBy+dYXzkSn7TDLDP3fa2hC1qa9x5ZufZvNFSAMW/bQ/nEzEEIUiv1+A6EJ2QZbsqDksBCMQk1Z/VzUkt8bvqRsr60ryWupudKvbFUNdFOoNGeGi6uHP98nNCA83TckmUKhTjkURpHErw+KelBef0MoWaj/AoZRdLoxW98Lx83bT5wybaMkLrPwh3/a4ez3mxwYhbri4feCoh6ctn2wt/3y6f3S0nNIp5vcODaq0Y6oBvsUcmlR2aWvOW4+MUufiEjZimFTyj8anSGSPDC9hKTSRrUjtr4dSXzWtItBCLG5AqFkoayqAKoV80jf8qahGa11hcc+2iQtydM3w5CBHnnB8TePH9jW191sioV2qVOyzNoOcuASnbZDEpc5bWN7463vD+0yvevRISvL+WhzW0PxDPdp+2aHT1CiK1+E16LSb6WCHDPA9w1LWvnnaRuHB5U/fLFHqxk261BqVd/Zz3cqmkqI7pNqcznCErNN7N+CHDOwZOPrhl9Y4bkDw4NKC46mGRnK+/KPg30K/JLDttUK3YkVtCCDqMbBVwfkmD4Y4CVaMG2jdkRVVXjc4mMO9XdeOvHWbJUcwTGraE5Mgh08hZE8bzHIMTNGO66y6kujWrU1h60vO99YcQGnQUqz8/CGZfs4uhxcvr93YJzhdlKGES+dfMuoYTatVriegd6BsTPuJo5bR7FLp+kelkMUvsTodtVAl/UH71e2Vt84bedqJcy0IoHJ4fmHLQE5iPAOMP4jo9CcSDl+acF/DQdIbPeTxShUcfzdDnlN8en7plk6C3K4C4IQzsQbKcdXttfJai7brc0hlCxku3pNFn75OX8bHurB29k/LI3B5oEcuLAmPkoDaULIOkVVYY7dqhX9OqX6xintiIqg8KBQaZK4tSAH0ZCA0e1eogWGExOW0VhxQTuiskO14sziBkQsvStl0XGEUOX1HIK3SO6dPsssyIE3Acbk8HyCEkg5hVYz3Hjngh1KDnHsWupEU0khK1W21yGEutuqO2RleG/h+0g8/CJADuOMDA/gvbRg0aNknUVacs4ObQ79oQv9uqyy8Nh90CydFTn6EH7Ij584lZSzNNdcHhvV2rRa4fuEeviFTxSH6tpb30++VHvrLMEMkThmDZWkrtn9JkdvZxPBq8u3vctx8yalfGpvvGnTakW/AKgvPT8y3K9/dmlJnoktFZAD6U+yI8KRorVPH3Jx9yWhWXon33ZT9hQqXRx7t99RWTR9VqiyMMf6cTPkaJFgClkJ8Q5cj4CsZ775+fCLLbVXrTnR7YuHbl88ZKO7CIxIZ7Dd0UTYkeGlyqVFvZ2NXI8AgtERgmlkBy05WqVFQ/2dM42FeK596vPFG15lcubokNGUpmjRCaNBawSFB0ahji+tADmmoBsbJR5jnowKjkjZuu3FvOTVf2G5es6pT43l6ikKXTRxP7rqohNGd6u+cXJsbPTe7bPMzpR92aWvTQz3ojuxYtKfeOSlH9M2vUHiEKqVSOIyJ4NSW6VFeEGsQ30dsspf8Q7i5jlPEBAzl+Wgrknlzs5Qh05nGMVPUAh7+EVELtwmFKeOjWp7Oxp1+L9IO5C26e+TDY6icwe65FUIfzguJGY1biGq000brIOSAyGEbud/0d5029x3eQfGLXvone37fkld+wJeW8/WCAJi3Lx+W6qpUQ9KS88R7Nx05yJBAys4eiWNzoCSw/BHM9ZQ/ktwVIYFk7E0OkMQEDN/4cM+8+I0I0N9nY06wkUM5BK/YrenMGJigv5Ufdl5wtvUMTk8o8FN44HHPQrp5BJOKDmQXqx5d+5nT/Z1ySx8P4b5iVMzHvvo4ZfPx6/Y7cyyh+U0OiM4eqVef2TmoFfiAY+53Cyd5UVNfV2yE/96WCErteYgbFevhIw9j7x8PmXN87bu+gYtyHBicMb/7umob2+8NeNbejsaCJbV+AUnkzLid19VK/pB59U3TlJpdIF/tDVT9lQq3TswNiJlK0Koo7ncRi3WhZkvuvD8JgbZ/tPWcNPESjQwcjle+adW9cmlRVByGGdsVHPt7AcnD263sghBCNGd2Umrnt36wmmfoETSr9PF3c934rCmjtYghBCqK8nTqAfxIzyyEIZByUHEYG975fWj3fJqd0Ewk8NH1qX6kMRn0pyYcmkhicvboxY/5hucNP63rKqg4uoRk+3XuvCEk81Yw6ttrbs+oGwFOWagRyGtuHpEISthcniuPKHFPykMw7wD4zz8IurLzpNTxWBY+pa3nJku4/9d//5DpUJq+rtVg93hSZsIrrah/CeoVkyqoWWVv5757Knv3l9XVvDViKrf4iMFhKet2nGQlLEEYUjqZMtxeKinAWf1FB6KppLuthqCdi5e9CSUHHh93R5ZVUHZpa96OuoZLK6Lu58FB3HlCV35ovrSH628mMSVf5pcz1h57WhT5UWzu8E0p7szMgYBAH1dss7WOyCHmc3VMW23vLqq6ERtca5Go3Lli5yc2cjMxIQDytau1kqLr8GJ6ZK++Y3JoJD8nL+pZppYNtKn7WqKWrwdL1MIg+1mzVJhW4Ad3CtC9xQUCtU/PD0iZYtQstD0rq9a1ffNOxkW11CRqdsWZe+z9a0d3r+qt6sJSg5rGiS6no76mpu5NcWnaXQG30diStYeGt15bFTTWnfdspMu3vAqG2e5DYmMqAdb665Bg5QE+rqb84+9fvjdNSZ+5eHJmy0LM+Z5SzyFkcguWaPIWrkD6a0RQqhf2XL60x2FeR/PuCfLxcPDou84PGmjfe6FzRWYHsaAHDm9tVk1TfFPn6hVvYuyZmgW+AYlEmeHMp6xSW8B46lPHpdLC625WCaHt33fBbyqMDQhu7n6siOWHFnPfL3z3fKd75Y/+XYx6XEM5Ze/Lb/yLfE+PvPikfnZcxkst8lSSl5v7SSIaqC7GT9wet785U4T42yOJYdWo574OToLDVKFWs/lU/uJM8BwzJ//DEvagPTWSSMyAkdqi3PxCyrnkOjVjijHmN4q2cDIpTaZwPv+Q0S47hmZl5HYxy8kxcTcG8ic9FQEIbRzJ8LDviWHXkIm/7A0W7TM68vO93Y24r3KMFOO0MTsyYvsbKkgODIyM/dhY8UveK96iRa4C4IdTg799fVMDs83JNkWZ6m+cRI/5sPJ9Jk8DKPoL07RXwprPTU3c+d+ajnKLCZfsFEXsbnmCkEsuOmNBqE4VT9Gq77sRxIvUlZVQJAASBKfORdSy82mHPodARLpbLmDt5SI4Psw0hRNvjvD3t1WbXmsK06EB8FKayaHjzdFdx/LoZ42hCCxQcb4sVGNGkcC0xsNDLZ7oN5C+Ibyn0m/ztqbZwibOxscuuRACMWkP2GLOAa1yngKEIKICiMFO5V+Vw789qPFyBuK+/GjvwLC7y7UdlA5mBye0WzGyOpIUqPbW+sKTc5yv1E/cXZHczmywcBu3a2zBKnl9FM8OKIcCKHotD+Qnn3RaJd1VKs2cYpOEBCj35lsqbmCbLNoaoY+y2wPeMy+HHRn9pKNryFSp6+MPiiuvuwn/eQ7BESkbp2WM8JGH0h3Ww3Bcjf9tFIO1yBFeg9RGF9vQgp4EyhlBV8h057TFhK9Ck0N/7TdZ1JTnEscZuA4cmjwXkpd91eynjgREJ5uuLGpMt/EddsJGXv0m6JIpyNrYNR4n+XWGYI6SxK/3j7LPOduyYEQotEZKx8/YH20FcfNO0hvLSuaGPu6dPJtU94uClscGp81bcjfygd9EDPQ09aFX7PQ6Iyklc86bptjEheecM3T/2ZzBdacInn1c4Zji1dy3zNlCMtTNP93j34wbXydRmcYfTY2iRCk90AIRSRvnq0EUXOl5BjH3Ssoe8+3hg9xQiaHARtmSqm8frTiyuEZ3xscvSpz5xdGB12WbdtvwwBSDGO7Coh3WLrlrfnkpe9FczPA2MXd1/BxkNNwYnDGH7SpkJWYsVINw+KW70pd8/y03720JO/CkX3E2Ts8hZEPrH8lfsXuKU2Nqav4w5M3M9humuHBof5Osrq1FCpdGPrAkg2v+c00AYlhFP/QxQJRVG9X02BvO7ovlyb4BCVk7voSmZyd4ebPn9bczJ3xYcF+Iclxy3f7BicaJsbIP/a6UcME/tE8H7GXaIFfSIoLT2j6LYyo+lvqrinbawd65ANKeau00PRnGbsLgrl8f7abN5fvz/cN8xItIH4sHN7HIqsuUDSVKhV1xBld7zE5vPyjsvdMieSTlp4LCE8nyPWsHuptqvq1peaqsr22X9kyMjyo040xWFxnFpfrEeATlCgUp/C8JchgWuvqmX+UFvwP77BbX8glpSVh1kqT1U9+KiIv/k3ZXnvk/fXovgkwHtVMaXNUXP3u15w3XHjC+BW7xLHrjGagdmZxxbFrzRpI7mypuHDklS75HM2lhOBZ9sblGB3R/wovn3oHIdTf3XzhyL7CvI8jUraEJm6wpunX391c9OPBmuLTJKZdcGTm1nJIjEL1DU4KjnrQP2yJ6X1arWa4ufpSZWFO05180MIh1sq6ec3zDojl+4W7eQZy3HyYHD7diYlRqKPaEY16cLC3vV/Z2tl6R9FU0lZfbO4TzoF7e1FTj6K+R1GPCuE7QrAcEgA5AJADADkAkAMAOQAA5ABADgDkAEAOAOQAQA4A5ABADgDkAEAOAAA5AJADADkAkAMAOQCQAwA5AJADADkAkAMAOQAA5ABADoAksFFNH3wKAJQcAMgBgBwAyAGAHADIAUA2QQBKDgDkAEAOAAA5AJADADkAkAMAOQCQAwA5AJADADkAkAMAQA4A5ABADgDkAEAOAOQAQA4A5ABADsAx+D81XZPYwOqZ7wAAAABJRU5ErkJggg==";
+(function ensureMobileMeta() {
+  const head = document.head;
+  if (!head.querySelector('meta[name="viewport"]')) {
+    const v = document.createElement("meta");
+    v.name = "viewport"; v.content = "width=device-width, initial-scale=1, viewport-fit=cover";
+    head.appendChild(v);
+  }
+  if (!head.querySelector('meta[name="theme-color"]')) {
+    for (const [scheme, color] of [["light", "#F5F6F8"], ["dark", "#161719"]]) {
+      const t = document.createElement("meta");
+      t.name = "theme-color"; t.content = color; t.media = "(prefers-color-scheme: " + scheme + ")";
+      head.appendChild(t);
+    }
+  }
+  if (APPLE_ICON.indexOf("_") === -1 && !head.querySelector('link[rel="apple-touch-icon"]')) {
+    const l = document.createElement("link");
+    l.rel = "apple-touch-icon"; l.href = "data:image/png;base64," + APPLE_ICON;
+    head.appendChild(l);
+  }
+  if (!head.querySelector('meta[name="apple-mobile-web-app-title"]')) {
+    const a = document.createElement("meta");
+    a.name = "apple-mobile-web-app-title"; a.content = "Simulateur Intérim";
+    head.appendChild(a);
+  }
+  document.querySelectorAll("input[type=number]").forEach(el => el.setAttribute("inputmode", "decimal"));
+})();
+$("mbar").addEventListener("click", () => document.querySelector(".rail").scrollIntoView({ behavior: "smooth" }));
+$("mbar").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("mbar").click(); } });
+
+/* ================= PARAMÈTRES OFFICIELS (OpenFisca France) ================= */
+const OF_BASE = "https://api.fr.openfisca.org/latest/parameter/";
+const OF_IDS = {
+  smic: "marche_travail.salaire_minimum.smic.smic_b_horaire",
+  pss: "prelevements_sociaux.pss.plafond_securite_sociale_mensuel",
+  tmin: "prelevements_sociaux.reductions_cotisations_sociales.allegement_general.ensemble_des_entreprises.t_min",
+  tdeltaG: "prelevements_sociaux.reductions_cotisations_sociales.allegement_general.ensemble_des_entreprises.t_delta_grandes_entreprises",
+  tdeltaP: "prelevements_sociaux.reductions_cotisations_sociales.allegement_general.ensemble_des_entreprises.t_delta_petites_entreprises",
+  puissance: "prelevements_sociaux.reductions_cotisations_sociales.allegement_general.ensemble_des_entreprises.puissance",
+  plafond: "prelevements_sociaux.reductions_cotisations_sociales.allegement_general.ensemble_des_entreprises.plafond",
+  todeMax: "prelevements_sociaux.reductions_cotisations_sociales.agricole.tode.plafond",
+  todeTot: "prelevements_sociaux.reductions_cotisations_sociales.agricole.tode.plafond_exoneration_integrale"
+};
+let official = null;   // { key: {value, date}, smicJan: {value, date}, fetchedAt }
+
+function latestValue(values) {
+  const dates = Object.keys(values).sort();
+  const d = dates[dates.length - 1];
+  return { value: values[d], date: d };
+}
+function valueAt(values, isoDate) {
+  const dates = Object.keys(values).sort().filter(d => d <= isoDate);
+  const d = dates[dates.length - 1];
+  return d ? { value: values[d], date: d } : null;
+}
+
+/* alertes visibles quand un paramètre officiel a changé depuis la dernière visite
+ * (idée reprise du module « alerte et synchronisation à l'ouverture ») */
+function showAlerts(list) {
+  if (!list.length) return;
+  const box = $("alerts");
+  box.hidden = false;
+  box.innerHTML = "";
+  for (const msg of list) {
+    const div = document.createElement("div");
+    div.className = "alert-item";
+    div.innerHTML = "<span>⚠️</span><span>" + msg + '</span><button class="dismiss" aria-label="Fermer">×</button>';
+    div.querySelector(".dismiss").addEventListener("click", () => {
+      div.remove();
+      if (!box.children.length) box.hidden = true;
+    });
+    box.appendChild(div);
+  }
+}
+function diffOfficial(prev, next) {
+  if (!prev) return [];
+  const dd = s => s ? s.split("-").reverse().join("/") : "";
+  const alerts = [];
+  const items = [
+    ["smic", "SMIC horaire en vigueur", v => N2.format(v) + " €", false],
+    ["smicJan", "SMIC de référence RGDU (1ᵉʳ janvier)", v => N2.format(v) + " €", true],
+    ["pss", "Plafond de sécurité sociale mensuel", v => EUR0.format(v), false],
+    ["tdeltaP", "RGDU Tdelta (< 50 salariés)", v => N4.format(v), true],
+    ["tdeltaG", "RGDU Tdelta (≥ 50 salariés)", v => N4.format(v), true],
+    ["tmin", "RGDU Tmin", v => N4.format(v), true],
+    ["puissance", "RGDU puissance P", v => N2.format(v), true],
+    ["plafond", "RGDU plafond (× SMIC)", v => N2.format(v), true],
+    ["todeTot", "Seuil TO-DE exonération totale (× SMIC)", v => N2.format(v), true],
+    ["todeMax", "Seuil TO-DE maximal (× SMIC)", v => N2.format(v), true]
+  ];
+  for (const [k, label, fmt, auto] of items) {
+    const a = prev[k], b = next[k];
+    if (a && b && a.value !== b.value) {
+      alerts.push("<b>" + label + "</b> : " + fmt(a.value) + " → <b>" + fmt(b.value) + "</b>" +
+                  (b.date ? " (depuis le " + dd(b.date) + ")" : "") +
+                  (auto ? " — appliqué automatiquement au droit courant."
+                        : " — bouton « Appliquer au classeur » dans Paramètres officiels."));
+    }
+  }
+  return alerts;
+}
+
+async function fetchOfficial() {
+  const cacheKey = "simulateur-official-v1";
+  let cached = null;
+  try { cached = JSON.parse(localStorage.getItem(cacheKey) || "null"); } catch (_) {}
+  try {
+    const entries = await Promise.all(Object.entries(OF_IDS).map(async ([k, id]) => {
+      const r = await fetch(OF_BASE + id, { mode: "cors" });
+      if (!r.ok) throw new Error(id + " HTTP " + r.status);
+      const j = await r.json();
+      return [k, j.values];
+    }));
+    const vals = Object.fromEntries(entries);
+    const jan1 = new Date().getFullYear() + "-01-01";
+    official = { fetchedAt: new Date().toISOString(), fromCache: false };
+    for (const k of Object.keys(OF_IDS)) official[k] = latestValue(vals[k]);
+    official.smicJan = valueAt(vals.smic, jan1);
+    showAlerts(diffOfficial(cached, official));   // changements depuis la dernière visite
+    try { localStorage.setItem(cacheKey, JSON.stringify(official)); } catch (_) {}
+  } catch (e) {
+    if (cached) { official = cached; official.fromCache = true; }
+    else {
+      $("official-status").innerHTML = "Flux OpenFisca indisponible ici (hors ligne ou restriction réseau de la page). " +
+        "Valeurs intégrées à la publication du " + BAKED_OFFICIAL.asOf.split("-").reverse().join("/") +
+        " (et utilisées comme défauts) : SMIC 12,31 € (01/06/2026), plafond SS 4 005 €, repas 7,50 / 10,40 / 21,40 €, RGDU Tmin 0,02 · Tdelta 0,3781/0,3821 · P 1,75.";
+      return;
+    }
+  }
+  applyOfficialLawParams();
+  renderOfficial();
+}
+
+/* paramètres de droit courant : appliqués automatiquement */
+function applyOfficialLawParams() {
+  if (!official) return;
+  if (official.smicJan) inp.rgdu.smicRef = official.smicJan.value;   // RGDU : SMIC au 1er janvier
+  if (official.tmin) inp.rgdu.tmin = official.tmin.value;
+  if (official.tdeltaP) inp.rgdu.tdeltaPetite = official.tdeltaP.value;
+  if (official.tdeltaG) inp.rgdu.tdeltaGrande = official.tdeltaG.value;
+  if (official.puissance) inp.rgdu.p = official.puissance.value;
+  if (official.plafond) inp.rgdu.plafondSmic = official.plafond.value;
+  if (official.todeTot) inp.todeSeuilTot = official.todeTot.value;
+  if (official.todeMax) inp.todeSeuilMax = official.todeMax.value;
+  $("in-rgdusmic").value = inp.rgdu.smicRef;
+  $("in-todetot").value = inp.todeSeuilTot;
+  $("in-todemax").value = inp.todeSeuilMax;
+  /* SMIC / plafond SS : suivent la valeur en direct tant que l'utilisateur
+   * n'a pas modifié le champ (encore égal au défaut intégré) */
+  const follow = (id, baked, live) => {
+    const el = $(id);
+    if (el && live != null && Math.abs(num(el) - baked) < 1e-9 && Math.abs(live - baked) > 1e-9) el.value = live;
+  };
+  if (official.smic) {
+    follow("in-smicclasseur", BAKED_OFFICIAL.smic.value, official.smic.value);
+    follow("in-thbrut", BAKED_OFFICIAL.smic.value, official.smic.value);
+  }
+  if (official.pss) follow("in-plafondss", BAKED_OFFICIAL.pss.value, official.pss.value);
+  readInputsFromForm();
+  /* readInputsFromForm ne couvre pas les paramètres RGDU hors formulaire — re-fusion */
+  if (official.tmin) inp.rgdu.tmin = official.tmin.value;
+  if (official.tdeltaP) inp.rgdu.tdeltaPetite = official.tdeltaP.value;
+  if (official.tdeltaG) inp.rgdu.tdeltaGrande = official.tdeltaG.value;
+  if (official.puissance) inp.rgdu.p = official.puissance.value;
+  if (official.plafond) inp.rgdu.plafondSmic = official.plafond.value;
+  render(compute(inp));
+}
+
+function renderOfficial() {
+  if (!official) return;
+  const dd = s => s ? s.split("-").reverse().join("/") : "—";
+  $("official-status").innerHTML = (official.fromCache ? "Valeurs en cache (dernier chargement " : "Valeurs chargées en direct (") +
+    dd((official.fetchedAt || "").slice(0, 10)) + "). Droit courant appliqué automatiquement.";
+  let s = "";
+  s += kvRow("SMIC horaire en vigueur", "", "<b>" + N2.format(official.smic.value) + " €</b> (depuis " + dd(official.smic.date) + ")" +
+             ' <button class="btn" id="of-apply-smic">Appliquer au classeur</button>');
+  s += kvRow("SMIC au 1ᵉʳ janvier (référence RGDU)", "", "<b>" + N2.format(official.smicJan.value) + " €</b> — appliqué");
+  s += kvRow("Plafond sécurité sociale mensuel", "", "<b>" + EUR0.format(official.pss.value) + "</b> (" + dd(official.pss.date) + ")" +
+             ' <button class="btn" id="of-apply-pss">Appliquer au classeur</button>');
+  s += kvRow("RGDU — Tmin · Tdelta (<50 / ≥50) · P · plafond", "",
+             N4.format(official.tmin.value) + " · " + N4.format(official.tdeltaP.value) + " / " + N4.format(official.tdeltaG.value) +
+             " · " + N2.format(official.puissance.value) + " · " + N2.format(official.plafond.value) + " SMIC — appliqués");
+  s += kvRow("TO-DE — seuils exo totale / max", "", N2.format(official.todeTot.value) + " / " + N2.format(official.todeMax.value) + " × SMIC — appliqués");
+  s += "<tr class='sub'><td colspan='2'><b>Barèmes sans API</b> — vérifiés multi-sources (URSSAF · BOSS · presse paie, concordants) le " +
+       BAKED_OFFICIAL.asOf.split("-").reverse().join("/") + " ; surveillance automatique janvier/juillet</td></tr>";
+  s += kvRow('Repas lieu de travail / panier (<a href="https://www.urssaf.fr/accueil/outils-documentation/taux-baremes/frais-professionnels.html" target="_blank" rel="noopener">URSSAF</a>)', "",
+             N2.format(BAKED_OFFICIAL.repasLieuTravail.value) + " € — défaut du champ « Barème repas PD »");
+  s += kvRow("Repas hors locaux (sans restaurant)", "", N2.format(BAKED_OFFICIAL.repasHorsLocaux.value) + " €");
+  s += kvRow("Repas au restaurant (déplacement)", "", N2.format(BAKED_OFFICIAL.repasRestaurant.value) + " € — défaut du champ « Barème repas GD »");
+  s += kvRow("Nuitée GD Paris/92/93/94 · province (3 premiers mois)", "",
+             N2.format(BAKED_OFFICIAL.nuiteeGDParis.value) + " € · " + N2.format(BAKED_OFFICIAL.nuiteeGDProvince.value) + " €");
+  s += kvRow("Zones petits déplacements BTP (transport/j)", "", "inchangées 2026 — identiques au classeur (confirmé BOSS 30/04/2026)");
+  s += "<tr class='sub'><td colspan='2'><b>Divergences constatées entre sources</b> (" +
+       BAKED_OFFICIAL.asOf.split("-").reverse().join("/") + ") — à vérifier manuellement, la source officielle a été retenue :</td></tr>";
+  for (const c of BAKED_CONTRADICTIONS) s += "<tr><td colspan='2'>⚠ " + c + "</td></tr>";
+  $("tbl-official").innerHTML = s;
+  const wire = (id, fn) => { const b = $(id); if (b) b.addEventListener("click", fn); };
+  wire("of-apply-smic", () => { $("in-smicclasseur").value = official.smic.value; onChange(); });
+  wire("of-apply-pss", () => { $("in-plafondss").value = official.pss.value; onChange(); });
+}
+
+/* restauration éventuelle depuis un lien partagé */
+let restored = null;
+(function restoreFromHash() {
+  const m = location.hash.match(/#s=(.+)/);
+  if (!m) return;
+  try {
+    const obj = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1])))));
+    const sector = obj.sector === "tarifaire" ? "tarifaire" : "agri";
+    restored = Object.assign(defaultInputs(DB, sector), obj);
+    restored.sector = sector;
+    /* compat liens antérieurs au 20/08/2026 (pas de branche) : déduite du mode sauvegardé,
+     * sinon le défaut "industrie" de defaultInputs masquerait un lien BTP */
+    if (sector === "tarifaire" && obj.branche === undefined)
+      restored.branche = String(obj.mode || "").indexOf("BTP") >= 0 ? "btp" : "industrie";
+    if (![0, 1, 2].includes(restored.gdDuree)) restored.gdDuree = 0;
+    restored.rates = Object.assign({}, SECTORS[sector].rates, obj.rates || {});
+    /* compat liens anciens : refactIndem1/2 → coefficient par ligne */
+    if (restored.indemnites) restored.indemnites.forEach((p, k) => {
+      if (p.fc === undefined) p.fc = (k === 0 ? obj.refactIndem1 : obj.refactIndem2) != null
+        ? (k === 0 ? obj.refactIndem1 : obj.refactIndem2) : 1;
+    });
+    if (restored.primes) restored.primes.forEach(p => { if (p.fc === undefined) p.fc = null; });
+    /* anciens liens : 2 indemnités → compléter à 4 */
+    while (restored.indemnites && restored.indemnites.length < 4)
+      restored.indemnites.push({ q: 0, r: 0, name: "Indemnité " + (restored.indemnites.length + 1), fc: 1 });
+  } catch (_) { /* hash invalide : valeurs par défaut */ }
+})();
+/* ouverture sur l'INTÉRIM (BTP) — le CDD saisonnier agricole se choisit manuellement */
+applySector(restored ? restored.sector : "tarifaire", restored || undefined, restored ? undefined : "btp");
+window.addEventListener("resize", () => renderChart());
+$("brand-logo").src = LOGO_AB2PRO;
+fetchOfficial();
+/* ===== Base barèmes BTP actualisée par la veille hebdomadaire =====
+ * data/btp-baremes.json vit dans le même repo GitHub Pages (historique + sources,
+ * mis à jour automatiquement par la tâche « verif-minima-btp » qui lit Légifrance/KALI).
+ * Hors Pages (fichier local, artifact : CSP), le fetch échoue silencieusement et les
+ * valeurs intégrées au moteur restent en vigueur. */
+var BTP_IPD = null;
+fetch("data/btp-baremes.json", { cache: "no-store" })
+  .then(r => (r.ok ? r.json() : null))
+  .then(j => {
+    if (!j || !j.current) return;
+    if (j.current.salaires) for (const [reg, v] of Object.entries(j.current.salaires)) {
+      const k = normRegionBTP(reg);
+      if (!BTP_MINIMA.regions[k]) BTP_MINIMA.regions[k] = {};
+      if (v.cc1596) BTP_MINIMA.regions[k].cc1596 = v.cc1596;
+      if (v.cc1597) BTP_MINIMA.regions[k].cc1597 = v.cc1597;
+      if (v.accord) BTP_MINIMA.accords[k] = v.accord;
+    }
+    if (j.updatedAt) BTP_MINIMA.siteMajLe = j.updatedAt + " (veille)";
+    if (j.current.ipd && Object.keys(j.current.ipd).length) {
+      BTP_IPD = {};
+      for (const [reg, v] of Object.entries(j.current.ipd)) BTP_IPD[normRegionBTP(reg)] = v;
+    }
+    render(compute(inp));
+  })
+  .catch(() => {});
+</script>
+</body>
+</html>

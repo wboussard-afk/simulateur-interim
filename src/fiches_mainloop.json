@@ -1,0 +1,3107 @@
+{
+ "fiches": [
+  {
+   "idcc": "7028",
+   "titre": "Coopératives agricoles, unions et SICA — fleurs, fruits et légumes frais, transformés et conserveries, teillage de lin-chanvre, déshydratation (CCN du 25/03/2025)",
+   "dateDerniereActu": "16/01/2026",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Grille des minima (avenants janv. 2026)",
+     "cleValeur": "10 classes : ≈ 12,02 €/h (classe 1) → ≈ 20,94 €/h (classe 10)",
+     "points": [
+      "Classification en **10 classes** : ouvriers/employés classes **1-3**, techniciens/agents de maîtrise **4-6**, cadres **7-10**.",
+      "Au **01/01/2026** (+**1,5 %**) : classe 1 ≈ **12,02 €/h** (≈ 1 823 €/mois), classe 10 ≈ **20,94 €/h** (≈ 3 176 €/mois), base 151,67 h.",
+      "Avenant n° **1** du **06/01/2026** : annexe 1 — fleurs, fruits, légumes frais et pommes de terre ; avenant n° **2** du **16/01/2026** : annexe 2 — fruits et légumes transformés et conserveries ; effet **01/01/2026**.",
+      "Signataires : FELCOOP, FESTAL, FND + FGA-CFDT, CFTC Agri, FGTA-FO ; extension en attente de publication au JO.",
+      "Montants détaillés relevés sur source secondaire unique — à confirmer sur le texte publié avant paramétrage."
+     ],
+     "detail": "Grilles distinctes par annexe de filière (4 annexes) ; vérifier l'annexe applicable à l'établissement client.",
+     "dateCourte": "avenants n° 1 du 06/01 et n° 2 du 16/01/2026",
+     "source": "https://www.juristique.org/conventionnel/salaires-cooperatives-sica-agricoles-fleurs-fruits-legumes-lin-chanvre-deshydratation-2026",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit",
+     "cleValeur": "Prévu par la CCN — taux à relever sur le texte (Légifrance)",
+     "points": [
+      "Le texte de base du **25/03/2025** (81 pages, 4 annexes de filière) traite du travail de nuit ; les taux et plages n'ont pas pu être recoupés sur une source publique ouverte.",
+      "À défaut de vérification : appliquer le droit commun (travailleur de nuit = 21 h-6 h sauf aménagement) et relever le taux conventionnel sur KALI avant tout paramétrage.",
+      "Pour un intérimaire : égalité de traitement — payer ce que percevrait un salarié de la coopérative au même poste."
+     ],
+     "dateCourte": "CCN du 25/03/2025 — relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000053059927",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Taux/contingent conventionnels à relever sur le texte (KALI)",
+     "points": [
+      "Le détail conventionnel (taux, contingent, repos compensateur) n'a pas pu être recoupé sur source publique ouverte — texte intégral sur Légifrance.",
+      "À défaut : taux légaux **25 %** (8 premières HS) / **50 %** au-delà, contingent réglementaire **220 h**/an.",
+      "Secteur agricole : vérifier sur le texte un éventuel régime d'annualisation qui déplace le seuil de décompte."
+     ],
+     "dateCourte": "CCN du 25/03/2025 — relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000053059927",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Samedi / dimanche",
+     "cleValeur": "Majorations conventionnelles à relever sur le texte (KALI)",
+     "points": [
+      "Secteur à activité saisonnière où le travail de week-end est fréquent (conditionnement, expéditions) — la CCN comporte vraisemblablement des contreparties : à relever sur KALI.",
+      "À défaut de vérification : droit commun (repos hebdomadaire, dérogations dimanche du secteur agroalimentaire le cas échéant).",
+      "Mise en garde déclaratif client : demander explicitement les majorations dimanche pratiquées et leur base (accord d'entreprise ou CCN)."
+     ],
+     "dateCourte": "CCN du 25/03/2025 — relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000053059927",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Régime conventionnel à relever ; 1er mai : doublement légal",
+     "points": [
+      "Régime conventionnel des fériés (paiement, majoration si travaillés, ancienneté) à relever sur le texte KALI.",
+      "**1er mai** travaillé : doublement légal dans tous les cas.",
+      "Rappel intérim : les fériés chômés sont payés à l'intérimaire **sans condition d'ancienneté** (art. L.1251-18), quelle que soit la condition conventionnelle."
+     ],
+     "dateCourte": "CCN du 25/03/2025 — relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000053059927",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas / paniers",
+     "cleValeur": "Paniers éventuels à relever sur le texte (travail posté/équipes)",
+     "points": [
+      "Aucun montant de panier n'a pu être recoupé sur source ouverte ; le travail en équipes (conditionnement, conserveries) rend un panier conventionnel probable — à relever sur KALI.",
+      "Mise en garde déclaratif client : les paniers d'équipe/de nuit sont un oubli fréquent — les demander explicitement avec leur base."
+     ],
+     "dateCourte": "CCN du 25/03/2025 — relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000053059927",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport / déplacements",
+     "cleValeur": "Barèmes conventionnels éventuels à relever sur le texte",
+     "points": [
+      "Pas de barème recoupé sur source ouverte ; s'appliquent au minimum la prise en charge légale de **50 %** des abonnements de transports publics.",
+      "Relever sur KALI d'éventuelles indemnités kilométriques ou de déplacement propres aux annexes de filière."
+     ],
+     "dateCourte": "CCN du 25/03/2025 — relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000053059927",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "primes",
+     "titre": "Primes conventionnelles",
+     "cleValeur": "Primes (ancienneté, 13e mois…) à relever sur le texte — piège déclaratif n° 1",
+     "points": [
+      "Les primes conventionnelles (ancienneté, 13e mois, habillage, froid…) n'ont pas pu être recoupées sur source ouverte — à relever sur KALI par annexe de filière.",
+      "Mise en garde : c'est le poste le plus souvent omis par les clients — demander la liste écrite des primes versées à leurs salariés au même poste (égalité de traitement, au prorata mission).",
+      "Prévoyance de branche existante (avenant étendu — avis au JO) : cotisations côté client, sans effet direct sur la paie ETT."
+     ],
+     "dateCourte": "CCN du 25/03/2025 — relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000053059927",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Annualisation / modulation",
+     "cleValeur": "Aménagement du temps probable (saisonnalité) — à relever",
+     "points": [
+      "Secteur fortement saisonnier : un dispositif d'annualisation/modulation de branche est probable dans le texte de 2025 — à relever sur KALI (il conditionne le décompte des HS).",
+      "Pour un intérimaire en mission : c'est l'aménagement en vigueur chez le client qui s'applique (art. L.1251-21)."
+     ],
+     "dateCourte": "CCN du 25/03/2025 — relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000053059927",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Contrats saisonniers",
+     "cleValeur": "Cœur du secteur — clauses saisonniers à relever sur le texte",
+     "points": [
+      "Récoltes, conditionnement, conserveries : le recours saisonnier est central ; relever sur KALI les clauses (reconduction, ancienneté cumulée, durées).",
+      "Rappel intérim : mission saisonnière possible (art. L.1251-6, 3°) mais l'**IFM 10 %** reste due sauf accord de la branche du travail temporaire ou d'ETT l'écartant — la convention du client est sans effet sur ce point.",
+      "**TO-DE** (exonération employeur agricole) : réservé à l'employeur agricole direct — une ETT n'en bénéficie pas ; ne pas l'intégrer aux coûts d'une délégation d'intérim."
+     ],
+     "dateCourte": "CCN du 25/03/2025 — relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000053059927",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "Maxima légaux + dérogations saisonnières éventuelles à relever",
+     "points": [
+      "À défaut de dérogation conventionnelle relevée : **10 h**/jour, **48 h**/semaine, **44 h** en moyenne sur 12 semaines.",
+      "En pointe saisonnière, des dérogations (jusqu'à **60 h** sur autorisation) peuvent exister côté client : exiger la copie de l'autorisation DREETS/DDETSPP avant de suivre les heures.",
+      "Relever sur KALI les éventuels aménagements de branche."
+     ],
+     "dateCourte": "CCN du 25/03/2025 — relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000053059927",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "CCN née de la fusion de 4 branches (2025) — vérifier l'annexe filière",
+     "points": [
+      "CCN du **25/03/2025**, étendue par arrêté du **05/11/2025** (JORF **11/11/2025**) : fusion des ex-IDCC **7003** (conserveries coop.), **7006** (fleurs-fruits-légumes), **7007** (teillage lin-chanvre), **7023** (déshydratation).",
+      "Un client déclarant encore 7003/7006/7007/7023 en DSN relève désormais de la **7028** — l'app redirige automatiquement.",
+      "4 annexes de filière avec grilles propres : identifier l'annexe de l'établissement client avant tout paramétrage.",
+      "Texte de base : 81 pages — pour le détail, Légifrance (KALI) ; la veille hebdomadaire complètera les thèmes marqués « à confirmer »."
+     ],
+     "dateCourte": "CCN 25/03/2025, ext. 05/11/2025",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000053059927",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "1979",
+   "titre": "Hôtels, cafés, restaurants — HCR (CCN du 30/04/1997)",
+   "dateDerniereActu": "19/06/2024",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Grille des minima (avenant n° 33)",
+     "cleValeur": "5 niveaux × 3 échelons : 12,00 €/h (N1E1, rattrapé SMIC) → 28,12 €/h",
+     "points": [
+      "Grille : **5 niveaux × 3 échelons** (15 positions), de N1E1 **12,00 €/h** à NV E3 **28,12 €/h**.",
+      "Avenant n° **33** du **19/06/2024**, étendu en **novembre 2024** — grille en vigueur en 2026.",
+      "N1E1 (12,00 €) est sous le SMIC actuel : c'est le **SMIC (12,02 €/h)** qui s'applique en pied de grille.",
+      "Le plus favorable s'applique entre SMIC, minimum conventionnel et salaire d'entreprise."
+     ],
+     "dateCourte": "avenant n° 33 du 19/06/2024, étendu 11/2024",
+     "source": "https://code.travail.gouv.fr/contribution/1979-quel-est-le-salaire-minimum",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit",
+     "cleValeur": "Pas de majoration de branche généralisée — vérifier l'établissement",
+     "points": [
+      "La CCN HCR ne prévoit pas de majoration de nuit généralisée : le travail de nuit est inhérent à l'activité (plage type 22 h-7 h fixée par accord d'entreprise).",
+      "Contreparties du travailleur de nuit habituel : repos compensateur selon les règles applicables dans l'établissement — demander au client son régime.",
+      "Mise en garde déclaratif : certains établissements versent des majorations de nuit d'usage — les demander explicitement (égalité de traitement)."
+     ],
+     "dateCourte": "CCN 30/04/1997 — régime d'établissement",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635534",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires (taux HCR réduits !)",
+     "cleValeur": "+10 % (36-39ᵉ) · +20 % (40-43ᵉ) · +50 % au-delà — contingent 360 h",
+     "points": [
+      "Taux conventionnels DÉROGATOIRES : **+10 %** de la 36ᵉ à la 39ᵉ h, **+20 %** de la 40ᵉ à la 43ᵉ h, **+50 %** au-delà.",
+      "Piège de paie n° 1 en HCR : ne PAS appliquer les 25/50 % légaux — la branche a ses propres taux.",
+      "Contingent annuel : **360 h** (établissements permanents) ; **90 h par trimestre civil** (établissements saisonniers).",
+      "Beaucoup d'établissements sont à 39 h contractuelles : les 36ᵉ-39ᵉ h sont des HS structurelles à +10 % intégrées au salaire — vérifier la base contractuelle du poste."
+     ],
+     "dateCourte": "CCN HCR + fiche CDTN maj 04/12/2025",
+     "source": "https://code.travail.gouv.fr/contribution/1979-heures-supplementaires",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Samedi / dimanche",
+     "cleValeur": "Jours ordinaires en HCR — pas de majoration de branche",
+     "points": [
+      "Samedi et dimanche sont des jours ouvrés ordinaires en HCR (activité continue) — **aucune majoration conventionnelle de branche**.",
+      "Le repos hebdomadaire est de 2 jours (consécutifs ou non, modalités selon l'établissement) — vérifier le régime du client.",
+      "Des majorations dimanche d'entreprise/d'usage peuvent exister — à demander au déclaratif."
+     ],
+     "dateCourte": "CCN 30/04/1997",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635534",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "feries",
+     "titre": "Fériés : 1ᵉʳ mai + 10 dont 6 garantis (1 an)",
+     "cleValeur": "Dès 1 an d'ancienneté : 1ᵉʳ mai + 10 fériés dont 6 GARANTIS",
+     "points": [
+      "Dès **1 an** d'ancienneté dans l'établissement : en plus du **1ᵉʳ mai**, droit à **10 jours fériés** dont **6 garantis** (chômés payés, compensés en repos ou indemnisés — même si le salarié est en repos ce jour-là).",
+      "Avenant n° **2** du **05/02/2007**, modifié par avenant n° **6** du **15/12/2009**.",
+      "Sans 1 an d'ancienneté : seul le 1ᵉʳ mai est obligatoirement chômé/payé (doublé si travaillé).",
+      "Rappel intérim : pour les fériés CHÔMÉS dans l'établissement, l'intérimaire est payé **sans condition d'ancienneté** (art. L.1251-18) ; pour le régime des « fériés garantis », l'ancienneté s'apprécie en cumulant les missions.",
+      "Mise en garde : régime souvent mal appliqué par les clients — demander leur calendrier de fériés garantis."
+     ],
+     "dateCourte": "avenants n° 2 (05/02/2007) et n° 6 (15/12/2009)",
+     "source": "https://payfit.com/fr/ccn/hotellerie-cafe-restaurant/jours-feries/",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "repas",
+     "titre": "Nourriture : obligation de nourrir ou 1 MG/repas",
+     "cleValeur": "1 repas dû par plage de présence — sinon indemnité 1 MG (4,35 €)",
+     "points": [
+      "Obligation HCR : nourrir le salarié présent aux heures de repas OU verser une **indemnité compensatrice = 1 MG par repas** (max **2 repas/jour**).",
+      "MG 2026 : **4,25 €** (01/01-31/05) puis **4,35 €** au **01/06/2026** — soit jusqu'à **8,70 €/jour**.",
+      "L'avantage en nature nourriture (repas fournis) est valorisé 1 MG/repas en paie et soumis à cotisations.",
+      "Piège intérim : l'indemnité nourriture est due aussi aux intérimaires présents aux heures de repas — oubli déclaratif très fréquent."
+     ],
+     "dateCourte": "MG au 01/06/2026 : 4,35 € (arrêté 22/05/2026)",
+     "source": "https://www.lhotellerie-restauration.fr/sos-experts/avantage-en-nature-nourriture-2026",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport",
+     "cleValeur": "Rien de conventionnel — 50 % transports publics",
+     "points": [
+      "Pas d'indemnité de transport conventionnelle HCR.",
+      "Prise en charge légale : **50 %** des abonnements de transports publics.",
+      "Une prime de transport d'entreprise/d'usage peut exister — à demander au déclaratif."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/1979",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "primes",
+     "titre": "Primes : tutorat, remplacement",
+     "cleValeur": "Peu de primes de branche : tutorat 2 %, remplacement temporaire",
+     "points": [
+      "Prime de **tutorat** : **2 %** du salaire de base mensuel (hors avantage nourriture), max 12 mois, versée en une fois en fin de contrat de professionnalisation.",
+      "**Remplacement temporaire** sur un poste supérieur : salaire + prime ≥ minimum conventionnel du poste occupé.",
+      "PAS de 13ᵉ mois ni de prime d'ancienneté de branche — celles rencontrées sont d'entreprise/d'usage : les demander au déclaratif (égalité de traitement au prorata)."
+     ],
+     "dateCourte": "fiche CDTN 2026",
+     "source": "https://code.travail.gouv.fr/contribution/1979-quelles-sont-les-primes-prevues-par-la-convention-collective",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Aménagement du temps",
+     "cleValeur": "Avenant n° 2 (2007) : modulation possible — régime de l'établissement",
+     "points": [
+      "L'avenant n° 2 du 05/02/2007 encadre l'aménagement du temps de travail HCR (modulation/annualisation possibles par établissement).",
+      "Pour l'intérimaire : l'aménagement du client s'applique (art. L.1251-21) — il conditionne le seuil de décompte des HS ; le relever au contrat de mise à disposition."
+     ],
+     "dateCourte": "avenant n° 2 du 05/02/2007",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635534",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers (secteur clé)",
+     "cleValeur": "Contingent HS trimestriel 90 h ; reconduction saisonnière encadrée",
+     "points": [
+      "Établissements saisonniers : contingent HS de **90 h par trimestre civil** (au lieu de 360 h/an).",
+      "Le CDD saisonnier HCR est très encadré (droit commun + usages de branche : reconduction, priorité de réembauche selon accords).",
+      "Rappel intérim : mission saisonnière possible, mais l'**IFM 10 %** reste due (seul un accord de la branche TT ou d'ETT peut l'écarter) ; ICCP 10 % toujours due."
+     ],
+     "dateCourte": "fiche CDTN HS + droit commun",
+     "source": "https://code.travail.gouv.fr/contribution/1979-heures-supplementaires",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales HCR",
+     "cleValeur": "Régime HCR spécifique par catégorie — vérifier avant suivi des heures",
+     "points": [
+      "Le secteur a des durées maximales aménagées par catégorie de personnel (cuisiniers, personnel de réception/veilleurs, autres) fixées par la CCN et ses avenants — relever le détail par poste sur le texte.",
+      "Socle légal : **48 h**/semaine absolues, **44 h**/12 semaines, journalier aménagé.",
+      "Vérifier aussi la durée contractuelle de l'établissement (35 h vs 39 h) qui change le calcul des HS structurelles."
+     ],
+     "dateCourte": "CCN + avenants — relevé détaillé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635534",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "Taux HS 10/20/50 · nourriture 2 MG/j · fériés garantis · base 39 h",
+     "points": [
+      "Les 4 pièges HCR : taux d'HS dérogatoires (**10/20/50 %**), indemnité **nourriture** (2 MG/j), **fériés garantis** (1 an), base contractuelle **39 h** fréquente.",
+      "Toujours demander au client : durée contractuelle du poste, régime de nuit/dimanche d'entreprise, calendrier des fériés garantis, pratique nourriture (repas fournis ou indemnité).",
+      "Grille avenant 33 : vérifier niveau ET échelon du poste — le SMIC rattrape le bas de grille."
+     ],
+     "dateCourte": "synthèse fiches officielles 2026",
+     "source": "https://code.travail.gouv.fr/convention-collective/1979",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "2609",
+   "titre": "Bâtiment — ETAM (CCN du 12/07/2006, en vigueur 29/06/2007)",
+   "dateDerniereActu": "05/11/2025",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Minima ETAM : grilles régionales",
+     "cleValeur": "Grilles RÉGIONALES par niveau (A à H) — accords 2025 par région",
+     "points": [
+      "Comme pour les ouvriers, les minima ETAM bâtiment sont fixés **région par région** par accords annuels (niveaux A à H).",
+      "Derniers accords relevés : Île-de-France **05/11/2025**, Nouvelle-Aquitaine **22/10/2025**, Grand Est **16/01/2025**, Bretagne **03/12/2024** (autres régions : accords propres).",
+      "Le plus favorable s'applique entre SMIC, minimum conventionnel régional et salaire d'entreprise.",
+      "Relever la grille de LA région du chantier avant paramétrage — mêmes régions que les grilles ouvriers déjà suivies dans l'app."
+     ],
+     "dateCourte": "accords régionaux 2024-2025 (IDF 05/11/2025)",
+     "source": "https://code.travail.gouv.fr/contribution/2609-quel-est-le-salaire-minimum",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit",
+     "cleValeur": "Contreparties conventionnelles à relever (pas de fiche CDTN)",
+     "points": [
+      "Pas de fiche officielle CDTN sur le travail de nuit ETAM — relever le régime sur le texte (Légifrance) ou l'accord régional avant paramétrage.",
+      "À défaut : droit commun (plage 21 h-6 h, contreparties obligatoires pour le travailleur de nuit habituel)."
+     ],
+     "dateCourte": "CCN du 12/07/2006 — relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635220",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Contingent conventionnel : 180 h/an",
+     "points": [
+      "Contingent annuel conventionnel : **180 h** par an et par salarié (fiche officielle CDTN).",
+      "Majoration de salaire et/ou repos compensateur de remplacement ; au-delà du contingent : repos obligatoire supplémentaire.",
+      "Taux de majoration : à défaut de taux conventionnel spécifique relevé, taux légaux **25 %** (8 premières HS) / **50 %** au-delà.",
+      "Un accord d'entreprise du client peut prévoir mieux — le demander au déclaratif."
+     ],
+     "dateCourte": "fiche ministère (CDTN), à jour 2026",
+     "source": "https://code.travail.gouv.fr/contribution/2609-heures-supplementaires",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Samedi / dimanche",
+     "cleValeur": "Pas de majoration nationale relevée — voir accords régionaux",
+     "points": [
+      "Le samedi est un jour ouvrable ordinaire dans le bâtiment ; le dimanche relève des dérogations de droit commun.",
+      "D'éventuelles contreparties figurent dans les accords régionaux ou d'entreprise — à demander au client."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635220",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Régime bâtiment : fériés chômés payés (conditions) — à détailler",
+     "points": [
+      "Pas de fiche CDTN dédiée pour les ETAM — le régime des fériés (paiement, conditions) est à relever sur le texte.",
+      "Rappel intérim : fériés chômés payés à l'intérimaire **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635220",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas / déplacements assimilés",
+     "cleValeur": "Pas de régime « paniers/zones » ouvriers pour les ETAM — frais réels/barèmes",
+     "points": [
+      "Le régime des petits déplacements par zones (paniers, transport, trajet) est propre aux OUVRIERS (1596/1597) — il ne s'applique pas de plein droit aux ETAM.",
+      "Les ETAM relèvent des remboursements de frais professionnels (réels ou barèmes d'entreprise) et des grands déplacements le cas échéant.",
+      "Mise en garde déclaratif : vérifier ce que le client verse réellement à ses ETAM au même poste (égalité de traitement)."
+     ],
+     "dateCourte": "architecture conventionnelle bâtiment",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635220",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport",
+     "cleValeur": "50 % transports publics + frais professionnels",
+     "points": [
+      "Prise en charge légale de **50 %** des abonnements de transports publics.",
+      "Déplacements professionnels : frais réels ou barème d'entreprise ; grands déplacements possibles selon le poste."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/2609",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "primes",
+     "titre": "Primes : vacances 30 % (6 mois d'ancienneté)",
+     "cleValeur": "Prime de vacances : 30 % de l'indemnité CP (24 j) dès 6 MOIS de BTP",
+     "points": [
+      "Prime de vacances (art. 5.1.2) : **30 %** de l'indemnité de congés correspondant à **24 jours ouvrables**.",
+      "Condition d'accès : **6 mois** d'ancienneté dans une ou plusieurs entreprises du bâtiment/TP — l'ancienneté se cumule ENTRE entreprises du secteur (missions comprises).",
+      "Versée avec l'indemnité de congés payés ; non cumulable avec toute indemnité de même objet.",
+      "D'autres primes (travaux dangereux/insalubres…) existent selon les textes — à demander au déclaratif client.",
+      "Mise en garde : la prime de vacances est un oubli fréquent dans le déclaratif des clients pour les délégations ETAM."
+     ],
+     "dateCourte": "art. 5.1.2 CCN — fiche CDTN à jour 2026",
+     "source": "https://code.travail.gouv.fr/contribution/2609-quelles-sont-les-primes-prevues-par-la-convention-collective",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Annualisation",
+     "cleValeur": "Possible par accord — décompte HS modifié le cas échéant",
+     "points": [
+      "L'aménagement du temps de travail (annualisation, RTT) relève d'accords d'entreprise ou de branche — le contingent HS peut différer en cas d'annualisation.",
+      "Pour un intérimaire : c'est l'aménagement en vigueur chez le client qui s'applique (art. L.1251-21) — le demander au contrat de mise à disposition."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635220",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers",
+     "cleValeur": "Rien de spécifique aux ETAM bâtiment",
+     "points": [
+      "Pas de dispositif saisonnier propre aux ETAM du bâtiment — le recours saisonnier est marginal sur ces postes.",
+      "Régime intérim de droit commun (IFM 10 % + ICCP 10 % dues)."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/convention-collective/2609",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+     "points": [
+      "Pas de dérogation conventionnelle nationale relevée : maxima légaux **10 h**/jour, **48 h**/semaine, **44 h** en moyenne sur 12 semaines.",
+      "Dérogations ponctuelles possibles côté client (accord ou autorisation) — à documenter avant suivi des heures."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/2609",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "Ancienneté BTP cumulée · grilles par région · prime vacances dès 6 mois",
+     "points": [
+      "L'ancienneté s'apprécie en cumulant les entreprises du BTP (fiche CDTN « calcul de l'ancienneté ») — impact direct sur la prime de vacances des intérimaires multi-missions.",
+      "Toujours identifier la RÉGION du chantier : minima ET accords sociaux sont régionaux.",
+      "CCN ETAM du **12/07/2006** (IDCC 2609), distincte des ouvriers (1596/1597) et des cadres (2420) — vérifier la catégorie réelle du poste délégué."
+     ],
+     "dateCourte": "CCN 12/07/2006 + fiches CDTN 2026",
+     "source": "https://code.travail.gouv.fr/convention-collective/2609",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "2614",
+   "titre": "Travaux publics — ETAM (CCN du 12/07/2006)",
+   "dateDerniereActu": "06/12/2024",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Minima ETAM TP : grilles régionales",
+     "cleValeur": "Grilles RÉGIONALES par niveau — accords 2023-2024 par région",
+     "points": [
+      "Minima fixés **région par région** (niveau, position, coefficient) — pas de montant national unique.",
+      "Derniers accords relevés : Hauts-de-France **06/12/2024**, Pays de la Loire **05/12/2024**, Bretagne **06/12/2023**, PACA **11/12/2023**, AURA **15/12/2023** (autres régions : accords propres).",
+      "Le plus favorable s'applique entre SMIC, minimum régional et salaire d'entreprise.",
+      "Relever la grille de LA région du chantier avant paramétrage."
+     ],
+     "dateCourte": "accords régionaux 2023-2024",
+     "source": "https://code.travail.gouv.fr/contribution/2614-quel-est-le-salaire-minimum",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit",
+     "cleValeur": "Contreparties à relever sur le texte / accords régionaux",
+     "points": [
+      "Pas de fiche officielle CDTN dédiée — relever le régime de nuit ETAM TP sur le texte ou l'accord régional avant paramétrage.",
+      "À défaut : droit commun (plage 21 h-6 h, contreparties pour le travailleur de nuit habituel)."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635221",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Contingent : 220 h/an (légal — pas de contingent conventionnel)",
+     "points": [
+      "Contingent annuel : **220 h** — c'est le contingent LÉGAL, la convention n'en fixe pas (différence avec le bâtiment ETAM : 180 h conventionnel).",
+      "Majoration de salaire et/ou repos compensateur de remplacement ; au-delà du contingent : repos obligatoire.",
+      "Taux : à défaut de taux conventionnel, **25 %** (8 premières HS) / **50 %** au-delà.",
+      "Un accord d'entreprise du client peut différer — le demander au déclaratif."
+     ],
+     "dateCourte": "fiche ministère (CDTN)",
+     "source": "https://code.travail.gouv.fr/contribution/2614-heures-supplementaires",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Samedi / dimanche",
+     "cleValeur": "Pas de majoration nationale relevée — voir accords",
+     "points": [
+      "Samedi jour ouvrable ordinaire ; dimanche selon dérogations de droit commun (chantiers TP : cas particuliers).",
+      "Contreparties éventuelles dans accords régionaux/d'entreprise — à demander au client."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635221",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Régime à détailler ; rappel : intérimaire payé sans ancienneté",
+     "points": [
+      "Régime conventionnel des fériés ETAM TP à relever sur le texte.",
+      "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635221",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas / déplacements assimilés",
+     "cleValeur": "Régime « zones/paniers » = ouvriers ; ETAM : frais professionnels",
+     "points": [
+      "Les indemnités de petits déplacements par zones (repas, transport, trajet) sont le régime des OUVRIERS TP (1702) — pas des ETAM de plein droit.",
+      "ETAM : frais réels/barèmes d'entreprise, grands déplacements selon le poste.",
+      "Vérifier au déclaratif ce que le client verse à ses propres ETAM (égalité de traitement)."
+     ],
+     "dateCourte": "architecture conventionnelle TP",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635221",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport",
+     "cleValeur": "50 % transports publics + frais professionnels",
+     "points": [
+      "Prise en charge légale de **50 %** des abonnements de transports publics.",
+      "Déplacements professionnels : frais réels ou barème d'entreprise."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/2614",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "primes",
+     "titre": "Primes : vacances 30 % (6 mois TP)",
+     "cleValeur": "Prime de vacances : 30 % de l'indemnité CP (24 j) dès 6 MOIS de TP",
+     "points": [
+      "Prime de vacances (art. 5.1.2) : **30 %** de l'indemnité de congés correspondant à **24 jours ouvrables**.",
+      "Condition : **6 mois** d'ancienneté dans le secteur des travaux publics — ancienneté cumulée entre entreprises du secteur.",
+      "Versée avec l'indemnité de congés ; non cumulable avec les versements de même objet.",
+      "Mise en garde : oubli fréquent au déclaratif client pour les délégations ETAM.",
+      "Différence avec les OUVRIERS TP (1702) : chez eux la prime exige 1 200 h — pour les ETAM c'est 6 mois d'ancienneté."
+     ],
+     "dateCourte": "art. 5.1.2 — fiche CDTN maj 21/11/2023",
+     "source": "https://code.travail.gouv.fr/contribution/2614-quelles-sont-les-primes-prevues-par-la-convention-collective",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Annualisation",
+     "cleValeur": "Par accord — vérifier le régime du client",
+     "points": [
+      "Aménagements du temps (annualisation, RTT) par accords d'entreprise/branche.",
+      "Pour l'intérimaire : aménagement du client applicable (art. L.1251-21) — à relever au contrat de mise à disposition."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635221",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers",
+     "cleValeur": "Rien de spécifique ETAM TP",
+     "points": [
+      "Pas de dispositif saisonnier propre — régime intérim de droit commun (IFM 10 % + ICCP 10 %)."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/convention-collective/2614",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+     "points": [
+      "Maxima légaux à défaut de dérogation : **10 h**/jour, **48 h**/semaine, **44 h**/12 semaines.",
+      "Chantiers TP : dérogations ponctuelles possibles (autorisations) — exiger la copie avant suivi des heures."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/2614",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "Région du chantier · vacances 6 mois vs 1 200 h ouvriers · catégorie du poste",
+     "points": [
+      "Toujours identifier la RÉGION du chantier : minima régionaux.",
+      "Ne pas confondre les seuils de prime de vacances : ETAM **6 mois** (2609/2614) vs ouvriers TP **1 200 h** (1702).",
+      "CCN ETAM TP du **12/07/2006** (IDCC 2614), distincte des ouvriers (1702) et des cadres (3212) — vérifier la catégorie réelle du poste délégué."
+     ],
+     "dateCourte": "CCN 12/07/2006 + fiches CDTN",
+     "source": "https://code.travail.gouv.fr/convention-collective/2614",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "1090",
+   "titre": "Services de l'automobile (CCN du 15/01/1981)",
+   "dateDerniereActu": "2026",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Minima : 3 grilles nationales",
+     "cleValeur": "3 grilles (ouvriers/employés, maîtrise, cadres) par échelon — nationales",
+     "points": [
+      "**3 grilles nationales** selon la catégorie : ouvriers/employés (échelons 3 à 12), agents de maîtrise (17 à 25), cadres (niveaux I-V).",
+      "Les minima de branche sont **supérieurs au SMIC** et s'imposent (fiche officielle).",
+      "Montants exacts : relever l'avenant salaires en vigueur sur Légifrance (art. 1.16 et annexes) avant paramétrage — revalorisation généralement annuelle.",
+      "Le plus favorable s'applique entre minimum de branche et salaire d'entreprise."
+     ],
+     "dateCourte": "fiche CDTN maj 2026 — montants à relever",
+     "source": "https://code.travail.gouv.fr/contribution/1090-quel-est-le-salaire-minimum",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit",
+     "cleValeur": "Régime conventionnel à relever (dépannage/astreintes fréquents)",
+     "points": [
+      "Le régime de nuit (plage, majorations, astreintes de dépannage) est à relever sur le texte pour le poste concerné.",
+      "À défaut : droit commun (21 h-6 h, contreparties travailleur de nuit habituel).",
+      "Mise en garde : les astreintes et dépannages de nuit sont fréquents dans la branche — demander le régime du client."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635191",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Contingent : 220 h/an · taux légaux 25/50 %",
+     "points": [
+      "Contingent annuel : **220 h** (fiche officielle CDTN).",
+      "Majoration de salaire et/ou repos compensateur ; au-delà du contingent : repos obligatoire.",
+      "Taux : légaux **25 %** (8 premières HS) / **50 %** au-delà, sauf accord d'entreprise."
+     ],
+     "dateCourte": "fiche CDTN",
+     "source": "https://code.travail.gouv.fr/contribution/1090-heures-supplementaires",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Samedi / dimanche",
+     "cleValeur": "Samedi ordinaire (commerce auto) — dimanche : dérogations",
+     "points": [
+      "Le samedi est un jour ouvré ordinaire dans la branche (garages, concessions).",
+      "Dimanche : uniquement sur dérogation (permanences) — contreparties selon l'entreprise, à demander au déclaratif."
+     ],
+     "dateCourte": "droit commun branche",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635191",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
+     "points": [
+      "Régime conventionnel des fériés à relever sur le texte.",
+      "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635191",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas",
+     "cleValeur": "Pas de panier de branche généralisé",
+     "points": [
+      "Pas d'indemnité de repas conventionnelle généralisée relevée — titres-restaurant selon l'entreprise.",
+      "Demander au déclaratif la pratique du client (égalité de traitement)."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635191",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport",
+     "cleValeur": "50 % transports publics",
+     "points": [
+      "Prise en charge légale de **50 %** des abonnements de transports publics ; pas de barème de branche relevé."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/1090",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "primes",
+     "titre": "Primes : PFQ, suppléance, intégration",
+     "cleValeur": "PFQ (formation, 6 mois d'anc.) · suppléance · intégration alternants",
+     "points": [
+      "**Prime de formation-qualification (PFQ)** : ouvriers/employés dès **6 mois** d'ancienneté, lors de formations continues externes (montant selon durée et promotion).",
+      "**Prime de suppléance** (entreprises ≤ 8 salariés) : suppléance maîtrise > **6 jours ouvrés** consécutifs → différence entre son minimum et celui de l'échelon **20**.",
+      "**Prime d'intégration** : alternant embauché en CDI (certification niveau 2 min.) → **50 %** de la rémunération brute du 12ᵉ mois.",
+      "Pas de 13ᵉ mois de branche — primes d'entreprise à demander au déclaratif (égalité de traitement)."
+     ],
+     "dateCourte": "fiche CDTN 2026",
+     "source": "https://code.travail.gouv.fr/contribution/1090-quelles-sont-les-primes-prevues-par-la-convention-collective",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Annualisation",
+     "cleValeur": "Par accord d'entreprise — vérifier le client",
+     "points": [
+      "Aménagements (annualisation, RTT) par accord d'entreprise ; pour l'intérimaire, le régime du client s'applique (art. L.1251-21)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635191",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers",
+     "cleValeur": "Rien de spécifique",
+     "points": [
+      "Pas de dispositif saisonnier de branche — régime intérim de droit commun (IFM 10 % + ICCP 10 %)."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/convention-collective/1090",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+     "points": [
+      "Maxima légaux à défaut de dérogation : **10 h**/jour, **48 h**/semaine, **44 h**/12 semaines."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/1090",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "Échelon du poste (3 grilles) · RNQSA · minima > SMIC",
+     "points": [
+      "Identifier l'ÉCHELON exact du poste (répertoire national des qualifications RNQSA) — il détermine le minimum applicable.",
+      "Les minima de branche étant supérieurs au SMIC, un taux horaire client au SMIC est un signal d'alerte égalité de traitement.",
+      "CCN du **15/01/1981** (IDCC 1090) — garages, concessions, contrôle technique, stations-service, enseignement de la conduite."
+     ],
+     "dateCourte": "CCN 15/01/1981 + fiches CDTN",
+     "source": "https://code.travail.gouv.fr/convention-collective/1090",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "2216",
+   "titre": "Commerce de détail et de gros à prédominance alimentaire (CCN du 12/07/2001)",
+   "dateDerniereActu": "2026",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Minima par niveau",
+     "cleValeur": "Grille par catégorie et niveau (art. 4.2) — montants à relever",
+     "points": [
+      "Grille par **catégorie professionnelle et niveau** (classification art. 4.2).",
+      "Montants exacts : relever l'avenant salaires en vigueur sur Légifrance avant paramétrage.",
+      "Le plus favorable s'applique entre SMIC, minimum conventionnel et salaire d'entreprise."
+     ],
+     "dateCourte": "fiche CDTN 2026 — montants à relever",
+     "source": "https://code.travail.gouv.fr/contribution/2216-quel-est-le-salaire-minimum",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit",
+     "cleValeur": "Drive/mise en rayon tôt le matin : régime à relever",
+     "points": [
+      "Horaires atypiques fréquents (mise en rayon avant ouverture, drive, entrepôts) — le régime de nuit conventionnel est à relever sur le texte.",
+      "À défaut : droit commun (21 h-6 h) ; demander au client ses majorations réelles (égalité de traitement)."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635085",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Contingent : 180 h/an",
+     "points": [
+      "Contingent annuel conventionnel : **180 h**.",
+      "Majoration et/ou repos compensateur ; au-delà : repos obligatoire.",
+      "Taux : légaux **25/50 %** à défaut d'accord d'entreprise."
+     ],
+     "dateCourte": "fiche CDTN",
+     "source": "https://code.travail.gouv.fr/contribution/2216-heures-supplementaires",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Samedi / dimanche",
+     "cleValeur": "Samedi ordinaire ; dimanche : dérogations commerce alimentaire (13 h)",
+     "points": [
+      "Samedi : jour ouvré ordinaire de la distribution.",
+      "Commerce alimentaire : ouverture dominicale possible jusqu'à **13 h** (droit commun) — contreparties selon accords d'entreprise/territoire, à demander au client."
+     ],
+     "dateCourte": "droit commun commerce alimentaire",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635085",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
+     "points": [
+      "Régime conventionnel à relever (distribution : fériés souvent travaillés avec contreparties d'entreprise).",
+      "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635085",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas",
+     "cleValeur": "Pas de panier de branche généralisé",
+     "points": [
+      "Pas d'indemnité repas conventionnelle généralisée relevée — titres-restaurant selon l'entreprise ; demander la pratique du client."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635085",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport",
+     "cleValeur": "50 % transports publics",
+     "points": [
+      "Prise en charge légale de **50 %** des abonnements de transports publics."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/2216",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "primes",
+     "titre": "Primes : PRIME ANNUELLE (art. 3.6) + encaissement",
+     "cleValeur": "PRIME ANNUELLE art. 3.6 — l'omission déclarative classique du secteur",
+     "points": [
+      "**Prime annuelle** (art. 3.6) : versée chaque année selon les conditions conventionnelles — typiquement de l'ordre d'un salaire mensuel avec condition d'ancienneté ; montant et conditions exacts à relever sur l'art. 3.6 avant paramétrage.",
+      "Mise en garde : c'est LA prime que les clients de la distribution omettent au déclaratif — l'intérimaire comparable y a droit **au prorata** (égalité de traitement).",
+      "**Prime d'encaissement** (annexe 1.B art. 11) : chauffeurs-livreurs-encaisseurs → **1/1000** des espèces encaissées."
+     ],
+     "dateCourte": "art. 3.6 + annexe 1.B art. 11",
+     "source": "https://code.travail.gouv.fr/contribution/2216-quelles-sont-les-primes-prevues-par-la-convention-collective",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Aménagement du temps",
+     "cleValeur": "Modulation fréquente en distribution — régime du client",
+     "points": [
+      "La modulation/annualisation est répandue (saisonnalité commerciale) — pour l'intérimaire, le régime du client s'applique (art. L.1251-21) et conditionne le décompte des HS."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635085",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers",
+     "cleValeur": "Renforts saisonniers via droit commun",
+     "points": [
+      "Pas de statut saisonnier de branche particulier — régime intérim de droit commun (IFM 10 % + ICCP 10 %)."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/convention-collective/2216",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+     "points": [
+      "Maxima légaux à défaut de dérogation."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/2216",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "Prime annuelle au prorata · niveau du poste · modulation",
+     "points": [
+      "Toujours chiffrer la **prime annuelle** au prorata dans le coût et la paie des missions longues.",
+      "Identifier le NIVEAU exact du poste (art. 4.2) pour le minimum applicable.",
+      "CCN du **12/07/2001** (IDCC 2216) — hypermarchés, supermarchés, commerce alimentaire de gros."
+     ],
+     "dateCourte": "CCN 12/07/2001 + fiches CDTN",
+     "source": "https://code.travail.gouv.fr/convention-collective/2216",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "44",
+   "titre": "Industries chimiques et connexes (CCN du 30/12/1952)",
+   "dateDerniereActu": "04/07/2024",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Minima : 3 grilles par coefficient",
+     "cleValeur": "3 grilles par coefficient — minima de branche > SMIC",
+     "points": [
+      "**3 grilles** selon la catégorie professionnelle et le **coefficient hiérarchique** (ouvriers/employés, AM/techniciens, cadres).",
+      "Les minima conventionnels sont **supérieurs au SMIC** et s'imposent (fiche officielle, maj 01/06/2026).",
+      "Montants exacts : relever le dernier accord salaires (valeur du point, barèmes) sur Légifrance avant paramétrage.",
+      "Valeur du point (base prime d'ancienneté) : **8,90 €** (35 h) / **9,66 €** (38 h) — accord du **04/07/2024**."
+     ],
+     "dateCourte": "accord du 04/07/2024 (point) — barèmes à relever",
+     "source": "https://code.travail.gouv.fr/contribution/44-quel-est-le-salaire-minimum",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit / posté",
+     "cleValeur": "Accord du 16/09/2003 + rappel de nuit = 2 h (21 h-6 h)",
+     "points": [
+      "Travail de nuit encadré par l'accord du **16/09/2003** — majorations/contreparties du travail posté et de nuit à relever sur le texte pour le poste.",
+      "**Indemnité de rappel de nuit** : rappel entre **21 h et 6 h** après avoir quitté l'entreprise → indemnité égale à **2 heures** (groupes I à IV).",
+      "L'industrie chimique tourne en continu (3×8/5×8) : demander systématiquement au client son régime de majorations d'équipes et paniers de poste."
+     ],
+     "dateCourte": "accord du 16/09/2003 + fiche CDTN",
+     "source": "https://code.travail.gouv.fr/contribution/44-quelles-sont-les-primes-prevues-par-la-convention-collective",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Contingent conventionnel BAS : 130 h/an",
+     "points": [
+      "Contingent annuel conventionnel : **130 h** — nettement plus bas que le légal (220 h) : à surveiller sur les longues missions.",
+      "Majoration et/ou repos compensateur ; au-delà : repos obligatoire.",
+      "Taux : légaux **25/50 %** à défaut de disposition d'entreprise."
+     ],
+     "dateCourte": "fiche CDTN maj 04/12/2025",
+     "source": "https://code.travail.gouv.fr/contribution/44-heures-supplementaires",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Samedi / dimanche",
+     "cleValeur": "Travail continu fréquent — majorations d'équipes à relever",
+     "points": [
+      "En feu continu, le dimanche est travaillé par roulement — majorations conventionnelles/d'entreprise à relever pour le poste.",
+      "Demander au client les taux dimanche/équipes de suppléance réellement versés (égalité de traitement)."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635613",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
+     "points": [
+      "Régime conventionnel (férié travaillé en continu : compensations) à relever sur le texte.",
+      "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635613",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas / paniers de poste",
+     "cleValeur": "Paniers de poste (nuit/continu) selon textes — à relever",
+     "points": [
+      "Des paniers de poste (travail posté/de nuit) existent dans la branche — montants à relever sur le texte ou l'accord d'entreprise du client.",
+      "Mise en garde : panier de nuit souvent omis au déclaratif pour les postes en 3×8."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635613",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport",
+     "cleValeur": "50 % transports publics",
+     "points": [
+      "Prise en charge légale de **50 %** des abonnements ; pas de barème de branche relevé."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/44",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "primes",
+     "titre": "Prime d'ancienneté 3-15 % (formule officielle)",
+     "cleValeur": "Ancienneté : 3 % (3 ans) → 15 % (15 ans) sur point × coefficient",
+     "points": [
+      "**Prime d'ancienneté** (groupes I-IV, dès **3 ans**) : taux **3 %** (3 ans), **6 %** (6 ans), **9 %** (9 ans), **12 %** (12 ans), **15 %** (15 ans).",
+      "Formule : (valeur du point × coefficient) × prorata temps de travail × taux — point **8,90 €** (35 h) / **9,66 €** (38 h), accord du 04/07/2024.",
+      "Exemple officiel : 10 ans, coef 300, 25 h/sem → (8,90 × 300) × 25/35 × 9 % = **171,24 €**/mois.",
+      "Intérim : l'ancienneté s'apprécie par égalité de traitement — un salarié comparable du client la percevrait ; à intégrer au prorata pour les longues missions.",
+      "Aussi : prime de **tutorat** (accord alternance du 29/06/2021)."
+     ],
+     "dateCourte": "art. 16 avenant n° 2 (1955) + accord 04/07/2024",
+     "source": "https://code.travail.gouv.fr/contribution/44-quand-le-salarie-a-t-il-droit-a-une-prime-danciennete-quel-est-son-montant",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Aménagement du temps",
+     "cleValeur": "Travail posté/continu organisé par accords d'entreprise",
+     "points": [
+      "L'organisation en équipes (3×8, 5×8, suppléance) relève des accords d'entreprise — pour l'intérimaire, le régime du client s'applique (art. L.1251-21)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635613",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers",
+     "cleValeur": "Rien de spécifique",
+     "points": [
+      "Pas de dispositif saisonnier de branche — régime intérim de droit commun (IFM 10 % + ICCP 10 %)."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/convention-collective/44",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "Droit commun + régimes d'équipes — vérifier le poste",
+     "points": [
+      "Socle légal : **10 h**/jour, **48 h**/semaine, **44 h**/12 semaines ; les régimes en continu ont leurs propres bornes (12 h en 5×8 possibles par accord).",
+      "Exiger du client le planning d'équipe avant paramétrage du suivi des heures."
+     ],
+     "dateCourte": "droit commun + accords d'entreprise",
+     "source": "https://code.travail.gouv.fr/convention-collective/44",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "Contingent 130 h · ancienneté 3-15 % · paniers de poste · coefficient",
+     "points": [
+      "Les 4 pièges chimie : contingent HS **bas (130 h)**, prime d'**ancienneté** de branche (à proratiser via égalité de traitement), **paniers de poste** 3×8, identification du **coefficient**.",
+      "CCN du **30/12/1952** (IDCC 44) — chimie, pétrochimie, savons/parfums, connexes ; ne pas confondre avec plasturgie (0292) ni pharmacie industrie (0176)."
+     ],
+     "dateCourte": "CCN 30/12/1952 + fiches CDTN 2026",
+     "source": "https://code.travail.gouv.fr/convention-collective/44",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "573",
+   "titre": "Commerces de gros (CCN du 23/06/1970)",
+   "dateDerniereActu": "2026",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Minima par niveau/échelon/coefficient",
+     "cleValeur": "Grille par niveau, échelon et coefficient — montants à relever",
+     "points": [
+      "Minima par **catégorie, niveau, échelon et coefficient**.",
+      "Montants exacts : relever l'avenant salaires en vigueur (lien KALI direct dans la fiche officielle) avant paramétrage.",
+      "Le plus favorable s'applique entre SMIC, minimum conventionnel et salaire d'entreprise."
+     ],
+     "dateCourte": "fiche CDTN maj 01/06/2026 — montants à relever",
+     "source": "https://code.travail.gouv.fr/contribution/573-quel-est-le-salaire-minimum",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit",
+     "cleValeur": "Entrepôts/préparation de nuit : régime à relever",
+     "points": [
+      "Préparation de commandes et logistique de nuit fréquentes — régime conventionnel à relever sur le texte.",
+      "À défaut : droit commun ; demander au client ses majorations réelles (égalité de traitement)."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635573",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Contingent VARIABLE selon le secteur d'activité",
+     "points": [
+      "Le contingent annuel **varie selon les secteurs d'activité** de la branche (fiche officielle) — relever celui du secteur du client.",
+      "Majoration et/ou repos compensateur ; au-delà : repos obligatoire.",
+      "Taux : légaux **25/50 %** à défaut d'accord."
+     ],
+     "dateCourte": "fiche CDTN",
+     "source": "https://code.travail.gouv.fr/contribution/573-heures-supplementaires",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Samedi / dimanche",
+     "cleValeur": "Pas de majoration de branche relevée",
+     "points": [
+      "Samedi ordinaire ; dimanche selon dérogations logistiques — contreparties d'entreprise à demander au déclaratif."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635573",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
+     "points": [
+      "Régime conventionnel à relever.",
+      "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635573",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas",
+     "cleValeur": "Pas de panier de branche généralisé",
+     "points": [
+      "Pas d'indemnité repas conventionnelle généralisée relevée — pratique du client à demander."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635573",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport",
+     "cleValeur": "50 % transports publics",
+     "points": [
+      "Prise en charge légale de **50 %** des abonnements de transports publics."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/573",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "primes",
+     "titre": "Garanties d'ancienneté +5/9/13/17 %",
+     "cleValeur": "Garantie annuelle : +5 % (4 ans) → +17 % (16 ans) — non-alimentaire",
+     "points": [
+      "Pas de prime d'ancienneté classique mais des **garanties annuelles de rémunération** liées à l'ancienneté (accord du 05/05/1992).",
+      "Secteur NON-ALIMENTAIRE (tous salariés) : garantie = 12 salaires mensuels conventionnels majorés de **5 %** (4 ans), **9 %** (8 ans), **13 %** (12 ans), **17 %** (16 ans).",
+      "Secteur ALIMENTAIRE (dès **1 an**) : garantie = 12 salaires conventionnels + **2 %**.",
+      "Fonctionnement : si le brut réel des 12 mois est inférieur à la garantie, un COMPLÉMENT est dû.",
+      "Intérim : sur longues missions, comparer le cumul versé à la garantie du salarié comparable (égalité de traitement) — contrôle rarement fait par les clients."
+     ],
+     "dateCourte": "accord du 05/05/1992 (fiche CDTN)",
+     "source": "https://code.travail.gouv.fr/contribution/573-quand-le-salarie-a-t-il-droit-a-une-prime-danciennete-quel-est-son-montant",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Aménagement du temps",
+     "cleValeur": "Par accord d'entreprise — régime du client",
+     "points": [
+      "Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635573",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers",
+     "cleValeur": "Rien de spécifique",
+     "points": [
+      "Pas de dispositif saisonnier de branche — régime intérim de droit commun (IFM 10 % + ICCP 10 %)."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/convention-collective/573",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+     "points": [
+      "Maxima légaux à défaut de dérogation sectorielle — vérifier le secteur du client (logistique)."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/573",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "Secteur alim/non-alim · garanties annuelles · contingent sectoriel",
+     "points": [
+      "D'abord déterminer si le client est **alimentaire ou non-alimentaire** : garanties d'ancienneté et contingents diffèrent.",
+      "CCN du **23/06/1970** (IDCC 573) — négoce, distribution B2B, quincaillerie, matériaux…"
+     ],
+     "dateCourte": "CCN 23/06/1970 + fiches CDTN",
+     "source": "https://code.travail.gouv.fr/convention-collective/573",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "1266",
+   "titre": "Restauration de collectivités (CCN du 20/06/1983)",
+   "dateDerniereActu": "14/02/2025",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Minima par niveau/échelon",
+     "cleValeur": "Grille par niveaux et échelons — montants à relever",
+     "points": [
+      "Grille par **niveaux et échelons** (employés → cadres) — relever l'avenant salaires en vigueur sur Légifrance avant paramétrage.",
+      "Le plus favorable s'applique vs SMIC (bas de grille régulièrement rattrapés)."
+     ],
+     "dateCourte": "montants à relever",
+     "source": "https://code.travail.gouv.fr/contribution/1266-quel-est-le-salaire-minimum",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit",
+     "cleValeur": "Régime à relever (santé/EHPAD : services du soir)",
+     "points": [
+      "Régime de nuit à relever pour les sites en continu (santé, EHPAD) ; à défaut : droit commun."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635604",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Taux légaux 25/50 % ; contingent à relever",
+     "points": [
+      "Taux : légaux **25/50 %** à défaut de disposition ; contingent conventionnel à relever.",
+      "Modulation fréquente (rythmes scolaires) — le régime du site client conditionne les HS."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://code.travail.gouv.fr/contribution/1266-heures-supplementaires",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Dimanche / week-end",
+     "cleValeur": "Sites santé 7 j/7 : PAC/PSM (voir primes)",
+     "points": [
+      "En restauration de santé, le week-end travaillé est compensé notamment via les primes d'activité continue/service minimum (voir thème primes).",
+      "Demander le régime réel du site (égalité de traitement)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635604",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
+     "points": [
+      "Régime des fériés (10 fériés + compensations selon sites) à relever.",
+      "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635604",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "repas",
+     "titre": "Nourriture (avantage en nature)",
+     "cleValeur": "Repas fournis sur site : avantage en nature à intégrer en paie",
+     "points": [
+      "Le personnel de restauration collective est généralement nourri sur site : **avantage en nature repas** à valoriser en paie selon le barème en vigueur.",
+      "Vérifier la pratique du site (repas fournis ou non) — impact cotisations."
+     ],
+     "dateCourte": "barème avantage en nature en vigueur",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635604",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport",
+     "cleValeur": "50 % transports publics",
+     "points": [
+      "Prise en charge légale de **50 %** des abonnements."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/1266",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "primes",
+     "titre": "PAC, PSM, 13e mois (avenant n° 68)",
+     "cleValeur": "Prime d'activité continue + prime de service minimum + 13e mois",
+     "points": [
+      "La branche prévoit notamment : **prime d'activité continue** (PAC) et **prime d'intermittence** — refondues par l'avenant n° **68 du 14/02/2025** ; montants en vigueur à relever sur cet avenant.",
+      "**13e mois** conventionnel (prime de fin d'année) selon conditions d'ancienneté — à relever (art. 36).",
+      "Mise en garde : PAC/PSM et 13e mois sont les omissions déclaratives classiques du secteur — l'intérimaire comparable y a droit au prorata.",
+      "Références : art. 10, 11, 22-24, 36.1-36.2 + accord du 18/06/2019."
+     ],
+     "dateCourte": "avenant n° 68 du 14/02/2025 — montants à relever",
+     "source": "https://code.travail.gouv.fr/contribution/1266-quelles-sont-les-primes-prevues-par-la-convention-collective",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Aménagement du temps",
+     "cleValeur": "Rythmes scolaires : modulation répandue",
+     "points": [
+      "Sites scolaires : temps fortement modulé — le régime du site s'applique à l'intérimaire (art. L.1251-21)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635604",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Intermittence scolaire",
+     "cleValeur": "CDI intermittent scolaire (prime d'intermittence)",
+     "points": [
+      "La branche organise le **CDI intermittent** calé sur les périodes scolaires, avec prime d'intermittence (avenant n° 68 du 14/02/2025).",
+      "Pour l'intérim : missions de renfort classiques (IFM + ICCP 10 % dues)."
+     ],
+     "dateCourte": "avenant n° 68 du 14/02/2025",
+     "source": "https://code.travail.gouv.fr/contribution/1266-quelles-sont-les-primes-prevues-par-la-convention-collective",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+     "points": [
+      "Maxima légaux à défaut de dérogation ; coupures/amplitudes selon sites."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/1266",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "PAC/PSM · 13e mois prorata · avantage nourriture · site santé vs scolaire",
+     "points": [
+      "Identifier le TYPE de site (santé 7 j/7 vs scolaire intermittent) : primes et rythmes en découlent.",
+      "Chiffrer PAC/PSM et 13e mois au prorata dans coût et paie.",
+      "CCN du **20/06/1983** (IDCC 1266) — ne pas confondre avec HCR (1979) ni restauration rapide (1501)."
+     ],
+     "dateCourte": "CCN 20/06/1983 + avenant 68 (2025)",
+     "source": "https://code.travail.gouv.fr/convention-collective/1266",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "1351",
+   "titre": "Prévention et sécurité (CCN du 15/02/1985)",
+   "dateDerniereActu": "2026",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Minima par coefficient (grille agents)",
+     "cleValeur": "Grille par niveau/échelon/coefficient (AE 120-AM) — à relever",
+     "points": [
+      "Grille par coefficients (agents d'exploitation, agents de maîtrise, cadres) — relever l'avenant salaires en vigueur sur Légifrance avant paramétrage.",
+      "Le plus favorable s'applique entre SMIC, minimum conventionnel et salaire d'entreprise."
+     ],
+     "dateCourte": "montants à relever",
+     "source": "https://code.travail.gouv.fr/contribution/1351-quel-est-le-salaire-minimum",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit (cœur du métier)",
+     "cleValeur": "Majoration nuit conventionnelle — taux à relever (vacations 21 h-6 h)",
+     "points": [
+      "Le travail de nuit est structurel dans la sécurité — la CCN prévoit des majorations des heures de nuit : taux exact à relever sur le texte avant paramétrage.",
+      "Demander au client son régime réel de majorations nuit/dimanche/férié (souvent combinées en sécurité).",
+      "Rappel : les vacations de nuit ouvrent aussi droit au panier de nuit le cas échéant."
+     ],
+     "dateCourte": "CCN 15/02/1985 — taux à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635405",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Contingent ÉLEVÉ : 329 h/an",
+     "points": [
+      "Contingent annuel conventionnel : **329 h** — parmi les plus élevés (vacations longues).",
+      "Majoration et/ou repos compensateur ; au-delà : repos obligatoire.",
+      "Taux : légaux **25/50 %** à défaut d'accord."
+     ],
+     "dateCourte": "fiche CDTN",
+     "source": "https://code.travail.gouv.fr/contribution/1351-heures-supplementaires",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Dimanche / week-end",
+     "cleValeur": "Activité continue — majorations conventionnelles à relever",
+     "points": [
+      "La sécurité travaille 7 j/7 : majorations dimanche/férié conventionnelles à relever (souvent cumulables selon les textes).",
+      "Demander la pratique du client (égalité de traitement)."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635405",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Fériés travaillés par roulement — majorations à relever",
+     "points": [
+      "Régime conventionnel des fériés travaillés à relever.",
+      "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635405",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "repas",
+     "titre": "Panier",
+     "cleValeur": "Prime de panier conventionnelle (vacations) — montant à relever",
+     "points": [
+      "La branche prévoit une prime de panier pour les vacations remplissant les conditions conventionnelles — montant à relever sur le texte/avenant en vigueur.",
+      "Oubli déclaratif fréquent chez les clients donneurs d'ordre."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635405",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport",
+     "cleValeur": "50 % transports publics",
+     "points": [
+      "Prise en charge légale de **50 %** des abonnements."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/1351",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "primes",
+     "titre": "Prime d'ancienneté 2-12 % (non-cadres)",
+     "cleValeur": "2 % (>4 ans) → 12 % (>15 ans) sur le minimum conventionnel",
+     "points": [
+      "Non-cadres dès **plus de 4 ans** : **2 %** ; **5 %** (>7 ans) ; **8 %** (>10 ans) ; **10 %** (>12 ans) ; **12 %** (>15 ans) — sur le salaire minimal conventionnel (art. 9.03).",
+      "Le nouveau taux s'applique le mois suivant l'anniversaire d'embauche.",
+      "Habillage/entretien de tenue : indemnités selon les textes — à demander au déclaratif.",
+      "Intérim : égalité de traitement — l'ancienneté d'un comparable du client fonde le droit."
+     ],
+     "dateCourte": "art. 9.03 (fiche CDTN)",
+     "source": "https://code.travail.gouv.fr/contribution/1351-quand-le-salarie-a-t-il-droit-a-une-prime-danciennete-quel-est-son-montant",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Aménagement du temps",
+     "cleValeur": "Vacations planifiées — régime du client",
+     "points": [
+      "Cycles/annualisation fréquents — pour l'intérimaire, le régime du client s'applique (art. L.1251-21)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635405",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers / événementiel",
+     "cleValeur": "Événementiel via droit commun",
+     "points": [
+      "Renforts événementiels sans statut saisonnier propre — régime intérim de droit commun (IFM + ICCP 10 %)."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/convention-collective/1351",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "Vacations jusqu'à 12 h possibles — bornes à vérifier",
+     "points": [
+      "Le secteur pratique des vacations longues (jusqu'à **12 h** sous conditions conventionnelles) — vérifier les bornes exactes et repos entre vacations sur le texte avant suivi des heures.",
+      "Socle : **48 h**/semaine absolues, **44 h**/12 semaines (sauf dérogations)."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635405",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "Carte pro CNAPS obligatoire · contingent 329 h · nuit/dim/férié",
+     "points": [
+      "**Carte professionnelle CNAPS** obligatoire pour déléguer un agent de sécurité — la vérifier AVANT la mission.",
+      "Cumul des majorations nuit/dimanche/férié : vérifier les règles de cumul du texte, source d'erreurs de paie.",
+      "CCN du **15/02/1985** (IDCC 1351)."
+     ],
+     "dateCourte": "CCN 15/02/1985 + fiches CDTN",
+     "source": "https://code.travail.gouv.fr/convention-collective/1351",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "1517",
+   "titre": "Commerces de détail non alimentaires (CCN du 14/06/1988)",
+   "dateDerniereActu": "2026",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Minima par niveau (I à VI + cadres)",
+     "cleValeur": "Niveau I ≈ 1 679 €/mois (référence prime d'ancienneté) — grille à relever",
+     "points": [
+      "Grille par **niveaux** (employés I-VI, agents de maîtrise, cadres) ; le minimum du niveau I sert de référence à la prime d'ancienneté : **1 679 €**/mois (fiche officielle).",
+      "Grille complète : relever l'avenant salaires en vigueur sur Légifrance avant paramétrage."
+     ],
+     "dateCourte": "fiche CDTN 2026",
+     "source": "https://code.travail.gouv.fr/contribution/1517-quand-le-salarie-a-t-il-droit-a-une-prime-danciennete-quel-est-son-montant",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit",
+     "cleValeur": "Marginal dans la branche — droit commun",
+     "points": [
+      "Travail de nuit marginal (commerces) — à défaut de disposition relevée : droit commun (21 h-6 h)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635421",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Contingent : 180 h/an · taux légaux 25/50 %",
+     "points": [
+      "Contingent annuel conventionnel : **180 h** ; majoration et/ou repos compensateur ; au-delà : repos obligatoire.",
+      "Taux : légaux **25/50 %** à défaut d'accord."
+     ],
+     "dateCourte": "fiche CDTN",
+     "source": "https://code.travail.gouv.fr/contribution/1517-heures-supplementaires",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Samedi / dimanche",
+     "cleValeur": "Samedi ordinaire ; dimanche : dérogations commerce",
+     "points": [
+      "Samedi = jour clé du commerce, non majoré conventionnellement ; dimanche selon dérogations (zones touristiques/commerciales) avec contreparties légales — demander la situation du magasin."
+     ],
+     "dateCourte": "droit commun commerce",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635421",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
+     "points": [
+      "Régime conventionnel à relever.",
+      "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "relevé à compléter",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635421",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas",
+     "cleValeur": "Pas de panier de branche",
+     "points": [
+      "Pas d'indemnité repas conventionnelle relevée — titres-restaurant selon l'entreprise."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635421",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport",
+     "cleValeur": "50 % transports publics",
+     "points": [
+      "Prise en charge légale de **50 %** des abonnements."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/1517",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "primes",
+     "titre": "Prime d'ancienneté 3-15 % (employés I-VI)",
+     "cleValeur": "3 % (3 ans) → 15 % (15 ans) du minimum niveau I (1 679 €)",
+     "points": [
+      "Employés niveaux I-VI : **3 %** (3 ans), **6 %** (6 ans), **9 %** (9 ans), **12 %** (12 ans), **15 %** (15 ans) — calculés sur le minimum conventionnel du NIVEAU I (**1 679 €**), pas sur le salaire réel.",
+      "Exemple officiel : 10 ans à temps plein → 9 % × 1 679 = **151,11 €**/mois ; temps partiel proratisé.",
+      "S'ajoute au salaire réel et figure sur une ligne distincte du bulletin.",
+      "Intérim : à proratiser via l'égalité de traitement pour un salarié comparable — omission fréquente."
+     ],
+     "dateCourte": "chap. XIII art. 2 (fiche CDTN)",
+     "source": "https://code.travail.gouv.fr/contribution/1517-quand-le-salarie-a-t-il-droit-a-une-prime-danciennete-quel-est-son-montant",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Aménagement du temps",
+     "cleValeur": "Par accord — régime du client",
+     "points": [
+      "Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635421",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers",
+     "cleValeur": "Renforts (fêtes, soldes) via droit commun",
+     "points": [
+      "Pas de statut saisonnier de branche — régime intérim de droit commun (IFM + ICCP 10 %)."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/convention-collective/1517",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+     "points": [
+      "Maxima légaux à défaut de dérogation."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/1517",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "Prime d'ancienneté sur base niveau I · multi-secteurs",
+     "points": [
+      "La prime d'ancienneté se calcule sur la base FIXE du niveau I (1 679 €) quel que soit le poste — piège de paramétrage.",
+      "CCN du **14/06/1988** (IDCC 1517) — brocante, droguerie, équipement du foyer, jouets, maroquinerie, presse…"
+     ],
+     "dateCourte": "CCN 14/06/1988 + fiches CDTN",
+     "source": "https://code.travail.gouv.fr/convention-collective/1517",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "2941",
+   "titre": "Aide, accompagnement, soins et services à domicile — BAD (CCN du 21/05/2010)",
+   "dateDerniereActu": "2026",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Minima : système de points",
+     "cleValeur": "Rémunération = points × valeur du point (avenants réguliers) — à relever",
+     "points": [
+      "La rémunération BAD repose sur des **coefficients de points** par catégorie/degré, multipliés par la valeur du point de branche — relever l'avenant en vigueur avant paramétrage (revalorisations fréquentes).",
+      "Le plus favorable s'applique vs SMIC ; les bas de grille sont régulièrement rattrapés par le SMIC."
+     ],
+     "dateCourte": "avenants salaires réguliers — à relever",
+     "source": "https://code.travail.gouv.fr/contribution/2941-quel-est-le-salaire-minimum",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit / gardes",
+     "cleValeur": "Gardes de nuit à domicile : régimes spécifiques — à relever",
+     "points": [
+      "Les interventions et présences de nuit à domicile ont des régimes conventionnels spécifiques (présence responsable vs travail effectif) — à relever selon le poste.",
+      "Demander à la structure cliente son régime réel (égalité de traitement)."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027181212",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Temps de travail souvent modulé — HS selon régime de la structure",
+     "points": [
+      "La branche pratique largement la modulation : le seuil de déclenchement des HS dépend du régime de la structure (art. L.1251-21 pour l'intérimaire).",
+      "Taux : légaux **25/50 %** à défaut de disposition."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/contribution/2941-heures-supplementaires",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Dimanche / jours fériés travaillés",
+     "cleValeur": "Majoration conventionnelle dimanche/férié — taux à relever",
+     "points": [
+      "Le travail du dimanche et des fériés est courant (continuité de l'aide) et majoré conventionnellement — taux exact à relever sur le texte en vigueur.",
+      "Oubli déclaratif fréquent des structures — demander le taux réellement versé."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027181212",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Travaillés par roulement, majorés ; rappel intérim sans ancienneté",
+     "points": [
+      "Fériés travaillés par roulement avec majoration conventionnelle (voir thème dimanche).",
+      "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027181212",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas",
+     "cleValeur": "Pas de panier généralisé",
+     "points": [
+      "Pas d'indemnité repas de branche généralisée relevée."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027181212",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Déplacements ENTRE interventions (clé du secteur)",
+     "cleValeur": "Temps entre interventions = travail effectif + frais km indemnisés",
+     "points": [
+      "Le **temps de déplacement entre deux interventions** est du temps de travail effectif et les kilomètres sont indemnisés selon le barème conventionnel — poste de paie central du secteur, à relever précisément.",
+      "Mise en garde : c'est LE poste omis ou sous-évalué dans les déclaratifs — exiger le barème kilométrique et la méthode de comptage du temps inter-vacations.",
+      "S'ajoute la prise en charge légale de **50 %** des transports publics."
+     ],
+     "dateCourte": "texte + avenants — barème à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027181212",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "primes",
+     "titre": "ECR ancienneté 2-20 %",
+     "cleValeur": "Élément complémentaire ancienneté : 2 % (5 ans) → 20 % (30 ans)",
+     "points": [
+      "**ECR ancienneté** (tous salariés, titre III art. 19) : **2 %** (5 ans + 1 j), **4 %** (10 ans), **8 %** (15 ans), **12 %** (20 ans), **16 %** (25 ans), **20 %** (30 ans) — en % du salaire de base, proratisé à temps partiel.",
+      "D'autres ECR existent (diplômes, tutorat…) selon la classification — à relever selon le poste.",
+      "Intérim : égalité de traitement — comparer au salarié comparable de la structure."
+     ],
+     "dateCourte": "titre III art. 19 (fiche CDTN)",
+     "source": "https://code.travail.gouv.fr/contribution/2941-quand-le-salarie-a-t-il-droit-a-une-prime-danciennete-quel-est-son-montant",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Modulation",
+     "cleValeur": "Modulation de branche répandue — régime de la structure",
+     "points": [
+      "Pour l'intérimaire, le régime de la structure cliente s'applique (art. L.1251-21) et conditionne les HS."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027181212",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers",
+     "cleValeur": "Non pertinent — remplacements au fil de l'eau",
+     "points": [
+      "Pas de saisonnalité de branche — remplacements ponctuels via droit commun (IFM + ICCP 10 %)."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/convention-collective/2941",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales / amplitude",
+     "cleValeur": "Amplitude des journées à surveiller (interventions morcelées)",
+     "points": [
+      "Journées morcelées : surveiller l'**amplitude** (bornes conventionnelles) autant que la durée du travail — à relever sur le texte.",
+      "Socle légal : 10 h/j, 48 h/sem, 44 h/12 sem."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027181212",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "Temps inter-interventions · km · majorations dim/férié · points",
+     "points": [
+      "Les 3 pièges BAD : **temps et km entre interventions**, majorations **dimanche/férié**, système de **points**.",
+      "CCN du **21/05/2010** (IDCC 2941) — secteur associatif de l'aide à domicile (ne pas confondre avec les entreprises privées de services à la personne, IDCC 3127)."
+     ],
+     "dateCourte": "CCN 21/05/2010 + fiches CDTN",
+     "source": "https://code.travail.gouv.fr/convention-collective/2941",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "1486",
+   "titre": "Bureaux d'études techniques — Syntec (CCN du 15/12/1987)",
+   "dateDerniereActu": "26/06/2024",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Minima ETAM / IC par coefficient",
+     "cleValeur": "2 grilles (ETAM positions 1-3 ; IC positions 1-3.3) — accord 26/06/2024",
+     "points": [
+      "Minima par **position et coefficient** : grille ETAM et grille ingénieurs/cadres (IC).",
+      "Dernier accord salaires relevé : **26/06/2024** (art. 7.1) — montants exacts à relever sur Légifrance avant paramétrage.",
+      "Attention aux modalités de réalisation de mission (modalité 2 « réalisation de missions » : rémunération ≥ **115 %** du minimum — vérifier la modalité du poste)."
+     ],
+     "dateCourte": "accord du 26/06/2024 (art. 7.1)",
+     "source": "https://code.travail.gouv.fr/contribution/1486-quel-est-le-salaire-minimum",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit",
+     "cleValeur": "Marginal — droit commun",
+     "points": [
+      "Travail de nuit marginal dans la branche — droit commun à défaut (astreintes selon accords d'entreprise)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635173",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires / forfaits",
+     "cleValeur": "Selon modalité : standard 35 h, réalisation de mission, forfait jours",
+     "points": [
+      "Trois modalités de temps de travail Syntec : **standard** (35 h, HS légales 25/50 %), **réalisation de missions** (38 h30 max hebdo incluses, rémunération ≥ 115 % du minimum), **autonomie complète** (forfait jours ≤ 218 j).",
+      "Pour un intérimaire : vérifier la modalité du poste au contrat de mise à disposition — elle change tout le décompte."
+     ],
+     "dateCourte": "accord du 22/06/1999 (durée du travail)",
+     "source": "https://code.travail.gouv.fr/contribution/1486-heures-supplementaires",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Samedi / dimanche",
+     "cleValeur": "Exceptionnel — droit commun",
+     "points": [
+      "Travail de week-end exceptionnel (mises en production) — contreparties selon accords d'entreprise, à demander au client."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635173",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Chômés payés en pratique ; rappel intérim sans ancienneté",
+     "points": [
+      "Fériés généralement chômés dans la branche.",
+      "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635173",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas",
+     "cleValeur": "Titres-restaurant d'usage — pas de panier de branche",
+     "points": [
+      "Pas d'indemnité repas de branche ; titres-restaurant très répandus en entreprise — demander la pratique du client (égalité de traitement)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635173",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport",
+     "cleValeur": "50 % transports publics",
+     "points": [
+      "Prise en charge légale de **50 %** des abonnements ; déplacements professionnels remboursés selon politique d'entreprise."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/1486",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "primes",
+     "titre": "PRIME DE VACANCES 10 % (obligatoire)",
+     "cleValeur": "Prime de vacances ≥ 10 % de la masse des indemnités de CP",
+     "points": [
+      "**Prime de vacances obligatoire** : au moins **10 %** de la masse globale des indemnités de congés payés de l'entreprise.",
+      "Répartition au choix de l'entreprise : égalitaire, au prorata du salaire ou de la présence — les CDD/intérimaires comparables y ont droit au prorata.",
+      "Une prime versée entre le **1ᵉʳ mai et le 31 octobre** peut en tenir lieu si ≥ 10 %.",
+      "Mise en garde : LA prime Syntec omise dans les déclaratifs — la chiffrer systématiquement (≈ 1 % de la masse salariale)."
+     ],
+     "dateCourte": "art. 31 CCN (fiche CDTN)",
+     "source": "https://code.travail.gouv.fr/contribution/1486-quelles-sont-les-primes-prevues-par-la-convention-collective",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Modalités / forfaits",
+     "cleValeur": "Modalité 2 et forfait jours = quasi-annualisation",
+     "points": [
+      "Les modalités 2 et 3 organisent le temps sur l'année — pour l'intérimaire, la modalité du poste client s'applique (art. L.1251-21)."
+     ],
+     "dateCourte": "accord du 22/06/1999",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635173",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers",
+     "cleValeur": "Sans objet",
+     "points": [
+      "Pas de saisonnalité — régime intérim de droit commun (IFM + ICCP 10 %)."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/convention-collective/1486",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "Standard : droit commun ; modalité 2 : 38 h30 max hebdo",
+     "points": [
+      "Modalité standard : maxima légaux ; modalité 2 : plafond hebdomadaire spécifique (38 h30) ; forfait jours : 218 j + repos."
+     ],
+     "dateCourte": "accord du 22/06/1999",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635173",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "Prime vacances 10 % · modalité du poste · position/coefficient",
+     "points": [
+      "Toujours chiffrer la **prime de vacances** au prorata (coût + paie).",
+      "Identifier la **modalité** de temps de travail et la **position/coefficient** du poste.",
+      "CCN du **15/12/1987** (IDCC 1486) — ESN/numérique, ingénierie, études, conseil, événementiel ; branche dite Syntec-Cinov."
+     ],
+     "dateCourte": "CCN 15/12/1987 + fiches CDTN",
+     "source": "https://code.travail.gouv.fr/convention-collective/1486",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "1527",
+   "titre": "Immobilier (CCN du 09/09/1988)",
+   "dateDerniereActu": "01/03/2023",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Minima : 3 grilles (salaire global annuel)",
+     "cleValeur": "Minima ANNUELS sur 13 mois (avenant n° 98 du 01/03/2023 + suivants)",
+     "points": [
+      "**3 grilles** : employés/AM/cadres (niveaux E1-C4), négociateurs immobiliers (barème propre, souvent commissionnés), et cadres de direction.",
+      "Les minima s'expriment en **salaire global annuel** incluant le 13ᵉ mois — comparer les rémunérations en base annuelle.",
+      "Références : art. 35, 37, 38 + annexes, modifiés par l'avenant n° **98 du 01/03/2023** (et avenants salaires postérieurs à relever)."
+     ],
+     "dateCourte": "avenant n° 98 du 01/03/2023 + suivants",
+     "source": "https://code.travail.gouv.fr/contribution/1527-quel-est-le-salaire-minimum",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit",
+     "cleValeur": "Marginal (gardiens : régime propre) — droit commun",
+     "points": [
+      "Marginal — les gardiens/employés d'immeubles relèvent d'une AUTRE convention (IDCC 1043) ; droit commun à défaut."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635413",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Taux légaux 25/50 % ; contingent à relever",
+     "points": [
+      "Taux légaux **25/50 %** à défaut d'accord ; contingent à relever."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://code.travail.gouv.fr/contribution/1527-heures-supplementaires",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Samedi / dimanche",
+     "cleValeur": "Samedi ordinaire (agences) ; dimanche exceptionnel",
+     "points": [
+      "Samedi ouvré courant en agence ; dimanche exceptionnel (portes ouvertes) — contreparties d'entreprise à demander."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635413",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Chômés payés en pratique ; rappel intérim sans ancienneté",
+     "points": [
+      "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635413",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas",
+     "cleValeur": "Titres-restaurant d'usage",
+     "points": [
+      "Pas de panier de branche — pratique d'entreprise à demander."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635413",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport",
+     "cleValeur": "50 % transports publics",
+     "points": [
+      "Prise en charge légale de **50 %** des abonnements."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/1527",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "primes",
+     "titre": "13ᵉ MOIS + médaille + ancienneté",
+     "cleValeur": "13ᵉ mois = 1 mois de salaire global brut (prorata en cours d'année)",
+     "points": [
+      "**13ᵉ mois obligatoire** : 1 mois de salaire global brut mensuel, prorata pour les entrées/sorties en cours d'année (art. 38) — l'intérimaire comparable y a droit **au prorata mission**.",
+      "Salariés à commissions (négociateurs) : 13ᵉ intégrable à la rémunération annuelle si ≥ 13 fois le minimum (ou 13 SMIC pour les négociateurs).",
+      "Prime **médaille d'honneur du travail** : 1 mois de salaire (20/30/35/40 ans).",
+      "Prime d'ancienneté prévue par la CCN (art. 36) — barème à relever.",
+      "Mise en garde : le 13ᵉ mois immobilier est l'omission déclarative classique du secteur."
+     ],
+     "dateCourte": "art. 36-39 (fiche CDTN maj 21/11/2023)",
+     "source": "https://code.travail.gouv.fr/contribution/1527-quelles-sont-les-primes-prevues-par-la-convention-collective",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Aménagement du temps",
+     "cleValeur": "Par accord — régime du client",
+     "points": [
+      "Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635413",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers",
+     "cleValeur": "Sans objet",
+     "points": [
+      "Régime intérim de droit commun (IFM + ICCP 10 %)."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/convention-collective/1527",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+     "points": [
+      "Maxima légaux."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/1527",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "Minima annuels 13 mois · 13ᵉ prorata · négociateurs commissionnés",
+     "points": [
+      "Toujours raisonner en **salaire global annuel** (13 mois) pour l'égalité de traitement.",
+      "Chiffrer le 13ᵉ mois au prorata dans coût et paie.",
+      "CCN du **09/09/1988** (IDCC 1527) — agences, administrateurs de biens, promotion ; gardiens d'immeubles = IDCC 1043."
+     ],
+     "dateCourte": "CCN 09/09/1988 + fiches CDTN",
+     "source": "https://code.travail.gouv.fr/convention-collective/1527",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "1996",
+   "titre": "Pharmacie d'officine (CCN du 03/12/1997)",
+   "dateDerniereActu": "2026",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Minima : 2 grilles par coefficient",
+     "cleValeur": "2 grilles (non-cadres / cadres) par coefficient — à relever",
+     "points": [
+      "**2 grilles** (non-cadres, cadres) par coefficient (art. 8, 10, 11) — le coefficient dépend du diplôme et du poste (préparateurs, pharmaciens adjoints…).",
+      "Montants exacts à relever sur l'avenant salaires en vigueur (valeur du point de branche) avant paramétrage."
+     ],
+     "dateCourte": "montants à relever",
+     "source": "https://code.travail.gouv.fr/contribution/1996-quel-est-le-salaire-minimum",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Gardes et urgences",
+     "cleValeur": "Gardes de nuit : indemnisation spécifique à relever",
+     "points": [
+      "Les gardes (nuit, dimanche, férié) des officines ont un régime d'indemnisation propre — à relever pour les postes concernés."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635528",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Taux légaux 25/50 % ; contingent à relever",
+     "points": [
+      "Taux légaux **25/50 %** à défaut ; contingent conventionnel à relever."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://code.travail.gouv.fr/contribution/1996-heures-supplementaires",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Samedi / dimanche (gardes)",
+     "cleValeur": "Samedi ordinaire ; dimanche = gardes indemnisées",
+     "points": [
+      "Samedi jour ouvré normal des officines ; dimanche via le système de gardes — indemnités de garde à relever."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635528",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Gardes fériées indemnisées ; rappel intérim sans ancienneté",
+     "points": [
+      "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635528",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas",
+     "cleValeur": "Pas de panier de branche",
+     "points": [
+      "Pas d'indemnité repas de branche relevée."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635528",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport",
+     "cleValeur": "50 % transports publics",
+     "points": [
+      "Prise en charge légale de **50 %** des abonnements."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/1996",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "primes",
+     "titre": "Prime d'ancienneté 3-15 %",
+     "cleValeur": "3 % (3 ans) → 15 % (15 ans) sur le minimum du coefficient",
+     "points": [
+      "Prime d'ancienneté (art. 11) dès **3 ans** : **3/6/9/12/15 %** à 3/6/9/12/15 ans — calculée sur le **salaire minimum du coefficient**, au prorata des heures (hors HS).",
+      "S'ajoute au salaire de base (ligne distincte) et ne compte PAS pour vérifier le respect du minimum.",
+      "Intérim : à proratiser via l'égalité de traitement pour un comparable de l'officine."
+     ],
+     "dateCourte": "art. 11 CCN (fiche CDTN)",
+     "source": "https://code.travail.gouv.fr/contribution/1996-quand-le-salarie-a-t-il-droit-a-une-prime-danciennete-quel-est-son-montant",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Aménagement du temps",
+     "cleValeur": "Plannings d'officine — régime du client",
+     "points": [
+      "Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635528",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers",
+     "cleValeur": "Sans objet",
+     "points": [
+      "Régime intérim de droit commun (IFM + ICCP 10 %)."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/convention-collective/1996",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+     "points": [
+      "Maxima légaux à défaut de dérogation (gardes en sus selon régime propre)."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/1996",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "Diplômes obligatoires · coefficient réglementé · ancienneté 3-15 %",
+     "points": [
+      "Postes réglementés : préparateur (BP/DEUST) et pharmacien (diplôme d'État + inscription à l'Ordre) — vérifier les diplômes AVANT délégation.",
+      "Le coefficient minimum de chaque diplôme est fixé par la CCN — un déclaratif sous-coté est un signal d'alerte.",
+      "CCN du **03/12/1997** (IDCC 1996)."
+     ],
+     "dateCourte": "CCN 03/12/1997 + fiches CDTN",
+     "source": "https://code.travail.gouv.fr/convention-collective/1996",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "2098",
+   "titre": "Prestataires de services du secteur tertiaire (CCN du 13/08/1999)",
+   "dateDerniereActu": "08/04/2025",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Minima : 3 grilles",
+     "cleValeur": "3 grilles (employés/AM/cadres) par coefficient — accord 08/04/2025",
+     "points": [
+      "**3 grilles** par catégorie, niveau et coefficient.",
+      "Dernier accord salaires relevé : **08/04/2025** (annexes II et IV) — montants à relever sur Légifrance avant paramétrage."
+     ],
+     "dateCourte": "accord du 08/04/2025",
+     "source": "https://code.travail.gouv.fr/contribution/2098-quel-est-le-salaire-minimum",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit",
+     "cleValeur": "Centres d'appels étendus : régime à relever",
+     "points": [
+      "Certaines activités (centres de relation client, accueil) travaillent en horaires étendus — régime de nuit à relever ; à défaut droit commun."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635550",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Taux légaux 25/50 % ; contingent à relever",
+     "points": [
+      "Taux légaux **25/50 %** à défaut ; contingent conventionnel à relever selon l'activité."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://code.travail.gouv.fr/contribution/2098-heures-supplementaires",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Samedi / dimanche",
+     "cleValeur": "Selon l'activité (accueil événementiel…) — à relever",
+     "points": [
+      "Contreparties selon activité et accords d'entreprise — demander au client."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635550",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
+     "points": [
+      "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635550",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas",
+     "cleValeur": "Pas de panier de branche",
+     "points": [
+      "Pas d'indemnité repas de branche relevée — pratique d'entreprise à demander."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635550",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport",
+     "cleValeur": "50 % transports publics",
+     "points": [
+      "Prise en charge légale de **50 %** des abonnements."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/2098",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "primes",
+     "titre": "AUCUNE prime de branche",
+     "cleValeur": "La CCN ne prévoit PAS de prime obligatoire (fiche officielle)",
+     "points": [
+      "Fiche officielle : « cette convention collective ne prévoit pas de prime » — ni 13ᵉ mois ni ancienneté de branche.",
+      "Les primes rencontrées sont d'entreprise/d'usage : les demander au déclaratif (égalité de traitement au prorata)."
+     ],
+     "dateCourte": "fiche CDTN maj 11/01/2024",
+     "source": "https://code.travail.gouv.fr/contribution/2098-quelles-sont-les-primes-prevues-par-la-convention-collective",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Aménagement du temps",
+     "cleValeur": "Par accord — régime du client",
+     "points": [
+      "Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635550",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers",
+     "cleValeur": "Rien de spécifique",
+     "points": [
+      "Régime intérim de droit commun (IFM + ICCP 10 %)."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/convention-collective/2098",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+     "points": [
+      "Maxima légaux à défaut de dérogation."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/2098",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "Branche « fourre-tout » tertiaire — identifier l'activité réelle",
+     "points": [
+      "Branche large (centres d'appels, accueil, animation, recouvrement…) : vérifier que l'IDCC 2098 est bien celui applicable à l'activité réelle du client.",
+      "CCN du **13/08/1999** (IDCC 2098)."
+     ],
+     "dateCourte": "CCN 13/08/1999",
+     "source": "https://code.travail.gouv.fr/convention-collective/2098",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "2120",
+   "titre": "Banque (CCN du 10/01/2000)",
+   "dateDerniereActu": "25/04/2024",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Minima : 2 grilles (niveaux A-K)",
+     "cleValeur": "2 grilles par niveau et ancienneté — minima > SMIC (accord 25/04/2024)",
+     "points": [
+      "**2 grilles** (techniciens niveaux A-G, cadres H-K) selon niveau ET ancienneté — minima **supérieurs au SMIC** (fiche officielle).",
+      "Dernier accord salaires relevé : **25/04/2024** (art. 39-40) — montants à relever sur Légifrance.",
+      "Salaires de base annuels versés en **13 mensualités** (13ᵉ avec décembre) : les minima s'entendent sur 13 mois."
+     ],
+     "dateCourte": "accord du 25/04/2024",
+     "source": "https://code.travail.gouv.fr/contribution/2120-quel-est-le-salaire-minimum",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit",
+     "cleValeur": "Marginal — droit commun",
+     "points": [
+      "Travail de nuit marginal (exploitation informatique) — droit commun à défaut."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635780",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Taux légaux 25/50 % ; contingent à relever",
+     "points": [
+      "Taux légaux **25/50 %** à défaut ; RTT très répandus — le régime de l'établissement conditionne les HS."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://code.travail.gouv.fr/contribution/2120-heures-supplementaires",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Samedi / dimanche",
+     "cleValeur": "Samedi bancaire selon agences ; dimanche exceptionnel",
+     "points": [
+      "Samedi travaillé selon l'organisation des agences (repos glissant) ; dimanche exceptionnel — régime d'entreprise à demander."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635780",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Chômés payés en pratique ; rappel intérim sans ancienneté",
+     "points": [
+      "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635780",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas",
+     "cleValeur": "Titres-restaurant d'usage — pas de panier de branche",
+     "points": [
+      "Titres-restaurant très répandus — demander la pratique (égalité de traitement)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635780",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Prime de transport conventionnelle",
+     "cleValeur": "4,57 €/mois (grandes villes) · 3,50 €/mois (agglos > 100 000 hab)",
+     "points": [
+      "Prime de transport conventionnelle : **4,57 €**/mois (région parisienne et grandes villes), **3,50 €**/mois (agglomérations > 100 000 hab.) — s'ajoute à la prise en charge légale de **50 %** des abonnements."
+     ],
+     "dateCourte": "fiche CDTN",
+     "source": "https://code.travail.gouv.fr/contribution/2120-quelles-sont-les-primes-prevues-par-la-convention-collective",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "primes",
+     "titre": "13 mensualités + primes de diplôme",
+     "cleValeur": "13ᵉ mois structurel + primes de diplôme 1 450-1 900 €",
+     "points": [
+      "**13 mensualités** : le salaire de base annuel est versé en 13 fois (13ᵉ avec décembre) — à intégrer au coût et à l'égalité de traitement des missions longues.",
+      "Primes de diplôme (une fois, formation continue) : BP banque **1 450 €**, BTS banque **1 600 €**, licence pro **1 700 €**, ITB **1 900 €**.",
+      "Indemnités historiques (habillement, sous-sol) maintenues pour les bénéficiaires de décembre 1999."
+     ],
+     "dateCourte": "fiche CDTN + CCN art. 39-40",
+     "source": "https://code.travail.gouv.fr/contribution/2120-quelles-sont-les-primes-prevues-par-la-convention-collective",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Aménagement du temps",
+     "cleValeur": "RTT généralisés — régime de l'établissement",
+     "points": [
+      "Pour l'intérimaire, le régime du client s'applique (art. L.1251-21)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635780",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers",
+     "cleValeur": "Sans objet",
+     "points": [
+      "Régime intérim de droit commun (IFM + ICCP 10 %)."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/convention-collective/2120",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+     "points": [
+      "Maxima légaux."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/2120",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "Minima sur 13 mois · niveau A-K · prime transport",
+     "points": [
+      "Comparer les minima EN BASE 13 MOIS (mensualiser en /13, pas /12).",
+      "Ne pas oublier la petite prime de transport conventionnelle.",
+      "CCN du **10/01/2000** (IDCC 2120) — banques AFB ; le Crédit Agricole, les Banques Populaires/Caisses d'Épargne ont leurs propres conventions."
+     ],
+     "dateCourte": "CCN 10/01/2000 + fiches CDTN",
+     "source": "https://code.travail.gouv.fr/convention-collective/2120",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "675",
+   "titre": "Maisons à succursales de vente au détail d'habillement (CCN du 30/06/1972)",
+   "dateDerniereActu": "14/05/2024",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Minima : 3 grilles",
+     "cleValeur": "3 grilles par catégorie/niveau — accord du 14/05/2024",
+     "points": [
+      "**3 grilles** par catégorie d'emploi et niveau (classification issue de l'accord du 20/06/2016).",
+      "Dernier accord salaires relevé : **14/05/2024** (salaires mensuels minima garantis) — montants à relever sur Légifrance avant paramétrage."
+     ],
+     "dateCourte": "accord du 14/05/2024",
+     "source": "https://code.travail.gouv.fr/contribution/675-quel-est-le-salaire-minimum",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit",
+     "cleValeur": "Marginal (inventaires) — droit commun",
+     "points": [
+      "Marginal (inventaires nocturnes ponctuels) — droit commun à défaut ; contreparties d'entreprise à demander."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635617",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Taux légaux 25/50 % ; contingent à relever",
+     "points": [
+      "Taux légaux **25/50 %** à défaut ; contingent conventionnel à relever."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://code.travail.gouv.fr/contribution/675-heures-supplementaires",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Samedi / dimanche",
+     "cleValeur": "Samedi = jour clé ; dimanche selon zones dérogatoires",
+     "points": [
+      "Samedi non majoré conventionnellement ; dimanche selon dérogations de zone (contreparties légales) — demander la situation du magasin."
+     ],
+     "dateCourte": "droit commun commerce",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635617",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
+     "points": [
+      "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635617",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas",
+     "cleValeur": "Pas de panier de branche",
+     "points": [
+      "Pas d'indemnité repas de branche relevée."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635617",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport",
+     "cleValeur": "50 % transports publics",
+     "points": [
+      "Prise en charge légale de **50 %** des abonnements."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/675",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "primes",
+     "titre": "Ancienneté + affectation temporaire",
+     "cleValeur": "Prime d'ancienneté (art. 29-31) + complément d'affectation temporaire",
+     "points": [
+      "**Prime d'ancienneté** prévue (fiche dédiée CDTN) — barème à relever ; à proratiser via égalité de traitement.",
+      "**Affectation temporaire** sur un autre poste : complément dès le 1ᵉʳ jour = différence entre le salaire fixe et le minimum du poste occupé.",
+      "Primes d'objectifs/vente courantes en entreprise — à demander au déclaratif."
+     ],
+     "dateCourte": "art. 29 et 31 (fiche CDTN)",
+     "source": "https://code.travail.gouv.fr/contribution/675-quelles-sont-les-primes-prevues-par-la-convention-collective",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Aménagement du temps",
+     "cleValeur": "Modulation commerciale — régime du client",
+     "points": [
+      "Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635617",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers (soldes, fêtes)",
+     "cleValeur": "Renforts via droit commun",
+     "points": [
+      "Pas de statut saisonnier de branche — régime intérim de droit commun (IFM + ICCP 10 %)."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/convention-collective/675",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+     "points": [
+      "Maxima légaux."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/675",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "Succursalistes uniquement · classification 2016",
+     "points": [
+      "Champ : chaînes succursalistes d'habillement (enseignes intégrées) — le commerce d'habillement indépendant relève de l'IDCC 1483.",
+      "CCN du **30/06/1972** (IDCC 675), classification refondue par l'accord du 20/06/2016."
+     ],
+     "dateCourte": "CCN 30/06/1972",
+     "source": "https://code.travail.gouv.fr/convention-collective/675",
+     "fiabilite": "verifie"
+    }
+   ]
+  },
+  {
+   "idcc": "3109",
+   "titre": "5 branches — industries alimentaires diverses (CCN du 21/03/2012)",
+   "dateDerniereActu": "16/01/2026",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Grille des minima (avenant n° 31)",
+     "cleValeur": "9 niveaux : N1E1 1 841,03 € → N9 5 294,03 €/mois (01/01/2026)",
+     "points": [
+      "Grille **9 niveaux × échelons** : O/E N1-N3 (**1 841,03 → 2 100,03 €**), TAM N4-N6 (**2 165,03 → 2 870,03 €**), cadres N7-N9 (**2 974,03 → 5 294,03 €**) — base 35 h.",
+      "Avenant n° **31 du 16/01/2026**, effet **01/01/2026** (+**1,69 %** en moyenne) — extension en attente de publication au JO.",
+      "Le plus favorable s'applique entre SMIC, minimum conventionnel et salaire d'entreprise."
+     ],
+     "dateCourte": "avenant n° 31 du 16/01/2026",
+     "source": "https://www.juristique.org/conventionnel/salaires-5-branches-industries-alimentaires-janvier-2026",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit / posté",
+     "cleValeur": "Pas de barème posté uniforme de branche — accords d'entreprise",
+     "points": [
+      "La CCN ne fixe **pas de barème posté/nuit uniforme** : majorations d'équipes et de nuit relèvent le plus souvent des accords d'entreprise — les demander au déclaratif client.",
+      "Un panier de nuit (≈ **7,40 €**) est cité par des sources spécialisées — à confirmer sur le texte/accord applicable avant paramétrage.",
+      "Production 3×8 fréquente (biscuiteries, chocolateries) : oubli classique des majorations d'équipes au déclaratif."
+     ],
+     "dateCourte": "accords d'entreprise — à confirmer",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027172335",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Taux légaux 25/50 % ; contingent à relever",
+     "points": [
+      "Taux : légaux **25 %** (8 premières HS) / **50 %** au-delà, à défaut de disposition d'entreprise.",
+      "Contingent conventionnel à relever sur le texte ; à défaut **220 h**/an."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027172335",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Samedi / dimanche",
+     "cleValeur": "Majorations d'entreprise (production continue) — à demander",
+     "points": [
+      "Pas de majoration nationale uniforme relevée — le travail de week-end en production est régi par les accords d'entreprise : demander les taux réels (égalité de traitement)."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027172335",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
+     "points": [
+      "Régime conventionnel des fériés à relever sur le texte.",
+      "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "à relever",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027172335",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas / paniers",
+     "cleValeur": "Paniers d'équipe selon accords — à demander au client",
+     "points": [
+      "Paniers d'équipe/de nuit selon les accords d'entreprise (panier de nuit ≈ 7,40 € cité — à confirmer).",
+      "Demander explicitement la pratique paniers du site (oubli déclaratif fréquent en production)."
+     ],
+     "dateCourte": "à confirmer",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027172335",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport",
+     "cleValeur": "50 % transports publics",
+     "points": [
+      "Prise en charge légale de **50 %** des abonnements ; pas de barème de branche relevé."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/3109",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "primes",
+     "titre": "Ancienneté (assiettes par niveau) + habillage",
+     "cleValeur": "Prime d'ancienneté sur assiettes 970-1 766 €/an + habillage 8,40 €/mois",
+     "points": [
+      "**Prime d'ancienneté** : progresse par paliers de **3 ans**, calculée sur des **assiettes annuelles par niveau** (2026 : N1 **970,63-1 082,02 €** → N6 **1 649,54-1 766,23 €**) — taux par palier à relever sur le texte pour le calcul exact.",
+      "**Indemnité forfaitaire habillage-déshabillage** : **8,40 €**/mois (01/01/2026) — due quand la tenue est imposée (production alimentaire : quasi systématique).",
+      "Intérim : ancienneté via égalité de traitement (comparable du client) ; l'indemnité d'habillage est due aux intérimaires en tenue — oubli très fréquent."
+     ],
+     "dateCourte": "avenant n° 31 du 16/01/2026",
+     "source": "https://www.juristique.org/conventionnel/salaires-5-branches-industries-alimentaires-janvier-2026",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Aménagement du temps",
+     "cleValeur": "Production saisonnière (chocolat, glaces) : modulation d'entreprise",
+     "points": [
+      "Fortes saisonnalités (chocolat avant fêtes, glaces l'été) : modulation par accords d'entreprise — le régime du client s'applique à l'intérimaire (art. L.1251-21)."
+     ],
+     "dateCourte": "—",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027172335",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers",
+     "cleValeur": "Pointes saisonnières via droit commun",
+     "points": [
+      "Renforts saisonniers courants (fêtes, été) sans statut de branche spécifique relevé — régime intérim de droit commun (**IFM 10 %** + **ICCP 10 %** dues)."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/convention-collective/3109",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+     "points": [
+      "Maxima légaux à défaut de dérogation ; en pointe saisonnière, vérifier les autorisations du client avant suivi des heures."
+     ],
+     "dateCourte": "droit commun",
+     "source": "https://code.travail.gouv.fr/convention-collective/3109",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "10 codes NAF · habillage 8,40 € · équipes/paniers d'entreprise",
+     "points": [
+      "Champ « 5 branches » très large : biscuiterie, chocolaterie-confiserie, café-thé, condiments, diététique/enfance, glaces, céréales… (NAF 10.39B à 10.89Z) — vérifier que le client en relève bien.",
+      "Les majorations d'équipes/nuit et paniers sont presque toujours d'ENTREPRISE : exiger l'accord ou la pratique écrite du client.",
+      "CCN du **21/03/2012** (IDCC 3109) — pas de fiches CDTN pour cette convention : contrôles sur Légifrance."
+     ],
+     "dateCourte": "CCN 21/03/2012 + avenant n° 31 (2026)",
+     "source": "https://code.travail.gouv.fr/convention-collective/3109",
+     "fiabilite": "verifie"
+    }
+   ]
+  }
+ ],
+ "remplacements": [
+  {
+   "ancien": "7003",
+   "libelle": "Conserveries coopératives et SICA",
+   "nouveau": "7028",
+   "date": "25/03/2025 (ext. 11/11/2025)",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000053059927"
+  },
+  {
+   "ancien": "7006",
+   "libelle": "Coopératives et SICA fleurs, fruits, légumes, pommes de terre",
+   "nouveau": "7028",
+   "date": "25/03/2025 (ext. 11/11/2025)",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000053059927"
+  },
+  {
+   "ancien": "7007",
+   "libelle": "Coopératives agricoles de teillage de lin-chanvre",
+   "nouveau": "7028",
+   "date": "25/03/2025 (ext. 11/11/2025)",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000053059927"
+  },
+  {
+   "ancien": "7023",
+   "libelle": "Entreprises agricoles de déshydratation",
+   "nouveau": "7028",
+   "date": "25/03/2025 (ext. 11/11/2025)",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000053059927"
+  },
+  {
+   "ancien": "650",
+   "libelle": "Métallurgie — ingénieurs et cadres (CCN du 13/03/1972)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/650"
+  },
+  {
+   "ancien": "2344",
+   "libelle": "Sidérurgie",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/2344"
+  },
+  {
+   "ancien": "1747",
+   "libelle": "Activités industrielles de boulangerie et pâtisserie",
+   "nouveau": "3255",
+   "date": "01/10/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/1747"
+  },
+  {
+   "ancien": "2075",
+   "libelle": "Centres immatriculés de conditionnement et transformation des œufs",
+   "nouveau": "3255",
+   "date": "01/10/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/2075"
+  },
+  {
+   "ancien": "54",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/54"
+  },
+  {
+   "ancien": "828",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/828"
+  },
+  {
+   "ancien": "914",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/914"
+  },
+  {
+   "ancien": "930",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/930"
+  },
+  {
+   "ancien": "1059",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/1059"
+  },
+  {
+   "ancien": "1387",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/1387"
+  },
+  {
+   "ancien": "1472",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/1472"
+  },
+  {
+   "ancien": "1560",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/1560"
+  },
+  {
+   "ancien": "1564",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/1564"
+  },
+  {
+   "ancien": "1576",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/1576"
+  },
+  {
+   "ancien": "1577",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/1577"
+  },
+  {
+   "ancien": "1578",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/1578"
+  },
+  {
+   "ancien": "1604",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/1604"
+  },
+  {
+   "ancien": "1626",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/1626"
+  },
+  {
+   "ancien": "1627",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/1627"
+  },
+  {
+   "ancien": "1628",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/1628"
+  },
+  {
+   "ancien": "2221",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/2221"
+  },
+  {
+   "ancien": "2266",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/2266"
+  },
+  {
+   "ancien": "2294",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/2294"
+  },
+  {
+   "ancien": "2542",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/2542"
+  },
+  {
+   "ancien": "2579",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/2579"
+  },
+  {
+   "ancien": "2630",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/2630"
+  },
+  {
+   "ancien": "2700",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/2700"
+  },
+  {
+   "ancien": "2755",
+   "libelle": "Métallurgie — convention territoriale (OETAM)",
+   "nouveau": "3248",
+   "date": "01/01/2024",
+   "source": "https://code.travail.gouv.fr/convention-collective/2755"
+  }
+ ]
+}

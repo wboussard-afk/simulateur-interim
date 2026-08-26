@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Veille Paie — Conformité</title>
+<style>
+/* ===== Veille Paie : références réglementaires & conventionnelles =====
+ * Même palette que le simulateur ; page en LECTURE seule (aucun calcul de marge). */
+:root {
+  --paper:#F5F6F8; --card:#FFFFFF; --card2:#EFF1F4; --ink:#1F2328; --muted:#5F6670;
+  --line:#D9DDE3; --line-soft:#E8EBEF; --brass:#C8102E; --brass-deep:#9E0C24;
+  --good:#47713E; --warn:#93660F; --warn-soft:#F1E6C8; --bad:#A8432A;
+  --shadow:0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:#161719; --card:#1E2024; --card2:#262930; --ink:#ECEDEF; --muted:#9BA2AB;
+    --line:#373B42; --line-soft:#2C3037; --brass:#E4586C; --brass-deep:#F08A97;
+    --good:#93BD82; --warn:#D9B45E; --warn-soft:#383018; --bad:#E08A6B;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"] {
+  --paper:#161719; --card:#1E2024; --card2:#262930; --ink:#ECEDEF; --muted:#9BA2AB;
+  --line:#373B42; --line-soft:#2C3037; --brass:#E4586C; --brass-deep:#F08A97;
+  --good:#93BD82; --warn:#D9B45E; --warn-soft:#383018; --bad:#E08A6B;
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font: 14px/1.5 "Segoe UI", system-ui, sans-serif; }
+h1, h2 { font-family: Cambria, "Iowan Old Style", Georgia, serif; }
+header { background: var(--card); border-bottom: 1px solid var(--line); padding: 16px 20px; }
+header h1 { margin: 0; font-size: 24px; } header h1 b { color: var(--brass); }
+header .sub { color: var(--muted); font-size: 12.5px; }
+.statut { max-width: 980px; margin: 10px auto 0; padding: 0 20px; font-size: 12.5px; color: var(--muted); }
+.statut .ok { color: var(--good); font-weight: 600; }
+.statut .warnb { background: var(--warn-soft); color: var(--warn); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; display: block; margin-top: 6px; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 16px 20px 70px; display: flex; flex-direction: column; gap: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+/* PAS de float ici : un eyebrow flottant qui passe sous le titre en portrait
+ * compressait la zone de contenu (BFC créé par overflow-x:auto) à côté du float */
+.card h2 { font-size: 16px; margin: 0; padding: 10px 16px; border-bottom: 1px solid var(--line-soft);
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.card h2 .eyebrow { margin-left: auto; font: 600 10.5px "Segoe UI", sans-serif; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.card .b { padding: 12px 16px 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px 14px; }
+label { display: block; font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
+select, input[type=text], input[type=number] { width: 100%; padding: 7px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--card2); color: var(--ink); font-size: 14px; }
+.btn { border: 1px solid var(--line); background: var(--card2); color: var(--ink); border-radius: 7px; padding: 7px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+.btn:hover { border-color: var(--brass); }
+/* correctif présentation : les tables larges défilent DANS la carte (plus de débordement) */
+.card .b { overflow-x: auto; }
+/* autocomplétion d'adresses (module geo.js) */
+.adr-wrap { position: relative; }
+.adr-sug { position: absolute; left: 0; right: 0; top: 100%; z-index: 40; background: var(--card);
+  border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); max-height: 260px; overflow-y: auto; }
+.adr-sug .item { padding: 9px 11px; cursor: pointer; font-size: 13.5px; border-bottom: 1px solid var(--line-soft); }
+.adr-sug .item:last-child { border-bottom: 0; }
+.adr-sug .item:hover, .adr-sug .item:active { background: var(--card2); }
+.adr-sug .ctx { color: var(--muted); font-size: 11.5px; display: block; }
+tr.cur td { background: rgba(200, 16, 46, .10); font-weight: 700; }
+/* taux horaire brut du niveau sélectionné — EN GRAND (desktop & mobile) */
+.hero-brut { background: linear-gradient(160deg, var(--warn-soft), var(--card)); border: 1px solid var(--line);
+  border-radius: 10px; box-shadow: var(--shadow); padding: 14px 18px 12px; }
+.hero-brut .eyebrow-h { font: 600 10.5px "Segoe UI", sans-serif; text-transform: uppercase; letter-spacing: .12em; color: var(--brass-deep); }
+.hero-brut .num { font-family: Cambria, "Iowan Old Style", Georgia, serif; font-size: 46px; font-weight: 700;
+  line-height: 1.05; letter-spacing: -.5px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.hero-brut .sub { color: var(--muted); font-size: 12.5px; margin-top: 3px; }
+@media (max-width: 700px) { .hero-brut .num { font-size: 40px; } }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+td, th { padding: 5px 4px; border-bottom: 1px solid var(--line-soft); text-align: left; vertical-align: top; }
+th { font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.n, th.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+td.n b { color: var(--brass-deep); }
+tr.sub td { color: var(--muted); font-weight: 600; padding-top: 10px; }
+.note { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+.warnflag { color: var(--bad); font-weight: 700; }
+.hint { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+a { color: var(--brass-deep); }
+@media (max-width: 700px) { select { font-size: 16px; min-height: 42px; } }
+/* portrait téléphone : police des tableaux réduite pour que les grilles tiennent
+ * en largeur (en paysage, la taille normale s'applique) */
+@media (max-width: 480px) {
+  table { font-size: 10.5px; }
+  td, th { padding: 3px 2px; }
+  th { font-size: 8.5px; letter-spacing: .02em; }
+  .card .b { padding: 10px 10px 12px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap">
+    <img id="brand-logo" alt="AB2Pro — Groupe Triangle Solutions RH" style="height:36px; border-radius:4px">
+    <h1 style="margin:0"><b>Veille Paie</b> — Conformité réglementaire</h1>
+  </div>
+  <span class="sub">Références barèmes pour le paramétrage des paies : décrets (SMIC, RGDU), convention collective BTP par région, barèmes URSSAF. Aucune saisie — uniquement le droit en vigueur.</span>
+</header>
+<div class="statut" id="statut">Contrôle des paramètres officiels en cours…</div>
+
+<div class="wrap">
+  <section class="card">
+    <h2>Sélection <span class="eyebrow">Région · Département</span></h2>
+    <div class="b">
+      <div class="grid">
+        <div><label for="sel-region">Région (convention collective BTP)</label><select id="sel-region"></select></div>
+        <div><label for="sel-dept">Département (grille transport/trajet, panier)</label><select id="sel-dept"><option value="">—</option></select>
+          <span class="hint" id="dept-region"></span></div>
+        <div><label for="sel-niveau">Niveau de qualification (grille BTP)</label>
+          <select id="sel-niveau">
+            <option value="N1P1">N1P1 — coeff 150</option><option value="N1P2">N1P2 — coeff 170</option>
+            <option value="N2">N2 — coeff 185</option><option value="N3P1">N3P1 — coeff 210</option>
+            <option value="N3P2">N3P2 — coeff 230</option><option value="N4P1">N4P1 — coeff 250</option>
+            <option value="N4P2">N4P2 — coeff 270</option>
+          </select>
+          <span class="hint" id="niveau-hint"></span></div>
+        <div><label for="sel-zone">Distance URSSAF (petits déplacements, aller-retour)</label><select id="sel-zone"></select>
+          <span class="hint" id="zone-hint"></span></div>
+      </div>
+      <div style="margin-top:10px">
+        <label for="adr-dom">Adresse domicile / siège social</label>
+        <div class="adr-wrap"><input type="text" id="adr-dom" placeholder="ex. 27 rue du Gros Chêne — puis choisir la ville" autocomplete="off">
+          <div class="adr-sug" id="sug-dom" hidden></div></div>
+      </div>
+      <div style="margin-top:8px">
+        <label for="adr-cha">Adresse du chantier / entreprise utilisatrice</label>
+        <div class="adr-wrap"><input type="text" id="adr-cha" placeholder="adresse de la mission — ou « 35 Saint-Malo »" autocomplete="off">
+          <div class="adr-sug" id="sug-cha" hidden></div></div>
+      </div>
+      <div class="grid" style="margin-top:8px">
+        <div><label for="km-ortho">Distance aller à vol d'oiseau (km) — zones BTP</label>
+          <input type="number" id="km-ortho" step="0.1" min="0"></div>
+        <div><label for="km-reel">Distance réelle aller-retour (km) — barème URSSAF</label>
+          <div style="display:flex; gap:6px"><input type="number" id="km-reel" step="0.1" min="0" style="flex:1">
+            <button type="button" class="btn" id="btn-calc">Calculer</button></div>
+          <span class="hint" id="dist-hint"></span></div>
+      </div>
+      <p class="note">Un département appartient à une région : choisir un département sélectionne automatiquement sa région (et inversement, la région filtre la liste des départements). Zone BTP = distance <b>aller simple</b> à vol d'oiseau ; tranche URSSAF = kilomètres <b>réels aller-retour</b>. ⚠ certains départements appliquent la distance réelle routière pour la grille BTP (ex. Savoie) — corriger les km à la main.</p>
+    </div>
+  </section>
+
+  <!-- 1er élément déterminant d'un contrat : le taux horaire brut du niveau choisi, EN GRAND -->
+  <div class="hero-brut" id="hero-brut">
+    <span class="eyebrow-h" id="hero-brut-ctx">Taux horaire brut minimum</span>
+    <div class="num" id="hero-brut-num">—</div>
+    <div class="sub" id="hero-brut-sub"></div>
+  </div>
+
+  <section class="card">
+    <h2>Droit courant <span class="eyebrow">Décrets · actualisation automatique</span></h2>
+    <div class="b"><table id="tbl-droit"></table>
+    <p class="note">SMIC et paramètres RGDU contrôlés en direct sur <b>OpenFisca France</b> (codification du droit, DINUM) à chaque ouverture ; en cas d'écart avec les valeurs intégrées, une alerte s'affiche en haut de page. Barèmes URSSAF (repas, grand déplacement, transport) au 01/01/2026 — vérifiés multi-sources.</p></div>
+  </section>
+
+  <section class="card">
+    <h2>Minima conventionnels BTP — <span id="ttl-region">région</span> <span class="eyebrow">IDCC 1596 · 1597 (ouvriers)</span></h2>
+    <div class="b"><p class="note" id="maj-minima" style="margin-top:0"></p><table id="tbl-minima"></table>
+    <p class="note" id="note-minima"></p></div>
+  </section>
+
+  <section class="card">
+    <h2>Grille régionale transport / trajet — <span id="ttl-dept">département</span> <span class="eyebrow">Zones BTP (aller simple)</span></h2>
+    <div class="b"><table id="tbl-zones"></table>
+    <p class="note">Transport (prime) = <b>non soumis</b> à cotisations ; trajet (indemnité de temps) = <b>soumis</b> à cotisations. Zones définies sur la distance <b>aller simple</b> depuis le siège. Panier : part exonérée plafonnée à la limite URSSAF « repas hors des locaux ». Grille du classeur régional — surveillance hebdomadaire automatique avec alerte e-mail.</p></div>
+  </section>
+
+  <section class="card">
+    <h2>Repas &amp; grand déplacement <span class="eyebrow">URSSAF 2026</span></h2>
+    <div class="b"><table id="tbl-repas"></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Transport petits déplacements <span class="eyebrow">Barème URSSAF (aller-retour)</span></h2>
+    <div class="b"><table id="tbl-transport"></table>
+    <p class="note">Limite d'exonération quotidienne selon la distance <b>aller-retour réelle</b> domicile ↔ lieu de mission.</p></div>
+  </section>
+
+  <p class="note">Sources : OpenFisca France (api.fr.openfisca.org) · <a href="https://code.travail.gouv.fr/contribution/1596-quel-est-le-salaire-minimum" target="_blank" rel="noopener">code.travail.gouv.fr — IDCC 1596/1597</a> · barèmes URSSAF/BOSS 2026. Cette page se met à jour automatiquement : contrôle OpenFisca à chaque ouverture, veille hebdomadaire (minima CC, barèmes) avec alerte e-mail, valeurs republiées à chaque changement par décret ou avenant.</p>
+</div>
+
+<script src="db.js?r1"></script>
+<script src="engine.js?r1"></script>
+<script src="geo.js?r1"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const N2 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const EUR = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
+const fmtE = v => EUR.format(v);
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const kv = (l, v, cls) => "<tr" + (cls ? " class='" + cls + "'" : "") + "><td>" + l + "</td><td class='n'>" + v + "</td></tr>";
+
+const REGIONS = [
+  ["AUVERGNERHONEALPES", "Auvergne-Rhône-Alpes"], ["BOURGOGNEFRANCHECOMTE", "Bourgogne-Franche-Comté"],
+  ["BRETAGNE", "Bretagne"], ["CENTREVALDELOIRE", "Centre-Val de Loire"], ["CORSE", "Corse"],
+  ["GRANDEST", "Grand Est"], ["HAUTSDEFRANCE", "Hauts-de-France"], ["ILEDEFRANCE", "Île-de-France"],
+  ["NORMANDIE", "Normandie"], ["NOUVELLEAQUITAINE", "Nouvelle-Aquitaine"], ["OCCITANIE", "Occitanie"],
+  ["PAYSDELALOIRE", "Pays de la Loire"], ["PROVENCEALPESCOTEDAZUR", "Provence-Alpes-Côte d'Azur"]
+];
+const NIVEAUX = Object.keys(NIVEAU_COEF_BTP);
+let smicNow = BAKED_OFFICIAL.smic.value, smicDate = BAKED_OFFICIAL.smic.date;
+
+/* ---- sélecteurs région / département (un département appartient à une région) ---- */
+function deptRegionKey(d) { return normRegionBTP(d.region || ""); }
+function fillSelects() {
+  $("sel-region").innerHTML = REGIONS.map(r => '<option value="' + r[0] + '">' + esc(r[1]) + "</option>").join("");
+  fillDepts($("sel-region").value);
+}
+function fillDepts(regionKey) {
+  const opts = DB.departments.filter(d => !regionKey || deptRegionKey(d) === regionKey);
+  $("sel-dept").innerHTML = '<option value="">—</option>' +
+    opts.map(d => '<option value="' + esc(d.dept) + '">' + esc(d.dept) + "</option>").join("");
+}
+$("sel-region").addEventListener("change", () => { fillDepts($("sel-region").value); renderAll(); });
+$("sel-dept").addEventListener("change", () => {
+  const d = DB.departments.find(x => x.dept === $("sel-dept").value);
+  if (d) {
+    const k = deptRegionKey(d);
+    if (BTP_MINIMA.regions[k] && $("sel-region").value !== k) { $("sel-region").value = k; }
+    $("dept-region").textContent = "Région : " + (d.region || "").split("/")[0].trim();
+  } else { $("dept-region").textContent = ""; }
+  renderAll();
+});
+
+/* ---- rendus ---- */
+function renderDroit() {
+  /* volontairement minimal : les cotisations (AT, mutuelle, RGDU, TO-DE…) sont
+   * paramétrées directement dans l'ERP des gestionnaires — hors périmètre ici */
+  let s = "";
+  s += kv("SMIC horaire brut (en vigueur depuis le " + smicDate.split("-").reverse().join("/") + ")", "<b>" + fmtE(smicNow) + "</b>");
+  s += kv("SMIC mensuel brut (151,67 h)", fmtE(smicNow * BTP_MINIMA.diviseurHoraire));
+  s += kv("Plafond de la Sécurité sociale (mensuel)", fmtE(BAKED_OFFICIAL.pss.value));
+  $("tbl-droit").innerHTML = s;
+}
+function renderMinima() {
+  const key = $("sel-region").value;
+  const nom = (REGIONS.find(r => r[0] === key) || ["", "région"])[1];
+  $("ttl-region").textContent = nom;
+  const reg = BTP_MINIMA.regions[key];
+  if (!reg) { $("tbl-minima").innerHTML = kv("Région non couverte par la source officielle", "grille du classeur en repli"); return; }
+  const lvlSel = $("sel-niveau").value;
+  /* la date de mise à jour vit HORS du tableau : en portrait elle se coupait au défilement */
+  $("maj-minima").innerHTML = "Dernière mise à jour de la grille : site à jour au <b>" + esc(BTP_MINIMA.siteMajLe) +
+    "</b> · relevé le <b>" + esc(BTP_MINIMA.releveLe) + "</b> (surveillance hebdomadaire)" +
+    (BTP_MINIMA.accords[key] ? " · " + esc(BTP_MINIMA.accords[key]) : "");
+  let s = "<tr><th>Niveau</th><th class='n'>Coeff</th><th class='n'>Mensuel 1596 (≤10)</th><th class='n'>Mensuel 1597 (&gt;10)</th><th class='n'>Horaire</th></tr>";
+  for (const lvl of NIVEAUX) {
+    const c = NIVEAU_COEF_BTP[lvl];
+    const m96 = reg.cc1596[c], m97 = reg.cc1597[c];
+    const h = Math.round((m96 / BTP_MINIMA.diviseurHoraire) * 100) / 100;
+    const below = h < smicNow - 1e-9;
+    s += "<tr" + (lvl === lvlSel ? " class='cur'" : "") + "><td>" + lvl +
+         (lvl === lvlSel ? " ◀" : "") +
+         (below ? " <span class='warnflag' title='minimum conventionnel sous le SMIC en vigueur : le SMIC s'applique'>⚠ &lt; SMIC</span>" : "") + "</td>" +
+         "<td class='n'>" + c + "</td><td class='n'>" + fmtE(m96) + "</td><td class='n'>" + fmtE(m97) + "</td>" +
+         "<td class='n'><b>" + fmtE(below ? smicNow : h) + "</b>" + (below ? " <span class='note'>(grille " + fmtE(h) + ")</span>" : "") + "</td></tr>";
+  }
+  $("tbl-minima").innerHTML = s;
+  /* hint sous le sélecteur de niveau + TAUX HORAIRE BRUT EN GRAND (1er élément d'un contrat) */
+  const cSel = NIVEAU_COEF_BTP[lvlSel];
+  const mSel = reg.cc1596[cSel];
+  if (mSel) {
+    const hSel = Math.round((mSel / BTP_MINIMA.diviseurHoraire) * 100) / 100;
+    const applicable = Math.max(hSel, smicNow);
+    $("niveau-hint").textContent = "minimum " + N2.format(applicable) + " €/h — " + nom +
+      (hSel < smicNow - 1e-9 ? " (plancher SMIC)" : " (officiel)");
+    $("hero-brut-ctx").textContent = "Taux horaire brut minimum — " + lvlSel + " (coeff " + cSel + ") · " + nom;
+    $("hero-brut-num").textContent = N2.format(applicable) + " €/h";
+    $("hero-brut-sub").textContent = fmtE(mSel) + "/mois (151,67 h)" +
+      (hSel < smicNow - 1e-9 ? " — grille " + N2.format(hSel) + " €/h sous le SMIC : plancher légal appliqué ⚠" : " — minimum conventionnel officiel");
+  } else {
+    $("niveau-hint").textContent = "";
+    $("hero-brut-num").textContent = "—"; $("hero-brut-sub").textContent = "";
+  }
+  $("note-minima").innerHTML = "Source officielle : code.travail.gouv.fr (site mis à jour au " + esc(BTP_MINIMA.siteMajLe) +
+    ", relevé le " + esc(BTP_MINIMA.releveLe) + ", surveillance hebdomadaire)" +
+    (BTP_MINIMA.accords[key] ? " — " + esc(BTP_MINIMA.accords[key]) : "") +
+    ". Un minimum conventionnel inférieur au SMIC en vigueur est automatiquement porté au SMIC (plancher légal, signalé ⚠).";
+}
+function renderZones() {
+  const d = DB.departments.find(x => x.dept === $("sel-dept").value);
+  $("ttl-dept").textContent = d ? d.dept : "département";
+  if (!d) { $("tbl-zones").innerHTML = kv("Choisir un département", "—"); return; }
+  const lim = BAKED_OFFICIAL.repasHorsLocaux.value;
+  let s = "";
+  if (d.panier != null) {
+    s += kv("Panier repas BTP — total", "<b>" + fmtE(d.panier) + "</b>");
+    s += kv("&nbsp;&nbsp;· part non soumise (exonérée, limite URSSAF " + fmtE(lim) + ")", fmtE(Math.min(d.panier, lim)));
+    s += kv("&nbsp;&nbsp;· part soumise à cotisations", fmtE(Math.max(0, d.panier - lim)));
+  }
+  if (d.transport) {
+    const zi = zoneBTPFromAller(num($("km-ortho").value));
+    s += "<tr><th>Zone (aller simple)</th><th class='n'>Transport / jour (non soumis)</th><th class='n'>Trajet / jour (soumis)</th></tr>";
+    for (let z = 0; z < ZONE_NOMS.length; z++)
+      if (d.transport[z] != null)
+        s += "<tr" + (z === zi ? " class='cur'" : "") + "><td>" + ZONE_NOMS[z] + (z === zi ? " ◀ distance sélectionnée" : "") +
+             "</td><td class='n'>" + fmtE(d.transport[z]) + "</td><td class='n'>" + fmtE(d.trajet[z]) + "</td></tr>";
+  } else {
+    s += kv("Grille transport/trajet", "non disponible pour ce département");
+  }
+  $("tbl-zones").innerHTML = s;
+}
+function num(v) { const x = parseFloat(String(v).replace(",", ".")); return isFinite(x) ? x : 0; }
+function renderRepas() {
+  const B = BAKED_OFFICIAL;
+  let s = "";
+  s += "<tr class='sub'><td colspan='2'>Repas petits déplacements (exonération URSSAF / jour)</td></tr>";
+  s += kv("Repas atelier / sur le lieu de travail", fmtE(B.repasLieuTravail.value));
+  s += kv("Repas chantier (hors des locaux, sans restaurant)", fmtE(B.repasHorsLocaux.value));
+  s += kv("Repas au restaurant", fmtE(B.repasRestaurant.value));
+  s += "<tr class='sub'><td colspan='2'>Grand déplacement (par jour — nuitée = logement + petit-déjeuner)</td></tr>";
+  s += "<tr><th>Période</th><th class='n'>Nuitée province</th><th class='n'>Nuitée Paris + 92/93/94</th><th class='n'>Repas (midi ou soir)</th></tr>";
+  const per = ["3 premiers mois", "4ᵉ-24ᵉ mois (−15 %)", "au-delà de 24 mois (−30 %)"];
+  const abat = [1, 0.85, 0.70];
+  for (let i = 0; i < 3; i++)
+    s += "<tr><td>" + per[i] + "</td><td class='n'>" + fmtE(B.nuiteeGDProvincePeriodes[i]) + "</td><td class='n'>" +
+         fmtE(B.nuiteeGDParisPeriodes[i]) + "</td><td class='n'>" + fmtE(B.repasRestaurant.value * abat[i]) + "</td></tr>";
+  $("tbl-repas").innerHTML = s;
+}
+function renderTransport() {
+  let s = "<tr><th>Distance aller-retour</th><th class='n'>Exonération / jour</th></tr>";
+  for (const r of DB.zonesKmPD) {
+    if (!/\d/.test(r.label)) continue;
+    s += "<tr><td>" + esc(r.label.toLowerCase()) + "</td><td class='n'>" + fmtE(r.value || 0) + "</td></tr>";
+  }
+  $("tbl-transport").innerHTML = s;
+}
+function renderAll() { renderDroit(); renderMinima(); renderZones(); }
+
+/* ---- contrôle OpenFisca en direct (décrets SMIC / RGDU) ---- */
+async function controleOfficiel() {
+  const st = $("statut");
+  try {
+    const r = await fetch("https://api.fr.openfisca.org/latest/parameter/marche_travail.salaire_minimum.smic.smic_b_horaire");
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const j = await r.json();
+    const dates = Object.keys(j.values).sort();
+    const d = dates[dates.length - 1];
+    const v = j.values[d];
+    if (Math.abs(v - BAKED_OFFICIAL.smic.value) > 0.005) {
+      smicNow = v; smicDate = d;
+      st.innerHTML = '<span class="warnb">⚠ Décret détecté : SMIC officiel ' + fmtE(v) + '/h (depuis le ' +
+        d.split("-").reverse().join("/") + ") différent de la valeur intégrée " + fmtE(BAKED_OFFICIAL.smic.value) +
+        " — les tableaux ci-dessous utilisent la valeur OFFICIELLE. Les autres barèmes seront republiés par la veille.</span>";
+      renderAll();
+    } else {
+      st.innerHTML = '<span class="ok">✓ Conforme</span> — SMIC vérifié en direct sur OpenFisca (' + fmtE(v) + "/h au " +
+        d.split("-").reverse().join("/") + ") · minima CC relevés le " + esc(BTP_MINIMA.releveLe) +
+        " (veille hebdomadaire) · barèmes URSSAF au 01/01/2026 · contrôle du " + new Date().toLocaleDateString("fr-FR") + ".";
+    }
+  } catch (e) {
+    st.innerHTML = "Flux OpenFisca indisponible ici — valeurs intégrées (SMIC " + fmtE(BAKED_OFFICIAL.smic.value) +
+      "/h au " + BAKED_OFFICIAL.smic.date.split("-").reverse().join("/") + ", vérifiées multi-sources ; veille hebdomadaire active).";
+  }
+}
+
+/* ---- distance & tranche URSSAF (module geo.js partagé avec le simulateur) ---- */
+function fillZones() {
+  $("sel-zone").innerHTML = DB.zonesKmPD.map(r =>
+    '<option value="' + esc(r.label) + '">' + esc(r.label.toLowerCase()) + (r.value ? " — " + N2.format(r.value) + " €" : "") + "</option>").join("");
+}
+function zoneHint() {
+  const r = DB.zonesKmPD.find(x => x.label === $("sel-zone").value);
+  $("zone-hint").textContent = r && r.value ? "exonération " + fmtE(r.value) + " / jour" : "pas d'exonération transport";
+}
+$("sel-zone").addEventListener("change", zoneHint);
+$("sel-niveau").addEventListener("change", renderMinima);
+$("km-ortho").addEventListener("change", () => { renderZones(); refreshDist(""); });
+$("km-reel").addEventListener("change", () => {
+  const tranche = trancheURSSAFFromAR(num($("km-reel").value));
+  if (Array.from($("sel-zone").options).some(o => o.value === tranche)) $("sel-zone").value = tranche;
+  zoneHint(); refreshDist("");
+});
+function refreshDist(infoGeo) {
+  const kmO = num($("km-ortho").value), kmAR = num($("km-reel").value);
+  const zi = zoneBTPFromAller(kmO);
+  let s = infoGeo ? infoGeo + "<br>" : "";
+  if (kmO > 0) s += "grille BTP : aller <b>" + N2.format(kmO) + " km</b> → " +
+    (zi != null ? "<b>zone " + ZONE_NOMS[zi] + "</b>" : "hors zones PD (&gt; 50 km : grand déplacement)") + "<br>";
+  if (kmAR > 0) s += "URSSAF : réel AR <b>" + N2.format(kmAR) + " km</b> → tranche « " +
+    esc(trancheURSSAFFromAR(kmAR).toLowerCase()) + " »";
+  $("dist-hint").innerHTML = s;
+}
+$("btn-calc").addEventListener("click", async () => {
+  const qd = $("adr-dom").value.trim(), qc = $("adr-cha").value.trim();
+  if (!qd || !qc) { $("dist-hint").textContent = "Renseigner les deux adresses — ou saisir les km à la main."; return; }
+  $("dist-hint").textContent = "Géocodage et itinéraire en cours…";
+  try {
+    const both = await Promise.all([geocodeBAN(qd), geocodeBAN(qc)]);
+    if (!both[0] || !both[1]) { $("dist-hint").textContent = "Adresse introuvable — préciser, ou saisir les km à la main."; return; }
+    const kmO = Math.round(haversineKm(both[0], both[1]) * 10) / 10;
+    $("km-ortho").value = kmO;
+    let info = "✓ " + esc(both[0].label) + " → " + esc(both[1].label);
+    try {
+      const reel = await routeReelKm(both[0], both[1]);
+      const kmAR = Math.round(reel * 2 * 10) / 10;
+      $("km-reel").value = kmAR;
+      const tranche = trancheURSSAFFromAR(kmAR);
+      if (Array.from($("sel-zone").options).some(o => o.value === tranche)) $("sel-zone").value = tranche;
+      zoneHint();
+    } catch (e2) { info += " — <b>itinéraire routier indisponible</b> : saisir le réel AR à la main"; }
+    renderZones(); refreshDist(info);
+  } catch (e) {
+    $("dist-hint").textContent = "Géocodage indisponible ici (réseau bloqué) — saisir les km à la main.";
+  }
+});
+wireAdrAutocomplete("adr-dom", "sug-dom");
+wireAdrAutocomplete("adr-cha", "sug-cha");
+
+$("brand-logo").src = LOGO_AB2PRO;
+fillSelects(); fillZones(); zoneHint();
+renderAll(); renderRepas(); renderTransport();
+controleOfficiel();
+</script>
+</body>
+</html>
