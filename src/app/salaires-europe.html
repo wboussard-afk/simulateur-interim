@@ -102,30 +102,35 @@ input[type=number] { width: 160px; padding: 9px 10px; border: 1px solid var(--li
   salariés de l'entreprise utilisatrice) — jamais par les minima du pays d'origine. Taux de change du 08/2026
   (1 € ≈ 363,9 HUF ≈ 5,238 RON) — actualisés par la veille.</div>
 
-  <p class="note" style="text-align:center">Relevé le 27/08/2026 · sources : gouvernements nationaux, presse sociale spécialisée, KSH · surveillance par la veille hebdomadaire.</p>
+  <p class="note" style="text-align:center">Relevé le <b id="releve-le"></b> · sources : gouvernements nationaux, presse sociale spécialisée, KSH, taux BCE · <b>mise à jour automatique mensuelle</b> (taux de change et minima).</p>
 </div>
 
+<script id="donnees-salaires" type="application/json">{"releveLe":"27/08/2026","fx":{"HUF":363.9,"RON":5.238},"pays":[
+{"code":"HU","nom":"🇭🇺 Hongrie — minimum général","devise":"HUF","brut":322800,"netRatio":0.665,"heures":174},
+{"code":"HU2","nom":"🇭🇺 Hongrie — minimum QUALIFIÉ","devise":"HUF","brut":373200,"netRatio":0.665,"heures":174},
+{"code":"BG","nom":"🇧🇬 Bulgarie (en euro depuis 01/2026)","devise":"EUR","brut":620.20,"netRatio":0.77598,"heures":168},
+{"code":"RO","nom":"🇷🇴 Roumanie (au 01/07/2026)","devise":"RON","brut":4325,"netMensuelLocal":2739,"heures":168},
+{"code":"FR","nom":"🇫🇷 France — SMIC (référence)","devise":"EUR","brut":1823.04,"netRatio":0.78,"heures":151.67}
+]}</script>
 <script src="geo.js?r1"></script>
 <script>
 document.getElementById("brand-logo").src = LOGO_AB2PRO;
 
-/* ===== données (mises à jour par la veille) ===== */
-const FX = { HUF: 363.9, RON: 5.238 };              // 1 € en devise, 08/2026
-const HEURES_MOIS = { HU: 174, BG: 168, RO: 168, FR: 151.67 };
-const PAYS = [
-  { code: "HU", nom: "🇭🇺 Hongrie — minimum général", brutLocal: "322 800 HUF", brutEur: 322800 / FX.HUF,
-    netEur: 322800 * 0.665 / FX.HUF, netH: 322800 * 0.665 / FX.HUF / HEURES_MOIS.HU },
-  { code: "HU2", nom: "🇭🇺 Hongrie — minimum QUALIFIÉ", brutLocal: "373 200 HUF", brutEur: 373200 / FX.HUF,
-    netEur: 373200 * 0.665 / FX.HUF, netH: 373200 * 0.665 / FX.HUF / HEURES_MOIS.HU },
-  { code: "BG", nom: "🇧🇬 Bulgarie (en euro depuis 01/2026)", brutLocal: "620,20 €", brutEur: 620.20,
-    netEur: 620.20 * 0.8622 * 0.9, netH: 620.20 * 0.8622 * 0.9 / HEURES_MOIS.BG },
-  { code: "RO", nom: "🇷🇴 Roumanie (au 01/07/2026)", brutLocal: "4 325 RON", brutEur: 4325 / FX.RON,
-    netEur: 2739 / FX.RON, netH: 2739 / FX.RON / HEURES_MOIS.RO },
-  { code: "FR", nom: "🇫🇷 France — SMIC (référence)", brutLocal: "1 823,04 €", brutEur: 1823.04,
-    netEur: 1823.04 * 0.78, netH: 1823.04 * 0.78 / HEURES_MOIS.FR },
-];
+/* ===== données lues depuis le bloc JSON ci-dessus (mis à jour par la veille mensuelle) ===== */
+const DS = JSON.parse(document.getElementById("donnees-salaires").textContent);
+const FX = DS.fx;
+const fmtLocal = (v, dev) => dev === "EUR"
+  ? v.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €"
+  : v.toLocaleString("fr-FR") + " " + dev;
+const PAYS = DS.pays.map(p => {
+  const tx = p.devise === "EUR" ? 1 : FX[p.devise];
+  const netLocal = p.netMensuelLocal != null ? p.netMensuelLocal : p.brut * p.netRatio;
+  return { code: p.code, nom: p.nom, brutLocal: fmtLocal(p.brut, p.devise),
+           brutEur: p.brut / tx, netEur: netLocal / tx, netH: netLocal / tx / p.heures };
+});
 const eur = v => v.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
 
+document.getElementById("releve-le").textContent = DS.releveLe;
 const t = document.getElementById("t-minima");
 t.innerHTML = "<tr><th>Pays — minimum légal</th><th class='n'>Brut/mois (local)</th><th class='n'>≈ Brut €</th><th class='n'>≈ Net €/mois</th><th class='n'>Net €/HEURE</th></tr>" +
   PAYS.map(p => "<tr><td>" + p.nom + "</td><td class='n'>" + p.brutLocal + "</td><td class='n'>" + eur(p.brutEur) +
