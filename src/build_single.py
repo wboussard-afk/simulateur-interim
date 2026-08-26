@@ -1,14 +1,14 @@
-﻿# -*- coding: utf-8 -*-
-"""Assemble the self-contained simulateur-agri.html (inline db.js + engine.js)."""
+# -*- coding: utf-8 -*-
+"""Assemble les applications autonomes (inline db.js + engine.js + geo.js)."""
 import io, sys, re, os
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-# base = dossier du script (fonctionne dans le scratchpad comme dans src/ du dÃ©pÃ´t GitHub)
+# base = dossier du script (fonctionne dans le scratchpad comme dans src/ du dépôt GitHub)
 base = os.path.dirname(os.path.abspath(__file__))
 app = open(base + r"\app\app.html", encoding='utf-8').read()
 db = open(base + r"\app\db.js", encoding='utf-8').read()
 eng = open(base + r"\app\engine.js", encoding='utf-8').read()
 geo = open(base + r"\app\geo.js", encoding='utf-8').read()
-# drop the GOLDEN payloads from the shipped file (test-only data)
+# retire les données GOLDEN (tests uniquement) du fichier livré
 db_ship = re.sub(r"var GOLDEN_NEW = .*?;\n", "", db, flags=re.S)
 db_ship = re.sub(r"var GOLDEN_V1 = .*?;\n", "", db_ship, flags=re.S)
 db_ship = db_ship.replace("if (typeof module !== 'undefined') module.exports = { DB: DB, GOLDEN_NEW: GOLDEN_NEW, GOLDEN_V1: GOLDEN_V1 };\n", "")
@@ -19,7 +19,7 @@ assert 'src="db.js' not in out and 'src="engine.js' not in out and 'src="geo.js'
 open(base + r"\app\simulateur-agri.html", 'w', encoding='utf-8').write(out)
 print("simulateur-agri.html:", len(out), "bytes")
 
-# variante artifact : contenu sans squelette doctype/html/head/body (fourni au dÃ©ploiement)
+# variante artifact : contenu sans squelette doctype/html/head/body (fourni au déploiement)
 art = out
 art = re.sub(r'<!doctype html>\s*<html lang="fr">\s*<head>\s*', '', art)
 art = art.replace('<meta charset="utf-8">\n', '').replace('<meta name="viewport" content="width=device-width, initial-scale=1">\n', '')
@@ -28,7 +28,7 @@ open(base + r"\app\artifact.html", 'w', encoding='utf-8').write(art)
 assert '<html' not in art and '</body>' not in art and '<title>' in art[:8000]
 print("artifact.html:", len(art), "bytes")
 
-# ===== Veille Paie (application conformitÃ© pour les gestionnaires de paie) =====
+# ===== Veille Paie =====
 paie = open(base + r"\app\paie.html", encoding='utf-8').read()
 outp = paie.replace('<script src="db.js?r1"></script>', '<script>\n' + db_ship + '</script>')
 outp = outp.replace('<script src="engine.js?r1"></script>', '<script>\n' + eng + '</script>')
@@ -44,27 +44,27 @@ open(base + r"\app\artifact-paie.html", 'w', encoding='utf-8').write(artp)
 assert '<html' not in artp and '</body>' not in artp and '<title>' in artp[:8000]
 print("artifact-paie.html:", len(artp), "bytes")
 
-# ===== Portail (accÃ¨s unique aux 3 apps) â€” geo.js seul (logo) =====
+# ===== Portail =====
 port = open(base + r"\app\portail.html", encoding='utf-8').read()
 outport = port.replace('<script src="geo.js?r1"></script>', '<script>\n' + geo + '</script>')
 assert 'src="geo.js' not in outport
 open(base + r"\app\portail-github.html", 'w', encoding='utf-8').write(outport)
 print("portail-github.html:", len(outport), "bytes")
-outportb = outport.replace('href="simulateur.html"', 'href="Simulateur IntÃ©rim.html"') \
+outportb = outport.replace('href="simulateur.html"', 'href="Simulateur Intérim.html"') \
                   .replace('href="paie.html"', 'href="Veille Paie.html"') \
                   .replace('href="conventions.html"', 'href="Veille Conventions.html"') \
                   .replace('href="salaires-europe.html"', 'href="Salaires Europe.html"')
 open(base + r"\app\portail-bureau.html", 'w', encoding='utf-8').write(outportb)
 print("portail-bureau.html:", len(outportb), "bytes")
 
-# ===== RepÃ¨res salaires Europe â€” geo.js seul (logo) =====
+# ===== Repères salaires Europe — geo.js seul (logo) =====
 sal = open(base + r"\app\salaires-europe.html", encoding='utf-8').read()
 outsal = sal.replace('<script src="geo.js?r1"></script>', '<script>\n' + geo + '</script>')
 assert 'src="geo.js' not in outsal
 open(base + r"\app\salaires-europe-final.html", 'w', encoding='utf-8').write(outsal)
 print("salaires-europe-final.html:", len(outsal), "bytes")
 
-# ===== Veille Conventions (IDCC & accords) â€” engine.js (grilles BTP) + geo.js (logo) =====
+# ===== Veille Conventions =====
 conv = open(base + r"\app\conventions.html", encoding='utf-8').read()
 outc = conv.replace('<script src="engine.js?r1"></script>', '<script>\n' + eng + '</script>')
 outc = outc.replace('<script src="geo.js?r1"></script>', '<script>\n' + geo + '</script>')
@@ -79,7 +79,7 @@ open(base + r"\app\artifact-conventions.html", 'w', encoding='utf-8').write(artc
 assert '<html' not in artc and '</body>' not in artc and '<title>' in artc[:8000]
 print("artifact-conventions.html:", len(artc), "bytes")
 
-# ===== Portail sÃ©curisÃ© Cloudflare : alimente auth/assets/app/ si le dossier existe =====
+# ===== Portail sécurisé Cloudflare : alimente auth/assets/app/ si le dossier existe =====
 auth_app = os.path.join(base, "auth", "assets", "app")
 if os.path.isdir(os.path.join(base, "auth")):
     os.makedirs(auth_app, exist_ok=True)
@@ -88,5 +88,4 @@ if os.path.isdir(os.path.join(base, "auth")):
                                ("salaires-europe-final.html", "salaires-europe.html")]:
         data = open(base + r"\app" + "\\" + src_name, encoding='utf-8').read()
         open(os.path.join(auth_app, dst_name), 'w', encoding='utf-8').write(data)
-    print("auth/assets/app/ alimentÃ© (4 pages protÃ©gÃ©es)")
-
+    print("auth/assets/app/ alimenté (5 pages protégées)")
