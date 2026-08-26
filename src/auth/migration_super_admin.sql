@@ -1,4 +1,6 @@
 ﻿PRAGMA defer_foreign_keys = true;
+DELETE FROM sessions;
+DROP TABLE IF EXISTS utilisateurs_v2;
 -- ===== Migration : rôle super_admin (SQLite ne modifie pas un CHECK → reconstruction) =====
 CREATE TABLE utilisateurs_v2 (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,4 +23,5 @@ INSERT INTO utilisateurs_v2 (id, email, nom, sel, hash, role, actif, doit_change
 DROP TABLE utilisateurs;
 ALTER TABLE utilisateurs_v2 RENAME TO utilisateurs;
 UPDATE utilisateurs SET role = 'super_admin' WHERE email IN ('wboussard@gmail.com','urgensv@gmail.com');
+
 
