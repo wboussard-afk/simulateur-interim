@@ -341,5 +341,40 @@ const BALISE_ACTIVITE = `<script>
     var ids = { "btn-etude": "etude_prix", "btn-npilote": "solveur_net", "btn-go": "recherche", "btn-dist": "calcul_distance" };
     if (ids[b.id]) abLog(ids[b.id], (document.getElementById("in-q") || {}).value || "");
   }, true);
+
+  /* barre de navigation du portail : retour accueil, admin (si admin), déconnexion */
+  (async function () {
+    try {
+      var r = await fetch("/api/moi", { cache: "no-store" });
+      if (!r.ok) return;
+      var moi = await r.json();
+      var barre = document.createElement("div");
+      barre.style.cssText = "position:fixed;bottom:14px;right:12px;z-index:2147483000;display:flex;gap:6px;" +
+        "font:12.5px 'Segoe UI',system-ui,sans-serif;print-color-adjust:exact";
+      barre.className = "barre-portail";
+      var st = document.createElement("style");
+      st.textContent = "@media print { .barre-portail { display:none !important; } }";
+      document.head.appendChild(st);
+      function btn(txt, href, fond) {
+        var a = document.createElement("a");
+        a.textContent = txt; a.href = href;
+        a.style.cssText = "background:" + fond + ";color:#fff;padding:7px 13px;border-radius:17px;" +
+          "text-decoration:none;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,.3);white-space:nowrap";
+        return a;
+      }
+      var p = location.pathname;
+      var estPortail = (p === "/app" || p === "/app/" || p === "/app/index.html");
+      if (!estPortail) barre.appendChild(btn("⌂ Portail", "/app/", "#C8102E"));
+      if (moi.role === "admin") barre.appendChild(btn("🛡 Admin", "/admin", "#1F2328"));
+      var dec = btn("Quitter", "#", "#5F6670");
+      dec.addEventListener("click", async function (e) {
+        e.preventDefault();
+        try { await fetch("/api/logout", { method: "POST" }); } catch (err) {}
+        location.href = "/";
+      });
+      barre.appendChild(dec);
+      document.body.appendChild(barre);
+    } catch (e) {}
+  })();
 })();
 </script>`;
