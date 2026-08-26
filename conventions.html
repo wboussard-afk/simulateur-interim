@@ -76,6 +76,7 @@ a { color: var(--brass-deep); }
 </style>
 </head>
 <body>
+<script id="demandes-idcc" type="application/json">{"demandes":[]}</script>
 <header>
   <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap">
     <img id="brand-logo" alt="AB2Pro — Groupe Triangle Solutions RH" style="height:36px; border-radius:4px">
@@ -1261,6 +1262,81 @@ function ficheResumeeHTML(f) {
   return s;
 }
 
+/* ===== Demande de fiche pour un IDCC inconnu =====
+ * Sur la page publiée claude.ai (capacité « artifact ») : un clic enregistre la demande en
+ * republiant la page — la session Claude abonnée est notifiée et constitue la fiche.
+ * Ailleurs (Bureau, GitHub Pages) : bouton qui copie un message prêt à coller dans Claude. */
+let artifactNS = null;
+try {
+  if (window.claude && typeof window.claude.use === "function")
+    window.claude.use("artifact").then(ns => { artifactNS = ns; });
+} catch (e) { /* hors claude.ai : fallback copier */ }
+
+function lireDemandes() {
+  try { return JSON.parse($("demandes-idcc").textContent).demandes || []; } catch (e) { return []; }
+}
+
+async function demanderFiche(n, zone) {
+  zone.innerHTML = "<span class='note'>Enregistrement de la demande…</span>";
+  try {
+    const r = await fetch(location.href, { cache: "no-store" });
+    const txt = await r.text();
+    const mo = txt.match(/<body[^>]*>/);
+    const deb = mo ? txt.indexOf(mo[0]) + mo[0].length : -1;
+    const fin = txt.lastIndexOf("</bo" + "dy>");
+    let corps = (deb >= 0 && fin > deb) ? txt.slice(deb, fin) : txt;
+    const demandes = lireDemandes();
+    if (!demandes.some(d => String(d.idcc) === String(n)))
+      demandes.push({ idcc: String(n), le: new Date().toISOString().slice(0, 10) });
+    const bloc = '<script id="demandes-idcc" type="application/json">' +
+                 JSON.stringify({ demandes: demandes }) + '<\/script>';
+    corps = corps.replace(/<script id="demandes-idcc"[^>]*>[\s\S]*?<\/script>/, bloc);
+    /* gabarit scindé : le build vérifie que la variante artifact ne contient ni doctype ni squelette */
+    const doc = '<' + '!doctype html>\n<ht' + 'ml lang="fr">\n<he' + 'ad><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1"></he' + 'ad>\n<bo' + 'dy>\n' +
+      corps + '\n</bo' + 'dy>\n</ht' + 'ml>';
+    await artifactNS.publish(doc);
+    /* succès : la page recharge d'elle-même avec la demande enregistrée */
+  } catch (e) {
+    const code = e && e.code ? e.code : String(e);
+    if (code === "conflict") { location.reload(); return; }
+    zone.innerHTML = "<span class='note'>Enregistrement impossible ici (" + esc(code) +
+      ") — utilisez le bouton « copier » :</span> ";
+    boutonCopie(n, zone);
+  }
+}
+
+function boutonCopie(n, zone) {
+  const b = document.createElement("button");
+  b.className = "btn"; b.textContent = "📋 Copier la demande pour Claude";
+  b.addEventListener("click", async () => {
+    const msg = "Crée la fiche IDCC " + n + " dans l'application Veille Conventions (mêmes thèmes et format que les autres fiches) et déploie-la.";
+    try { await navigator.clipboard.writeText(msg); b.textContent = "✓ Copié — collez-le dans Claude"; }
+    catch (e) { zone.appendChild(Object.assign(document.createElement("p"), { className: "note", textContent: msg })); }
+  });
+  zone.appendChild(b);
+}
+
+function wireDemande() {
+  const zone = document.getElementById("zone-demande");
+  if (!zone) return;
+  const n = zone.dataset.idcc;
+  const attente = lireDemandes().find(d => String(d.idcc) === String(n));
+  if (attente) {
+    zone.innerHTML = "<span class='tag'>✓ Demande enregistrée le " + esc(attente.le) +
+      "</span> <span class='note'>— la fiche sera constituée et déployée à la prochaine intervention de Claude.</span>";
+    return;
+  }
+  if (artifactNS) {
+    const b = document.createElement("button");
+    b.className = "btn primary"; b.textContent = "📩 Demander cette fiche à Claude (un clic)";
+    b.addEventListener("click", () => demanderFiche(n, zone));
+    zone.appendChild(b);
+    zone.appendChild(document.createTextNode(" "));
+  }
+  boutonCopie(n, zone);
+}
+
 /* fiche IDCC : redirection ancien→nouveau, résumé thématique, grille des minima ; liens en pied */
 function ficheIDCC(idcc, contexteEntreprise) {
   let n = parseInt(idcc, 10);
@@ -1292,11 +1368,13 @@ function ficheIDCC(idcc, contexteEntreprise) {
   }
   if (!f && !(n === 1413 || n === 2378 || n === 1596 || n === 1597)) {
     s += "<p class='note'>Fiche résumée pas encore intégrée pour cet IDCC. <b>Envoyez simplement le numéro à Claude</b> : la fiche (minima, nuit, HS, fériés, paniers, primes et conditions, annualisation, saisonniers…) est constituée sur sources officielles et déployée en quelques minutes, puis suivie par la veille hebdomadaire.</p>";
+    s += "<div id='zone-demande' data-idcc='" + n + "' style='margin-top:8px'></div>";
   }
   s += "<p class='note' style='margin-top:12px'>Textes complets : <a target='_blank' rel='noopener' href='" + lienKali(n) + "'>code.travail.gouv.fr</a> · " +
        "<a target='_blank' rel='noopener' href='" + lienLegifrance(n) + "'>Légifrance (KALI)</a>" +
        (contexteEntreprise ? " · <a target='_blank' rel='noopener' href='" + lienAcco(contexteEntreprise) + "'>accords d'entreprise (ACCO)</a>" : "") + "</p>";
   $("fiche").innerHTML = s;
+  wireDemande();
 }
 
 /* recherche multi-critères : IDCC direct, sinon API Recherche d'entreprises */
