@@ -3,94 +3,106 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AB2Pro — Portail des outils</title>
+<title>AB2Pro — Repères salaires Europe</title>
 <style>
-/* ===== Portail AB2Pro : accès unique aux 3 applications ===== */
-:root {
-  --paper:#F5F6F8; --card:#FFFFFF; --card2:#EFF1F4; --ink:#1F2328; --muted:#5F6670;
+:root { --paper:#F5F6F8; --card:#FFFFFF; --card2:#EFF1F4; --ink:#1F2328; --muted:#5F6670;
   --line:#D9DDE3; --line-soft:#E8EBEF; --brass:#C8102E; --brass-deep:#9E0C24;
-  --shadow:0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07);
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --paper:#161719; --card:#1E2024; --card2:#262930; --ink:#ECEDEF; --muted:#9BA2AB;
-    --line:#373B42; --line-soft:#2C3037; --brass:#E4586C; --brass-deep:#F08A97;
-    --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3);
-  }
-}
-:root[data-theme="dark"] {
+  --good:#47713E; --warn:#93660F; --warn-soft:#F1E6C8;
+  --shadow:0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --paper:#161719; --card:#1E2024; --card2:#262930; --ink:#ECEDEF; --muted:#9BA2AB;
   --line:#373B42; --line-soft:#2C3037; --brass:#E4586C; --brass-deep:#F08A97;
-  --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3);
-}
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
-body { background: var(--paper); color: var(--ink); font: 15px/1.5 "Segoe UI", system-ui, sans-serif; min-height: 100vh; }
+  --good:#93BD82; --warn:#D9B45E; --warn-soft:#383018;
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3); } }
+* { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font: 14px/1.5 "Segoe UI", system-ui, sans-serif; }
 h1, h2 { font-family: Cambria, "Iowan Old Style", Georgia, serif; }
-header { background: var(--card); border-bottom: 1px solid var(--line); padding: 22px 20px; text-align: center; }
-header img { height: 46px; border-radius: 5px; }
-header h1 { margin: 10px 0 2px; font-size: 26px; } header h1 b { color: var(--brass); }
-header .sub { color: var(--muted); font-size: 13px; }
-.wrap { max-width: 660px; margin: 0 auto; padding: 22px 18px 60px; display: flex; flex-direction: column; gap: 14px; }
-a.appcard { display: flex; align-items: center; gap: 16px; background: var(--card); border: 1px solid var(--line);
-  border-radius: 12px; box-shadow: var(--shadow); padding: 18px 18px; text-decoration: none; color: var(--ink);
-  transition: transform .08s ease, border-color .08s ease; }
-a.appcard:hover, a.appcard:active { border-color: var(--brass); transform: translateY(-1px); }
-.ico { font-size: 34px; line-height: 1; flex: 0 0 auto; }
-.tt { flex: 1 1 auto; min-width: 0; }
-.tt h2 { margin: 0 0 2px; font-size: 18.5px; }
-.tt p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
-.go { flex: 0 0 auto; color: var(--brass); font-weight: 700; font-size: 20px; }
-.foot { color: var(--muted); font-size: 11.5px; text-align: center; line-height: 1.5; margin-top: 10px; }
-@media (max-width: 480px) { .ico { font-size: 30px; } .tt h2 { font-size: 17px; } }
+header { background: var(--card); border-bottom: 1px solid var(--line); padding: 16px 20px; }
+header .ligne { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+header img { height: 36px; border-radius: 4px; }
+header h1 { margin: 0; font-size: 24px; } header h1 b { color: var(--brass); }
+header .sub { color: var(--muted); font-size: 12.5px; }
+.wrap { max-width: 900px; margin: 0 auto; padding: 16px 20px 70px; display: flex; flex-direction: column; gap: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+.card h2 { font-size: 16px; margin: 0; padding: 10px 16px; border-bottom: 1px solid var(--line-soft);
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.card h2 .eyebrow { margin-left: auto; font: 600 10.5px "Segoe UI", sans-serif; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.card .b { padding: 12px 16px 14px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+td, th { padding: 6px 5px; border-bottom: 1px solid var(--line-soft); text-align: left; vertical-align: top; }
+th { color: var(--muted); font-size: 11.5px; }
+td.n { text-align: right; white-space: nowrap; font-weight: 700; }
+td.net { text-align: right; white-space: nowrap; font-weight: 800; color: var(--brass-deep); font-size: 14px; }
+.note { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+label { display: block; font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
+input[type=number] { width: 160px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 7px;
+  background: var(--card2); color: var(--ink); font: inherit; font-size: 16px; font-weight: 700; }
+.verdict { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.vline { border: 1px solid var(--line); border-left: 4px solid var(--brass); border-radius: 8px;
+  padding: 9px 12px; background: var(--card2); }
+.vline b.mult { font-size: 18px; color: var(--brass-deep); }
+.avert { background: var(--warn-soft); color: var(--warn); border-radius: 8px; padding: 9px 12px; font-size: 12px; }
 </style>
 </head>
 <body>
 <header>
-  <img id="brand-logo" alt="AB2Pro — Groupe Triangle Solutions RH">
-  <h1><b>AB2Pro</b> — Portail des outils</h1>
-  <span class="sub">Intérim &amp; CDD saisonnier · paie &amp; conventions collectives</span>
+  <div class="ligne">
+    <img id="brand-logo" alt="AB2Pro — Groupe Triangle Solutions RH">
+    <h1><b>Repères salaires</b> — Europe de l'Est</h1>
+  </div>
+  <span class="sub">Minima légaux 2026 en net €/heure (Hongrie, Bulgarie, Roumanie) · comparateur pour objectiver les propositions de rémunération.</span>
 </header>
 
 <div class="wrap">
-  <a class="appcard" href="Simulateur Intérim.html">
-    <span class="ico">🌾</span>
-    <span class="tt">
-      <h2>Simulateur Intérim</h2>
-      <p>Étude de prix et construction du net : coefficient, marge, CET, participation logement, indemnités — BTP, industrie, CDD saisonnier agricole. Synthèse PDF client.</p>
-    </span>
-    <span class="go">→</span>
-  </a>
 
-  <a class="appcard" href="Veille Paie.html">
-    <span class="ico">🧾</span>
-    <span class="tt">
-      <h2>Veille Paie</h2>
-      <p>Références du gestionnaire de paie : SMIC en direct, minima BTP par région et niveau, paniers, zones transport/trajet, adresses et distances.</p>
-    </span>
-    <span class="go">→</span>
-  </a>
+  <section class="card">
+    <h2>Comparateur <span class="eyebrow">Confronter une proposition</span></h2>
+    <div class="b">
+      <label for="in-taux">Taux NET €/heure que vous vous apprêtez à proposer au candidat</label>
+      <input id="in-taux" type="number" step="0.10" min="0" placeholder="ex. 11,50">
+      <div class="verdict" id="verdict"></div>
+      <p class="note" style="margin-top:10px">Lecture : un candidat au minimum légal dans son pays gagne le « net €/h » du tableau ci-dessous.
+      Proposer davantage que nécessaire n'accélère pas un recrutement déjà gagné d'avance sur le terrain salarial —
+      l'argumentaire (logement AB Service, accompagnement, heures, durée de mission) fait la différence, pas la surenchère.</p>
+    </div>
+  </section>
 
-  <a class="appcard" href="Veille Conventions.html">
-    <span class="ico">📜</span>
-    <span class="tt">
-      <h2>Veille Conventions</h2>
-      <p>Fiches résumées par convention (26 IDCC) : minima, nuit, HS, fériés, paniers, primes et conditions — recherche par entreprise, SIREN ou n° IDCC, redirection des anciens codes.</p>
-    </span>
-    <span class="go">→</span>
-  </a>
+  <section class="card">
+    <h2>Minima légaux 2026 <span class="eyebrow">Sources officielles</span></h2>
+    <div class="b">
+      <table id="t-minima"></table>
+      <p class="note" style="margin-top:8px">
+        Hongrie : minimum général (minimálbér) 322 800 HUF et minimum qualifié (garantált bérminimum) 373 200 HUF au 01/01/2026 ;
+        salariés de moins de 25 ans exonérés d'impôt sur le revenu (leur net est ≈ 22 % plus élevé que le net affiché).
+        Bulgarie : passée à l'euro au 01/01/2026 — minimum 620,20 €/mois (7,31 BGN/h convertis).
+        Roumanie : 4 050 RON au 01/01/2026 puis <b>4 325 RON au 01/07/2026</b> (net estimé ≈ 2 739 RON avec la franchise de 300 RON).
+        Base : impôts et cotisations SALARIÉ du pays (HU : 15 % IR + 18,5 % cotisations ; BG : ≈ 13,8 % cotisations puis 10 % IR ; RO : 25 % CAS + 10 % CASS + 10 % IR après franchise).
+      </p>
+    </div>
+  </section>
 
-  <a class="appcard" href="Salaires Europe.html">
-    <span class="ico">🌍</span>
-    <span class="tt">
-      <h2>Repères salaires Europe</h2>
-      <p>Minima légaux 2026 (Hongrie, Bulgarie, Roumanie) en net €/heure + comparateur : objectiver les propositions de rémunération au recrutement.</p>
-    </span>
-    <span class="go">→</span>
-  </a>
+  <section class="card">
+    <h2>Repères de réalité <span class="eyebrow">Salaires moyens</span></h2>
+    <div class="b">
+      <table>
+        <tr><th>Pays</th><th class="n">Salaire MOYEN brut/mois</th><th class="n">≈ en €</th><th class="n">≈ net €/h</th></tr>
+        <tr><td>🇭🇺 Hongrie (KSH, 2025)</td><td class="n">≈ 570 000 HUF</td><td class="n">≈ 1 566 €</td><td class="net">≈ 5,99 €/h</td></tr>
+        <tr><td>🇧🇬 Bulgarie (indicatif)</td><td class="n">≈ 1 300 €</td><td class="n">1 300 €</td><td class="net">≈ 6,00 €/h</td></tr>
+        <tr><td>🇷🇴 Roumanie (indicatif)</td><td class="n">≈ 8 500 RON</td><td class="n">≈ 1 623 €</td><td class="net">≈ 5,90 €/h</td></tr>
+        <tr><td>🇫🇷 France — SMIC (référence)</td><td class="n">1 823,04 €</td><td class="n">1 823 €</td><td class="net">≈ 9,49 €/h</td></tr>
+      </table>
+      <p class="note" style="margin-top:8px">Moyennes TOUS secteurs et toutes qualifications confondues (cadres inclus) — un ouvrier de production
+      gagne généralement MOINS que la moyenne nationale. Valeurs bulgares et roumaines indicatives (ordres de grandeur,
+      affinées par la veille) ; moyenne hongroise sourcée KSH 2025. SMIC français : net estimé ≈ 78 % du brut.</p>
+    </div>
+  </section>
 
-  <p class="foot">Mise à jour continue — les grilles et fiches sont surveillées par une veille hebdomadaire.<br>
-  Groupe Triangle Solutions RH · AB2Pro. Usage interne.</p>
+  <div class="avert">⚠ Ces repères servent au PILOTAGE DU RECRUTEMENT (objectiver une négociation). En mission en France,
+  la rémunération reste régie par l'égalité de traitement française (minima conventionnels français, égalité avec les
+  salariés de l'entreprise utilisatrice) — jamais par les minima du pays d'origine. Taux de change du 08/2026
+  (1 € ≈ 363,9 HUF ≈ 5,238 RON) — actualisés par la veille.</div>
+
+  <p class="note" style="text-align:center">Relevé le 27/08/2026 · sources : gouvernements nationaux, presse sociale spécialisée, KSH · surveillance par la veille hebdomadaire.</p>
 </div>
 
 <script>
@@ -231,6 +243,43 @@ var LOGO_AB2PRO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgEAKAAoAAD/2wBDAAICAg
 </script>
 <script>
 document.getElementById("brand-logo").src = LOGO_AB2PRO;
+
+/* ===== données (mises à jour par la veille) ===== */
+const FX = { HUF: 363.9, RON: 5.238 };              // 1 € en devise, 08/2026
+const HEURES_MOIS = { HU: 174, BG: 168, RO: 168, FR: 151.67 };
+const PAYS = [
+  { code: "HU", nom: "🇭🇺 Hongrie — minimum général", brutLocal: "322 800 HUF", brutEur: 322800 / FX.HUF,
+    netEur: 322800 * 0.665 / FX.HUF, netH: 322800 * 0.665 / FX.HUF / HEURES_MOIS.HU },
+  { code: "HU2", nom: "🇭🇺 Hongrie — minimum QUALIFIÉ", brutLocal: "373 200 HUF", brutEur: 373200 / FX.HUF,
+    netEur: 373200 * 0.665 / FX.HUF, netH: 373200 * 0.665 / FX.HUF / HEURES_MOIS.HU },
+  { code: "BG", nom: "🇧🇬 Bulgarie (en euro depuis 01/2026)", brutLocal: "620,20 €", brutEur: 620.20,
+    netEur: 620.20 * 0.8622 * 0.9, netH: 620.20 * 0.8622 * 0.9 / HEURES_MOIS.BG },
+  { code: "RO", nom: "🇷🇴 Roumanie (au 01/07/2026)", brutLocal: "4 325 RON", brutEur: 4325 / FX.RON,
+    netEur: 2739 / FX.RON, netH: 2739 / FX.RON / HEURES_MOIS.RO },
+  { code: "FR", nom: "🇫🇷 France — SMIC (référence)", brutLocal: "1 823,04 €", brutEur: 1823.04,
+    netEur: 1823.04 * 0.78, netH: 1823.04 * 0.78 / HEURES_MOIS.FR },
+];
+const eur = v => v.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+
+const t = document.getElementById("t-minima");
+t.innerHTML = "<tr><th>Pays — minimum légal</th><th class='n'>Brut/mois (local)</th><th class='n'>≈ Brut €</th><th class='n'>≈ Net €/mois</th><th class='n'>Net €/HEURE</th></tr>" +
+  PAYS.map(p => "<tr><td>" + p.nom + "</td><td class='n'>" + p.brutLocal + "</td><td class='n'>" + eur(p.brutEur) +
+    "</td><td class='n'>" + eur(p.netEur) + "</td><td class='net'>" + eur(p.netH) + "/h</td></tr>").join("");
+
+const inTaux = document.getElementById("in-taux");
+const zone = document.getElementById("verdict");
+function verdict() {
+  const t = parseFloat(String(inTaux.value).replace(",", "."));
+  if (!t || t <= 0) { zone.innerHTML = ""; return; }
+  zone.innerHTML = PAYS.filter(p => p.code !== "HU2").map(p => {
+    const m = t / p.netH;
+    return "<div class='vline'>" + p.nom.replace(/—.*$/, "") + " : <b class='mult'>× " + m.toLocaleString("fr-FR", { maximumFractionDigits: 1 }) +
+      "</b> le minimum net horaire" + (p.code === "FR" ? " (SMIC net)" : " du pays") +
+      " <span class='note'>(" + eur(p.netH) + "/h là-bas contre " + eur(t) + "/h proposé)</span></div>";
+  }).join("");
+  if (window.abLog) abLog("comparateur_salaires_europe", String(t));
+}
+inTaux.addEventListener("input", verdict);
 </script>
 </body>
 </html>
