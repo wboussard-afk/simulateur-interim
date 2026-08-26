@@ -2,6 +2,11 @@
 main = "src/worker.js"
 compatibility_date = "2026-08-01"
 
+routes = [
+  { pattern = "ab2pro-simulateur.com", custom_domain = true },
+  { pattern = "www.ab2pro-simulateur.com", custom_domain = true }
+]
+
 # Fichiers statiques (connexion, admin, applications) â€” servis UNIQUEMENT via le Worker (contrÃ´le de session)
 [assets]
 directory = "assets"
@@ -19,6 +24,7 @@ database_id = "5ced4603-9318-4f6a-b372-85da4f2fa910"   # <- coller l'id renvoyÃ
 #   RESEND_API_KEY  â€” clÃ© API Resend (e-mails demandes d'accÃ¨s / invitations)
 # Variable optionnelle :
 [vars]
-EMAIL_FROM = "AB2Pro <onboarding@resend.dev>"   # aprÃ¨s vÃ©rification d'un domaine chez Resend : "AB2Pro <acces@votredomaine.fr>"
+EMAIL_FROM = "AB2Pro <acces@ab2pro-simulateur.com>"
+
 
 
