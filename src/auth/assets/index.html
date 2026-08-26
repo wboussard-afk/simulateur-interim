@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AB2Pro — Connexion</title>
+<style>
+:root { --paper:#F5F6F8; --card:#FFFFFF; --card2:#EFF1F4; --ink:#1F2328; --muted:#5F6670;
+  --line:#D9DDE3; --brass:#C8102E; --brass-deep:#9E0C24;
+  --shadow:0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper:#161719; --card:#1E2024; --card2:#262930; --ink:#ECEDEF; --muted:#9BA2AB;
+  --line:#373B42; --brass:#E4586C; --brass-deep:#F08A97;
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3); } }
+* { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.5 "Segoe UI", system-ui, sans-serif;
+  min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 18px; }
+.boite { width: 100%; max-width: 400px; background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; box-shadow: var(--shadow); padding: 26px 24px; }
+h1 { font-family: Cambria, Georgia, serif; font-size: 23px; margin: 0 0 2px; text-align: center; }
+h1 b { color: var(--brass); }
+.sous { color: var(--muted); font-size: 12.5px; text-align: center; margin-bottom: 18px; }
+label { display: block; font-size: 11.5px; color: var(--muted); font-weight: 600; margin: 12px 0 3px; }
+input, textarea { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 7px;
+  background: var(--card2); color: var(--ink); font: inherit; }
+button { width: 100%; margin-top: 16px; padding: 11px; border: none; border-radius: 7px;
+  background: var(--brass); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+button.sec { background: none; border: 1px solid var(--line); color: var(--ink); font-weight: 400; margin-top: 8px; }
+.msg { margin-top: 12px; font-size: 13px; text-align: center; min-height: 18px; }
+.msg.err { color: var(--brass-deep); } .msg.ok { color: #47713E; }
+.pied { margin-top: 16px; font-size: 11px; color: var(--muted); text-align: center; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="boite">
+  <h1><b>AB2Pro</b> — Outils</h1>
+  <div class="sous">Simulateur · Veille Paie · Veille Conventions</div>
+
+  <form id="f-login">
+    <label>E-mail</label>
+    <input id="l-email" type="email" autocomplete="username" required>
+    <label>Mot de passe</label>
+    <input id="l-mdp" type="password" autocomplete="current-password" required>
+    <button type="submit">Se connecter</button>
+    <button type="button" class="sec" id="btn-vers-demande">Demander un accès</button>
+    <div class="msg" id="l-msg"></div>
+  </form>
+
+  <form id="f-demande" hidden>
+    <label>Nom et prénom</label>
+    <input id="d-nom" required>
+    <label>E-mail professionnel</label>
+    <input id="d-email" type="email" required>
+    <label>Motif (poste, agence…)</label>
+    <textarea id="d-motif" rows="2"></textarea>
+    <button type="submit">Envoyer la demande</button>
+    <button type="button" class="sec" id="btn-vers-login">← Retour à la connexion</button>
+    <div class="msg" id="d-msg"></div>
+  </form>
+
+  <div class="pied">Accès sur approbation des administrateurs.<br>Groupe Triangle Solutions RH · AB2Pro.</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+$("btn-vers-demande").onclick = () => { $("f-login").hidden = true; $("f-demande").hidden = false; };
+$("btn-vers-login").onclick = () => { $("f-demande").hidden = true; $("f-login").hidden = false; };
+
+$("f-login").addEventListener("submit", async e => {
+  e.preventDefault();
+  const m = $("l-msg"); m.className = "msg"; m.textContent = "Connexion…";
+  const r = await fetch("/api/login", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: $("l-email").value, motdepasse: $("l-mdp").value }) });
+  const j = await r.json().catch(() => ({}));
+  if (r.ok && j.ok) {
+    if (j.doit_changer_mdp) { location.href = "/motdepasse.html"; return; }
+    const suite = new URLSearchParams(location.search).get("suite");
+    location.href = suite && suite.startsWith("/app") ? suite : "/app/";
+  } else {
+    m.className = "msg err";
+    m.textContent = j.erreur === "verrouille" ? "Compte verrouillé " + j.minutes + " min (5 échecs)." :
+                    "E-mail ou mot de passe incorrect.";
+  }
+});
+
+$("f-demande").addEventListener("submit", async e => {
+  e.preventDefault();
+  const m = $("d-msg"); m.className = "msg"; m.textContent = "Envoi…";
+  const r = await fetch("/api/demande-acces", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ nom: $("d-nom").value, email: $("d-email").value, motif: $("d-motif").value }) });
+  const j = await r.json().catch(() => ({}));
+  if (r.ok && j.ok) { m.className = "msg ok"; m.textContent = j.deja ? "Demande déjà en attente — les administrateurs ont été prévenus." : "✓ Demande envoyée aux administrateurs — vous recevrez un e-mail après approbation."; }
+  else { m.className = "msg err"; m.textContent = j.erreur === "deja_utilisateur" ? "Cet e-mail a déjà un compte — utilisez la connexion." : "Demande invalide — vérifiez les champs."; }
+});
+</script>
+</body>
+</html>

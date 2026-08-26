@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AB2Pro — Mot de passe</title>
+<style>
+:root { --paper:#F5F6F8; --card:#FFFFFF; --card2:#EFF1F4; --ink:#1F2328; --muted:#5F6670;
+  --line:#D9DDE3; --brass:#C8102E; --brass-deep:#9E0C24;
+  --shadow:0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper:#161719; --card:#1E2024; --card2:#262930; --ink:#ECEDEF; --muted:#9BA2AB;
+  --line:#373B42; --brass:#E4586C; --brass-deep:#F08A97;
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3); } }
+* { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.5 "Segoe UI", system-ui, sans-serif;
+  min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 18px; }
+.boite { width: 100%; max-width: 400px; background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; box-shadow: var(--shadow); padding: 26px 24px; }
+h1 { font-family: Cambria, Georgia, serif; font-size: 21px; margin: 0 0 14px; text-align: center; }
+h1 b { color: var(--brass); }
+label { display: block; font-size: 11.5px; color: var(--muted); font-weight: 600; margin: 12px 0 3px; }
+input { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 7px;
+  background: var(--card2); color: var(--ink); font: inherit; }
+button { width: 100%; margin-top: 16px; padding: 11px; border: none; border-radius: 7px;
+  background: var(--brass); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+.msg { margin-top: 12px; font-size: 13px; text-align: center; min-height: 18px; }
+.msg.err { color: var(--brass-deep); } .note { font-size: 11.5px; color: var(--muted); margin-top: 6px; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="boite">
+  <h1><b>AB2Pro</b> — Définir le mot de passe</h1>
+  <form id="f">
+    <div id="bloc-ancien">
+      <label>Mot de passe actuel (ou temporaire)</label>
+      <input id="ancien" type="password" autocomplete="current-password">
+    </div>
+    <label>Nouveau mot de passe (10 caractères minimum)</label>
+    <input id="n1" type="password" autocomplete="new-password" required minlength="10">
+    <label>Confirmez</label>
+    <input id="n2" type="password" autocomplete="new-password" required>
+    <button type="submit">Enregistrer et entrer</button>
+    <div class="msg" id="msg"></div>
+    <div class="note">Conseil : une phrase de passe (3-4 mots) est plus sûre et plus simple à retenir.</div>
+  </form>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const invite = new URLSearchParams(location.search).get("invite");
+if (invite) $("bloc-ancien").hidden = true;
+$("f").addEventListener("submit", async e => {
+  e.preventDefault();
+  const m = $("msg"); m.className = "msg";
+  if ($("n1").value !== $("n2").value) { m.className = "msg err"; m.textContent = "Les deux saisies diffèrent."; return; }
+  m.textContent = "Enregistrement…";
+  const corps = { nouveau: $("n1").value };
+  if (invite) corps.invite = invite; else corps.ancien = $("ancien").value;
+  const r = await fetch("/api/motdepasse", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(corps) });
+  const j = await r.json().catch(() => ({}));
+  if (r.ok && j.ok) location.href = "/app/";
+  else { m.className = "msg err";
+    m.textContent = j.erreur === "invitation_invalide" ? "Lien d'invitation expiré — demandez une réinvitation à un administrateur." :
+                    j.erreur === "ancien_incorrect" ? "Mot de passe actuel incorrect." :
+                    j.erreur === "mot_de_passe_trop_court" ? "10 caractères minimum." : "Erreur — réessayez."; }
+});
+</script>
+</body>
+</html>

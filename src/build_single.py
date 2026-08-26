@@ -70,3 +70,13 @@ artc = artc.replace('</head>\n<body>\n', '').replace('</body>\n</html>\n', '')
 open(base + r"\app\artifact-conventions.html", 'w', encoding='utf-8').write(artc)
 assert '<html' not in artc and '</body>' not in artc and '<title>' in artc[:8000]
 print("artifact-conventions.html:", len(artc), "bytes")
+
+# ===== Portail sécurisé Cloudflare : alimente auth/assets/app/ si le dossier existe =====
+auth_app = os.path.join(base, "auth", "assets", "app")
+if os.path.isdir(os.path.join(base, "auth")):
+    os.makedirs(auth_app, exist_ok=True)
+    for src_name, dst_name in [("portail-github.html", "index.html"), ("simulateur-agri.html", "simulateur.html"),
+                               ("veille-paie.html", "paie.html"), ("veille-conventions.html", "conventions.html")]:
+        data = open(base + r"\app" + "\\" + src_name, encoding='utf-8').read()
+        open(os.path.join(auth_app, dst_name), 'w', encoding='utf-8').write(data)
+    print("auth/assets/app/ alimenté (4 pages protégées)")

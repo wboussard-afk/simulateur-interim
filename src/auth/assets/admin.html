@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AB2Pro — Administration</title>
+<style>
+:root { --paper:#F5F6F8; --card:#FFFFFF; --card2:#EFF1F4; --ink:#1F2328; --muted:#5F6670;
+  --line:#D9DDE3; --line-soft:#E8EBEF; --brass:#C8102E; --brass-deep:#9E0C24; --good:#47713E;
+  --warn:#93660F; --warn-soft:#F1E6C8;
+  --shadow:0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper:#161719; --card:#1E2024; --card2:#262930; --ink:#ECEDEF; --muted:#9BA2AB;
+  --line:#373B42; --line-soft:#2C3037; --brass:#E4586C; --brass-deep:#F08A97; --good:#93BD82;
+  --warn:#D9B45E; --warn-soft:#383018;
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3); } }
+* { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font: 14px/1.5 "Segoe UI", system-ui, sans-serif; }
+header { background: var(--card); border-bottom: 1px solid var(--line); padding: 14px 20px;
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+header h1 { font-family: Cambria, Georgia, serif; font-size: 21px; margin: 0; } header h1 b { color: var(--brass); }
+header .qui { margin-left: auto; color: var(--muted); font-size: 12.5px; }
+header a { color: var(--brass-deep); }
+.wrap { max-width: 1060px; margin: 0 auto; padding: 16px 20px 70px; display: flex; flex-direction: column; gap: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+.card h2 { font-size: 16px; margin: 0; padding: 10px 16px; border-bottom: 1px solid var(--line-soft); font-family: Cambria, Georgia, serif; }
+.card .b { padding: 12px 16px 14px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+td, th { padding: 6px 6px; border-bottom: 1px solid var(--line-soft); text-align: left; vertical-align: top; }
+th { color: var(--muted); font-size: 11.5px; }
+.btn { border: 1px solid var(--line); background: var(--card2); color: var(--ink); border-radius: 6px;
+  padding: 4px 10px; font: inherit; font-size: 12.5px; cursor: pointer; margin: 1px 2px; }
+.btn.p { background: var(--brass); border-color: var(--brass); color: #fff; }
+.btn:hover { border-color: var(--brass); }
+.tag { display: inline-block; background: var(--warn-soft); color: var(--warn); border-radius: 10px; padding: 0 8px; font-size: 11px; font-weight: 700; }
+.tag.a { background: rgba(71,113,62,.15); color: var(--good); }
+input, select { padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--card2); color: var(--ink); font: inherit; font-size: 13px; }
+.filtres { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.note { font-size: 11.5px; color: var(--muted); }
+.vide { color: var(--muted); font-size: 13px; padding: 6px 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1><b>AB2Pro</b> — Administration</h1>
+  <span class="qui" id="qui"></span>
+  <a href="/app/">→ Portail</a>
+  <a href="#" id="btn-sortie">Déconnexion</a>
+</header>
+
+<div class="wrap">
+  <section class="card">
+    <h2>Demandes d'accès en attente</h2>
+    <div class="b" id="z-demandes"><div class="vide">Chargement…</div></div>
+  </section>
+
+  <section class="card">
+    <h2>Utilisateurs</h2>
+    <div class="b" id="z-utilisateurs"><div class="vide">Chargement…</div></div>
+  </section>
+
+  <section class="card">
+    <h2>Journal d'activité <span class="note">(500 dernières entrées)</span></h2>
+    <div class="b">
+      <div class="filtres">
+        <input id="f-email" placeholder="Filtrer par e-mail…">
+        <select id="f-type">
+          <option value="">Tous les types</option>
+          <option value="connexion">Connexions</option>
+          <option value="connexion_echec">Échecs de connexion</option>
+          <option value="page">Pages ouvertes</option>
+          <option value="etude_prix">Études de prix (PDF)</option>
+          <option value="impression_pdf">Impressions</option>
+          <option value="solveur_net">Solveur de net</option>
+          <option value="recherche">Recherches (IDCC/entreprises)</option>
+          <option value="calcul_distance">Calculs de distance</option>
+          <option value="demande_acces">Demandes d'accès</option>
+        </select>
+        <button class="btn p" id="btn-logs">Actualiser</button>
+      </div>
+      <div id="z-logs"><div class="vide">Chargement…</div></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const post = (u, o) => fetch(u, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(o || {}) }).then(r => r.json());
+
+async function charger() {
+  const moi = await fetch("/api/moi").then(r => r.ok ? r.json() : null);
+  if (!moi) { location.href = "/"; return; }
+  $("qui").textContent = moi.email + " (admin)";
+  const a = await fetch("/api/admin/apercu").then(r => r.json());
+
+  const zd = $("z-demandes");
+  if (!a.demandes.length) zd.innerHTML = "<div class='vide'>Aucune demande en attente.</div>";
+  else zd.innerHTML = "<table><tr><th>Date</th><th>Nom</th><th>E-mail</th><th>Motif</th><th></th></tr>" +
+    a.demandes.map(d => "<tr><td>" + esc(d.cree_le) + "</td><td>" + esc(d.nom) + "</td><td>" + esc(d.email) +
+      "</td><td>" + esc(d.motif) + "</td><td>" +
+      "<button class='btn p' data-app='" + d.id + "'>Approuver</button>" +
+      "<button class='btn' data-appadm='" + d.id + "'>Approuver admin</button>" +
+      "<button class='btn' data-ref='" + d.id + "'>Refuser</button></td></tr>").join("") + "</table>";
+  zd.querySelectorAll("[data-app]").forEach(b => b.onclick = () => approuver(b.dataset.app, "user"));
+  zd.querySelectorAll("[data-appadm]").forEach(b => b.onclick = () => approuver(b.dataset.appadm, "admin"));
+  zd.querySelectorAll("[data-ref]").forEach(b => b.onclick = async () => { await post("/api/admin/refuser", { id: +b.dataset.ref }); charger(); });
+
+  const zu = $("z-utilisateurs");
+  zu.innerHTML = "<table><tr><th>E-mail</th><th>Nom</th><th>Rôle</th><th>État</th><th>Créé</th><th></th></tr>" +
+    a.utilisateurs.map(x => "<tr><td>" + esc(x.email) + "</td><td>" + esc(x.nom) + "</td>" +
+      "<td>" + (x.role === "admin" ? "<span class='tag a'>admin</span>" : "user") + "</td>" +
+      "<td>" + (x.actif ? (x.doit_changer_mdp ? "<span class='tag'>invitation en cours</span>" : "actif") : "<span class='tag'>désactivé</span>") + "</td>" +
+      "<td>" + esc((x.cree_le || "").slice(0, 10)) + " <span class='note'>par " + esc(x.cree_par) + "</span></td><td>" +
+      "<button class='btn' data-role='" + x.id + "' data-vers='" + (x.role === "admin" ? "user" : "admin") + "'>" + (x.role === "admin" ? "Rétrograder" : "Promouvoir admin") + "</button>" +
+      "<button class='btn' data-actif='" + x.id + "' data-vers='" + (x.actif ? 0 : 1) + "'>" + (x.actif ? "Désactiver" : "Réactiver") + "</button>" +
+      "<button class='btn' data-inv='" + x.id + "'>Réinviter</button></td></tr>").join("") + "</table>";
+  zu.querySelectorAll("[data-role]").forEach(b => b.onclick = async () => {
+    const j = await post("/api/admin/role", { id: +b.dataset.role, role: b.dataset.vers });
+    if (j.erreur === "pas_soi_meme") alert("On ne modifie pas son propre compte."); charger(); });
+  zu.querySelectorAll("[data-actif]").forEach(b => b.onclick = async () => {
+    const j = await post("/api/admin/actif", { id: +b.dataset.actif, actif: +b.dataset.vers });
+    if (j.erreur === "pas_soi_meme") alert("On ne modifie pas son propre compte."); charger(); });
+  zu.querySelectorAll("[data-inv]").forEach(b => b.onclick = async () => {
+    const j = await post("/api/admin/reinviter", { id: +b.dataset.inv });
+    alert(j.ok ? "Invitation renvoyée par e-mail.\nLien direct (si besoin) : " + j.lien : "Erreur."); });
+}
+
+async function approuver(id, role) {
+  const j = await post("/api/admin/approuver", { id: +id, role: role });
+  if (j.ok) alert("Accès " + (role === "admin" ? "ADMIN " : "") + "approuvé — l'utilisateur a reçu son lien par e-mail.\nLien direct (si besoin) : " + j.lien);
+  else alert("Erreur : " + (j.erreur || "inconnue"));
+  charger();
+}
+
+async function chargerLogs() {
+  const q = new URLSearchParams();
+  if ($("f-email").value) q.set("email", $("f-email").value);
+  if ($("f-type").value) q.set("type", $("f-type").value);
+  const j = await fetch("/api/admin/logs?" + q).then(r => r.json());
+  $("z-logs").innerHTML = !j.logs.length ? "<div class='vide'>Aucune entrée.</div>" :
+    "<table><tr><th>Horodatage (UTC)</th><th>Utilisateur</th><th>Action</th><th>Détails</th><th>Page</th><th>IP</th></tr>" +
+    j.logs.map(l => "<tr><td>" + esc(l.ts) + "</td><td>" + esc(l.email || "—") + "</td><td>" + esc(l.type) +
+      "</td><td>" + esc(l.details) + "</td><td>" + esc(l.page) + "</td><td class='note'>" + esc(l.ip) + "</td></tr>").join("") + "</table>";
+}
+
+$("btn-logs").onclick = chargerLogs;
+$("btn-sortie").onclick = async e => { e.preventDefault(); await post("/api/logout"); location.href = "/"; };
+charger(); chargerLogs();
+</script>
+</body>
+</html>

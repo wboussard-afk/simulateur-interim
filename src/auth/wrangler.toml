@@ -1,0 +1,20 @@
+name = "ab2pro-outils"
+main = "src/worker.js"
+compatibility_date = "2026-08-01"
+
+# Fichiers statiques (connexion, admin, applications) — servis UNIQUEMENT via le Worker (contrôle de session)
+[assets]
+directory = "assets"
+binding = "ASSETS"
+run_worker_first = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ab2pro-auth"
+database_id = "REMPLACER_PAR_ID_D1"   # <- coller l'id renvoyé par : wrangler d1 create ab2pro-auth
+
+# Secrets (à définir via `wrangler secret put`, JAMAIS en clair ici) :
+#   RESEND_API_KEY  — clé API Resend (e-mails demandes d'accès / invitations)
+# Variable optionnelle :
+[vars]
+EMAIL_FROM = "AB2Pro <onboarding@resend.dev>"   # après vérification d'un domaine chez Resend : "AB2Pro <acces@votredomaine.fr>"
