@@ -1,5 +1,6 @@
 /* ===== AB2Pro — Worker d'authentification, rôles et journal d'activité =====
- * Protège les 3 applications (simulateur, Veille Paie, Veille Conventions) + portail.
+ * Protège les 4 applications (simulateur, Veille Paie, Veille Conventions, Salaires Europe & Maghreb) + portail,
+ * avec accès PAR SECTION choisi par les admins (utilisateurs.sections, NULL = tout).
  * D1 : utilisateurs, sessions, demandes_acces, activites (voir schema.sql).
  * E-mails immédiats aux admins via Resend (secret RESEND_API_KEY).
  * Les fichiers statiques (assets/) ne sont servis qu'après session valide. */
@@ -11,6 +12,20 @@ const ADMINS = ["wboussard@gmail.com", "urgensv@gmail.com"];
  * réinviter un admin/super_admin. Un super_admin ne peut JAMAIS être rétrogradé ni désactivé. */
 const estAdmin = x => !!x && (x.role === "admin" || x.role === "super_admin");
 const estSuper = x => !!x && x.role === "super_admin";
+
+/* Accès par section : l'admin choisit les applications visibles par chaque utilisateur.
+ * utilisateurs.sections = NULL → accès à tout (héritage) ; sinon tableau JSON de slugs.
+ * Les admins et super admins voient toujours tout. */
+const SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe"];
+function sectionsDe(x) {
+  if (!x) return [];
+  if (estAdmin(x)) return SECTIONS_APPS;
+  if (x.sections == null || x.sections === "") return SECTIONS_APPS;
+  try {
+    const l = JSON.parse(x.sections);
+    return Array.isArray(l) ? l.filter(s => SECTIONS_APPS.includes(s)) : SECTIONS_APPS;
+  } catch (e) { return SECTIONS_APPS; }
+}
 const SESSION_MS = 12 * 3600 * 1000;       // 12 h glissantes
 const INVITE_MS = 72 * 3600 * 1000;        // lien d'invitation 72 h
 const PBKDF2_ITER = 100000;
@@ -76,7 +91,7 @@ async function utilisateurDeSession(env, req) {
   const m = (req.headers.get("cookie") || "").match(/(?:^|;\s*)session=([0-9a-f]{64})/);
   if (!m) return null;
   const r = await env.DB.prepare(
-    "SELECT u.id, u.email, u.nom, u.role, u.actif, u.doit_changer_mdp, s.token, s.expire_le " +
+    "SELECT u.id, u.email, u.nom, u.role, u.actif, u.doit_changer_mdp, u.sections, s.token, s.expire_le " +
     "FROM sessions s JOIN utilisateurs u ON u.id = s.user_id WHERE s.token = ?").bind(m[1]).first();
   if (!r || !r.actif || r.expire_le < Date.now()) return null;
   if (r.expire_le < Date.now() + SESSION_MS / 2)   // prolongation glissante
@@ -119,11 +134,17 @@ export default {
       if (!u) return Response.redirect(url.origin + "/?suite=" + encodeURIComponent(p), 302);
       if (u.doit_changer_mdp) return Response.redirect(url.origin + "/motdepasse.html", 302);
       const cible = (p === "/app" || p === "/app/") ? "/app/index.html" : p;
+      const mSec = cible.match(/^\/app\/([a-z][a-z-]*)\.html$/);
+      if (mSec && SECTIONS_APPS.includes(mSec[1]) && !sectionsDe(u).includes(mSec[1])) {
+        await journal(env, req, u, "acces_refuse_section", mSec[1], cible);
+        return new Response(PAGE_SECTION_REFUSEE, { status: 403, headers: { "content-type": "text/html; charset=utf-8" } });
+      }
       const rep = await env.ASSETS.fetch(new Request(url.origin + cible, req));
       const ct = rep.headers.get("content-type") || "";
       if (rep.ok && ct.includes("text/html")) {
         await journal(env, req, u, "page", "", cible);
         let html = await rep.text();
+        html = html.replace("</head>", "<script>window.AB_SECTIONS=" + JSON.stringify(sectionsDe(u)) + ";</script></head>");
         html = html.replace("</body>", BALISE_ACTIVITE + "</body>");
         return new Response(html, { headers: rep.headers });
       }
@@ -141,7 +162,7 @@ async function api(req, env, url, u) {
 
   /* -- session -- */
   if (p === "/api/moi")
-    return u ? json({ email: u.email, nom: u.nom, role: u.role, doit_changer_mdp: !!u.doit_changer_mdp })
+    return u ? json({ email: u.email, nom: u.nom, role: u.role, doit_changer_mdp: !!u.doit_changer_mdp, sections: sectionsDe(u) })
              : json({ erreur: "non_connecte" }, 401);
 
   if (p === "/api/login" && req.method === "POST") {
@@ -264,8 +285,8 @@ async function api(req, env, url, u) {
 
     if (p === "/api/admin/apercu") {
       const dem = await env.DB.prepare("SELECT * FROM demandes_acces WHERE statut = 'en_attente' ORDER BY id DESC").all();
-      const usr = await env.DB.prepare("SELECT id, email, nom, role, actif, doit_changer_mdp, cree_le, cree_par FROM utilisateurs ORDER BY id").all();
-      return json({ demandes: dem.results, utilisateurs: usr.results });
+      const usr = await env.DB.prepare("SELECT id, email, nom, role, actif, doit_changer_mdp, cree_le, cree_par, sections FROM utilisateurs ORDER BY id").all();
+      return json({ demandes: dem.results, utilisateurs: usr.results, sections_apps: SECTIONS_APPS });
     }
 
     if (p === "/api/admin/test-email") {
@@ -294,9 +315,12 @@ async function api(req, env, url, u) {
       if (!d) return json({ erreur: "demande_introuvable" }, 404);
       const invite = alea(24);
       const sel = alea(16), hprov = await pbkdf2(alea(16), sel); // mot de passe provisoire inutilisable : passage obligé par le lien
+      /* sections choisies par l'admin à l'approbation (rôle user seulement ; absence = accès à tout) */
+      const secsApprob = (corps.role !== "admin" && Array.isArray(corps.sections))
+        ? JSON.stringify(corps.sections.map(String).filter(s => SECTIONS_APPS.includes(s))) : null;
       await env.DB.prepare(
-        "INSERT INTO utilisateurs (email, nom, sel, hash, role, doit_changer_mdp, invite_token, invite_expire, cree_par) VALUES (?,?,?,?,?,1,?,?,?)")
-        .bind(d.email, d.nom, sel, hprov, corps.role === "admin" ? "admin" : "user", invite, Date.now() + INVITE_MS, u.email).run();
+        "INSERT INTO utilisateurs (email, nom, sel, hash, role, doit_changer_mdp, invite_token, invite_expire, cree_par, sections) VALUES (?,?,?,?,?,1,?,?,?,?)")
+        .bind(d.email, d.nom, sel, hprov, corps.role === "admin" ? "admin" : "user", invite, Date.now() + INVITE_MS, u.email, secsApprob).run();
       await env.DB.prepare("UPDATE demandes_acces SET statut = 'approuvee', traite_par = ?, traite_le = datetime('now') WHERE id = ?").bind(u.email, d.id).run();
       const lien = url.origin + "/motdepasse.html?invite=" + invite;
       await envoyerEmail(env, d.email, "AB2Pro — votre accès est ouvert",
@@ -338,6 +362,17 @@ async function api(req, env, url, u) {
       return json({ ok: true });
     }
 
+    if (p === "/api/admin/sections" && req.method === "POST") {
+      const cible = await env.DB.prepare("SELECT * FROM utilisateurs WHERE id = ?").bind(corps.id | 0).first();
+      if (!cible) return json({ erreur: "utilisateur_introuvable" }, 404);
+      if (cible.role !== "user") return json({ erreur: "admins_acces_total" }, 400); // un admin voit toujours tout
+      const secs = Array.isArray(corps.sections) ? corps.sections.map(String).filter(s => SECTIONS_APPS.includes(s)) : null;
+      if (secs === null) return json({ erreur: "sections_invalides" }, 400);
+      await env.DB.prepare("UPDATE utilisateurs SET sections = ? WHERE id = ?").bind(JSON.stringify(secs), cible.id).run();
+      await journal(env, req, u, "admin_sections", cible.email + " → " + (secs.length ? secs.join(",") : "(aucune)"));
+      return json({ ok: true, sections: secs });
+    }
+
     if (p === "/api/admin/reinviter" && req.method === "POST") {
       const cible = await env.DB.prepare("SELECT * FROM utilisateurs WHERE id = ?").bind(corps.id | 0).first();
       if (!cible) return json({ erreur: "utilisateur_introuvable" }, 404);
@@ -356,6 +391,21 @@ async function api(req, env, url, u) {
 
   return json({ erreur: "inconnu" }, 404);
 }
+
+/* ---------- page renvoyée quand la section n'est pas autorisée pour l'utilisateur ---------- */
+const PAGE_SECTION_REFUSEE = `<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>AB2Pro — Accès non autorisé</title>
+<style>body{margin:0;font:15px/1.6 "Segoe UI",system-ui,sans-serif;background:#F5F6F8;color:#1F2328;
+display:flex;align-items:center;justify-content:center;min-height:100vh}
+.c{background:#fff;border:1px solid #D9DDE3;border-radius:12px;box-shadow:0 4px 14px rgba(60,50,20,.07);
+padding:30px 34px;max-width:460px;text-align:center}
+h1{font:22px Cambria,Georgia,serif;margin:0 0 8px}b{color:#C8102E}
+a{display:inline-block;margin-top:16px;background:#C8102E;color:#fff;text-decoration:none;
+padding:9px 20px;border-radius:18px;font-weight:600}p{color:#5F6670;margin:6px 0}</style></head><body>
+<div class="c"><h1><b>Accès</b> non autorisé</h1>
+<p>Votre compte n'a pas accès à cette section du portail AB2Pro.</p>
+<p>Si vous en avez besoin, demandez à un administrateur de vous l'ouvrir.</p>
+<a href="/app/">⌂ Retour au portail</a></div></body></html>`;
 
 /* ---------- balise d'activité injectée dans chaque application servie ---------- */
 const BALISE_ACTIVITE = `<script>

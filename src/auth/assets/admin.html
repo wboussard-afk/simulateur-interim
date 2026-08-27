@@ -38,6 +38,12 @@ input, select { padding: 6px 8px; border: 1px solid var(--line); border-radius: 
 .filtres { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .note { font-size: 11.5px; color: var(--muted); }
 .vide { color: var(--muted); font-size: 13px; padding: 6px 0; }
+/* bascules d'accès par section (colonne Sections des utilisateurs) */
+.secchip { display: inline-block; border: 1px solid var(--line); border-radius: 10px; padding: 1px 8px;
+  font-size: 11px; font-weight: 600; margin: 1px 2px 1px 0; cursor: pointer; user-select: none;
+  color: var(--muted); background: var(--card2); text-decoration: line-through; }
+.secchip.on { color: var(--good); background: rgba(71,113,62,.12); border-color: var(--good); text-decoration: none; }
+.cb-lig { font-size: 11.5px; white-space: nowrap; margin-right: 6px; }
 </style>
 </head>
 <body>
@@ -75,6 +81,8 @@ input, select { padding: 6px 8px; border: 1px solid var(--line); border-radius: 
           <option value="recherche">Recherches (IDCC/entreprises)</option>
           <option value="calcul_distance">Calculs de distance</option>
           <option value="demande_acces">Demandes d'accès</option>
+          <option value="acces_refuse_section">Accès refusés (section)</option>
+          <option value="admin_sections">Changements de sections</option>
         </select>
         <button class="btn p" id="btn-logs">Actualiser</button>
       </div>
@@ -89,29 +97,47 @@ const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&a
 const post = (u, o) => fetch(u, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(o || {}) }).then(r => r.json());
 
 let SUIS_SUPER = false;
+/* accès par section : slugs + libellés courts (la liste de référence vient de /api/admin/apercu) */
+let SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe"];
+const SEC_LIBELLES = { "simulateur": "Simulateur", "paie": "Veille Paie", "conventions": "Conventions", "salaires-europe": "Salaires E&M" };
+const secLib = s => SEC_LIBELLES[s] || s;
+function sectionsListe(brut) {           // NULL / illisible = accès à tout
+  if (brut == null || brut === "") return SECTIONS_APPS.slice();
+  try { const l = JSON.parse(brut); return Array.isArray(l) ? l : SECTIONS_APPS.slice(); }
+  catch (e) { return SECTIONS_APPS.slice(); }
+}
 async function charger() {
   const moi = await fetch("/api/moi").then(r => r.ok ? r.json() : null);
   if (!moi) { location.href = "/"; return; }
   SUIS_SUPER = moi.role === "super_admin";
   $("qui").textContent = moi.email + (SUIS_SUPER ? " (super admin)" : " (admin)");
   const a = await fetch("/api/admin/apercu").then(r => r.json());
+  if (Array.isArray(a.sections_apps) && a.sections_apps.length) SECTIONS_APPS = a.sections_apps;
 
   const zd = $("z-demandes");
   if (!a.demandes.length) zd.innerHTML = "<div class='vide'>Aucune demande en attente.</div>";
-  else zd.innerHTML = "<table><tr><th>Date</th><th>Nom</th><th>E-mail</th><th>Motif</th><th></th></tr>" +
+  else zd.innerHTML = "<table><tr><th>Date</th><th>Nom</th><th>E-mail</th><th>Motif</th><th>Sections ouvertes</th><th></th></tr>" +
     a.demandes.map(d => "<tr><td>" + esc(d.cree_le) + "</td><td>" + esc(d.nom) + "</td><td>" + esc(d.email) +
       "</td><td>" + esc(d.motif) + "</td><td>" +
+      SECTIONS_APPS.map(s => "<label class='cb-lig'><input type='checkbox' class='cb-sec' data-dem='" + d.id +
+        "' value='" + s + "' checked> " + esc(secLib(s)) + "</label>").join("") + "</td><td>" +
       "<button class='btn p' data-app='" + d.id + "'>Approuver</button>" +
       (SUIS_SUPER ? "<button class='btn' data-appadm='" + d.id + "'>Approuver admin</button>" : "") +
-      "<button class='btn' data-ref='" + d.id + "'>Refuser</button></td></tr>").join("") + "</table>";
+      "<button class='btn' data-ref='" + d.id + "'>Refuser</button></td></tr>").join("") + "</table>" +
+    "<p class='note'>Décochez les sections à fermer AVANT d'approuver (un admin approuvé a toujours accès à tout) ; modifiable ensuite dans la colonne Sections.</p>";
   zd.querySelectorAll("[data-app]").forEach(b => b.onclick = () => approuver(b.dataset.app, "user"));
   zd.querySelectorAll("[data-appadm]").forEach(b => b.onclick = () => approuver(b.dataset.appadm, "admin"));
   zd.querySelectorAll("[data-ref]").forEach(b => b.onclick = async () => { await post("/api/admin/refuser", { id: +b.dataset.ref }); charger(); });
 
   const zu = $("z-utilisateurs");
-  zu.innerHTML = "<table><tr><th>E-mail</th><th>Nom</th><th>Rôle</th><th>État</th><th>Créé</th><th></th></tr>" +
+  zu.innerHTML = "<table><tr><th>E-mail</th><th>Nom</th><th>Rôle</th><th>Sections</th><th>État</th><th>Créé</th><th></th></tr>" +
     a.utilisateurs.map(x => {
       const sup = x.role === "super_admin", adm = x.role === "admin";
+      /* colonne Sections : bascules cliquables pour les utilisateurs simples, « toutes » pour les admins */
+      const secs = sectionsListe(x.sections);
+      const colSecs = (sup || adm) ? "<span class='note'>toutes</span>" :
+        SECTIONS_APPS.map(s => "<span class='secchip" + (secs.includes(s) ? " on" : "") + "' data-uid='" + x.id +
+          "' data-sec='" + s + "' title='Cliquer pour ouvrir/fermer'>" + esc(secLib(s)) + "</span>").join("");
       /* super admin : intouchable (réinvitation possible par un autre super admin uniquement).
          admin : gérable uniquement par un super admin. user : gérable par tout admin. */
       let boutons = "";
@@ -130,6 +156,7 @@ async function charger() {
       }
       return "<tr><td>" + esc(x.email) + "</td><td>" + esc(x.nom) + "</td>" +
         "<td>" + (sup ? "<span class='tag a'>★ super admin</span>" : adm ? "<span class='tag a'>admin</span>" : "user") + "</td>" +
+        "<td>" + colSecs + "</td>" +
         "<td>" + (x.actif ? (x.doit_changer_mdp ? "<span class='tag'>invitation en cours</span>" : "actif") : "<span class='tag'>désactivé</span>") + "</td>" +
         "<td>" + esc((x.cree_le || "").slice(0, 10)) + " <span class='note'>par " + esc(x.cree_par) + "</span></td><td>" +
         boutons + "</td></tr>";
@@ -146,10 +173,20 @@ async function charger() {
   zu.querySelectorAll("[data-inv]").forEach(b => b.onclick = async () => {
     const j = await post("/api/admin/reinviter", { id: +b.dataset.inv });
     alert(j.ok ? "Invitation renvoyée par e-mail.\nLien direct (si besoin) : " + j.lien : "Erreur."); });
+  /* bascule d'une section : on lit l'état des chips de la ligne APRÈS bascule et on enregistre */
+  zu.querySelectorAll(".secchip").forEach(ch => ch.onclick = async () => {
+    ch.classList.toggle("on");
+    const uid = +ch.dataset.uid;
+    const secs = [...zu.querySelectorAll(".secchip.on")].filter(c => +c.dataset.uid === uid).map(c => c.dataset.sec);
+    const j = await post("/api/admin/sections", { id: uid, sections: secs });
+    if (!j.ok) { alert("Erreur : " + (j.erreur || "inconnue")); charger(); }
+  });
 }
 
 async function approuver(id, role) {
-  const j = await post("/api/admin/approuver", { id: +id, role: role });
+  const sections = [...document.querySelectorAll(".cb-sec")]
+    .filter(c => +c.dataset.dem === +id && c.checked).map(c => c.value);
+  const j = await post("/api/admin/approuver", { id: +id, role: role, sections: sections });
   if (j.ok) alert("Accès " + (role === "admin" ? "ADMIN " : "") + "approuvé — l'utilisateur a reçu son lien par e-mail.\nLien direct (si besoin) : " + j.lien);
   else alert("Erreur : " + (j.erreur || "inconnue"));
   charger();

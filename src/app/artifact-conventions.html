@@ -65,6 +65,8 @@ a { color: var(--brass-deep); }
 .th-pts li { font-size: 13px; line-height: 1.45; margin: 3px 0; }
 .th-det { font-size: 11.5px; color: var(--muted); line-height: 1.45; margin-top: 3px; }
 .chip-ac { display: inline-block; background: var(--warn-soft); color: var(--warn); border-radius: 10px; padding: 0 7px; font-size: 10.5px; font-weight: 700; }
+.chip-sect { display: inline-block; border: 1px solid var(--brass); color: var(--brass); border-radius: 10px;
+  padding: 0 7px; font-size: 10.5px; font-weight: 700; margin-left: 5px; vertical-align: 1px; white-space: nowrap; }
 .redirect { background: var(--warn-soft); border-left: 3px solid var(--warn); border-radius: 6px; padding: 8px 10px; font-size: 12.5px; line-height: 1.5; margin-bottom: 10px; }
 @media (max-width: 700px) { input[type=text], .btn { font-size: 16px; min-height: 42px; } }
 @media (max-width: 480px) { table { font-size: 10.5px; } td, th { padding: 3px 2px; } }
@@ -1156,6 +1158,22 @@ const IDCC_LIBELLES = {
   675:  "Maisons à succursales de vente au détail d'habillement",
   2098: "Prestataires de services du secteur tertiaire"
 };
+/* Secteur d'activité en face de chaque IDCC : oriente la lecture des résultats de recherche
+ * (entretenu avec IDCC_LIBELLES à chaque ajout de fiche par le traitement automatique). */
+const IDCC_SECTEURS = {
+  2378: "Intérim", 1413: "Intérim",
+  1596: "BTP", 1597: "BTP", 1702: "BTP", 2609: "BTP", 2420: "BTP", 2614: "BTP", 3128: "BTP",
+  3248: "Industrie — métallurgie", 44: "Industrie — chimie",
+  3255: "Industrie agroalimentaire", 3109: "Industrie agroalimentaire", 1534: "Industrie agroalimentaire",
+  7024: "Agricole", 7028: "Agricole — coopératives", 7003: "Agricole — coopératives",
+  7006: "Agricole — coopératives", 7007: "Agricole — coopératives", 7023: "Agricole — coopératives",
+  1517: "Commerce", 2216: "Commerce", 573: "Commerce", 675: "Commerce",
+  1090: "Services — automobile", 1351: "Services — sécurité", 2941: "Services à la personne",
+  1979: "Hôtellerie-restauration", 1266: "Hôtellerie-restauration",
+  1486: "Tertiaire — bureaux d'études", 1527: "Tertiaire — immobilier", 2098: "Tertiaire — services",
+  1996: "Santé — pharmacie", 2120: "Banque"
+};
+const chipSecteur = n => IDCC_SECTEURS[n] ? "<span class='chip-sect'>" + esc(IDCC_SECTEURS[n]) + "</span>" : "";
 /* ===== GRILLES DE MINIMA intégrées (avec dates d'actualisation) =====
  * 1413 : relevée sur le TEXTE OFFICIEL de l'accord (PDF) le 26/08/2026.
  * 1596/1597 : grilles régionales BTP (BTP_MINIMA, moteur partagé).
@@ -1385,7 +1403,8 @@ function ficheIDCC(idcc, contexteEntreprise) {
          " par l'<b>IDCC " + n + (IDCC_LIBELLES[n] ? " — " + esc(IDCC_LIBELLES[n]) : "") + "</b>. " +
          "Fiche affichée : la convention en vigueur. Si le client déclare encore l'ancien code en DSN, la paie se paramètre sur la nouvelle.</div>";
   }
-  $("fiche-idcc").textContent = (ancien ? "IDCC " + ancien + " → " : "") + "IDCC " + n + (IDCC_LIBELLES[n] ? " — " + IDCC_LIBELLES[n] : "");
+  $("fiche-idcc").innerHTML = esc((ancien ? "IDCC " + ancien + " → " : "") + "IDCC " + n +
+    (IDCC_LIBELLES[n] ? " — " + IDCC_LIBELLES[n] : "")) + chipSecteur(n);
   const f = FICHES_CONV[n];
   if (f) s += ficheResumeeHTML(f);
   if (n === 1413) {
@@ -1435,7 +1454,7 @@ async function rechercher() {
               const cible = rr ? parseInt(rr.nouveau, 10) : cn;
               return '<button class="idcc" data-idcc="' + esc(c) + '" data-ctx="' + esc(e.siren) + '">IDCC ' + esc(c) +
                 (rr ? " → " + cible : "") +
-                (IDCC_LIBELLES[cible] ? " · " + esc(IDCC_LIBELLES[cible]) : "") + "</button>";
+                (IDCC_LIBELLES[cible] ? " · " + esc(IDCC_LIBELLES[cible]) : "") + chipSecteur(cible) + "</button>";
             }).join("")
           : '<span class="note">aucun IDCC déclaré en DSN pour cet établissement</span>') +
         ' <a class="idcc" style="text-decoration:none" target="_blank" rel="noopener" href="' + lienAcco(e.siren) + '">Accords d\'entreprise →</a>' +

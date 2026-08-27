@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
   invite_token TEXT,             -- lien « définir mon mot de passe » (72 h)
   invite_expire INTEGER,
   cree_le TEXT NOT NULL DEFAULT (datetime('now')),
-  cree_par TEXT NOT NULL DEFAULT 'seed'
+  cree_par TEXT NOT NULL DEFAULT 'seed',
+  sections TEXT                  -- accès par section : NULL = tout ; sinon tableau JSON de slugs (simulateur, paie, conventions, salaires-europe)
 );
 
 CREATE TABLE IF NOT EXISTS sessions (

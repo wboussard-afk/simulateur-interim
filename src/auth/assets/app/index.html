@@ -53,7 +53,7 @@ a.appcard:hover, a.appcard:active { border-color: var(--brass); transform: trans
 </header>
 
 <div class="wrap">
-  <a class="appcard" href="simulateur.html">
+  <a class="appcard" data-section="simulateur" href="simulateur.html">
     <span class="ico">🌾</span>
     <span class="tt">
       <h2>Simulateur Intérim</h2>
@@ -62,7 +62,7 @@ a.appcard:hover, a.appcard:active { border-color: var(--brass); transform: trans
     <span class="go">→</span>
   </a>
 
-  <a class="appcard" href="paie.html">
+  <a class="appcard" data-section="paie" href="paie.html">
     <span class="ico">🧾</span>
     <span class="tt">
       <h2>Veille Paie</h2>
@@ -71,7 +71,7 @@ a.appcard:hover, a.appcard:active { border-color: var(--brass); transform: trans
     <span class="go">→</span>
   </a>
 
-  <a class="appcard" href="conventions.html">
+  <a class="appcard" data-section="conventions" href="conventions.html">
     <span class="ico">📜</span>
     <span class="tt">
       <h2>Veille Conventions</h2>
@@ -80,7 +80,7 @@ a.appcard:hover, a.appcard:active { border-color: var(--brass); transform: trans
     <span class="go">→</span>
   </a>
 
-  <a class="appcard" href="salaires-europe.html">
+  <a class="appcard" data-section="salaires-europe" href="salaires-europe.html">
     <span class="ico">🌍</span>
     <span class="tt">
       <h2>Repères salaires — Europe &amp; Maghreb</h2>
@@ -231,6 +231,14 @@ var LOGO_AB2PRO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgEAKAAoAAD/2wBDAAICAg
 </script>
 <script>
 document.getElementById("brand-logo").src = LOGO_AB2PRO;
+/* Accès par section : le portail sécurisé injecte window.AB_SECTIONS (sections autorisées
+ * pour l'utilisateur connecté) — on masque les cartes fermées. Hors portail (copie Bureau,
+ * artefact) : AB_SECTIONS absent, tout reste visible. */
+if (Array.isArray(window.AB_SECTIONS)) {
+  document.querySelectorAll(".appcard[data-section]").forEach(function (c) {
+    if (AB_SECTIONS.indexOf(c.dataset.section) === -1) c.style.display = "none";
+  });
+}
 </script>
 </body>
 </html>
