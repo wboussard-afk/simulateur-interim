@@ -480,6 +480,7 @@ function defaultInputs(DB, sector) {
     participationChoice: "PARTICIPATION LIBRE",
     retraitANRepas: false,      // M54
     remisePct: 0,               // M63
+    recrutTarifH: 0,            // prestataire externe de recrutement — € HT par heure travaillée (0,50-1,30 constatés ; 0 = aucun)
     refactDim: true, refactFerie: true, refactNuit: true,
     annualisation: false,
     heuresFactNormal: null,     // L24 — null = auto min(35 ; heures)
@@ -951,8 +952,11 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   S.P60 = S.P42 + extra.reduce((s, r) => s + S["P" + r], 0) + S.PI3 + S.PI4;
   S.O58 = S.O60 - S.O52;
   S.P58 = S.P60 - S.P52;
-  S.O61 = S.O60 - S.F93;
-  S.P61 = S.P60 - S.F93;
+  /* Prestataire externe de recrutement : € HT × heures travaillées, en déduction directe de la marge
+     (coût interne agence — n'apparaît jamais dans l'étude de prix client). */
+  S.recrutCout = (i.recrutTarifH || 0) * (i.heures || 0);
+  S.O61 = S.O60 - S.F93 - S.recrutCout;
+  S.P61 = S.P60 - S.F93 - S.recrutCout;
   S.O62 = i.heures ? S.O60 / i.heures : 0;
   S.P62 = i.heures ? S.P60 / i.heures : 0;
   S.O63 = S.O60 - (S.O42 * i.remisePct / 100);

@@ -581,6 +581,8 @@ table.grille td.neg { color: var(--bad); }
           <div class="field"><label for="in-hfact">Heures facturées au taux normal</label><input type="number" id="in-hfact" step="0.5" min="0" placeholder="auto : min(35 ; heures)" title="Heures facturées au taux normal (coefficient × brut). Le surplus (heures travaillées − cette valeur) est facturé aux taux majorés 25 %/50 %. Vide = automatique min(35 ; heures travaillées)."></div>
           <div class="field"><label for="in-remise">Remise fin d'année (%)</label><input type="number" id="in-remise" step="0.1" min="0" title="RFA calculée sur le CA HT des seuls éléments SOUMIS à cotisations (heures, majorations, primes refacturées) — indemnités refacturées et logement facturé exclus de l'assiette.">
             <span class="hint">assiette : CA soumis à cotisations (indemnités &amp; logement exclus)</span></div>
+          <div class="field"><label for="in-recrut">Prestataire recrutement (€ HT/h)</label><input type="number" id="in-recrut" step="0.05" min="0" placeholder="0" title="Coût du prestataire externe de recrutement, facturé en € HT par heure travaillée (0,50 à 1,30 € constatés). Déduit directement de la marge brute — coût interne agence, n'apparaît JAMAIS dans l'étude de prix client.">
+            <span class="hint">0,50-1,30 € constatés · déduit de la marge · invisible client</span></div>
         </div>
         <div style="display:flex; gap:18px; flex-wrap:wrap; margin-top:8px">
           <label class="check"><input type="checkbox" id="in-refprimes" title="Coefficient appliqué aux primes automatiques (repas/transport/AN) et aux lignes de prime dont le coef fact. est vide"> Primes refacturées au coefficient</label>
@@ -1073,6 +1075,7 @@ function defaultInputs(DB, sector) {
     participationChoice: "PARTICIPATION LIBRE",
     retraitANRepas: false,      // M54
     remisePct: 0,               // M63
+    recrutTarifH: 0,            // prestataire externe de recrutement — € HT par heure travaillée (0,50-1,30 constatés ; 0 = aucun)
     refactDim: true, refactFerie: true, refactNuit: true,
     annualisation: false,
     heuresFactNormal: null,     // L24 — null = auto min(35 ; heures)
@@ -1544,8 +1547,11 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   S.P60 = S.P42 + extra.reduce((s, r) => s + S["P" + r], 0) + S.PI3 + S.PI4;
   S.O58 = S.O60 - S.O52;
   S.P58 = S.P60 - S.P52;
-  S.O61 = S.O60 - S.F93;
-  S.P61 = S.P60 - S.F93;
+  /* Prestataire externe de recrutement : € HT × heures travaillées, en déduction directe de la marge
+     (coût interne agence — n'apparaît jamais dans l'étude de prix client). */
+  S.recrutCout = (i.recrutTarifH || 0) * (i.heures || 0);
+  S.O61 = S.O60 - S.F93 - S.recrutCout;
+  S.P61 = S.P60 - S.F93 - S.recrutCout;
   S.O62 = i.heures ? S.O60 / i.heures : 0;
   S.P62 = i.heures ? S.P60 / i.heures : 0;
   S.O63 = S.O60 - (S.O42 * i.remisePct / 100);
@@ -1978,6 +1984,7 @@ function setFormFromInputs() {
   $("in-coeff").value = inp.coeff;
   $("in-hfact").value = inp.heuresFactNormal == null ? "" : inp.heuresFactNormal;
   $("in-remise").value = inp.remisePct;
+  $("in-recrut").value = inp.recrutTarifH || "";
   $("in-refprimes").checked = inp.refactPrimes; $("in-refdim").checked = inp.refactDim;
   $("in-refferie").checked = inp.refactFerie; $("in-refnuit").checked = inp.refactNuit;
   $("in-cibletx").value = inp.cibleTauxFact; $("in-ciblemarge").value = inp.cibleMargePct;
@@ -2047,6 +2054,7 @@ function readInputsFromForm() {
    * il se figeait à « 0 » et toutes les heures partaient en facturation +25 %. */
   inp.heuresFactNormal = $("in-hfact").value === "" ? null : num($("in-hfact"));
   inp.remisePct = num($("in-remise"));
+  inp.recrutTarifH = num($("in-recrut"));
   inp.refactPrimes = $("in-refprimes").checked; inp.refactDim = $("in-refdim").checked;
   inp.refactFerie = $("in-refferie").checked; inp.refactNuit = $("in-refnuit").checked;
   inp.cibleTauxFact = num($("in-cibletx")); inp.cibleMargePct = num($("in-ciblemarge"));
@@ -2083,7 +2091,7 @@ function render(r) {
   $("out-mb").textContent = fmtE(m.O64);
   $("out-mbpct").textContent = fmtP(m.H17);
   $("out-ca").textContent = fmtE(m.O60);
-  $("out-cout").textContent = fmtE(m.F93);
+  $("out-cout").textContent = fmtE(m.F93 + (m.recrutCout || 0));
   $("out-mbh").textContent = inp.heures ? fmtE(m.O64 / inp.heures) + "/h" : "—";
   $("out-mbhdn").textContent = fmtE(m.F93);
   $("out-mbhdnpct").textContent = inp.heures ? fmtE(m.F93 / inp.heures) + "/h" : "—";
@@ -2623,6 +2631,7 @@ function renderFact(m) {
   if (m.O54) s += kvRow("Retrait AN repas", "O54", fmtE(m.O54));
   s += kvRow("CA HT total", "O60", fmtE(m.O60), "total");
   if (inp.remisePct) s += kvRow("Remise fin d'année " + N2.format(inp.remisePct) + " % × CA soumis à cotisations (" + fmtE(m.O42) + ")", "M63", fmtE(-m.O42 * inp.remisePct / 100));
+  if (m.recrutCout) s += kvRow("Prestataire recrutement " + N2.format(inp.recrutTarifH) + " € HT × " + N2.format(inp.heures) + " h travaillées (coût interne, non refacturé)", "", fmtE(-m.recrutCout));
   s += kvRow("Volume de marge brute", "O64", fmtE(m.O64), "total");
   s += kvRow("Taux de marge", "H17", fmtP(m.H17), "total");
   $("tbl-fact").innerHTML = s;
