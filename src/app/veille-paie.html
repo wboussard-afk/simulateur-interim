@@ -1315,10 +1315,14 @@ function renderRepas() {
   $("tbl-repas").innerHTML = s;
 }
 function renderTransport() {
+  /* surbrillance de la tranche URSSAF sélectionnée (sel-zone), comme la grille BTP pour sa zone */
+  const sel = $("sel-zone") ? $("sel-zone").value : "";
   let s = "<tr><th>Distance aller-retour</th><th class='n'>Exonération / jour</th></tr>";
   for (const r of DB.zonesKmPD) {
     if (!/\d/.test(r.label)) continue;
-    s += "<tr><td>" + esc(r.label.toLowerCase()) + "</td><td class='n'>" + fmtE(r.value || 0) + "</td></tr>";
+    const cur = r.label === sel;
+    s += "<tr" + (cur ? " class='cur'" : "") + "><td>" + esc(r.label.toLowerCase()) +
+         (cur ? " ◀ distance sélectionnée" : "") + "</td><td class='n'>" + fmtE(r.value || 0) + "</td></tr>";
   }
   $("tbl-transport").innerHTML = s;
 }
@@ -1359,6 +1363,7 @@ function fillZones() {
 function zoneHint() {
   const r = DB.zonesKmPD.find(x => x.label === $("sel-zone").value);
   $("zone-hint").textContent = r && r.value ? "exonération " + fmtE(r.value) + " / jour" : "pas d'exonération transport";
+  renderTransport();   // resynchronise la surbrillance du barème URSSAF (tous les chemins passent ici)
 }
 $("sel-zone").addEventListener("change", zoneHint);
 $("sel-niveau").addEventListener("change", renderMinima);
