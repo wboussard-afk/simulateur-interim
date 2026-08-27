@@ -128,6 +128,17 @@ body { overflow-x: clip; }
   .brand h1 { font-size: 21px; }
   .brand .sub { flex-basis: 100%; }
   .brand img, .brand svg { height: 30px; }
+  /* champs d'en-tete : pleine largeur, empiles proprement (fini le drapeau de largeurs inegales) */
+  .top-fields { margin-left: 0; width: 100%; gap: 10px; }
+  .top-fields .field { flex: 1 1 100%; min-width: 0; }
+  .top-fields .field:has(.seg) { flex: 1 1 40%; }   /* les deux selecteurs Interim / CDD restent cote a cote */
+  .top-fields .field input, .top-fields .field select { width: 100%; }
+  .top-fields .seg { width: 100%; }
+  .top-actions { width: 100%; }
+  .top-actions button { flex: 1 1 auto; }
+  /* cartes : une seule colonne de champs — les libelles et aides ne desalignent plus la colonne voisine
+     (selecteur body .grid2 : plus specifique que la declaration .grid2 situee plus bas dans la feuille) */
+  body .grid2 { grid-template-columns: 1fr; }
 }
 
 /* ================= LAYOUT ================= */
