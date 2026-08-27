@@ -122,6 +122,17 @@ header.top {
 .seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 .seg button { flex: 1; padding: 6px 12px; background: var(--card2); border: 0; color: var(--muted); font-size: 13px; white-space: nowrap; }
 .seg button[aria-pressed="true"] { background: var(--brass); color: var(--card); font-weight: 600; }
+/* mobile : la marque passe sur deux lignes propres (logo + titre, puis sous-titre pleine largeur)
+   et rien ne peut plus pousser la page en défilement horizontal */
+body { overflow-x: clip; }
+@media (max-width: 700px) {
+  header.top { padding: 12px 14px 10px; }
+  .top-inner { gap: 8px 16px; }
+  .brand { flex-wrap: wrap; row-gap: 0; align-items: center; }
+  .brand h1 { font-size: 21px; }
+  .brand .sub { flex-basis: 100%; }
+  .brand img, .brand svg { height: 30px; }
+}
 
 /* ================= LAYOUT ================= */
 .wrap { max-width: 1340px; margin: 0 auto; padding: 20px 24px 80px; display: grid; grid-template-columns: minmax(430px, 1fr) 430px; gap: 20px; align-items: start; }
