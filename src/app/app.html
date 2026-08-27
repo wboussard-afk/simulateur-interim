@@ -2171,6 +2171,20 @@ function buildEtudePrix() {
 }
 $("btn-etude").addEventListener("click", () => {
   const meta = buildEtudePrix();
+  /* Journal admin (portail uniquement) : résumé chiffré + lien qui ROUVRE la simulation telle quelle
+     (même sérialisation que le bouton Partager). Ne porte jamais atteinte à la génération du PDF. */
+  try {
+    if (window.abLog) {
+      const m = compute(inp).main;
+      abLog("etude_prix", JSON.stringify({
+        resume: (inp.client || "(sans client)") + " · dépt " + (inp.dept || "—") + " · " +
+                (inp.sector === "agri" ? "agricole" : inp.branche || inp.sector) +
+                " · brut " + N2.format(inp.thBrut) + " €/h · coeff " + N2.format(inp.coeff) +
+                " · CA " + fmtE(m.O60) + " · marge " + fmtE(m.O64) + " (" + N2.format(m.H17) + " %)",
+        s: "#s=" + encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(inp)))))
+      }));
+    }
+  } catch (e) {}
   const oldTitle = document.title;
   /* le nom du PDF reprend le titre : archivage par client et par année */
   document.title = "Synthese etude de prix - " + meta.client + " - " + meta.dateISO;

@@ -197,10 +197,26 @@ async function chargerLogs() {
   if ($("f-email").value) q.set("email", $("f-email").value);
   if ($("f-type").value) q.set("type", $("f-type").value);
   const j = await fetch("/api/admin/logs?" + q).then(r => r.json());
+  /* études de prix : le détail est un JSON {resume, s} — résumé chiffré + lien qui rouvre la
+     simulation de l'utilisateur telle quelle dans le simulateur (même mécanisme que « Partager ») */
+  const detailHTML = l => {
+    if (l.type === "etude_prix") {
+      try {
+        const d = JSON.parse(l.details);
+        if (d && d.resume !== undefined) {
+          let s = esc(d.resume || "");
+          if (d.s && /^#s=[A-Za-z0-9%._-]+$/.test(d.s))
+            s += " <a href='/app/simulateur.html" + d.s + "' target='_blank' rel='noopener'><b>ouvrir la simulation →</b></a>";
+          return s;
+        }
+      } catch (e) { /* ancien format : texte brut */ }
+    }
+    return esc(l.details);
+  };
   $("z-logs").innerHTML = !j.logs.length ? "<div class='vide'>Aucune entrée.</div>" :
     "<table><tr><th>Horodatage (UTC)</th><th>Utilisateur</th><th>Action</th><th>Détails</th><th>Page</th><th>IP</th></tr>" +
     j.logs.map(l => "<tr><td>" + esc(l.ts) + "</td><td>" + esc(l.email || "—") + "</td><td>" + esc(l.type) +
-      "</td><td>" + esc(l.details) + "</td><td>" + esc(l.page) + "</td><td class='note'>" + esc(l.ip) + "</td></tr>").join("") + "</table>";
+      "</td><td>" + detailHTML(l) + "</td><td>" + esc(l.page) + "</td><td class='note'>" + esc(l.ip) + "</td></tr>").join("") + "</table>";
 }
 
 $("btn-logs").onclick = chargerLogs;

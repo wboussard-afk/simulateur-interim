@@ -82,7 +82,8 @@ async function journal(env, req, u, type, details = "", page = "") {
   try {
     await env.DB.prepare(
       "INSERT INTO activites (user_id, email, type, details, page, ip) VALUES (?,?,?,?,?,?)")
-      .bind(u ? u.id : null, u ? u.email : "", type, String(details).slice(0, 500), String(page).slice(0, 200),
+      .bind(u ? u.id : null, u ? u.email : "", type,
+            String(details).slice(0, type === "etude_prix" ? 8000 : 500), String(page).slice(0, 200),
             req.headers.get("cf-connecting-ip") || "").run();
   } catch (e) { /* le journal ne doit jamais casser une requête */ }
 }
@@ -413,7 +414,7 @@ const BALISE_ACTIVITE = `<script>
   window.abLog = function (type, details) {
     try {
       navigator.sendBeacon("/api/activite", new Blob([JSON.stringify({
-        type: type, details: String(details || "").slice(0, 400), page: location.pathname
+        type: type, details: String(details || "").slice(0, 8000), page: location.pathname
       })], { type: "application/json" }));
     } catch (e) {}
   };
@@ -422,7 +423,8 @@ const BALISE_ACTIVITE = `<script>
   document.addEventListener("click", function (e) {
     var b = e.target && e.target.closest ? e.target.closest("button[id]") : null;
     if (!b) return;
-    var ids = { "btn-etude": "etude_prix", "btn-npilote": "solveur_net", "btn-go": "recherche", "btn-dist": "calcul_distance" };
+    /* btn-etude retiré : le simulateur envoie lui-même un etude_prix ENRICHI (résumé + lien de restauration) */
+    var ids = { "btn-npilote": "solveur_net", "btn-go": "recherche", "btn-dist": "calcul_distance" };
     if (ids[b.id]) abLog(ids[b.id], (document.getElementById("in-q") || {}).value || "");
   }, true);
 
