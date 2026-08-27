@@ -61,8 +61,9 @@ input[type=number] { width: 160px; padding: 9px 10px; border: 1px solid var(--li
       <label for="in-taux">Taux NET €/heure que vous vous apprêtez à proposer au candidat</label>
       <input id="in-taux" type="number" step="0.10" min="0" placeholder="ex. 11,50">
       <div class="verdict" id="verdict"></div>
-      <p class="note" style="margin-top:10px">Lecture : un candidat au minimum légal dans son pays gagne le « net €/h » du tableau ci-dessous.
-      Proposer davantage que nécessaire n'accélère pas un recrutement déjà gagné d'avance sur le terrain salarial —
+      <p class="note" style="margin-top:10px">Lecture : « × le minimum net » situe la proposition face au plancher légal du pays ;
+      « × le MÉDIAN net » face à ce que gagne réellement le salarié TYPIQUE là-bas (la moitié gagne moins) — c'est le repère le plus juste
+      pour objectiver. Proposer davantage que nécessaire n'accélère pas un recrutement déjà gagné d'avance sur le terrain salarial —
       l'argumentaire (logement AB Service, accompagnement, heures, durée de mission) fait la différence, pas la surenchère.</p>
     </div>
   </section>
@@ -83,19 +84,23 @@ input[type=number] { width: 160px; padding: 9px 10px; border: 1px solid var(--li
         Mention « net estimé » = calcul indicatif, affiné par la veille mensuelle.
         AGRICOLE — minima SPÉCIFIQUES du travail agricole au Maghreb (saisonniers OFII) : Maroc SMAG **97,44 MAD/JOUR** (≈ 9,25 €/jour) au 01/04/2026 ;
         Tunisie SMAG **21,336 TND/jour** (≈ 6,25 €/jour) au 01/01/2026. Ukraine : 8 647 UAH/mois au 01/01/2026 (≈ 173 €), horaire minimum ≈ 1,04 €.
+        Ukraine — fiscalité salariale : 18 % IR + 5 % taxe militaire (relevée de 1,5 % à 5 % fin 2024) → net ≈ 77 % du brut.
         Maroc/Tunisie/Ukraine : hors UE — recrutement via introduction OFII / autorisations de travail.
       </p>
     </div>
   </section>
 
   <section class="card">
-    <h2>Repères de réalité <span class="eyebrow">Salaires moyens</span></h2>
+    <h2>Repères de réalité <span class="eyebrow">Salaires moyens &amp; médians</span></h2>
     <div class="b">
       <table id="t-moyennes"></table>
-      <p class="note" style="margin-top:8px">Moyennes TOUS secteurs et toutes qualifications confondues (cadres inclus) — un ouvrier de production
-      gagne généralement MOINS que la moyenne nationale. Ordres de grandeur : sourcés instituts nationaux quand indiqué
-      (KSH, GUS, DZS, RZS, INSEE), sinon INDICATIFS ; entretenus par la veille (contrôle trimestriel). Maroc/Tunisie :
-      salariat formel (l'informel est en deçà). France : moyenne en équivalent temps plein, à comparer au SMIC du tableau ci-dessus.</p>
+      <p class="note" style="margin-top:8px">MOYENNE : tous secteurs et toutes qualifications confondues (cadres inclus) — tirée vers le haut par
+      les hauts salaires. <b>MÉDIANE : la moitié des salariés gagne moins — c'est le salarié « typique »</b>, le meilleur repère de
+      négociation (survoler la cellule pour la source). France 2024 (INSEE, EQTP secteur privé) : médiane <b>2 190 € nets/mois ≈ 14,44 €/h</b>
+      contre 2 733 € nets en moyenne ≈ 18 €/h — l'écart moyenne/médiane est normal dans tous les pays (≈ 20 %). Médianes nettes PUBLIÉES par les
+      instituts : Hongrie (KSH), Croatie (DZS), Serbie (RZS), France (INSEE, net avant impôt à la source) ; Pologne : médiane brute GUS, net calculé ;
+      Espagne/Portugal : annualisées 14 paiements ; Bulgarie/Roumanie : estimations (dernière médiane officielle 2022, recalée) ; Ukraine : médiane des
+      offres d'emploi (déclaratif) ; Maroc/Tunisie : salariat formel (l'informel est en deçà). Ordres de grandeur entretenus par la veille (contrôle trimestriel).</p>
     </div>
   </section>
 
@@ -115,26 +120,39 @@ input[type=number] { width: 160px; padding: 9px 10px; border: 1px solid var(--li
 {"code":"RS","nom":"🇷🇸 Serbie (net estimé)","devise":"EUR","brut":743,"netRatio":0.715,"heures":174},
 {"code":"PL","nom":"🇵🇱 Pologne (net estimé)","devise":"PLN","brut":4806,"netRatio":0.75,"heures":168},
 {"code":"HR","nom":"🇭🇷 Croatie (net estimé)","devise":"EUR","brut":1050,"netRatio":0.80,"heures":168},
-{"code":"UA","nom":"🇺🇦 Ukraine (net estimé)","devise":"EUR","brut":173,"netRatio":0.805,"heures":166},
+{"code":"UA","nom":"🇺🇦 Ukraine (net estimé)","devise":"EUR","brut":173,"netRatio":0.77,"heures":166},
 {"code":"MA","nom":"🇲🇦 Maroc — SMIG (net estimé)","devise":"MAD","brut":3423,"netRatio":0.91,"heures":191},
 {"code":"TN","nom":"🇹🇳 Tunisie — SMIG 48 h (net estimé)","devise":"TND","brut":554.74,"netRatio":0.908,"heures":208},
 {"code":"PT","nom":"🇵🇹 Portugal (× 14 mois intégrés)","devise":"EUR","brut":920,"paiements":14,"netRatio":0.89,"heures":173.33},
 {"code":"ES","nom":"🇪🇸 Espagne — SMI (× 14 mois intégrés)","devise":"EUR","brut":1221,"paiements":14,"netRatio":0.935,"heures":173.33},
 {"code":"FR","nom":"🇫🇷 France — SMIC (référence)","devise":"EUR","brut":1823.04,"netRatio":0.78,"heures":151.67}
 ],"moyennes":[
-{"nom":"🇹🇳 Tunisie (indicatif)","brutAffiche":"≈ 1 400 TND","brutEur":409,"netH":1.75},
-{"nom":"🇺🇦 Ukraine (T2 2026)","brutAffiche":"≈ 30 500 UAH","brutEur":660,"netH":3.20},
-{"nom":"🇲🇦 Maroc (salariat formel)","brutAffiche":"≈ 8 000 MAD","brutEur":760,"netH":3.45},
-{"nom":"🇷🇸 Serbie (RZS, 03/2026)","brutAffiche":"≈ 167 000 RSD","brutEur":1425,"netH":5.95},
-{"nom":"🇭🇺 Hongrie (KSH, 2025)","brutAffiche":"≈ 570 000 HUF","brutEur":1566,"netH":5.99},
-{"nom":"🇧🇬 Bulgarie (indicatif)","brutAffiche":"≈ 1 300 €","brutEur":1300,"netH":6.00},
-{"nom":"🇷🇴 Roumanie (indicatif)","brutAffiche":"≈ 8 500 RON","brutEur":1623,"netH":6.00},
-{"nom":"🇵🇹 Portugal (indicatif, × 14 intégrés)","brutAffiche":"≈ 1 700 € × 14","brutEur":1983,"netH":8.90},
-{"nom":"🇭🇷 Croatie (DZS, 03/2026)","brutAffiche":"≈ 2 180 €","brutEur":2180,"netH":9.30},
-{"nom":"🇵🇱 Pologne (GUS, 01/2026)","brutAffiche":"≈ 9 350 PLN","brutEur":2195,"netH":9.40},
-{"nom":"🇪🇸 Espagne (indicatif, × 14 intégrés)","brutAffiche":"≈ 2 300 € annualisé","brutEur":2300,"netH":10.40},
-{"nom":"🇫🇷 France — moyenne (INSEE, EQTP)","brutAffiche":"≈ 3 500 €","brutEur":3500,"netH":18.00}
-]}</script>
+{"code":"TN","nom":"🇹🇳 Tunisie (indicatif)","brutAffiche":"≈ 1 400 TND","brutEur":409,"netH":1.75},
+{"code":"UA","nom":"🇺🇦 Ukraine (T2 2026)","brutAffiche":"≈ 30 500 UAH","brutEur":660,"netH":3.05},
+{"code":"MA","nom":"🇲🇦 Maroc (salariat formel)","brutAffiche":"≈ 8 000 MAD","brutEur":760,"netH":3.45},
+{"code":"RS","nom":"🇷🇸 Serbie (RZS, 03/2026)","brutAffiche":"≈ 167 000 RSD","brutEur":1425,"netH":5.95},
+{"code":"HU","nom":"🇭🇺 Hongrie (KSH, 2025)","brutAffiche":"≈ 570 000 HUF","brutEur":1566,"netH":5.99},
+{"code":"BG","nom":"🇧🇬 Bulgarie (indicatif)","brutAffiche":"≈ 1 300 €","brutEur":1300,"netH":6.00},
+{"code":"RO","nom":"🇷🇴 Roumanie (indicatif)","brutAffiche":"≈ 8 500 RON","brutEur":1623,"netH":6.00},
+{"code":"PT","nom":"🇵🇹 Portugal (indicatif, × 14 intégrés)","brutAffiche":"≈ 1 700 € × 14","brutEur":1983,"netH":8.90},
+{"code":"HR","nom":"🇭🇷 Croatie (DZS, 03/2026)","brutAffiche":"≈ 2 180 €","brutEur":2180,"netH":9.30},
+{"code":"PL","nom":"🇵🇱 Pologne (GUS, 01/2026)","brutAffiche":"≈ 9 350 PLN","brutEur":2195,"netH":9.40},
+{"code":"ES","nom":"🇪🇸 Espagne (indicatif, × 14 intégrés)","brutAffiche":"≈ 2 300 € annualisé","brutEur":2300,"netH":10.40},
+{"code":"FR","nom":"🇫🇷 France — moyenne (INSEE, EQTP)","brutAffiche":"≈ 3 500 €","brutEur":3500,"netH":18.00}
+],"medianes":{
+"HU":{"netH":6.92,"src":"KSH 06/2026 — médiane nette PUBLIÉE 438 000 HUF"},
+"BG":{"netH":4.55,"src":"estimé — SES 2022 (1 264 BGN) recalée sur la moyenne NSI T4 2025"},
+"RO":{"netH":5.10,"src":"estimé — Eurostat SES 2022 + moyenne INS 12/2025 (≈ 4 500 RON nets)"},
+"PL":{"netH":7.80,"src":"GUS 02/2026 — médiane brute 7 691 PLN, net calculé (ratio 0,725)"},
+"PT":{"netH":6.60,"src":"INE 2024 — médiane nette 980 €, × 14 paiements intégrés"},
+"ES":{"netH":9.00,"src":"INE EAES 2023 — médiane brute 23 349 €/an (tous temps de travail)"},
+"HR":{"netH":8.00,"src":"DZS 06/2026 — médiane nette PUBLIÉE 1 345 €"},
+"RS":{"netH":4.65,"src":"RZS 06/2026 — médiane nette PUBLIÉE 94 281 RSD"},
+"UA":{"netH":3.75,"src":"Work.ua 08/2026 — médiane des offres d'emploi (déclaratif, indicatif)"},
+"MA":{"netH":1.50,"src":"CNSS/OMTPME 2024 — médiane formelle 3 200 MAD (IR nul à ce niveau, LF 2025)"},
+"TN":{"netH":1.10,"src":"INS 2022 — médiane du salaire de base 913 TND (hors primes)"},
+"FR":{"netH":14.44,"src":"INSEE 2024 — médiane nette PUBLIÉE 2 190 € (EQTP, avant impôt sur le revenu)"}
+}}</script>
 <script>
 /* ===== geo.js — module partagé simulateur + veille paie =====
  * Adresses (BAN), autocomplétion diversifiée par ville, distance orthodromique
@@ -291,12 +309,20 @@ const eur = v => v.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFr
 
 document.getElementById("releve-le").textContent = DS.releveLe;
 
-/* bloc « repères de réalité » : rendu depuis DS.moyennes (entretenu par la veille) */
+/* bloc « repères de réalité » : rendu depuis DS.moyennes + DS.medianes (entretenus par la veille).
+ * La MÉDIANE = ce que gagne le salarié « typique » (la moyenne est tirée vers le haut par les cadres). */
+const MED = DS.medianes || {};
 const tm = document.getElementById("t-moyennes");
-tm.innerHTML = "<tr><th>Pays</th><th class='n'>Salaire MOYEN brut/mois</th><th class='n'>≈ en €</th><th class='n'>≈ net €/h</th></tr>" +
-  DS.moyennes.map(m => "<tr><td>" + m.nom + "</td><td class='n'>" + m.brutAffiche + "</td><td class='n'>" +
-    m.brutEur.toLocaleString("fr-FR") + " €</td><td class='net'>≈ " +
-    m.netH.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €/h</td></tr>").join("");
+tm.innerHTML = "<tr><th>Pays</th><th class='n'>Salaire MOYEN brut/mois</th><th class='n'>≈ en €</th><th class='n'>≈ net €/h MOYEN</th><th class='n'>≈ net €/h MÉDIAN</th></tr>" +
+  DS.moyennes.map(m => {
+    const md = MED[m.code];
+    return "<tr><td>" + m.nom + "</td><td class='n'>" + m.brutAffiche + "</td><td class='n'>" +
+      m.brutEur.toLocaleString("fr-FR") + " €</td><td class='n'>≈ " +
+      m.netH.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €/h</td>" +
+      "<td class='net'" + (md ? " title='" + md.src.replace(/'/g, "’") + "'" : "") + ">" +
+      (md ? "≈ " + md.netH.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €/h" : "—") +
+      "</td></tr>";
+  }).join("");
 
 const t = document.getElementById("t-minima");
 t.innerHTML = "<tr><th>Pays — minimum légal</th><th class='n'>Brut/mois (local)</th><th class='n'>≈ Brut €</th><th class='n'>≈ Net €/mois</th><th class='n'>Net €/HEURE</th></tr>" +
@@ -310,9 +336,13 @@ function verdict() {
   if (!t || t <= 0) { zone.innerHTML = ""; return; }
   zone.innerHTML = PAYS.filter(p => p.code !== "HU2").map(p => {
     const m = t / p.netH;
+    const md = MED[p.code];
     return "<div class='vline'>" + p.nom.replace(/—.*$/, "") + " : <b class='mult'>× " + m.toLocaleString("fr-FR", { maximumFractionDigits: 1 }) +
-      "</b> le minimum net horaire" + (p.code === "FR" ? " (SMIC net)" : " du pays") +
-      " <span class='note'>(" + eur(p.netH) + "/h là-bas contre " + eur(t) + "/h proposé)</span></div>";
+      "</b> le minimum net" + (p.code === "FR" ? " (SMIC)" : "") +
+      (md ? " · <b class='mult'>× " + (t / md.netH).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) +
+        "</b> le <b>MÉDIAN</b> net" : "") +
+      " <span class='note'>(min " + eur(p.netH) + "/h" + (md ? " · médian " + eur(md.netH) + "/h" : "") +
+      " contre " + eur(t) + "/h proposé)</span></div>";
   }).join("");
   if (window.abLog) abLog("comparateur_salaires_europe", String(t));
 }
