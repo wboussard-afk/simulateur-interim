@@ -123,8 +123,11 @@ header.top {
 .seg button { flex: 1; padding: 6px 12px; background: var(--card2); border: 0; color: var(--muted); font-size: 13px; white-space: nowrap; }
 .seg button[aria-pressed="true"] { background: var(--brass); color: var(--card); font-weight: 600; }
 /* mobile : la marque passe sur deux lignes propres (logo + titre, puis sous-titre pleine largeur)
-   et rien ne peut plus pousser la page en défilement horizontal */
-body { overflow-x: clip; }
+   et rien ne peut plus pousser la page en défilement horizontal.
+   ÉCRAN UNIQUEMENT : un overflow clip sur body à l'IMPRESSION blanchit/tronque le PDF sous WebKit-iOS
+   (bouton « Étude de prix PDF » cassé — constaté le 27/08/2026). */
+@media screen { body { overflow-x: clip; } }
+@media print { html, body { overflow: visible !important; } }
 @media (max-width: 700px) {
   header.top { padding: 12px 14px 10px; }
   .top-inner { gap: 8px 16px; }
