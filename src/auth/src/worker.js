@@ -5,7 +5,7 @@
  * E-mails immédiats aux admins via Resend (secret RESEND_API_KEY).
  * Les fichiers statiques (assets/) ne sont servis qu'après session valide. */
 
-const ADMINS = ["wboussard@gmail.com", "urgensv@gmail.com"];
+const ADMINS = ["wboussard@gmail.com", "urgens.martinez@ab2pro.com"];
 /* Hiérarchie : super_admin (les 2 fondateurs, intouchables) > admin > user.
  * admin : gère les utilisateurs simples et les demandes d'accès (rôle user).
  * super_admin seul : promouvoir/rétrograder un admin, désactiver un admin, approuver en admin,

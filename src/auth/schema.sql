@@ -60,4 +60,4 @@ CREATE INDEX IF NOT EXISTS idx_activites_email ON activites(email);
 -- ===== Amorçage : les 2 admins (mot de passe TEMPORAIRE, changement forcé à la 1re connexion) =====
 INSERT OR IGNORE INTO utilisateurs (email, nom, sel, hash, role, doit_changer_mdp, cree_par) VALUES
  ('wboussard@gmail.com', 'Willy Boussard', '8fd2810ee6bf347735d8b6bd0d7fd789', '90b607f499f855e0058ff08b4c8edffb849f1066ae74ca60533fdbec7ec70e9c', 'super_admin', 1, 'seed'),
- ('urgensv@gmail.com',   'Admin 2',        '70754e8f96363eb9d4dc454c98d35974', '2a713db1932dd17e605ff4f2c7d22ffef7631caca0d33da6b7f06fb92f296c2c', 'super_admin', 1, 'seed');
+ ('urgens.martinez@ab2pro.com', 'Urgens Martinez', '70754e8f96363eb9d4dc454c98d35974', '2a713db1932dd17e605ff4f2c7d22ffef7631caca0d33da6b7f06fb92f296c2c', 'super_admin', 1, 'seed');
