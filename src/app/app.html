@@ -623,11 +623,22 @@ table.grille td.neg { color: var(--bad); }
           <div class="gs-out" id="gs-net">—</div>
           <button class="btn primary" id="gs-net-apply">Appliquer</button>
         </div>
+        <div class="field" style="margin:2px 0 8px"><label for="in-ciblenet-type">La cible ci-dessus est un net…</label>
+          <select id="in-ciblenet-type" title="« Logement déduit » : le net une fois le logement payé (référentiel historique — c'est le net de la fiche de paie quand la participation est retenue sur la paie). « Fiche de paie hors prélèvement » : le net affiché sur la fiche de paie quand la participation passe par prélèvement bancaire — il ne dépend pas du montant de la participation.">
+            <option value="apres">LOGEMENT DÉDUIT (participation retenue sur la paie)</option>
+            <option value="paie">FICHE DE PAIE — hors prélèvement logement</option>
+          </select></div>
         <div style="display:flex; gap:18px; flex-wrap:wrap">
           <label class="check"><input type="checkbox" id="pilot-part" checked title="La participation est ramenée au coût du logement (plancher — société logement à l'équilibre) et peut monter au-delà pour rabaisser un net trop haut. Décochée : la participation saisie n'est jamais modifiée."> Ajuster par la participation logement</label>
           <label class="check"><input type="checkbox" id="pilot-indem" checked title="L'ajustement s'écrit sur une ligne dédiée « Ajustement net » (non facturée) — les indemnités propres au client (facturées) ne sont JAMAIS touchées. Plafond URSSAF GD 4ᵉ-24ᵉ mois, déduction faite des indemnités déjà versées."> Ajuster par les indemnités (plafonds URSSAF)</label>
         </div>
         <p class="note" id="gs-net-detail"></p>
+        <!-- limite de coût de logement : à partir des DEUX nets promis, la participation max tenable -->
+        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-top:4px">
+          <div class="field"><label for="in-budnetpaie">Net fiche de paie promis (€/h)</label><input type="number" id="in-budnetpaie" step="0.01" min="0" placeholder="ex. 18,00"></div>
+          <div class="field"><label for="in-budnetapres">Net visé une fois logé (€/h)</label><input type="number" id="in-budnetapres" step="0.01" min="0" placeholder="ex. 14,50"></div>
+        </div>
+        <p class="note" id="gs-budlog"></p>
         <p class="note">Le coefficient résolu donne exactement la cible (le classeur affichait seulement l'écart). Coût salarié indépendant du coefficient.</p>
         <div class="chart-box">
           <svg id="chart" width="100%" height="180" role="img" aria-label="Taux de marge en fonction du coefficient"></svg>
@@ -1384,8 +1395,19 @@ function evalNetAtteint(cible, part, indem1, idx, adjSet) {
 }
 function computeNetPlan(cible) {
   if (!(cible > 0) || !(inp.heures > 0) || !(inp.thBrut > 0)) return null;
-  /* en mode prélèvement bancaire, la participation n'agit plus sur le net de paie : levier inopérant */
-  const usePart = $("pilot-part").checked && !inp.participationHorsPaie, useIndem = $("pilot-indem").checked;
+  /* La cible peut être exprimée dans DEUX référentiels ; le solveur travaille toujours sur le net de PAIE (F90).
+   * « apres » (logement déduit) : F90 en mode retenue ; F90 + F52 en mode prélèvement → cible F90 = cible + part/h.
+   * « paie » (hors prélèvement) : F90 en mode prélèvement ; F90 + part en mode retenue → cible F90 = cible − part/h.
+   * Le net « hors prélèvement » ne dépend PAS du montant de la participation : le levier participation
+   * est donc sans objet pour ce référentiel (et déjà inopérant en mode prélèvement bancaire). */
+  const typeCible = $("in-ciblenet-type") ? $("in-ciblenet-type").value : "apres";
+  const partFixeH = Math.max(0, -(inp.participationLibre || 0)) / inp.heures;
+  const cibleAffichee = cible;
+  if (typeCible === "paie") cible = inp.participationHorsPaie ? cible : cible - partFixeH;
+  else                      cible = inp.participationHorsPaie ? cible + partFixeH : cible;
+  if (!(cible > 0.01)) return null;
+  const usePart = $("pilot-part").checked && !inp.participationHorsPaie && typeCible !== "paie",
+        useIndem = $("pilot-indem").checked;
   const cur = compute(inp).main;
   const coutLog = cur.F92 || 0;
   const partAct = Math.max(0, -(inp.participationLibre || 0));
@@ -1407,7 +1429,7 @@ function computeNetPlan(cible) {
   const a0 = evalNetAtteint(cible, partBase, 0, idx, adjSet);
   if (!a0) return null;
   const base = { plancher, coutLog, partAct, nuitee, repas, plafondTotal, dejaVersees, plafond,
-                 cible, usePart, useIndem, idx, adjSet, montantConsolide,
+                 cible, cibleAffichee, typeCible, usePart, useIndem, idx, adjSet, montantConsolide,
                  nbConsolidees: Array.from(adjSet).filter(k => k !== idx && inp.indemnites[k].q * inp.indemnites[k].r > 0).length };
   if (a0.net >= cible - 0.005) {
     if (a0.net <= cible + 0.005)   /* déjà au promis, sans indemnité d'ajustement */
@@ -1473,6 +1495,7 @@ function renderNetPlan() {
   const plan = cibleNet > 0 ? computeNetPlan(cibleNet) : null;
   if (!plan) {
     outNet.textContent = "—"; detNet.innerHTML = ""; btnNet.disabled = true;
+    renderBudgetLog();   // le calculateur de budget logement vit indépendamment du plan
     return;
   }
   outNet.textContent = N2.format(plan.res.net) + " €/h";
@@ -1507,7 +1530,32 @@ function renderNetPlan() {
       " — activer l'ajustement par la participation pour le rabaisser.</span>" : "") +
     (plan.nbConsolidees > 0 ? " <br>ℹ " + plan.nbConsolidees + " ligne(s) cochée(s) « Ajust. » (" + fmtE(plan.montantConsolide) +
       ") seront consolidées dans « Ajustement net » à l'application — les lignes non cochées (client) ne bougent jamais." : "");
+  /* lecture DOUBLE du plan : net fiche de paie hors prélèvement ↔ net logement déduit */
+  (function () {
+    const h = plan.res.hN, partFinal = Math.max(0, plan.part || 0);
+    const netPaieH = plan.res.net;                                     // net de PAIE atteint (F90/h)
+    const netHorsH = inp.participationHorsPaie ? netPaieH : netPaieH + partFinal / h;
+    const netApresH = inp.participationHorsPaie ? netPaieH - partFinal / h : netPaieH;
+    detNet.innerHTML += " <br><b>Lecture double</b> (cible saisie : " + fmtE(plan.cibleAffichee) + "/h en net " +
+      (plan.typeCible === "paie" ? "fiche de paie" : "logement déduit") + ") : net FICHE DE PAIE hors prélèvement ≈ <b>" +
+      fmtE(netHorsH) + "/h</b> · net une fois logé ≈ <b>" + fmtE(netApresH) + "/h</b>" +
+      (partFinal > 0.005 ? " — participation " + fmtE(partFinal) + "/sem (≈ " + fmtE(partFinal * 4) + " par 4 semaines), " +
+        (inp.participationHorsPaie ? "par prélèvement bancaire" : "retenue sur la paie") + "." : ".");
+  })();
   btnNet.disabled = false;
+  renderBudgetLog();
+}
+/* limite de coût de logement : participation MAX tenable entre les deux nets promis */
+function renderBudgetLog() {
+  const zone = $("gs-budlog"); if (!zone) return;
+  const nPaie = num($("in-budnetpaie")), nApres = num($("in-budnetapres")), h = inp.heures;
+  if (!(nPaie > 0) || !(nApres > 0) || !(h > 0)) { zone.innerHTML = ""; return; }
+  if (nApres >= nPaie) { zone.innerHTML = "<span class='conf-warn'>⚠ le net une fois logé doit être INFÉRIEUR au net fiche de paie — aucune place pour le logement.</span>"; return; }
+  const maxSem = (nPaie - nApres) * h;
+  zone.innerHTML = "<b>Participation logement MAX tenable : " + fmtE(maxSem) + "/sem</b> (≈ " + fmtE(maxSem * 4) +
+    " par 4 semaines · ≈ " + fmtE(maxSem * 52 / 12) + " par mois moyen) sur " + N2.format(h) +
+    " h/sem — c'est le PLAFOND du budget logement à engager auprès du salarié pour tenir « " +
+    fmtE(nPaie) + "/h sur la fiche de paie, " + fmtE(nApres) + "/h une fois logé ».";
 }
 function applyNetPlan() {
   /* recalcule TOUJOURS sur l'état visible au moment du clic (pas de plan mémorisé) */
