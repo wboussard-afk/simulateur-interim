@@ -436,6 +436,7 @@ function defaultInputs(DB, sector) {
     retraitANRepas: false,      // M54
     remisePct: 0,               // M63
     recrutTarifH: 0,            // prestataire externe de recrutement — € HT par heure travaillée (0,50-1,30 constatés ; 0 = aucun)
+    participationHorsPaie: false, // true = participation logement par PRÉLÈVEMENT BANCAIRE : net de paie non réduit, coût logement toujours amorti
     refactDim: true, refactFerie: true, refactNuit: true,
     annualisation: false,
     heuresFactNormal: null,     // L24 — null = auto min(35 ; heures)
@@ -807,7 +808,9 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   /* --- TOTAL NET AVANT REGUL (F89) — sans F49/F51 ---
    * agri SIMULATOR : soustrait aussi F65+F72+F73 et F77 ; caché : F77 seul.
    * tarifaire : aucune de ces soustractions. */
-  S.F89 = S.F42 - S.F43 + S.F45 + S.F46 + S.F47 + S.F48 + S.FIextra + S.F52 -
+  /* participation hors paie (prélèvement bancaire) : F52 sort de la chaîne du NET
+     mais reste dans le coût total F93 (la rentabilité est identique dans les deux modes) */
+  S.F89 = S.F42 - S.F43 + S.F45 + S.F46 + S.F47 + S.F48 + S.FIextra + (i.participationHorsPaie ? 0 : S.F52) -
           S.F62 - S.F63 - S.F67 - S.F69 - S.F70 - S.F71 - S.F76 -
           S.F79 - S.F80 - S.F81 + S.F53 + S.F54 + S.F50 + S.F44 -
           (cfg.f77Cross ? S.F77 : 0) -
@@ -834,6 +837,10 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
    * SIMULATOR!F90 n'inclut PAS F44 (tickets restaurant) alors que F89 l'inclut ;
    * la feuille cachée conserve F44 dans les deux (vrai dans les deux classeurs). */
   S.F90 = S.F89 + S.F51 + S.F49 - (isMain ? S.F44 : 0);
+  /* les deux lectures du net, quel que soit le mode de participation :
+     F90ApresLog = net une fois le logement payé ; F90HorsLog = net sans la participation */
+  S.F90ApresLog = S.F90 + (i.participationHorsPaie ? S.F52 : 0);
+  S.F90HorsLog = S.F90 - (i.participationHorsPaie ? 0 : S.F52);
   S.F57 = netNull ? 0 : Math.max(0, S.D13 - S.F90);
   S.F58 = (!netNull && S.F22 > S.D13 && S.F90 < S.F22) ? S.F22 - S.F90 : 0;
   S.F91 = S.F90 + Math.max(S.F57, S.F58);

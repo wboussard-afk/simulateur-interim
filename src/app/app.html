@@ -505,8 +505,15 @@ table.grille td.neg { color: var(--bad); }
           <div class="field"><label for="in-loghebdo">Coût du logement (€/sem)</label><input type="number" id="in-loghebdo" step="0.01" min="0"></div>
           <div class="field"><label for="in-partlog">Participation logement salarié (€/sem)</label><input type="number" id="in-partlog" step="1" min="0" title="Montant retenu sur le net du salarié (ex. 180 pour une reprise de 180 €/semaine)"></div>
           <div class="field"><label for="in-logfact" id="lbl-logfact">Logement facturé au client (€/sem)</label><input type="number" id="in-logfact" step="0.01" min="0"></div>
+          <div class="field"><label for="in-partmode">Participation prélevée</label>
+            <select id="in-partmode" title="Sur la fiche de paie : retenue nette hebdomadaire (le net à percevoir baisse). Par prélèvement bancaire : le net de la fiche de paie NE BAISSE PAS, la participation est prélevée sur le compte du salarié — la rentabilité est identique dans les deux modes (la participation amortit toujours le coût du logement).">
+              <option value="paie">sur la fiche de paie (retenue nette)</option>
+              <option value="banque">par prélèvement bancaire (hors paie)</option>
+            </select></div>
         </div>
-        <p class="hint">Participation = retenue nette hebdomadaire sur le salarié (0 = aucune). Coût à 0 = pas de logement pris en charge.
+        <p class="hint" id="log-nets"></p>
+        <p class="hint">Participation : 0 = aucune. Coût à 0 = pas de logement pris en charge. En mode prélèvement bancaire,
+        annoncer au salarié un budget logement ENGAGÉ avec plafond — le simulateur affiche les deux nets (fiche de paie et après logement).
         <span class="only-tarifaire">Facturation = min(heures ; 35) × prix €/h.</span></p>
       </div>
     </section>
@@ -972,6 +979,7 @@ function setFormFromInputs() {
     : Math.round(inp.logementHoraire * (inp.logementHeures || 43) * 100) / 100;
   /* participation : saisie positive = retenue hebdomadaire sur le net (F19 = −valeur) */
   $("in-partlog").value = Math.abs(Math.min(0, inp.participationLibre));
+  $("in-partmode").value = inp.participationHorsPaie ? "banque" : "paie";
   $("in-logfact").value = inp.coutLogementFacture;
   $("in-zone").value = inp.zonePD;
   $("in-gdduree").value = String(inp.gdDuree || 0);
@@ -1055,6 +1063,7 @@ function readInputsFromForm() {
         adj: $("inaj" + k) ? $("inaj" + k).checked : !!p.adj } : p);
   inp.participationChoice = "PARTICIPATION LIBRE";
   inp.participationLibre = -Math.abs(num($("in-partlog"))); // positif saisi = retenue (F19 négatif)
+  inp.participationHorsPaie = $("in-partmode").value === "banque";
   inp.baseIFM = num($("in-ifm")); // indemDecoucheRate : plus de champ dédié — utiliser une ligne d'indemnité
   inp.coeff = num($("in-coeff")); // coeffHDN : champ supprimé (variante nuit non pratiquée) — valeur conservée du classeur
   /* champ vide = automatique DYNAMIQUE (null -> le moteur applique min(35 ; heures)
@@ -1100,6 +1109,21 @@ function render(r) {
   $("out-mbpct").textContent = fmtP(m.H17);
   $("out-ca").textContent = fmtE(m.O60);
   $("out-cout").textContent = fmtE(m.F93 + (m.recrutCout || 0));
+  /* les deux nets selon le mode de participation logement (carte Logement) */
+  (function () {
+    const partHebdo = Math.max(0, -(inp.participationLibre || 0));
+    $("pilot-part").disabled = !!inp.participationHorsPaie;
+    if (!(partHebdo > 0) || !(inp.heures > 0)) { $("log-nets").innerHTML = ""; return; }
+    const h = inp.heures;
+    const netPaie = m.F90 / h, apres = (m.F90ApresLog !== undefined ? m.F90ApresLog : m.F90) / h,
+          hors = (m.F90HorsLog !== undefined ? m.F90HorsLog : m.F90) / h;
+    $("log-nets").innerHTML = inp.participationHorsPaie
+      ? "Net FICHE DE PAIE ≈ <b>" + fmtE(netPaie) + "/h</b> (participation non déduite en paie) · " +
+        "net après logement ≈ <b>" + fmtE(apres) + "/h</b> — participation " + fmtE(partHebdo) +
+        "/sem par prélèvement bancaire (fourchette à annoncer au salarié)."
+      : "Net fiche de paie (retenue déduite) ≈ <b>" + fmtE(netPaie) + "/h</b> · " +
+        "hors retenue logement ≈ <b>" + fmtE(hors) + "/h</b> — retenue " + fmtE(partHebdo) + "/sem sur la paie.";
+  })();
   $("out-mbh").textContent = inp.heures ? fmtE(m.O64 / inp.heures) + "/h" : "—";
   $("out-mbhdn").textContent = fmtE(m.F93);
   $("out-mbhdnpct").textContent = inp.heures ? fmtE(m.F93 / inp.heures) + "/h" : "—";
@@ -1360,7 +1384,8 @@ function evalNetAtteint(cible, part, indem1, idx, adjSet) {
 }
 function computeNetPlan(cible) {
   if (!(cible > 0) || !(inp.heures > 0) || !(inp.thBrut > 0)) return null;
-  const usePart = $("pilot-part").checked, useIndem = $("pilot-indem").checked;
+  /* en mode prélèvement bancaire, la participation n'agit plus sur le net de paie : levier inopérant */
+  const usePart = $("pilot-part").checked && !inp.participationHorsPaie, useIndem = $("pilot-indem").checked;
   const cur = compute(inp).main;
   const coutLog = cur.F92 || 0;
   const partAct = Math.max(0, -(inp.participationLibre || 0));
@@ -2156,7 +2181,9 @@ function buildEtudePrix() {
   s += "<h2>Logement</h2><table>";
   if (logExiste) {
     s += kv("Coût du logement", fmtE(m.F92) + "/sem");
-    s += kv("Participation salarié (retenue nette sur paie)", fmtE(partAct) + "/sem");
+    s += kv(inp.participationHorsPaie
+      ? "Participation salarié (PRÉLÈVEMENT BANCAIRE — ne pas retenir sur la paie)"
+      : "Participation salarié (retenue nette sur paie)", fmtE(partAct) + "/sem");
     s += kv("Financé par l'agence", fmtE(logNet) + "/sem");
     s += kv("Facturation au client", logFacture ? fmtE(m.O52) + "/sem (ligne dédiée)" : "non facturé — compris dans le taux global");
   } else {
