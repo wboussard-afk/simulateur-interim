@@ -506,8 +506,7 @@ table.grille td.neg { color: var(--bad); }
             </select></div>
         </div>
         <p class="hint" id="log-nets"></p>
-        <p class="hint">Participation : 0 = aucune. Coût à 0 = pas de logement pris en charge. En mode prélèvement bancaire,
-        annoncer au salarié un budget logement ENGAGÉ avec plafond — le simulateur affiche les deux nets (fiche de paie et après logement).
+        <p class="hint">Participation : 0 = aucune. Coût à 0 = pas de logement pris en charge.
         <span class="only-tarifaire">Facturation = min(heures ; 35) × prix €/h.</span></p>
       </div>
     </section>
@@ -623,7 +622,7 @@ table.grille td.neg { color: var(--bad); }
             <option value="paie">FICHE DE PAIE — hors prélèvement logement</option>
           </select></div>
         <div style="display:flex; gap:18px; flex-wrap:wrap">
-          <label class="check"><input type="checkbox" id="pilot-part" checked title="La participation est ramenée au coût du logement (plancher — société logement à l'équilibre) et peut monter au-delà pour rabaisser un net trop haut. Décochée : la participation saisie n'est jamais modifiée."> Ajuster par la participation logement</label>
+          <label class="check"><input type="checkbox" id="pilot-part" checked title="La participation est ramenée au COÛT EXACT du logement (plancher — société logement à l'équilibre) et peut monter au-delà pour rabaisser un net trop haut. Fonctionne dans les deux modes : retenue sur paie (agit sur le net de paie) comme prélèvement bancaire (agit sur le net une fois logé et sur le prélèvement annoncé). Sans objet uniquement quand la cible est le net FICHE DE PAIE hors prélèvement (ce net ne dépend pas de la participation). Décochée : la participation saisie n'est jamais modifiée."> Ajuster par la participation logement</label>
           <label class="check"><input type="checkbox" id="pilot-indem" checked title="L'ajustement s'écrit sur une ligne dédiée « Ajustement net » (non facturée) — les indemnités propres au client (facturées) ne sont JAMAIS touchées. Plafond URSSAF GD 4ᵉ-24ᵉ mois, déduction faite des indemnités déjà versées."> Ajuster par les indemnités (plafonds URSSAF)</label>
         </div>
         <p class="note" id="gs-net-detail"></p>
@@ -2119,15 +2118,16 @@ function render(r) {
   /* les deux nets selon le mode de participation logement (carte Logement) */
   (function () {
     const partHebdo = Math.max(0, -(inp.participationLibre || 0));
-    $("pilot-part").disabled = !!inp.participationHorsPaie;
+    /* le levier participation n'est sans objet que si la CIBLE est le net hors prélèvement */
+    $("pilot-part").disabled = !!($("in-ciblenet-type") && $("in-ciblenet-type").value === "paie");
     if (!(partHebdo > 0) || !(inp.heures > 0)) { $("log-nets").innerHTML = ""; return; }
     const h = inp.heures;
     const netPaie = m.F90 / h, apres = (m.F90ApresLog !== undefined ? m.F90ApresLog : m.F90) / h,
           hors = (m.F90HorsLog !== undefined ? m.F90HorsLog : m.F90) / h;
     $("log-nets").innerHTML = inp.participationHorsPaie
       ? "Net FICHE DE PAIE ≈ <b>" + fmtE(netPaie) + "/h</b> (participation non déduite en paie) · " +
-        "net après logement ≈ <b>" + fmtE(apres) + "/h</b> — participation " + fmtE(partHebdo) +
-        "/sem par prélèvement bancaire (fourchette à annoncer au salarié)."
+        "net une fois logé ≈ <b>" + fmtE(apres) + "/h</b> — participation " + fmtE(partHebdo) +
+        "/sem (≈ " + fmtE(partHebdo * 4) + " par 4 semaines) par prélèvement bancaire : c'est le budget logement ENGAGÉ (plafond) à annoncer au salarié."
       : "Net fiche de paie (retenue déduite) ≈ <b>" + fmtE(netPaie) + "/h</b> · " +
         "hors retenue logement ≈ <b>" + fmtE(hors) + "/h</b> — retenue " + fmtE(partHebdo) + "/sem sur la paie.";
   })();
@@ -2370,9 +2370,13 @@ function findAdjustTargets() {
   if (idx < 0) idx = inp.indemnites.findIndex(p => !(p.q * p.r));
   return { idx, adjSet };
 }
+/* En mode prélèvement bancaire avec cible « logement déduit », le net évalué est F90 − participation/h :
+   la participation redevient un vrai levier (elle change le net APRÈS logement et le prélèvement annoncé). */
+let NETPLAN_OFFSET_APRES = false;
 function evalNetAtteint(cible, part, indem1, idx, adjSet) {
+  const offsetSem = NETPLAN_OFFSET_APRES ? part : 0;
   const t = Object.assign({}, inp, {
-    netAttendu: cible, noNet: false,
+    netAttendu: cible + offsetSem / (inp.heures || 1), noNet: false,
     participationLibre: -part,
     indemnites: inp.indemnites.map((p, k) => k === idx
       ? Object.assign({}, p, { q: indem1 > 0 ? 1 : 0, r: Math.round(indem1 * 100) / 100, fc: 0 })
@@ -2384,25 +2388,27 @@ function evalNetAtteint(cible, part, indem1, idx, adjSet) {
   const cetActif = !inp.iccp && !inp.ifm;
   const ratio = M.F42 > 0 ? Math.max(0, (M.F42 - M.F88 - Math.max(0, M.F43)) / M.F42) : 0;
   const cet = cetActif ? M.D85 * ratio : 0;
-  const d13 = cible * hN;
+  const d13 = cible * hN + offsetSem;   // objectif traduit en net de PAIE (F90)
   /* net versé finançable : avance CET jusqu'au promis, jamais au-delà du promis */
   const netHebdo = M.F90 >= d13 ? M.F90 : Math.min(d13, M.F90 + cet);
-  return { net: netHebdo / hN, avance: Math.max(0, Math.min(d13 - M.F90, cet)), cet, hN, f90: M.F90 };
+  /* net rendu dans le RÉFÉRENTIEL de la cible (après logement si offset actif) */
+  return { net: (netHebdo - offsetSem) / hN, avance: Math.max(0, Math.min(d13 - M.F90, cet)), cet, hN, f90: M.F90 };
 }
 function computeNetPlan(cible) {
   if (!(cible > 0) || !(inp.heures > 0) || !(inp.thBrut > 0)) return null;
-  /* La cible peut être exprimée dans DEUX référentiels ; le solveur travaille toujours sur le net de PAIE (F90).
-   * « apres » (logement déduit) : F90 en mode retenue ; F90 + F52 en mode prélèvement → cible F90 = cible + part/h.
-   * « paie » (hors prélèvement) : F90 en mode prélèvement ; F90 + part en mode retenue → cible F90 = cible − part/h.
-   * Le net « hors prélèvement » ne dépend PAS du montant de la participation : le levier participation
-   * est donc sans objet pour ce référentiel (et déjà inopérant en mode prélèvement bancaire). */
+  /* Deux référentiels de cible :
+   * « apres » (logement déduit) — le levier participation fonctionne dans les DEUX modes :
+   *   retenue = F52 dans F90 (comme toujours) ; prélèvement = offset dynamique F90 − part/h (NETPLAN_OFFSET_APRES).
+   *   Plancher du levier = COÛT EXACT du logement (société logement à l'équilibre).
+   * « paie » (fiche de paie hors prélèvement) — ce net ne dépend PAS de la participation : levier sans objet ;
+   *   en mode retenue la cible se convertit avec la participation FIGÉE (− part/h). */
   const typeCible = $("in-ciblenet-type") ? $("in-ciblenet-type").value : "apres";
   const partFixeH = Math.max(0, -(inp.participationLibre || 0)) / inp.heures;
   const cibleAffichee = cible;
-  if (typeCible === "paie") cible = inp.participationHorsPaie ? cible : cible - partFixeH;
-  else                      cible = inp.participationHorsPaie ? cible + partFixeH : cible;
+  NETPLAN_OFFSET_APRES = (typeCible === "apres") && !!inp.participationHorsPaie;
+  if (typeCible === "paie" && !inp.participationHorsPaie) cible = cible - partFixeH;
   if (!(cible > 0.01)) return null;
-  const usePart = $("pilot-part").checked && !inp.participationHorsPaie && typeCible !== "paie",
+  const usePart = $("pilot-part").checked && typeCible !== "paie",
         useIndem = $("pilot-indem").checked;
   const cur = compute(inp).main;
   const coutLog = cur.F92 || 0;
@@ -2494,7 +2500,13 @@ function renderNetPlan() {
     renderBudgetLog();   // le calculateur de budget logement vit indépendamment du plan
     return;
   }
-  outNet.textContent = N2.format(plan.res.net) + " €/h";
+  /* affichage « atteint » dans le référentiel de la cible saisie */
+  const _partFinal = Math.max(0, plan.part || 0), _h = plan.res.hN;
+  const _offsetActif = inp.participationHorsPaie && plan.typeCible === "apres";
+  const _netPaieH = plan.res.net + (_offsetActif ? _partFinal / _h : 0);          // net FICHE DE PAIE (F90 + avance)
+  const _netHorsH = inp.participationHorsPaie ? _netPaieH : _netPaieH + _partFinal / _h;
+  const _netApresH = inp.participationHorsPaie ? _netPaieH - _partFinal / _h : _netPaieH;
+  outNet.textContent = N2.format(plan.typeCible === "paie" ? _netHorsH : _netApresH) + " €/h";
   /* statut de la participation : elle PEUT être au-dessus ou en dessous du coût
    * réel du logement (outil de régulation) — l'écart est toujours signalé */
   let partStatut;
@@ -2527,31 +2539,31 @@ function renderNetPlan() {
     (plan.nbConsolidees > 0 ? " <br>ℹ " + plan.nbConsolidees + " ligne(s) cochée(s) « Ajust. » (" + fmtE(plan.montantConsolide) +
       ") seront consolidées dans « Ajustement net » à l'application — les lignes non cochées (client) ne bougent jamais." : "");
   /* lecture DOUBLE du plan : net fiche de paie hors prélèvement ↔ net logement déduit */
-  (function () {
-    const h = plan.res.hN, partFinal = Math.max(0, plan.part || 0);
-    const netPaieH = plan.res.net;                                     // net de PAIE atteint (F90/h)
-    const netHorsH = inp.participationHorsPaie ? netPaieH : netPaieH + partFinal / h;
-    const netApresH = inp.participationHorsPaie ? netPaieH - partFinal / h : netPaieH;
-    detNet.innerHTML += " <br><b>Lecture double</b> (cible saisie : " + fmtE(plan.cibleAffichee) + "/h en net " +
-      (plan.typeCible === "paie" ? "fiche de paie" : "logement déduit") + ") : net FICHE DE PAIE hors prélèvement ≈ <b>" +
-      fmtE(netHorsH) + "/h</b> · net une fois logé ≈ <b>" + fmtE(netApresH) + "/h</b>" +
-      (partFinal > 0.005 ? " — participation " + fmtE(partFinal) + "/sem (≈ " + fmtE(partFinal * 4) + " par 4 semaines), " +
-        (inp.participationHorsPaie ? "par prélèvement bancaire" : "retenue sur la paie") + "." : ".");
-  })();
+  detNet.innerHTML += " <br><b>Lecture double</b> (cible saisie : " + fmtE(plan.cibleAffichee) + "/h en net " +
+    (plan.typeCible === "paie" ? "fiche de paie hors prélèvement" : "logement déduit") + ") : net FICHE DE PAIE hors prélèvement ≈ <b>" +
+    fmtE(_netHorsH) + "/h</b> · net une fois logé ≈ <b>" + fmtE(_netApresH) + "/h</b>" +
+    (_partFinal > 0.005 ? " — participation " + fmtE(_partFinal) + "/sem (≈ " + fmtE(_partFinal * 4) + " par 4 semaines), " +
+      (inp.participationHorsPaie ? "par prélèvement bancaire — budget logement ENGAGÉ à annoncer avec ce plafond" : "retenue sur la paie") + "." : ".");
   btnNet.disabled = false;
-  renderBudgetLog();
+  renderBudgetLog(_netHorsH, _netApresH);
 }
-/* limite de coût de logement : participation MAX tenable entre les deux nets promis */
-function renderBudgetLog() {
+/* Limite de coût de logement : participation MAX tenable entre les deux nets promis.
+   COHÉRENT avec le plan : champs vides = valeurs du plan ci-dessus (affichées en placeholder) ;
+   une saisie manuelle remplace la valeur du plan. */
+function renderBudgetLog(defPaie, defApres) {
   const zone = $("gs-budlog"); if (!zone) return;
-  const nPaie = num($("in-budnetpaie")), nApres = num($("in-budnetapres")), h = inp.heures;
+  if (defPaie > 0) $("in-budnetpaie").placeholder = "plan : " + N2.format(defPaie);
+  if (defApres > 0) $("in-budnetapres").placeholder = "plan : " + N2.format(defApres);
+  const sPaie = num($("in-budnetpaie")), sApres = num($("in-budnetapres")), h = inp.heures;
+  const nPaie = sPaie > 0 ? sPaie : (defPaie || 0), nApres = sApres > 0 ? sApres : (defApres || 0);
   if (!(nPaie > 0) || !(nApres > 0) || !(h > 0)) { zone.innerHTML = ""; return; }
-  if (nApres >= nPaie) { zone.innerHTML = "<span class='conf-warn'>⚠ le net une fois logé doit être INFÉRIEUR au net fiche de paie — aucune place pour le logement.</span>"; return; }
+  if (nApres >= nPaie - 0.005) { zone.innerHTML = (sPaie > 0 || sApres > 0)
+    ? "<span class='conf-warn'>⚠ le net une fois logé doit être INFÉRIEUR au net fiche de paie — aucune place pour le logement.</span>" : ""; return; }
   const maxSem = (nPaie - nApres) * h;
+  const source = (sPaie > 0 || sApres > 0) ? "" : " <span class='note'>(valeurs du plan ci-dessus — saisir pour tester d'autres promesses)</span>";
   zone.innerHTML = "<b>Participation logement MAX tenable : " + fmtE(maxSem) + "/sem</b> (≈ " + fmtE(maxSem * 4) +
-    " par 4 semaines · ≈ " + fmtE(maxSem * 52 / 12) + " par mois moyen) sur " + N2.format(h) +
-    " h/sem — c'est le PLAFOND du budget logement à engager auprès du salarié pour tenir « " +
-    fmtE(nPaie) + "/h sur la fiche de paie, " + fmtE(nApres) + "/h une fois logé ».";
+    " par 4 semaines) sur " + N2.format(h) + " h/sem — PLAFOND du budget logement à engager pour tenir « " +
+    fmtE(nPaie) + "/h sur la fiche de paie, " + fmtE(nApres) + "/h une fois logé »." + source;
 }
 function applyNetPlan() {
   /* recalcule TOUJOURS sur l'état visible au moment du clic (pas de plan mémorisé) */
