@@ -626,12 +626,21 @@ table.grille td.neg { color: var(--bad); }
           <label class="check"><input type="checkbox" id="pilot-indem" checked title="L'ajustement s'écrit sur une ligne dédiée « Ajustement net » (non facturée) — les indemnités propres au client (facturées) ne sont JAMAIS touchées. Plafond URSSAF GD 4ᵉ-24ᵉ mois, déduction faite des indemnités déjà versées."> Ajuster par les indemnités (plafonds URSSAF)</label>
         </div>
         <p class="note" id="gs-net-detail"></p>
-        <!-- limite de coût de logement : à partir des DEUX nets promis, la participation max tenable -->
-        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-top:4px">
-          <div class="field"><label for="in-budnetpaie">Net fiche de paie promis (€/h)</label><input type="number" id="in-budnetpaie" step="0.01" min="0" placeholder="ex. 18,00"></div>
-          <div class="field"><label for="in-budnetapres">Net visé une fois logé (€/h)</label><input type="number" id="in-budnetapres" step="0.01" min="0" placeholder="ex. 14,50"></div>
+        <!-- ===== Assistant promesse (prélèvement bancaire) : LE mode opératoire en 3 valeurs ===== -->
+        <div style="border-top:1px dashed var(--line); margin-top:10px; padding-top:8px">
+          <p style="font-size:13px; margin:0 0 2px"><b>Assistant promesse — prélèvement bancaire</b></p>
+          <p class="note" style="margin:0 0 8px">Mode d'emploi : ① saisissez <b>2 des 3 valeurs</b> de la promesse (la 3ᵉ se calcule) ·
+          ② choisissez les leviers d'optimisation ci-dessus (indemnités URSSAF / participation) ·
+          ③ « Appliquer la promesse » règle la participation, passe en mode prélèvement et résout le plan —
+          la Lecture double donne les chiffres exacts à annoncer.</p>
+          <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end">
+            <div class="field"><label for="pr-netpaie">① Net FICHE DE PAIE annoncé (€/h)</label><input type="number" id="pr-netpaie" step="0.01" min="0" placeholder="ex. 19,00"></div>
+            <div class="field"><label for="pr-prelev">② Prélèvement logement (€/sem)</label><input type="number" id="pr-prelev" step="1" min="0" placeholder="ex. 170"></div>
+            <div class="field"><label for="pr-netloge">③ Net une fois logé (€/h)</label><input type="number" id="pr-netloge" step="0.01" min="0" placeholder="ex. 14,50"></div>
+            <button class="btn primary" id="pr-apply" disabled>Appliquer la promesse</button>
+          </div>
+          <p class="note" id="pr-out"></p>
         </div>
-        <p class="note" id="gs-budlog"></p>
         <p class="note">Le coefficient résolu donne exactement la cible (le classeur affichait seulement l'écart). Coût salarié indépendant du coefficient.</p>
         <div class="chart-box">
           <svg id="chart" width="100%" height="180" role="img" aria-label="Taux de marge en fonction du coefficient"></svg>
@@ -2497,7 +2506,7 @@ function renderNetPlan() {
   const plan = cibleNet > 0 ? computeNetPlan(cibleNet) : null;
   if (!plan) {
     outNet.textContent = "—"; detNet.innerHTML = ""; btnNet.disabled = true;
-    renderBudgetLog();   // le calculateur de budget logement vit indépendamment du plan
+    prRecalc();   // l'assistant promesse vit indépendamment du plan
     return;
   }
   /* affichage « atteint » dans le référentiel de la cible saisie */
@@ -2545,26 +2554,53 @@ function renderNetPlan() {
     (_partFinal > 0.005 ? " — participation " + fmtE(_partFinal) + "/sem (≈ " + fmtE(_partFinal * 4) + " par 4 semaines), " +
       (inp.participationHorsPaie ? "par prélèvement bancaire — budget logement ENGAGÉ à annoncer avec ce plafond" : "retenue sur la paie") + "." : ".");
   btnNet.disabled = false;
-  renderBudgetLog(_netHorsH, _netApresH);
+  prRecalc();
 }
-/* Limite de coût de logement : participation MAX tenable entre les deux nets promis.
-   COHÉRENT avec le plan : champs vides = valeurs du plan ci-dessus (affichées en placeholder) ;
-   une saisie manuelle remplace la valeur du plan. */
-function renderBudgetLog(defPaie, defApres) {
-  const zone = $("gs-budlog"); if (!zone) return;
-  if (defPaie > 0) $("in-budnetpaie").placeholder = "plan : " + N2.format(defPaie);
-  if (defApres > 0) $("in-budnetapres").placeholder = "plan : " + N2.format(defApres);
-  const sPaie = num($("in-budnetpaie")), sApres = num($("in-budnetapres")), h = inp.heures;
-  const nPaie = sPaie > 0 ? sPaie : (defPaie || 0), nApres = sApres > 0 ? sApres : (defApres || 0);
-  if (!(nPaie > 0) || !(nApres > 0) || !(h > 0)) { zone.innerHTML = ""; return; }
-  if (nApres >= nPaie - 0.005) { zone.innerHTML = (sPaie > 0 || sApres > 0)
-    ? "<span class='conf-warn'>⚠ le net une fois logé doit être INFÉRIEUR au net fiche de paie — aucune place pour le logement.</span>" : ""; return; }
-  const maxSem = (nPaie - nApres) * h;
-  const source = (sPaie > 0 || sApres > 0) ? "" : " <span class='note'>(valeurs du plan ci-dessus — saisir pour tester d'autres promesses)</span>";
-  zone.innerHTML = "<b>Participation logement MAX tenable : " + fmtE(maxSem) + "/sem</b> (≈ " + fmtE(maxSem * 4) +
-    " par 4 semaines) sur " + N2.format(h) + " h/sem — PLAFOND du budget logement à engager pour tenir « " +
-    fmtE(nPaie) + "/h sur la fiche de paie, " + fmtE(nApres) + "/h une fois logé »." + source;
+/* ===== Assistant promesse (prélèvement bancaire) =====
+   Relation : net une fois logé = net FICHE DE PAIE − prélèvement/heures.
+   On saisit 2 des 3 valeurs, la 3ᵉ se calcule (les 2 DERNIÈRES modifiées font foi).
+   « Appliquer » : participation = prélèvement, mode banque, cible = net de paie, plan résolu. */
+let prOrder = [];
+function prTouch(cle) { prOrder = prOrder.filter(x => x !== cle); prOrder.push(cle); if (prOrder.length > 2) prOrder = prOrder.slice(-2); }
+function prRecalc() {
+  const zone = $("pr-out"), btn = $("pr-apply"); if (!zone) return;
+  const h = inp.heures;
+  const ids = { paie: "pr-netpaie", prelev: "pr-prelev", loge: "pr-netloge" };
+  const v = { paie: num($(ids.paie)), prelev: num($(ids.prelev)), loge: num($(ids.loge)) };
+  if (h > 0 && prOrder.length >= 2 && v[prOrder[0]] > 0 && v[prOrder[1]] > 0) {
+    const manque = ["paie", "prelev", "loge"].find(k => !prOrder.includes(k));
+    if (manque === "loge") v.loge = v.paie - v.prelev / h;
+    else if (manque === "prelev") v.prelev = (v.paie - v.loge) * h;
+    else v.paie = v.loge + v.prelev / h;
+    $(ids[manque]).value = Math.round(v[manque] * 100) / 100;
+  }
+  const complet = v.paie > 0 && v.prelev > 0 && v.loge > 0 && h > 0 && v.loge < v.paie - 0.005;
+  btn.disabled = !complet;
+  if (!complet) {
+    zone.innerHTML = (v.paie > 0 && v.prelev > 0 && v.loge >= v.paie - 0.005 && v.loge > 0)
+      ? "<span class='conf-warn'>⚠ le net une fois logé doit rester INFÉRIEUR au net fiche de paie.</span>"
+      : "Saisir 2 des 3 valeurs (et les heures travaillées en haut de page).";
+    return;
+  }
+  zone.innerHTML = "Promesse : <b>" + fmtE(v.paie) + "/h sur la fiche de paie</b> − prélèvement <b>" + fmtE(v.prelev) +
+    "/sem</b> (≈ " + fmtE(v.prelev * 4) + " par 4 semaines) = <b>" + fmtE(v.loge) + "/h une fois logé</b> (" +
+    N2.format(h) + " h/sem). Budget logement engagé : plafond " + fmtE(v.prelev) + "/sem.";
 }
+["pr-netpaie", "pr-prelev", "pr-netloge"].forEach(id => $(id).addEventListener("input", () => {
+  prTouch(id === "pr-netpaie" ? "paie" : (id === "pr-prelev" ? "prelev" : "loge")); prRecalc();
+}));
+$("pr-apply").addEventListener("click", () => {
+  const vPaie = num($("pr-netpaie")), vPrelev = num($("pr-prelev"));
+  if (!(vPaie > 0) || !(vPrelev > 0)) return;
+  $("in-partlog").value = vPrelev;
+  $("in-partmode").value = "banque";
+  $("in-ciblenet").value = vPaie;
+  $("in-ciblenet-type").value = "paie";
+  readInputsFromForm(); render(compute(inp)); renderNetPlan();
+  applyNetPlan();
+  renderNetPlan();
+  $("pr-out").innerHTML += " <b>✓ Promesse appliquée</b> — détail du plan et Lecture double ci-dessus.";
+});
 function applyNetPlan() {
   /* recalcule TOUJOURS sur l'état visible au moment du clic (pas de plan mémorisé) */
   readInputsFromForm();
@@ -2587,7 +2623,10 @@ function applyNetPlan() {
       $("inq" + k).value = 0; $("inr" + k).value = 0;
     });
   }
-  $("in-net").value = plan.cible;
+  /* le « net promis » moteur (D13/compensation) s'exprime TOUJOURS en net de PAIE :
+     conversion si la cible était en référentiel « logement déduit » en mode prélèvement */
+  const cibleF90 = plan.cible + ((inp.participationHorsPaie && plan.typeCible === "apres") ? plan.part / plan.res.hN : 0);
+  $("in-net").value = Math.round(cibleF90 * 100) / 100;
   $("in-nonet").checked = false;
   readInputsFromForm(); render(compute(inp));
 }
