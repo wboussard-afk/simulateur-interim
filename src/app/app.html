@@ -362,6 +362,9 @@ table.grille td.neg { color: var(--bad); }
   #etude-print .kv-big td.n { font-weight: 700; }
   #etude-print .coefv { font-size: 12pt; font-weight: 700; color: #681316; }
   #etude-print .sublet { display: block; color: #666; font-size: 9pt; font-weight: 400; }
+#etude-print .qual-s { color: #681316; font-weight: 800; }
+#etude-print .qual-ns { color: #29293b; font-weight: 800; }
+#etude-print .agence { color: #db303f; font-weight: 800; font-size: 11pt; letter-spacing: .02em; }
   /* MONTANTS mis en valeur (colonne de droite) ; lignes de total en rouge marqué */
   #etude-print td.n { font-weight: 700; font-size: 11pt; }
   #etude-print tr.tot td { border-top: 1.2pt solid #681316; border-bottom: 0; font-size: 11.5pt; }
@@ -2269,7 +2272,7 @@ function buildEtudePrix() {
     '<img class="logo-etude" src="' + LOGO_AB2PRO + '" alt="AB2Pro — Groupe Triangle Solutions RH">' +
     "<h1>Synthèse étude de prix — " + esc(inp.client || "(client à renseigner)") + "</h1>" +
     '<div class="meta">' + esc(secteur) + " · établie le " + dateStr + " · année " + now.getFullYear() +
-    (inp.agence ? " · " + esc(inp.agence) : "") +
+    (inp.agence ? " · <span class='agence'>" + esc(inp.agence) + "</span>" : "") +
     (inp.dept ? " · mission : " + esc(inp.dept) : "") +
     (inp.niveauQualif && inp.sector === "tarifaire" && inp.branche === "btp" ? " · qualification " + esc(inp.niveauQualif) : "") +
     "</div></div>";
@@ -2328,17 +2331,24 @@ function buildEtudePrix() {
   /* détail « x €/jour × n j » (le nombre correspond aux jours) — sauf Ajustement net (hebdo seul) */
   const detailJour = p => ((p.name || "").trim().toLowerCase() === "ajustement net" || !(p.q > 0 && p.r > 0))
     ? "" : " · " + N2.format(p.r) + " €/jour × " + (p.q % 1 ? N2.format(p.q) : String(p.q)) + " j";
-  s += kv("Heures et majorations au coefficient " + coefTag(coefAff), fmtE(m.O42 - primesFactTotal) + "/sem");
+  s += kv("Heures et majorations au coefficient " + coefTag(coefAff) +
+          "<span class='sublet'>" + N2.format(m.D24) + " h normales × " + fmtE(inp.thBrut) +
+          (m.D28 ? " + " + N2.format(m.D28) + " h sup à +25 %" : "") +
+          (m.D29 ? " + " + N2.format(m.D29) + " h sup à +50 %" : "") +
+          " · coefficient " + N2.format(coefAff) + "</span>", fmtE(m.O42 - primesFactTotal) + "/sem");
   if (m.O45) s += kv("Indemnité transport refacturée", fmtE(m.O45) + "/sem");
   if (m.O46) s += kv("Indemnité repas refacturée", fmtE(m.O46) + "/sem");
   primesBilled.filter(x => x.montant > 0.005).forEach(x => {
-    const modeP = x.p.fc == null ? "au coefficient " + coefTag(coefAff) : "coef " + coefTag(x.p.fc);
-    s += kv(esc(x.p.name) + " (prime soumise) — refacturée " + modeP + detailJour(x.p), fmtE(x.montant) + "/sem");
+    const coefP = x.p.fc == null ? coefAff : x.p.fc;
+    s += kv(esc(x.p.name) + " — <span class='qual-s'>SOUMISE</span>, refacturée" +
+            "<span class='sublet'>" + detailJour(x.p).replace(" · ", "") +
+            (detailJour(x.p) ? " · " : "") + "coefficient " + N2.format(coefP) + "</span>", fmtE(x.montant) + "/sem");
   });
   indemBilled.filter(x => x.montant > 0.005).forEach(x => {
     const coefI = x.p.fc == null ? 1 : x.p.fc;
-    s += kv(esc(x.p.name) + " (indemnité non soumise) — coef " + coefTag(coefI) +
-            (coefI === 1 ? " · <b>ligne visible sur la facture</b>" : "") + detailJour(x.p), fmtE(x.montant) + "/sem");
+    s += kv(esc(x.p.name) + " — <span class='qual-ns'>NON SOUMISE</span>, refacturée" +
+            "<span class='sublet'>" + detailJour(x.p).replace(" · ", "") +
+            (detailJour(x.p) ? " · " : "") + "coefficient " + N2.format(coefI) + "</span>", fmtE(x.montant) + "/sem");
   });
   if (m.O52 > 0.005) s += kv("Part logement facturée", fmtE(m.O52) + "/sem");
   if (inp.remisePct) s += kv("Remise fin d'année (sur CA soumis à cotisations)", "−" + fmtE(m.O42 * inp.remisePct / 100).replace("-", "") + "/sem");
@@ -2351,11 +2361,11 @@ function buildEtudePrix() {
   let totalNF = 0, nfRows = "";
   inp.primes.forEach((p, k) => {
     const paye = p.q * p.r, fact = primesBilled[k].montant;
-    if (paye > 0.005 && fact < 0.005) { totalNF += paye; nfRows += kv(esc(p.name) + " (prime soumise) — payée, non refacturée" + detailJour(p), fmtE(paye) + "/sem"); }
+    if (paye > 0.005 && fact < 0.005) { totalNF += paye; nfRows += kv(esc(p.name) + " — <span class='qual-s'>SOUMISE</span>, payée non refacturée" + (detailJour(p) ? "<span class='sublet'>" + detailJour(p).replace(" · ", "") + "</span>" : ""), fmtE(paye) + "/sem"); }
   });
   inp.indemnites.forEach((p, k) => {
     const paye = p.q * p.r, fact = indemBilled[k].montant;
-    if (paye > 0.005 && fact < 0.005) { totalNF += paye; nfRows += kv(esc(p.name) + " (indemnité non soumise) — payée, <b>non facturée</b>" + detailJour(p), fmtE(paye) + "/sem"); }
+    if (paye > 0.005 && fact < 0.005) { totalNF += paye; nfRows += kv(esc(p.name) + " — <span class='qual-ns'>NON SOUMISE</span>, payée <b>non facturée</b>" + (detailJour(p) ? "<span class='sublet'>" + detailJour(p).replace(" · ", "") + "</span>" : ""), fmtE(paye) + "/sem"); }
   });
   const partAct = Math.max(0, -(inp.participationLibre || 0));
   const logNet = Math.max(0, (m.F92 || 0) - partAct - (m.O52 || 0));
