@@ -646,7 +646,7 @@ table.grille td.neg { color: var(--bad); }
             <option value="paie">FICHE DE PAIE — SANS PARTICIPATION (prélèvement bancaire)</option>
           </select></div>
         <div style="display:flex; gap:18px; flex-wrap:wrap">
-          <label class="check"><input type="checkbox" id="pilot-part" checked title="La participation est ramenée au COÛT EXACT du logement (plancher — société logement à l'équilibre) et peut monter au-delà pour rabaisser un net trop haut. Fonctionne dans les deux modes : retenue sur paie (agit sur le net de paie) comme prélèvement bancaire (agit sur le net une fois logé et sur le prélèvement annoncé). Sans objet uniquement quand la cible est le net FICHE DE PAIE hors prélèvement (ce net ne dépend pas de la participation). Décochée : la participation saisie n'est jamais modifiée."> Ajuster par la participation logement</label>
+          <label class="check"><input type="checkbox" id="pilot-part" checked title="La participation est ramenée au COÛT EXACT du logement (plancher — société logement à l'équilibre) et peut monter au-delà pour rabaisser un net trop haut. Fonctionne dans les deux modes : retenue sur paie (agit sur le net de paie) comme prélèvement bancaire (agit sur le net une fois logé et sur le prélèvement annoncé). Sans objet uniquement quand la cible est le net FICHE DE PAIE hors prélèvement (ce net ne dépend pas de la participation). Cochée avec une cible net saisie : la RÉGULATION s'applique AUTOMATIQUEMENT — la participation s'écrit toute seule dans la carte Logement (consomme le CET restant via l'avance), sauf participation figée sur la promesse de l'assistant. Décochée : la participation saisie n'est jamais modifiée."> Ajuster par la participation logement</label>
           <label class="check"><input type="checkbox" id="pilot-indem" checked title="L'ajustement s'écrit sur une ligne dédiée « Ajustement net » (non facturée) — les indemnités propres au client (facturées) ne sont JAMAIS touchées. Plafond URSSAF GD 4ᵉ-24ᵉ mois, déduction faite des indemnités déjà versées."> Ajuster par les indemnités (plafonds URSSAF)</label>
         </div>
         <p class="note" id="gs-net-detail"></p>
@@ -1295,13 +1295,24 @@ function render(r) {
   } else { na.style.color = ""; $("atteint-hint").textContent = ""; }
   const ca = $("cet-alert");
   const partCibleH = partAct + hausse;
+  /* la régulation s'applique désormais TOUTE SEULE quand le levier participation du
+     Pilotage est coché avec une cible net (sauf participation figée sur la promesse) —
+     si le conseil reste visible, dire pourquoi et comment l'automatiser */
+  const _pilotOn = $("pilot-part") && $("pilot-part").checked;
+  const _cibleOn = num($("in-ciblenet")) > 0;
+  const _promFige = _pilotOn && num($("pr-prelev")) > 0;
+  const noteAutoReg = _promFige
+    ? " <span class='note'>Participation FIGÉE sur la promesse de l'assistant : la régulation ne s'applique pas automatiquement (parité de marge entre les deux méthodes).</span>"
+    : (!_pilotOn || !_cibleOn)
+      ? " <span class='note'>S'applique automatiquement dès qu'une cible net est saisie au Pilotage avec « Ajuster par la participation logement » coché.</span>"
+      : "";
   const conseilPart = hausse > 0.5
     ? " <b>Régulation par la participation logement :</b> la porter à <b>" + fmtE(partCibleH) +
       "/sem</b> (au lieu de " + fmtE(partAct) + ")" +
       (coutLog > 0 && partCibleH > coutLog + 0.005 ? " — <b>au-dessus du coût réel du logement</b> (" + fmtE(coutLog) + ", excédent société logement " + fmtE(partCibleH - coutLog) + ")" : "") +
       (excesNet > 0.5 ? " : ramène le net constaté au net promis" : "") +
       (cetViaPart > 0.5 ? (excesNet > 0.5 ? " et" : " :") + " grossit l'avance de " + fmtE(cetViaPart) +
-        " → CET restant " + fmtE(restantApres) : "") + "."
+        " → CET restant " + fmtE(restantApres) : "") + "." + noteAutoReg
     : "";
   const conseilReliquat = r => r > Math.max(5, cetNet * 0.05)
     ? " Le reliquat de <b>" + fmtE(r) + "</b> se résorbe par les avances des prochaines paies — minimum à solder au déblocage final."
@@ -1439,6 +1450,7 @@ function findAdjustTargets() {
    −1 = net SANS participation en mode retenue (net évalué = F90 + part/h — invariant en part) ;
     0 = le net évalué est directement F90. */
 let NETPLAN_OFFSET_SIGNE = 0;
+let NETPLAN_AUTO_DEPTH = 0;   /* garde de récursion de l'auto-application de la régulation */
 function evalNetAtteint(cible, part, indem1, idx, adjSet) {
   const offsetSem = NETPLAN_OFFSET_SIGNE * part;
   const t = Object.assign({}, inp, {
@@ -1519,19 +1531,25 @@ function computeNetPlan(cible) {
                  offsetSigne: NETPLAN_OFFSET_SIGNE, useIndem, idx, adjSet, montantConsolide,
                  nbConsolidees: Array.from(adjSet).filter(k => k !== idx && inp.indemnites[k].q * inp.indemnites[k].r > 0).length };
   if (a0.net >= cible - 0.005) {
-    if (a0.net <= cible + 0.005)   /* déjà au promis, sans indemnité d'ajustement */
-      return Object.assign(base, { part: partBase, indem: 0, res: a0, statut: "ok", manque: 0 });
-    if (!usePart || partPlancherSeul || partFigee)  /* levier désactivé, net invariant, ou participation figée sur la promesse */
+    if (!usePart || partPlancherSeul || partFigee) {  /* levier désactivé, net invariant, ou participation figée sur la promesse */
+      if (a0.net <= cible + 0.005)   /* déjà au promis, sans indemnité d'ajustement */
+        return Object.assign(base, { part: partBase, indem: 0, res: a0, statut: "ok", manque: 0 });
       return Object.assign(base, { part: partBase, indem: 0, res: a0, statut: "tropHaut",
                                    manque: (a0.net - cible) * a0.hN });
-    /* net trop haut : hausse de participation (régulation) — la PLUS HAUTE part
-     * qui laisse net >= cible (consomme le CET au maximum) */
-    let pLo = partBase, pHi = partBase + (a0.net - cible) * a0.hN + a0.cet + 10;
-    for (let k = 0; k < 22; k++) {
+    }
+    /* levier participation actif : la PLUS HAUTE part qui laisse net >= cible — rabaisse
+     * un net trop haut ET consomme le CET restant même quand le net est déjà au promis
+     * (l'avance grossit d'autant : c'est la « Régulation par la participation logement »
+     * du Contrôle du net, désormais calculée par le plan — demande 31/08) */
+    let pLo = partBase, pHi = partBase + Math.max(0, a0.net - cible) * a0.hN + a0.cet + 10;
+    for (let k = 0; k < 26; k++) {
       const mid = (pLo + pHi) / 2;
-      (evalNetAtteint(cible, mid, 0, idx, adjSet).net >= cible - 0.005) ? pLo = mid : pHi = mid;
+      /* tolérance fine (0,0001 €/h) : la part colle au conseil du Contrôle du net au centime */
+      (evalNetAtteint(cible, mid, 0, idx, adjSet).net >= cible - 0.0001) ? pLo = mid : pHi = mid;
     }
     const part = Math.floor(pLo * 100) / 100;   // arrondi bas : le net ne passe pas sous la cible
+    if (part <= partBase + 0.005)   /* rien à réguler : CET déjà consommé au maximum */
+      return Object.assign(base, { part: partBase, indem: 0, res: a0, statut: "ok", manque: 0 });
     return Object.assign(base, { part, indem: 0, res: evalNetAtteint(cible, part, 0, idx, adjSet), statut: "regulation", manque: 0 });
   }
   /* BAISSE de participation SOUS le coût du logement (autorisée : la société
@@ -1584,6 +1602,24 @@ function renderNetPlan() {
     outNet.textContent = "—"; detNet.innerHTML = ""; btnNet.disabled = true;
     prRecalc();   // l'assistant promesse vit indépendamment du plan
     return;
+  }
+  /* LEVIER COCHÉ = RÉGULATION AUTOMATIQUE (demande 31/08) : quand « Ajuster par la
+     participation logement » est coché et qu'une cible net est saisie, la participation
+     de régulation calculée s'ÉCRIT toute seule dans la carte Logement — plus besoin de
+     recopier le conseil du Contrôle du net ni de cliquer « Appliquer ». Jamais pendant
+     la saisie du champ participation (on ne tape pas contre l'utilisateur) ; point fixe
+     en une itération (la régulation part du plancher, pas de la valeur du champ). */
+  if (plan.statut === "regulation" && plan.coutLog > 0.005 && NETPLAN_AUTO_DEPTH < 2 &&
+      document.activeElement !== $("in-partlog")) {   /* coutLog : sans logement réel, pas d'écriture automatique — « Appliquer » reste le choix conscient */
+    const curPart = Math.max(0, -(inp.participationLibre || 0));
+    if (Math.abs(plan.part - curPart) > 0.005) {
+      NETPLAN_AUTO_DEPTH++;
+      try {
+        $("in-partlog").value = plan.part;
+        readInputsFromForm(); render(compute(inp)); renderNetPlan();
+      } finally { NETPLAN_AUTO_DEPTH--; }
+      return;
+    }
   }
   /* affichage « atteint » dans le référentiel de la cible saisie */
   const _partFinal = Math.max(0, plan.part || 0), _h = plan.res.hN;
