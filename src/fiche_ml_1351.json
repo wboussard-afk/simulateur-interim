@@ -3,100 +3,157 @@
  "titre": "Prévention et sécurité (CCN du 15/02/1985)",
  "dateDerniereActu": "2026",
  "themes": [
-  {"cle": "minima", "titre": "Minima par coefficient (grille agents)",
-   "cleValeur": "Grille par niveau/échelon/coefficient (AE 120-AM) — à relever",
+  {
+   "cle": "minima",
+   "titre": "Minima par coefficient (grille agents)",
+   "cleValeur": "AE coef 120 : 1 883,85 € → 250 : 3 202,76 € (au 01/01/2026)",
    "points": [
-    "Grille par coefficients (agents d'exploitation, agents de maîtrise, cadres) — relever l'avenant salaires en vigueur sur Légifrance avant paramétrage.",
-    "Le plus favorable s'applique entre SMIC, minimum conventionnel et salaire d'entreprise."],
-   "dateCourte": "montants à relever",
+    "Revalorisations du triennal 25/09/2023, étendu 20/12/2023 (KALITEXT000049067287, BOCC 2023-46) : **+5 %** au 01/01/2024, **+3,2 %** au 01/01/2025, **+2,8 %** au 01/01/2026.",
+    "Agents d'exploitation au 01/01/2026 (151,67 h) : coef 120 = **1 883,85 €** ; 130 = **1 908,54** ; 140 = **1 965,78** ; 150 = **2 039,33** ; 190 = **2 502,06** ; 250 = **3 202,76 €**.",
+    "AM : **2 234,30 €** (coef 150) à **3 776,29 €** (coef 275) ; cadres : **2 968,47 €** (pos. I, coef 300) à **6 908,48 €** (pos. III-C, coef 800) — fourchettes hors cible intérim.",
+    "Le plus favorable s'applique entre SMIC, minimum conventionnel et salaire d'entreprise."
+   ],
+   "dateCourte": "triennal 25/09/2023, étendu — grille au 01/01/2026",
    "source": "https://code.travail.gouv.fr/contribution/1351-quel-est-le-salaire-minimum",
-   "fiabilite": "aConfirmer"},
-  {"cle": "nuit", "titre": "Travail de nuit (cœur du métier)",
-   "cleValeur": "Majoration nuit conventionnelle — taux à relever (vacations 21 h-6 h)",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit (cœur du métier)",
+   "cleValeur": "Nuit 21 h-6 h : +10 % + repos compensateur 1 %/h",
    "points": [
-    "Le travail de nuit est structurel dans la sécurité — la CCN prévoit des majorations des heures de nuit : taux exact à relever sur le texte avant paramétrage.",
-    "Demander au client son régime réel de majorations nuit/dimanche/férié (souvent combinées en sécurité).",
-    "Rappel : les vacations de nuit ouvrent aussi droit au panier de nuit le cas échéant."],
-   "dateCourte": "CCN 15/02/1985 — taux à relever",
+    "Majoration de **10 %** du taux horaire minimum conventionnel pour les heures **21 h-6 h**, + repos compensateur de **1 %** par heure de nuit dès la 1re heure (avenant 25/09/2001 art. 1er, KALIARTI000005853871).",
+    "Demander au client son régime réel : cumul avec dimanche/férié possible — chaque majoration se calcule sur le taux de base, hors assiette des autres.",
+    "Rappel : les vacations de nuit ouvrent aussi droit au panier le cas échéant (panier majoré en sûreté aéroportuaire, annexe VIII)."
+   ],
+   "dateCourte": "avenant 25/09/2001, étendu",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635405",
-   "fiabilite": "aConfirmer"},
-  {"cle": "hs", "titre": "Heures supplémentaires",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
    "cleValeur": "Contingent ÉLEVÉ : 329 h/an",
    "points": [
-    "Contingent annuel conventionnel : **329 h** — parmi les plus élevés (vacations longues).",
-    "Majoration et/ou repos compensateur ; au-delà : repos obligatoire.",
-    "Taux : légaux **25/50 %** à défaut d'accord."],
-   "dateCourte": "fiche CDTN",
+    "Contingent annuel conventionnel : **329 h** — parmi les plus élevés (art. 7.10 clauses générales, KALIARTI000054226430).",
+    "Majoration et/ou repos compensateur ; au-delà du contingent : repos obligatoire.",
+    "Taux **25/50 %** ; décompte en cycle : HS au-delà de **39 h** de moyenne, **25 %** si moyenne ≤ 47 h, **50 %** au-delà (accord 18/05/1993 art. 6, KALIARTI000005853801)."
+   ],
+   "dateCourte": "art. 7.10 CCN (fiche CDTN)",
    "source": "https://code.travail.gouv.fr/contribution/1351-heures-supplementaires",
-   "fiabilite": "verifie"},
-  {"cle": "weekend", "titre": "Dimanche / week-end",
-   "cleValeur": "Activité continue — majorations conventionnelles à relever",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Dimanche / week-end",
+   "cleValeur": "Dimanche : +10 % (0 h-24 h), cumulable nuit/férié",
    "points": [
-    "La sécurité travaille 7 j/7 : majorations dimanche/férié conventionnelles à relever (souvent cumulables selon les textes).",
-    "Demander la pratique du client (égalité de traitement)."],
-   "dateCourte": "à relever",
+    "Dimanche (0 h-24 h) : majoration de **10 %** du taux horaire minimum conventionnel (accord 29/10/2003 art. 1er, étendu, KALIARTI000005853996).",
+    "Calculée sur le taux de base AVANT toute autre majoration et hors assiette des autres : cumulable avec nuit et férié (exemple officiel : dimanche + nuit = 10 % + 10 %).",
+    "Demander la pratique du client (égalité de traitement)."
+   ],
+   "dateCourte": "accord 29/10/2003, étendu",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635405",
-   "fiabilite": "aConfirmer"},
-  {"cle": "feries", "titre": "Jours fériés",
-   "cleValeur": "Fériés travaillés par roulement — majorations à relever",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés",
+   "cleValeur": "Férié travaillé : +100 % du salaire du jour (ou repos équivalent)",
    "points": [
-    "Régime conventionnel des fériés travaillés à relever.",
-    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."],
-   "dateCourte": "à relever",
+    "Férié travaillé : indemnité supplémentaire de **100 %** du salaire du jour, remplaçable au choix du salarié par un repos équivalent pris dans le mois (art. 9.05 CCN, KALIARTI000005853757).",
+    "Férié chômé : salaire maintenu si les journées de travail précédant et suivant le férié ont été accomplies ; 1er Mai : régime légal.",
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+   ],
+   "dateCourte": "art. 9.05 CCN",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635405",
-   "fiabilite": "aConfirmer"},
-  {"cle": "repas", "titre": "Panier",
-   "cleValeur": "Prime de panier conventionnelle (vacations) — montant à relever",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "repas",
+   "titre": "Panier",
+   "cleValeur": "Panier 4,48 € au 01/01/2026 (sûreté aéroportuaire : 6,87 €)",
    "points": [
-    "La branche prévoit une prime de panier pour les vacations remplissant les conditions conventionnelles — montant à relever sur le texte/avenant en vigueur.",
-    "Oubli déclaratif fréquent chez les clients donneurs d'ordre."],
-   "dateCourte": "à relever",
+    "Prime de panier : **4,22 €** (2024), **4,36 €** (01/01/2025), **4,48 €** au 01/01/2026 (triennal 25/09/2023, BOCC 2023-46).",
+    "Sûreté aérienne/aéroportuaire (annexe VIII) : **6,47 / 6,68 / 6,87 €** ; indemnité chien : **1,41 €/h** au 01/01/2026.",
+    "Oubli déclaratif fréquent chez les clients donneurs d'ordre."
+   ],
+   "dateCourte": "triennal 25/09/2023 (BOCC 2023-46)",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635405",
-   "fiabilite": "aConfirmer"},
-  {"cle": "transport", "titre": "Transport",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
    "cleValeur": "50 % transports publics",
-   "points": ["Prise en charge légale de **50 %** des abonnements."],
+   "points": [
+    "Prise en charge légale de **50 %** des abonnements."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/1351",
-   "fiabilite": "verifie"},
-  {"cle": "primes", "titre": "Prime d'ancienneté 2-12 % (non-cadres)",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "Prime d'ancienneté 2-12 % (non-cadres)",
    "cleValeur": "2 % (>4 ans) → 12 % (>15 ans) sur le minimum conventionnel",
    "points": [
-    "Non-cadres dès **plus de 4 ans** : **2 %** ; **5 %** (>7 ans) ; **8 %** (>10 ans) ; **10 %** (>12 ans) ; **12 %** (>15 ans) — sur le salaire minimal conventionnel (art. 9.03).",
-    "Le nouveau taux s'applique le mois suivant l'anniversaire d'embauche.",
-    "Habillage/entretien de tenue : indemnités selon les textes — à demander au déclaratif.",
-    "Intérim : égalité de traitement — l'ancienneté d'un comparable du client fonde le droit."],
-   "dateCourte": "art. 9.03 (fiche CDTN)",
+    "Non-cadres dès **plus de 4 ans** : **2 %** ; **5 %** (>7 ans) ; **8 %** (>10 ans) ; **10 %** (>12 ans) ; **12 %** (>15 ans) — sur le salaire minimal conventionnel (art. 9.03 CCN, KALIARTI000005853757).",
+    "Le nouveau taux s'applique le mois suivant l'anniversaire d'embauche (le mois même si entrée le 1er jour travaillé du mois).",
+    "Entretien des tenues : **8,78 €** nets/mois au 01/01/2026 (triennal 25/09/2023, BOCC 2023-46) — à demander au déclaratif.",
+    "Intérim : égalité de traitement — l'ancienneté d'un comparable du client fonde le droit."
+   ],
+   "dateCourte": "art. 9.03 + triennal 25/09/2023",
    "source": "https://code.travail.gouv.fr/contribution/1351-quand-le-salarie-a-t-il-droit-a-une-prime-danciennete-quel-est-son-montant",
-   "fiabilite": "verifie"},
-  {"cle": "annualisation", "titre": "Aménagement du temps",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Aménagement du temps",
    "cleValeur": "Vacations planifiées — régime du client",
-   "points": ["Cycles/annualisation fréquents — pour l'intérimaire, le régime du client s'applique (art. L.1251-21)."],
+   "points": [
+    "Cycles/annualisation fréquents — pour l'intérimaire, le régime du client s'applique (art. L.1251-21)."
+   ],
    "dateCourte": "—",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635405",
-   "fiabilite": "verifie"},
-  {"cle": "saisonniers", "titre": "Saisonniers / événementiel",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers / événementiel",
    "cleValeur": "Événementiel via droit commun",
-   "points": ["Renforts événementiels sans statut saisonnier propre — régime intérim de droit commun (IFM + ICCP 10 %)."],
+   "points": [
+    "Renforts événementiels sans statut saisonnier propre — régime intérim de droit commun (IFM + ICCP 10 %)."
+   ],
    "dateCourte": "—",
    "source": "https://code.travail.gouv.fr/convention-collective/1351",
-   "fiabilite": "verifie"},
-  {"cle": "durees", "titre": "Durées maximales",
-   "cleValeur": "Vacations jusqu'à 12 h possibles — bornes à vérifier",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales",
+   "cleValeur": "Vacations 12 h ; 48 h/sem ; 46 h moy./12 sem (nuit : 44 h)",
    "points": [
-    "Le secteur pratique des vacations longues (jusqu'à **12 h** sous conditions conventionnelles) — vérifier les bornes exactes et repos entre vacations sur le texte avant suivi des heures.",
-    "Socle : **48 h**/semaine absolues, **44 h**/12 semaines (sauf dérogations)."],
-   "dateCourte": "à relever",
+    "Vacations jusqu'à **12 h**/jour (services englobant un temps de présence vigilante, art. 7.08 ; vacations de nuit aussi, avenant 2001 art. 2.1) ; semaine max **48 h** (4 × 12 h).",
+    "La CCN déroge au socle : **46 h** en moyenne sur 12 semaines consécutives (art. 7.09) ; **44 h**/12 sem. pour les seuls travailleurs de nuit (avenant 2001 art. 2.2).",
+    "Interruption de **10 h** au passage nuit/jour ; **1 jour** de repos après 48 h de service."
+   ],
+   "dateCourte": "arts. 7.08-7.09 + avenant nuit 25/09/2001",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635405",
-   "fiabilite": "aConfirmer"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
    "cleValeur": "Carte pro CNAPS obligatoire · contingent 329 h · nuit/dim/férié",
    "points": [
     "**Carte professionnelle CNAPS** obligatoire pour déléguer un agent de sécurité — la vérifier AVANT la mission.",
-    "Cumul des majorations nuit/dimanche/férié : vérifier les règles de cumul du texte, source d'erreurs de paie.",
-    "CCN du **15/02/1985** (IDCC 1351)."],
+    "Cumul nuit/dimanche/férié : chaque majoration (**10 %** / **10 %** / **100 %**) se calcule sur le taux de base, hors assiette des autres (art. 1er accord 29/10/2003).",
+    "CCN du **15/02/1985** (IDCC 1351), étendue arrêté 25/07/1985 (KALITEXT000005680914)."
+   ],
    "dateCourte": "CCN 15/02/1985 + fiches CDTN",
    "source": "https://code.travail.gouv.fr/convention-collective/1351",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie"
+  }
  ]
 }

@@ -1,90 +1,149 @@
 {
  "idcc": "1527",
  "titre": "Immobilier (CCN du 09/09/1988)",
- "dateDerniereActu": "01/03/2023",
+ "dateDerniereActu": "04/03/2026",
  "themes": [
-  {"cle": "minima", "titre": "Minima : 3 grilles (salaire global annuel)",
-   "cleValeur": "Minima ANNUELS sur 13 mois (avenant n° 98 du 01/03/2023 + suivants)",
+  {
+   "cle": "minima",
+   "titre": "Minima : grille E1-C4 + négociateurs (salaire global annuel)",
+   "cleValeur": "2 barèmes ANNUELS sur 13 mois — E1 23 700 € au 01/04/2026 (avenant n° 110)",
    "points": [
-    "**3 grilles** : employés/AM/cadres (niveaux E1-C4), négociateurs immobiliers (barème propre, souvent commissionnés), et cadres de direction.",
-    "Les minima s'expriment en **salaire global annuel** incluant le 13ᵉ mois — comparer les rémunérations en base annuelle.",
-    "Références : art. 35, 37, 38 + annexes, modifiés par l'avenant n° **98 du 01/03/2023** (et avenants salaires postérieurs à relever)."],
-   "dateCourte": "avenant n° 98 du 01/03/2023 + suivants",
+    "**2 barèmes** : grille unique **E1-C4** (9 niveaux, annexe II) + statut de négociateur immobilier (annexe IV, hors grille) — pas de grille « cadres de direction » (art. 35 CCN, KALI KALIARTI000046233258).",
+    "Minima en **salaire global annuel sur 13 mois**, hors prime d'ancienneté (art. 37 : mensuel = 1/13 de l'annuel) — comparer les rémunérations en base annuelle.",
+    "Grille au **01/04/2026** (avenant n° 110 du 04/03/2026 étendu, KALI KALITEXT000054303854) — employés : E1 **23 700 €**, E2 **24 428 €**, E3 **25 080 €**.",
+    "AM : **25 569-26 415 €** ; cadres C1-C4 : **28 333-49 800 €** (fourchettes, hors cible intérim).",
+    "Négociateurs : VRP non cadre **1 540 €**/mois (annuel = 13 × mensuel) ; non VRP : SMIC."
+   ],
+   "dateCourte": "avenant n° 110 du 04/03/2026, étendu 04/05/2026, effet 01/04/2026",
    "source": "https://code.travail.gouv.fr/contribution/1527-quel-est-le-salaire-minimum",
-   "fiabilite": "aConfirmer"},
-  {"cle": "nuit", "titre": "Travail de nuit",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit",
    "cleValeur": "Marginal (gardiens : régime propre) — droit commun",
-   "points": ["Marginal — les gardiens/employés d'immeubles relèvent d'une AUTRE convention (IDCC 1043) ; droit commun à défaut."],
+   "points": [
+    "Marginal — les gardiens/employés d'immeubles relèvent d'une AUTRE convention (IDCC 1043) ; droit commun à défaut."
+   ],
    "dateCourte": "—",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635413",
-   "fiabilite": "aConfirmer"},
-  {"cle": "hs", "titre": "Heures supplémentaires",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
    "cleValeur": "Taux légaux 25/50 % ; contingent à relever",
-   "points": ["Taux légaux **25/50 %** à défaut d'accord ; contingent à relever."],
+   "points": [
+    "Taux légaux **25/50 %** à défaut d'accord ; contingent à relever."
+   ],
    "dateCourte": "à relever",
    "source": "https://code.travail.gouv.fr/contribution/1527-heures-supplementaires",
-   "fiabilite": "aConfirmer"},
-  {"cle": "weekend", "titre": "Samedi / dimanche",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Samedi / dimanche",
    "cleValeur": "Samedi ordinaire (agences) ; dimanche exceptionnel",
-   "points": ["Samedi ouvré courant en agence ; dimanche exceptionnel (portes ouvertes) — contreparties d'entreprise à demander."],
-   "dateCourte": "—",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635413",
-   "fiabilite": "aConfirmer"},
-  {"cle": "feries", "titre": "Jours fériés",
-   "cleValeur": "Chômés payés en pratique ; rappel intérim sans ancienneté",
-   "points": ["Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."],
-   "dateCourte": "—",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635413",
-   "fiabilite": "verifie"},
-  {"cle": "repas", "titre": "Repas",
-   "cleValeur": "Titres-restaurant d'usage",
-   "points": ["Pas de panier de branche — pratique d'entreprise à demander."],
-   "dateCourte": "—",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635413",
-   "fiabilite": "aConfirmer"},
-  {"cle": "transport", "titre": "Transport",
-   "cleValeur": "50 % transports publics",
-   "points": ["Prise en charge légale de **50 %** des abonnements."],
-   "dateCourte": "droit commun",
-   "source": "https://code.travail.gouv.fr/convention-collective/1527",
-   "fiabilite": "verifie"},
-  {"cle": "primes", "titre": "13ᵉ MOIS + médaille + ancienneté",
-   "cleValeur": "13ᵉ mois = 1 mois de salaire global brut (prorata en cours d'année)",
    "points": [
-    "**13ᵉ mois obligatoire** : 1 mois de salaire global brut mensuel, prorata pour les entrées/sorties en cours d'année (art. 38) — l'intérimaire comparable y a droit **au prorata mission**.",
-    "Salariés à commissions (négociateurs) : 13ᵉ intégrable à la rémunération annuelle si ≥ 13 fois le minimum (ou 13 SMIC pour les négociateurs).",
-    "Prime **médaille d'honneur du travail** : 1 mois de salaire (20/30/35/40 ans).",
-    "Prime d'ancienneté prévue par la CCN (art. 36) — barème à relever.",
-    "Mise en garde : le 13ᵉ mois immobilier est l'omission déclarative classique du secteur."],
-   "dateCourte": "art. 36-39 (fiche CDTN maj 21/11/2023)",
-   "source": "https://code.travail.gouv.fr/contribution/1527-quelles-sont-les-primes-prevues-par-la-convention-collective",
-   "fiabilite": "verifie"},
-  {"cle": "annualisation", "titre": "Aménagement du temps",
-   "cleValeur": "Par accord — régime du client",
-   "points": ["Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."],
+    "Samedi ouvré courant en agence ; dimanche exceptionnel (portes ouvertes) — contreparties d'entreprise à demander."
+   ],
    "dateCourte": "—",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635413",
-   "fiabilite": "verifie"},
-  {"cle": "saisonniers", "titre": "Saisonniers",
-   "cleValeur": "Sans objet",
-   "points": ["Régime intérim de droit commun (IFM + ICCP 10 %)."],
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés",
+   "cleValeur": "Chômés payés en pratique ; rappel intérim sans ancienneté",
+   "points": [
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+   ],
    "dateCourte": "—",
-   "source": "https://code.travail.gouv.fr/convention-collective/1527",
-   "fiabilite": "verifie"},
-  {"cle": "durees", "titre": "Durées maximales",
-   "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
-   "points": ["Maxima légaux."],
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635413",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "repas",
+   "titre": "Repas",
+   "cleValeur": "Titres-restaurant d'usage",
+   "points": [
+    "Pas de panier de branche — pratique d'entreprise à demander."
+   ],
+   "dateCourte": "—",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635413",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
+   "cleValeur": "50 % transports publics",
+   "points": [
+    "Prise en charge légale de **50 %** des abonnements."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/1527",
-   "fiabilite": "verifie"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "13ᵉ MOIS + médaille + ancienneté",
+   "cleValeur": "13ᵉ mois = 1 mois de salaire global brut + ancienneté 32 €/3 ans",
+   "points": [
+    "**13ᵉ mois obligatoire** : 1 mois de salaire global brut mensuel, prorata pour les entrées/sorties en cours d'année (art. 38, KALI KALIARTI000042096636) — l'intérimaire comparable y a droit **au prorata mission**.",
+    "Salariés à commissions (négociateurs) : 13ᵉ intégrable si rémunération annuelle ≥ 13 × le minimum ; « 13 SMIC » vaut pour les négociateurs NON VRP — pour les VRP : 13 × **1 540 €** (avenant n° 110).",
+    "Prime **médaille d'honneur du travail** : 1 mois de salaire à 20/30/35/40 ans de service, prorata si ancienneté dans l'entreprise inférieure à l'échelon ; conditionnée à l'obtention effective de la médaille (art. 39).",
+    "Prime d'ancienneté : **+32 €** sur le salaire mensuel tous les **3 ans**, au 1ᵉʳ janvier suivant la date anniversaire ; hors contrôle du minimum annuel (art. 36 version 01/07/2024, KALI KALIARTI000049954870).",
+    "Mise en garde : le 13ᵉ mois immobilier est l'omission déclarative classique du secteur."
+   ],
+   "dateCourte": "art. 36-39 CCN (art. 36 version 01/07/2024)",
+   "source": "https://code.travail.gouv.fr/contribution/1527-quelles-sont-les-primes-prevues-par-la-convention-collective",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Aménagement du temps",
+   "cleValeur": "Par accord — régime du client",
+   "points": [
+    "Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."
+   ],
+   "dateCourte": "—",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635413",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers",
+   "cleValeur": "Sans objet",
+   "points": [
+    "Régime intérim de droit commun (IFM + ICCP 10 %)."
+   ],
+   "dateCourte": "—",
+   "source": "https://code.travail.gouv.fr/convention-collective/1527",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales",
+   "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+   "points": [
+    "Maxima légaux."
+   ],
+   "dateCourte": "droit commun",
+   "source": "https://code.travail.gouv.fr/convention-collective/1527",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
    "cleValeur": "Minima annuels 13 mois · 13ᵉ prorata · négociateurs commissionnés",
    "points": [
     "Toujours raisonner en **salaire global annuel** (13 mois) pour l'égalité de traitement.",
     "Chiffrer le 13ᵉ mois au prorata dans coût et paie.",
-    "CCN du **09/09/1988** (IDCC 1527) — agences, administrateurs de biens, promotion ; gardiens d'immeubles = IDCC 1043."],
+    "CCN du **09/09/1988** (IDCC 1527) — agences, administrateurs de biens, promotion ; gardiens d'immeubles = IDCC 1043."
+   ],
    "dateCourte": "CCN 09/09/1988 + fiches CDTN",
    "source": "https://code.travail.gouv.fr/convention-collective/1527",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie"
+  }
  ]
 }

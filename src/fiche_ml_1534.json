@@ -1,98 +1,160 @@
 {
  "idcc": "1534",
- "titre": "Industrie et commerces en gros des viandes (CCN du 20/02/1969, refonte 09/11/1988)",
- "dateDerniereActu": "12/02/2026",
+ "titre": "Industrie et commerces en gros des viandes (CCN du 27/06/2018, ex-1969/1988)",
+ "dateDerniereActu": "06/06/2026",
  "themes": [
-  {"cle": "minima", "titre": "Grille des minima (avenant n° 100)",
+  {
+   "cle": "minima",
+   "titre": "Grille des minima (avenant n° 100)",
    "cleValeur": "Niveaux I-X × 3 échelons : 1 835 € → 6 361 €/mois (01/02/2026)",
    "points": [
     "Grille **niveaux I à X × échelons 1-3** (base 151,67 h) au **01/02/2026** : O/E I-IV **1 835 → 2 081 €**, TAM V-VII **2 132 → 2 869 €**, cadres VIII-X **3 245 → 6 361 €**.",
-    "Avenant n° **100 du 12/02/2026** (+**1,20 %** en moyenne), applicable aux adhérents Culture Viande/FNEAP dès le 01/02/2026, aux autres à l'**extension** (en attente au JO).",
+    "Avenant n° **100 du 12/02/2026** (+**1,20 %** en moyenne), **étendu** par arrêté du 20/05/2026 (JORF 06/06/2026) : applicable à toutes les entreprises de la branche (KALI KALITEXT000054091990).",
     "Le bas de grille (I-1 : 1 835 €) est proche du SMIC — vérifier le rattrapage.",
-    "Piège déclaratif : le niveau/échelon exact du poste conditionne le minimum — le faire préciser par le client."],
-   "dateCourte": "avenant n° 100 du 12/02/2026",
+    "Piège déclaratif : le niveau/échelon exact du poste conditionne le minimum — le faire préciser par le client."
+   ],
+   "dateCourte": "avenant n° 100 du 12/02/2026, étendu le 20/05/2026",
    "source": "https://www.juristique.org/conventionnel/salaires-commerce-gros-viandes-2026",
-   "fiabilite": "verifie"},
-  {"cle": "nuit", "titre": "Travail de nuit / matinal",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit / matinal",
    "cleValeur": "Prises de poste très matinales — régime à relever sur le texte",
    "points": [
     "Les ateliers de découpe démarrent souvent avant l'aube : relever sur le texte le régime des heures de nuit/matinales avant paramétrage.",
-    "À défaut : droit commun (21 h-6 h) ; demander au client ses majorations réelles (égalité de traitement)."],
+    "À défaut : droit commun (21 h-6 h) ; demander au client ses majorations réelles (égalité de traitement)."
+   ],
    "dateCourte": "relevé à compléter",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635488",
-   "fiabilite": "aConfirmer"},
-  {"cle": "hs", "titre": "Heures supplémentaires",
-   "cleValeur": "Taux légaux 25/50 % à défaut ; contingent à relever",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635451",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
+   "cleValeur": "Majoration 25/50 % ; contingent 160 h/an (180 h chauffeurs)",
    "points": [
-    "Taux légaux **25 %** (8 premières HS) / **50 %** au-delà, à défaut de disposition ; contingent conventionnel à relever sur le texte."],
-   "dateCourte": "relevé à compléter",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635488",
-   "fiabilite": "aConfirmer"},
-  {"cle": "weekend", "titre": "Samedi / dimanche",
-   "cleValeur": "Samedi travaillé courant (marchés) — contreparties à relever",
+    "Majoration **25 %** les 8 premières HS, **50 %** au-delà ; remplacement possible par repos (art. 52.3 CCN, KALI KALIARTI000044406152).",
+    "Contingent conventionnel : **160 h**/an/salarié, **180 h** pour les chauffeurs (art. 52.1 CCN, KALIARTI000044406147)."
+   ],
+   "dateCourte": "CCN du 27/06/2018, art. 52",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635451",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Samedi / dimanche",
+   "cleValeur": "Samedi sans majoration de branche relevée ; dimanche +100 %",
    "points": [
-    "Le samedi est un jour d'activité courant (approvisionnement, marchés) ; le dimanche relève des dérogations agroalimentaires — contreparties conventionnelles/d'entreprise à relever et à demander au déclaratif."],
-   "dateCourte": "relevé à compléter",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635488",
-   "fiabilite": "aConfirmer"},
-  {"cle": "feries", "titre": "Jours fériés",
-   "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
+    "Le samedi est un jour d'activité courant (approvisionnement, marchés) — pas de majoration de branche relevée ; demander les pratiques d'entreprise du site.",
+    "Dimanche : heures majorées de **100 %** (art. 72 CCN, KALI KALIARTI000044406201), substituable par un repos équivalent par accord d'entreprise (dérogations agroalimentaires)."
+   ],
+   "dateCourte": "CCN du 27/06/2018, art. 72",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635451",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés",
+   "cleValeur": "Chômés payés (3 mois branche) ; travaillé +100 % ; intérim sans anc.",
    "points": [
-    "Régime conventionnel des fériés à relever sur le texte.",
-    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."],
-   "dateCourte": "relevé à compléter",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635488",
-   "fiabilite": "aConfirmer"},
-  {"cle": "repas", "titre": "Repas",
-   "cleValeur": "Pas de panier généralisé relevé — pratique du site à demander",
+    "Fériés chômés payés sous condition de **3 mois** d'ancienneté (art. 74 CCN, KALI KALIARTI000044406206).",
+    "Férié travaillé : indemnité de **100 %** par heure en sus du salaire, sauf substitution par un repos (hors 1er Mai).",
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18) — prime sur la condition de 3 mois."
+   ],
+   "dateCourte": "CCN du 27/06/2018, art. 74",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635451",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "repas",
+   "titre": "Repas",
+   "cleValeur": "Prime panier de jour : 2 €/jour de présence (≥ 6 h consécutives)",
    "points": [
-    "Pas d'indemnité repas de branche recoupée — paniers d'équipe selon accords d'entreprise : demander la pratique du site (oubli fréquent en atelier posté)."],
-   "dateCourte": "relevé à compléter",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635488",
-   "fiabilite": "aConfirmer"},
-  {"cle": "transport", "titre": "Transport",
-   "cleValeur": "50 % transports publics",
-   "points": ["Prise en charge légale de **50 %** des abonnements de transports publics ; pas de barème de branche relevé."],
-   "dateCourte": "droit commun",
-   "source": "https://code.travail.gouv.fr/convention-collective/1534",
-   "fiabilite": "verifie"},
-  {"cle": "primes", "titre": "FROID, 13ᵉ mois, ancienneté, CQP",
-   "cleValeur": "Froid : 3,59 €/j grand froid · 0,26 €/h sous 0 °C · 13ᵉ mois · anc. 2-12 %",
+    "**Prime panier de jour** (art. 41 ter CCN) : **2 €** par jour de présence depuis le **01/04/2024** (1 €/j au 01/01/2023) — avenant n° 97 du 14/03/2024, étendu le 27/05/2024 (KALI KALITEXT000049692967).",
+    "Conditions : **≥ 6 h** de travail consécutif, sans condition d'ancienneté ; versement mensuel ; non cumulable avec une contrepartie d'entreprise de même objet ; hors contrôle des minima.",
+    "Due à l'intérimaire par égalité de traitement — oubli fréquent en atelier posté."
+   ],
+   "dateCourte": "avenant n° 97 du 14/03/2024, étendu le 27/05/2024",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635451",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
+   "cleValeur": "50 % transports publics + prime transport 1 €/jour travaillé",
    "points": [
-    "**Primes de froid** : travail occasionnel en « grand froid » **3,59 €/jour** ; froid négatif (sous **0 °C**) **0,26 €/heure** ; vêtements de protection fournis gratuitement par l'employeur.",
-    "**13ᵉ mois** conventionnel, versé **50 % en juin et 50 % en décembre** — dû au prorata à l'intérimaire comparable (égalité de traitement).",
-    "**Prime d'ancienneté** : **+2 %** après 2 ans puis **+1 %/an**, plafonnée à **12 %**.",
-    "**Prime CQP** : **500 €** à l'obtention d'un certificat de qualification professionnelle (2026, avenant n° 100).",
-    "Mise en garde : primes de froid et 13ᵉ mois sont LES omissions déclaratives du secteur — les chiffrer systématiquement pour les postes en frigo/atelier."],
-   "dateCourte": "avenant n° 100 du 12/02/2026 + textes antérieurs",
-   "source": "https://travail-industrie.com/outils/conventions-collectives/industrie-viande-salaires-primes-droits-idcc-1534",
-   "fiabilite": "verifie"},
-  {"cle": "annualisation", "titre": "Aménagement du temps",
+    "Prise en charge légale de **50 %** des abonnements de transports publics.",
+    "**Prime transport** de branche (art. 41 bis CCN) : **1 €** par jour travaillé depuis le 01/03/2022 — carburant, alimentation électrique, mobilités douces (avenant n° 92 du 06/12/2021, étendu le 03/03/2022, KALI KALITEXT000045373016).",
+    "Conditions de l'art. L.3261-3 (commune non desservie ou horaires décalés/de nuit) ; exclusions : véhicule de fonction, IK, remboursement 50 % TC — très pertinente en abattoir (prises de poste avant l'aube)."
+   ],
+   "dateCourte": "avenant n° 92 du 06/12/2021, étendu le 03/03/2022",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635451",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "Fin d'année, ancienneté, CQP, froid",
+   "cleValeur": "Fin d'année (≈ 13ᵉ mois) · anc. 3-10 % · CQP 800 € · froid : repos",
+   "points": [
+    "**Prime de fin d'année** (art. 43 CCN, KALI KALIARTI000044406143) : dès **1 an** d'ancienneté, montant = salaire de base mensuel minimum du niveau/échelon, versée au plus tard en fin d'année civile, en 1 ou 2 fois.",
+    "Pas de calendrier 50/50 juin-décembre dans la branche (pratique d'entreprise possible) ; un 13ᵉ mois d'entreprise équivalent vaut exécution ; hors contrôle des minima ; due au prorata à l'intérimaire comparable.",
+    "**Prime d'ancienneté** (art. 42 CCN, KALI KALIARTI000044406141) : **3 %** après 3 ans puis **+1 %/an**, plafond **10 %** à 10 ans ; assiette = grille des minima ; non due si prime d'entreprise équivalente.",
+    "**Prime CQP** : portée à **800 €** minimum à compter du **01/02/2026** (avenant n° 100, art. 3, KALI KALIARTI000054091995).",
+    "**Froid** : aucune prime en euros dans les textes en vigueur — les **3,59 €/j** et **0,26 €/h** circulant en ligne sont introuvables dans la base KALI ; ne pas les promettre au déclaratif.",
+    "Seule contrepartie de branche : **1 j** de repos compensateur par semestre (grand froid régulier dès **−15 °C**, portage de carcasses — art. 44 CCN, KALIARTI000037940674) ; primes de froid = d'entreprise, à demander.",
+    "Mise en garde : prime de fin d'année et panier de jour sont LES omissions déclaratives du secteur — les chiffrer systématiquement."
+   ],
+   "dateCourte": "CCN du 27/06/2018 + avenants n° 92, 97, 100",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635451",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Aménagement du temps",
    "cleValeur": "Modulation selon accords d'entreprise — régime du client",
-   "points": ["Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21) et conditionne le décompte des HS."],
+   "points": [
+    "Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21) et conditionne le décompte des HS."
+   ],
    "dateCourte": "—",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635488",
-   "fiabilite": "verifie"},
-  {"cle": "saisonniers", "titre": "Saisonniers",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635451",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers",
    "cleValeur": "Pointes (fêtes, barbecue) via droit commun",
-   "points": ["Renforts saisonniers sans statut de branche spécifique relevé — régime intérim de droit commun (**IFM 10 %** + **ICCP 10 %**)."],
+   "points": [
+    "Renforts saisonniers sans statut de branche spécifique relevé — régime intérim de droit commun (**IFM 10 %** + **ICCP 10 %**)."
+   ],
    "dateCourte": "—",
    "source": "https://code.travail.gouv.fr/convention-collective/1534",
-   "fiabilite": "verifie"},
-  {"cle": "durees", "titre": "Durées maximales",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales",
    "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
-   "points": ["Maxima légaux à défaut de dérogation ; horaires décalés d'abattage/découpe à documenter avant suivi des heures."],
+   "points": [
+    "Maxima légaux à défaut de dérogation ; horaires décalés d'abattage/découpe à documenter avant suivi des heures."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/1534",
-   "fiabilite": "verifie"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
-   "cleValeur": "Froid + 13ᵉ mois au prorata · niveau/échelon · hygiène (tenues)",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
+   "cleValeur": "Fin d'année + panier au prorata · niveau/échelon · hygiène (tenues)",
    "points": [
-    "Les 3 pièges viandes : primes de **froid** (jour ET horaire sous 0 °C), **13ᵉ mois** au prorata, identification **niveau/échelon** (I-X × 1-3).",
+    "Les 3 pièges viandes : **prime de fin d'année** au prorata, **panier de jour 2 €/j**, identification **niveau/échelon** (I-X × 1-3) ; pas de prime de froid de branche (repos compensateur art. 44 uniquement).",
     "Tenues et hygiène : vêtements fournis ; le temps d'habillage peut ouvrir contrepartie selon accords du site — à demander.",
-    "CCN du **20/02/1969** refondue le 09/11/1988 (IDCC 1534, brochure 3179) — abattoirs, ateliers de découpe, commerces de gros des viandes ; la charcuterie industrielle relève d'une autre convention : vérifier le champ en cas de doute."],
-   "dateCourte": "CCN 1969/1988 + avenant n° 100 (2026)",
+    "CCN de référence : **CCN du 27/06/2018** (restructurée, étendue, en vigueur depuis le 01/12/2020, KALI KALICONT000005635451) — l'ex-CCN du 20/02/1969 refondue le 09/11/1988 est **abrogée**.",
+    "Champ (brochure 3179) : abattoirs, ateliers de découpe, commerces de gros des viandes ; la charcuterie industrielle relève d'une autre convention — vérifier le champ en cas de doute."
+   ],
+   "dateCourte": "CCN du 27/06/2018 + avenant n° 100 (2026)",
    "source": "https://code.travail.gouv.fr/convention-collective/1534",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie"
+  }
  ]
 }

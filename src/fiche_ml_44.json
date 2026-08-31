@@ -1,107 +1,172 @@
 {
  "idcc": "44",
  "titre": "Industries chimiques et connexes (CCN du 30/12/1952)",
- "dateDerniereActu": "04/07/2024",
+ "dateDerniereActu": "03/12/2025",
  "themes": [
-  {"cle": "minima", "titre": "Minima : 3 grilles par coefficient",
-   "cleValeur": "3 grilles par coefficient — minima de branche > SMIC",
+  {
+   "cle": "minima",
+   "titre": "Minima : grille unique par coefficient",
+   "cleValeur": "Grille unique par coefficient — coef 130 : 1 877,13 € au 01/01/2026",
    "points": [
-    "**3 grilles** selon la catégorie professionnelle et le **coefficient hiérarchique** (ouvriers/employés, AM/techniciens, cadres).",
-    "Les minima conventionnels sont **supérieurs au SMIC** et s'imposent (fiche officielle, maj 01/06/2026).",
-    "Montants exacts : relever le dernier accord salaires (valeur du point, barèmes) sur Légifrance avant paramétrage.",
-    "Valeur du point (base prime d'ancienneté) : **8,90 €** (35 h) / **9,66 €** (38 h) — accord du **04/07/2024**."],
-   "dateCourte": "accord du 04/07/2024 (point) — barèmes à relever",
+    "**Grille unique** par coefficient hiérarchique (**130 → 880**), toutes catégories, depuis le **01/07/2024** — plus de 3 barèmes séparés (accord du 04/07/2024 art. 2, KALIARTI000050228602).",
+    "Grille au **01/01/2026** (151,67 h) : coef 130 = **1 877,13 €** ; 190 = **2 020,24 €** ; 250 = **2 244,51 €** ; 300 = **2 658,27 €** (accord du 03/12/2025 art. 1er, KALIARTI000053721361).",
+    "Au-delà, hors cible intérim : coef 400 = **3 537,54 €** ; 550 = **4 859,46 €** ; 880 = **7 764,57 €**.",
+    "Formule : [salaire de référence **1 848,69 €** + (K−100) × valeur de référence **8,84 €**] × coefficient de calcul (**+1,2 %** vs 2025).",
+    "Valeur du point : **8,90 €** (35 h) / **9,66 €** (38 h) au **01/01/2026** — accord du **03/12/2025** art. 2 (KALIARTI000053721362, étendu 16/02/2026) ; 2025 : 8,79/9,54 €.",
+    "Plancher de branche au **01/01/2026** : **1 877,13 €** (coef 130) — les minima conventionnels s'imposent au paramétrage."
+   ],
+   "dateCourte": "accord du 03/12/2025 (étendu 16/02/2026) — grille au 01/01/2026",
    "source": "https://code.travail.gouv.fr/contribution/44-quel-est-le-salaire-minimum",
-   "fiabilite": "aConfirmer"},
-  {"cle": "nuit", "titre": "Travail de nuit / posté",
-   "cleValeur": "Accord du 16/09/2003 + rappel de nuit = 2 h (21 h-6 h)",
+   "fiabilite": "verifie",
+   "detail": "L'accord de structuration du 04/07/2024 (étendu) a substitué la grille unique aux 3 barèmes des avenants I-III, qui subsistent pour leurs autres clauses. Accords salaires successifs : 09/12/2024 (KALIARTI000051294784, valeurs 2025) puis 03/12/2025 (étendu par arrêté du 16/02/2026, JORF 24/02/2026, valeurs 2026). L'accord du 04/07/2024 ne fixe que la mécanique VP 38 h = 35 h × 38/35 et des valeurs dépassées (8,51 € puis 8,65 € au 01/10/2024)."
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit / posté",
+   "cleValeur": "Accord du 16/09/2003 + rappel : 1 h, 2 h si nuit (21 h-5 h)/dim/férié",
    "points": [
-    "Travail de nuit encadré par l'accord du **16/09/2003** — majorations/contreparties du travail posté et de nuit à relever sur le texte pour le poste.",
-    "**Indemnité de rappel de nuit** : rappel entre **21 h et 6 h** après avoir quitté l'entreprise → indemnité égale à **2 heures** (groupes I à IV).",
-    "L'industrie chimique tourne en continu (3×8/5×8) : demander systématiquement au client son régime de majorations d'équipes et paniers de poste."],
-   "dateCourte": "accord du 16/09/2003 + fiche CDTN",
+    "Travail de nuit encadré par l'accord du **16/09/2003** (KALITEXT000005677851, étendu) — contreparties chiffrées à relever pour le poste (texte KALI limité au préambule).",
+    "**Indemnité de rappel** (avenant I art. 20, KALIARTI000005846383 — ouvriers/collaborateurs) : **1 h** de salaire pour tout rappel après avoir quitté l'établissement, portée à **2 h** si rappel de nuit (**21 h-5 h**), un dimanche ou un jour férié.",
+    "L'industrie chimique tourne en continu (3×8/5×8) : demander systématiquement au client son régime de majorations d'équipes et paniers de poste."
+   ],
+   "dateCourte": "accord du 16/09/2003 + avenant I art. 20",
    "source": "https://code.travail.gouv.fr/contribution/44-quelles-sont-les-primes-prevues-par-la-convention-collective",
-   "fiabilite": "verifie"},
-  {"cle": "hs", "titre": "Heures supplémentaires",
+   "fiabilite": "verifie",
+   "detail": "Frais de déplacement remboursés en cas de rappel (art. 20). Borne de nuit du rappel : 21 h-5 h (et non 6 h) ; aucune indemnité de rappel dans l'avenant II (AM/techniciens, groupe IV) — l'article n'existe que dans l'avenant I (groupes I-III)."
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
    "cleValeur": "Contingent conventionnel BAS : 130 h/an",
    "points": [
-    "Contingent annuel conventionnel : **130 h** — nettement plus bas que le légal (220 h) : à surveiller sur les longues missions.",
+    "Contingent annuel conventionnel : **130 h** (accord-cadre du 08/02/1999, chap. II art. 8, KALIARTI000005846608) — nettement plus bas que le légal (220 h) : à surveiller sur les longues missions.",
     "Majoration et/ou repos compensateur ; au-delà : repos obligatoire.",
-    "Taux : légaux **25/50 %** à défaut de disposition d'entreprise."],
-   "dateCourte": "fiche CDTN maj 04/12/2025",
+    "Taux : légaux **25/50 %** à défaut de disposition d'entreprise.",
+    "Heures exceptionnelles de nuit (**21 h-5 h**), un dimanche ou un férié hors horaire habituel : majoration conventionnelle ≥ **40 %**, cumulable avec les majorations HS (avenant I art. 19, KALIARTI000005846381)."
+   ],
+   "dateCourte": "accord-cadre 08/02/1999 art. 8 + avenant I art. 19",
    "source": "https://code.travail.gouv.fr/contribution/44-heures-supplementaires",
-   "fiabilite": "verifie"},
-  {"cle": "weekend", "titre": "Samedi / dimanche",
-   "cleValeur": "Travail continu fréquent — majorations d'équipes à relever",
+   "fiabilite": "verifie",
+   "detail": "Contingent minoré de 40 h pour le personnel relevant des dispositifs des art. 2-3 de l'accord-cadre du 08/02/1999 ; paiement des HS « assorti des majorations légales » ou repos compensateur équivalent (art. 9). La majoration ≥ 40 % de l'art. 19 se calcule sur les mêmes bases que les majorations HS."
+  },
+  {
+   "cle": "weekend",
+   "titre": "Samedi / dimanche",
+   "cleValeur": "Continu : prime dimanche 100 % × (VP/174) × coef ; nuit 20 %",
    "points": [
-    "En feu continu, le dimanche est travaillé par roulement — majorations conventionnelles/d'entreprise à relever pour le poste.",
-    "Demander au client les taux dimanche/équipes de suppléance réellement versés (égalité de traitement)."],
-   "dateCourte": "relevé à compléter",
+    "Service **continu** : prime de dimanche par heure travaillée = **100 %** × (valeur du point mensuel/174) × coefficient ; prime de nuit (équipe au travail à minuit) = **20 %** × (VP/174) × coefficient (avenant I art. 12 II-III, KALIARTI000024579200).",
+    "Semi-continu : mêmes primes — la prime de dimanche vise l'équipe de nuit finissant ou commençant le dimanche.",
+    "Dimanche exceptionnel hors horaire habituel : majoration ≥ **40 %** (avenant I art. 19).",
+    "Ces primes s'ajoutent aux majorations HS et n'entrent pas dans leur assiette (art. 12 V).",
+    "Demander au client les taux dimanche/équipes de suppléance réellement versés (égalité de traitement)."
+   ],
+   "dateCourte": "avenant I art. 12 II-III et 19",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635613",
-   "fiabilite": "aConfirmer"},
-  {"cle": "feries", "titre": "Jours fériés",
-   "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
+   "fiabilite": "verifie",
+   "detail": "Avec la VP 35 h 2026 (8,90 €) : prime dimanche ≈ 0,0511 €/h × coefficient (montant dérivé par calcul, le texte n'écrit que la formule). Miroir AM/techniciens : avenant II art. 13 (KALIARTI000025991591)."
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés",
+   "cleValeur": "Chômé payé toutes primes ; travaillé : repos ou indemnité du jour",
    "points": [
-    "Régime conventionnel (férié travaillé en continu : compensations) à relever sur le texte.",
-    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."],
-   "dateCourte": "relevé à compléter",
+    "Férié **chômé** (hors 1er mai) : aucune réduction de rémunération, toutes primes comprises (avenant I art. 17, KALIARTI000005846379).",
+    "Férié **travaillé** (hors 1er mai) : jour de **repos compensateur**, ou à défaut indemnité égale à la rémunération du jour de fête.",
+    "Continu/semi-continu, férié travaillé ne tombant pas un dimanche : prime par heure = **100 %** × (VP/174) × coefficient (avenant I art. 12 IV, KALIARTI000024579200).",
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+   ],
+   "dateCourte": "avenant I art. 17 + art. 12 IV",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635613",
-   "fiabilite": "aConfirmer"},
-  {"cle": "repas", "titre": "Repas / paniers de poste",
-   "cleValeur": "Paniers de poste (nuit/continu) selon textes — à relever",
+   "fiabilite": "verifie",
+   "detail": "Apurement des droits (repos/indemnités) au plus tard le dernier jour du trimestre civil suivant (avenant I art. 17 §5)."
+  },
+  {
+   "cle": "repas",
+   "titre": "Repas / paniers de poste",
+   "cleValeur": "Panier de nuit : 1,2 × VP (ouvriers) / 1,5 × VP (AM) ≈ 10,68/13,35 €",
    "points": [
-    "Des paniers de poste (travail posté/de nuit) existent dans la branche — montants à relever sur le texte ou l'accord d'entreprise du client.",
-    "Mise en garde : panier de nuit souvent omis au déclaratif pour les postes en 3×8."],
-   "dateCourte": "relevé à compléter",
+    "**Panier de nuit** pour tout poste encadrant minuit : **1,2 ×** valeur du point (ouvriers/collaborateurs — avenant I art. 21, KALIARTI000005846384) ; **1,5 ×** VP (AM/techniciens — avenant II art. 13 bis, KALIARTI000005846446).",
+    "Avec la VP 35 h au 01/01/2026 (**8,90 €**) : **10,68 €** (ouvriers) / **13,35 €** (AM/techniciens) — montants dérivés, les textes fixent les multiplicateurs.",
+    "Si changement d'équipe à minuit, une seule des deux équipes en bénéficie.",
+    "Mise en garde : panier de nuit souvent omis au déclaratif pour les postes en 3×8 — il est dû dès qu'un poste encadre minuit."
+   ],
+   "dateCourte": "avenant I art. 21 + avenant II art. 13 bis",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635613",
-   "fiabilite": "aConfirmer"},
-  {"cle": "transport", "titre": "Transport",
+   "fiabilite": "verifie",
+   "detail": "L'art. 4 de l'accord du 04/07/2024 confirme que l'indemnité de panier de nuit se calcule sur la VP base 35 h. Avenant II : retenir l'art. 13 bis (1,5 × valeur du point, rédaction en vigueur étendue), pas l'ancien art. 13 (base manœuvre ordinaire)."
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
    "cleValeur": "50 % transports publics",
    "points": [
-    "Prise en charge légale de **50 %** des abonnements ; pas de barème de branche relevé."],
+    "Prise en charge légale de **50 %** des abonnements ; pas de barème de branche relevé."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/44",
-   "fiabilite": "verifie"},
-  {"cle": "primes", "titre": "Prime d'ancienneté 3-15 % (formule officielle)",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "Prime d'ancienneté 3-15 % (formule officielle)",
    "cleValeur": "Ancienneté : 3 % (3 ans) → 15 % (15 ans) sur point × coefficient",
    "points": [
-    "**Prime d'ancienneté** (groupes I-IV, dès **3 ans**) : taux **3 %** (3 ans), **6 %** (6 ans), **9 %** (9 ans), **12 %** (12 ans), **15 %** (15 ans).",
-    "Formule : (valeur du point × coefficient) × prorata temps de travail × taux — point **8,90 €** (35 h) / **9,66 €** (38 h), accord du 04/07/2024.",
-    "Exemple officiel : 10 ans, coef 300, 25 h/sem → (8,90 × 300) × 25/35 × 9 % = **171,24 €**/mois.",
+    "**Prime d'ancienneté** (groupes I-IV, dès **3 ans**) : taux **3 %** (3 ans), **6 %** (6 ans), **9 %** (9 ans), **12 %** (12 ans), **15 %** (15 ans) — avenant I art. 10 / avenant II art. 16, réécrits par l'accord du 04/07/2024 art. 6 (KALIARTI000050234081/078).",
+    "Formule : (valeur du point × coefficient) × prorata temps de travail × taux — point **8,90 €** (35 h) / **9,66 €** (38 h) au 01/01/2026, accord du **03/12/2025** (KALIARTI000053721362) ; le montant s'ajoute aux appointements réels.",
+    "Exemple (VP 2026) : 10 ans, coef 300, 25 h/sem → (8,90 × 300) × 25/35 × 9 % = **171,64 €**/mois.",
     "Intérim : l'ancienneté s'apprécie par égalité de traitement — un salarié comparable du client la percevrait ; à intégrer au prorata pour les longues missions.",
-    "Aussi : prime de **tutorat** (accord alternance du 29/06/2021)."],
-   "dateCourte": "art. 16 avenant n° 2 (1955) + accord 04/07/2024",
+    "Aussi : prime de **tutorat** (accord alternance du 29/06/2021 art. 28, KALIARTI000044339924, étendu) — montant non fixé au niveau de la branche."
+   ],
+   "dateCourte": "av. I art. 10 / av. II art. 16 (réd. 04/07/2024) + VP accord 03/12/2025",
    "source": "https://code.travail.gouv.fr/contribution/44-quand-le-salarie-a-t-il-droit-a-une-prime-danciennete-quel-est-son-montant",
-   "fiabilite": "verifie"},
-  {"cle": "annualisation", "titre": "Aménagement du temps",
+   "fiabilite": "verifie",
+   "detail": "Référence par catégorie : art. 10 de l'avenant I (ouvriers/collaborateurs) et art. 16 de l'avenant n° 2 du 14/03/1955 (AM/techniciens), rédactions identiques issues de l'accord du 04/07/2024 (art. 6, étendu)."
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Aménagement du temps",
    "cleValeur": "Travail posté/continu organisé par accords d'entreprise",
    "points": [
-    "L'organisation en équipes (3×8, 5×8, suppléance) relève des accords d'entreprise — pour l'intérimaire, le régime du client s'applique (art. L.1251-21)."],
+    "L'organisation en équipes (3×8, 5×8, suppléance) relève des accords d'entreprise — pour l'intérimaire, le régime du client s'applique (art. L.1251-21)."
+   ],
    "dateCourte": "—",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635613",
-   "fiabilite": "verifie"},
-  {"cle": "saisonniers", "titre": "Saisonniers",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers",
    "cleValeur": "Rien de spécifique",
    "points": [
-    "Pas de dispositif saisonnier de branche — régime intérim de droit commun (IFM 10 % + ICCP 10 %)."],
+    "Pas de dispositif saisonnier de branche — régime intérim de droit commun (IFM 10 % + ICCP 10 %)."
+   ],
    "dateCourte": "—",
    "source": "https://code.travail.gouv.fr/convention-collective/44",
-   "fiabilite": "verifie"},
-  {"cle": "durees", "titre": "Durées maximales",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales",
    "cleValeur": "Droit commun + régimes d'équipes — vérifier le poste",
    "points": [
     "Socle légal : **10 h**/jour, **48 h**/semaine, **44 h**/12 semaines ; les régimes en continu ont leurs propres bornes (12 h en 5×8 possibles par accord).",
-    "Exiger du client le planning d'équipe avant paramétrage du suivi des heures."],
+    "Exiger du client le planning d'équipe avant paramétrage du suivi des heures."
+   ],
    "dateCourte": "droit commun + accords d'entreprise",
    "source": "https://code.travail.gouv.fr/convention-collective/44",
-   "fiabilite": "verifie"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
    "cleValeur": "Contingent 130 h · ancienneté 3-15 % · paniers de poste · coefficient",
    "points": [
     "Les 4 pièges chimie : contingent HS **bas (130 h)**, prime d'**ancienneté** de branche (à proratiser via égalité de traitement), **paniers de poste** 3×8, identification du **coefficient**.",
-    "CCN du **30/12/1952** (IDCC 44) — chimie, pétrochimie, savons/parfums, connexes ; ne pas confondre avec plasturgie (0292) ni pharmacie industrie (0176)."],
+    "CCN du **30/12/1952** (IDCC 44) — chimie, pétrochimie, savons/parfums, connexes ; ne pas confondre avec plasturgie (0292) ni pharmacie industrie (0176)."
+   ],
    "dateCourte": "CCN 30/12/1952 + fiches CDTN 2026",
    "source": "https://code.travail.gouv.fr/convention-collective/44",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie"
+  }
  ]
 }

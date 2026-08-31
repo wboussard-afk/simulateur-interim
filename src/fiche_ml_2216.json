@@ -1,102 +1,160 @@
 {
  "idcc": "2216",
  "titre": "Commerce de détail et de gros à prédominance alimentaire (CCN du 12/07/2001)",
- "dateDerniereActu": "2026",
+ "dateDerniereActu": "17/04/2026",
  "themes": [
-  {"cle": "minima", "titre": "Minima par niveau",
-   "cleValeur": "Grille par catégorie et niveau (art. 4.2) — montants à relever",
+  {
+   "cle": "minima",
+   "titre": "Minima par niveau",
+   "cleValeur": "Av. n° 99 : 1A 1 914,19 € → 4B 2 054,33 € garantis (01/08/2026)",
    "points": [
-    "Grille par **catégorie professionnelle et niveau** (classification art. 4.2).",
-    "Montants exacts : relever l'avenant salaires en vigueur sur Légifrance avant paramétrage.",
-    "Le plus favorable s'applique entre SMIC, minimum conventionnel et salaire d'entreprise."],
-   "dateCourte": "fiche CDTN 2026 — montants à relever",
+    "Grille par **catégorie et niveau** (art. 4.2) : employés/ouvriers 1A→4B, AM/techniciens 5-6, cadres 7-9.",
+    "Avenant n° **99 du 17/04/2026** (effet **01/08/2026**, étendu — KALI KALITEXT000054434579) : comparer le brut réel au **salaire mensuel minimum garanti** = mensuel 151,67 h **+5 %** pauses payées (art. 3.5/5.4).",
+    "Mensuels garantis employés/ouvriers : 1A **1 914,19** · 1B **1 915,78** · 2A **1 917,37** · 2B **1 931,70** · 3A **1 933,30** · 3B **1 950,81** · 4A **1 954,00** · 4B **2 054,33 €**.",
+    "AM/techniciens : N5 **2 167,03 €** · N6 **2 290,67 €** garantis ; cadres N7-N8 : **2 973,57 → 3 996,47 €** (N9 hors grille) — hors cible intérim.",
+    "Le plus favorable s'applique entre SMIC, minimum conventionnel et salaire d'entreprise."
+   ],
+   "detail": "Avenant n° 99 du 17/04/2026, étendu par arrêté du 06/07/2026 (JORF 10/07/2026). Taux horaires employés/ouvriers 12,02 → 12,90 € ; annuels garantis 24 884 → 26 706 €. Forfait-jours 216 j (art. 3) : N7 40 230 € (41 790 € après 36 mois), N8 54 100 € (56 170 €).",
+   "dateCourte": "avenant n° 99 du 17/04/2026 — effet 01/08/2026",
    "source": "https://code.travail.gouv.fr/contribution/2216-quel-est-le-salaire-minimum",
-   "fiabilite": "aConfirmer"},
-  {"cle": "nuit", "titre": "Travail de nuit",
-   "cleValeur": "Drive/mise en rayon tôt le matin : régime à relever",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit",
+   "cleValeur": "+20 % (22 h-5 h) et +5 % (21 h-22 h) pour tout salarié",
    "points": [
-    "Horaires atypiques fréquents (mise en rayon avant ouverture, drive, entrepôts) — le régime de nuit conventionnel est à relever sur le texte.",
-    "À défaut : droit commun (21 h-6 h) ; demander au client ses majorations réelles (égalité de traitement)."],
-   "dateCourte": "relevé à compléter",
+    "Majorations pour TOUT salarié, à défaut d'accord d'entreprise : **+20 %** du taux horaire de base entre **22 h et 5 h** ; **+5 %** entre **21 h et 22 h** (art. 5.11.4 CCN, KALI KALIARTI000039115960).",
+    "Travailleur de nuit (2×3 h/sem ou ≥**300 h**/an) : repos compensateur payé **1 j**/an (jusqu'à 900 h de nuit), **2 j** au-delà (5.11.3).",
+    "Durées max de nuit : **8 h**/j et **40 h**/12 sem, portables à **10 h/42 h** (5.11.5).",
+    "Horaires atypiques fréquents (mise en rayon avant ouverture, drive, entrepôts) — vérifier aussi les majorations réelles du client (égalité de traitement)."
+   ],
+   "dateCourte": "art. 5.11 (avenant n° 71 du 15/01/2019)",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635085",
-   "fiabilite": "aConfirmer"},
-  {"cle": "hs", "titre": "Heures supplémentaires",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
    "cleValeur": "Contingent : 180 h/an",
    "points": [
-    "Contingent annuel conventionnel : **180 h**.",
-    "Majoration et/ou repos compensateur ; au-delà : repos obligatoire.",
-    "Taux : légaux **25/50 %** à défaut d'accord d'entreprise."],
-   "dateCourte": "fiche CDTN",
+    "Contingent annuel conventionnel : **180 h** (art. 5.8.1 CCN, KALI KALIARTI000039115948).",
+    "HS rémunérées conformément aux dispositions légales ; au-delà du contingent : **contrepartie obligatoire en repos** (art. 5.8.3).",
+    "Taux : légaux **25/50 %** à défaut d'accord d'entreprise."
+   ],
+   "detail": "Information du CSE dans la limite des 130 premières heures ; consultation préalable pour les 50 suivantes (art. 5.8.1, rédaction avenant n° 71 du 15/01/2019, étendu).",
+   "dateCourte": "art. 5.8.1 (avenant n° 71 du 15/01/2019)",
    "source": "https://code.travail.gouv.fr/contribution/2216-heures-supplementaires",
-   "fiabilite": "verifie"},
-  {"cle": "weekend", "titre": "Samedi / dimanche",
-   "cleValeur": "Samedi ordinaire ; dimanche : dérogations commerce alimentaire (13 h)",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Samedi / dimanche",
+   "cleValeur": "Dimanche : +100 % occasionnel ; habituel +20 %/≥30 % selon surface",
    "points": [
     "Samedi : jour ouvré ordinaire de la distribution.",
-    "Commerce alimentaire : ouverture dominicale possible jusqu'à **13 h** (droit commun) — contreparties selon accords d'entreprise/territoire, à demander au client."],
-   "dateCourte": "droit commun commerce alimentaire",
+    "Dimanche **occasionnel** : **+100 %** du salaire horaire, avec repos décalé (art. 5.13.2 CCN, KALI KALIARTI000039115968).",
+    "Dimanche **habituel** : commerce ≤400 m² → **+20 %** si pas 1,5 j de repos consécutifs (5.13.3) ; >400 m² → majoration ≥**30 %** pour les heures jusqu'à 13 h (L. 3132-13).",
+    "Majorations dues même en annualisation (5.13.4) — garanties chiffrées de branche, à ne pas ramener aux seuls accords d'entreprise."
+   ],
+   "dateCourte": "art. 5.13 (avenant n° 71 du 15/01/2019)",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635085",
-   "fiabilite": "aConfirmer"},
-  {"cle": "feries", "titre": "Jours fériés",
-   "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés",
+   "cleValeur": "6 fériés chômés garantis + 1er mai ; travaillé : repos OU paiement",
    "points": [
-    "Régime conventionnel à relever (distribution : fériés souvent travaillés avec contreparties d'entreprise).",
-    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."],
-   "dateCourte": "relevé à compléter",
+    "**6 jours fériés chômés** garantis par an en sus du **1er mai** ; chômés sans perte de rémunération (condition de présence veille/lendemain) — art. 5.14 CCN, KALI KALIARTI000039115972.",
+    "Férié travaillé : au choix du salarié, repos payé équivalent (dans les 15 j avant/après) OU paiement au taux horaire contractuel en sus du salaire mensuel.",
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+   ],
+   "dateCourte": "art. 5.14 (avenant n° 71 du 15/01/2019)",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635085",
-   "fiabilite": "aConfirmer"},
-  {"cle": "repas", "titre": "Repas",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "repas",
+   "titre": "Repas",
    "cleValeur": "Pas de panier de branche généralisé",
    "points": [
-    "Pas d'indemnité repas conventionnelle généralisée relevée — titres-restaurant selon l'entreprise ; demander la pratique du client."],
-   "dateCourte": "relevé à compléter",
+    "Aucune indemnité repas/panier dans les articles en vigueur de la CCN et de ses annexes (vérification sur l'arbre consolidé KALI) — titres-restaurant selon l'entreprise ; demander la pratique du client."
+   ],
+   "dateCourte": "vérifié sur textes consolidés KALI",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635085",
-   "fiabilite": "aConfirmer"},
-  {"cle": "transport", "titre": "Transport",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
    "cleValeur": "50 % transports publics",
    "points": [
-    "Prise en charge légale de **50 %** des abonnements de transports publics."],
+    "Prise en charge légale de **50 %** des abonnements de transports publics."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/2216",
-   "fiabilite": "verifie"},
-  {"cle": "primes", "titre": "Primes : PRIME ANNUELLE (art. 3.6) + encaissement",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "Primes : PRIME ANNUELLE (art. 3.6) + responsabilité",
    "cleValeur": "PRIME ANNUELLE art. 3.6 — l'omission déclarative classique du secteur",
    "points": [
-    "**Prime annuelle** (art. 3.6) : versée chaque année selon les conditions conventionnelles — typiquement de l'ordre d'un salaire mensuel avec condition d'ancienneté ; montant et conditions exacts à relever sur l'art. 3.6 avant paramétrage.",
+    "**Prime annuelle** (art. 3.6 CCN, KALI KALIARTI000039111919) : **100 %** du salaire mensuel de base de novembre (HS exceptionnelles exclues), ou 1/12 du brut de base des 12 mois en cas d'absences excédentaires.",
+    "Conditions : **1 an** d'ancienneté au versement (**6 mois** et prorata si ouverture d'établissement en cours d'année) ; non-cumul avec primes de même nature type 13e mois (3.6.6).",
     "Mise en garde : c'est LA prime que les clients de la distribution omettent au déclaratif — l'intérimaire comparable y a droit **au prorata** (égalité de traitement).",
-    "**Prime d'encaissement** (annexe 1.B art. 11) : chauffeurs-livreurs-encaisseurs → **1/1000** des espèces encaissées."],
-   "dateCourte": "art. 3.6 + annexe 1.B art. 11",
+    "**Prime de responsabilité** (annexe I.B art. 11, KALI KALIARTI000005770975) : chauffeurs-livreurs-encaisseurs → **1/1000** des espèces encaissées."
+   ],
+   "dateCourte": "art. 3.6 (avenant n° 70 du 15/01/2019) + annexe I.B art. 11",
    "source": "https://code.travail.gouv.fr/contribution/2216-quelles-sont-les-primes-prevues-par-la-convention-collective",
-   "fiabilite": "aConfirmer"},
-  {"cle": "annualisation", "titre": "Aménagement du temps",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Aménagement du temps",
    "cleValeur": "Modulation fréquente en distribution — régime du client",
    "points": [
-    "La modulation/annualisation est répandue (saisonnalité commerciale) — pour l'intérimaire, le régime du client s'applique (art. L.1251-21) et conditionne le décompte des HS."],
+    "La modulation/annualisation est répandue (saisonnalité commerciale) — pour l'intérimaire, le régime du client s'applique (art. L.1251-21) et conditionne le décompte des HS."
+   ],
    "dateCourte": "—",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635085",
-   "fiabilite": "verifie"},
-  {"cle": "saisonniers", "titre": "Saisonniers",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers",
    "cleValeur": "Renforts saisonniers via droit commun",
    "points": [
-    "Pas de statut saisonnier de branche particulier — régime intérim de droit commun (IFM 10 % + ICCP 10 %)."],
+    "Pas de statut saisonnier de branche particulier — régime intérim de droit commun (IFM 10 % + ICCP 10 %)."
+   ],
    "dateCourte": "—",
    "source": "https://code.travail.gouv.fr/convention-collective/2216",
-   "fiabilite": "verifie"},
-  {"cle": "durees", "titre": "Durées maximales",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales",
    "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
    "points": [
-    "Maxima légaux à défaut de dérogation."],
+    "Maxima légaux à défaut de dérogation."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/2216",
-   "fiabilite": "verifie"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
-   "cleValeur": "Prime annuelle au prorata · niveau du poste · modulation",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
+   "cleValeur": "Prime annuelle au prorata · niveau du poste · mensuel garanti +5 %",
    "points": [
     "Toujours chiffrer la **prime annuelle** au prorata dans le coût et la paie des missions longues.",
-    "Identifier le NIVEAU exact du poste (art. 4.2) pour le minimum applicable.",
-    "CCN du **12/07/2001** (IDCC 2216) — hypermarchés, supermarchés, commerce alimentaire de gros."],
-   "dateCourte": "CCN 12/07/2001 + fiches CDTN",
+    "Identifier le NIVEAU exact du poste (art. 4.2) et comparer le brut au **mensuel garanti** (mensuel +5 % pauses payées).",
+    "CCN du **12/07/2001** (IDCC 2216, KALICONT000005635085, étendue par arrêté du 26/07/2002) — hypermarchés, supermarchés, commerce alimentaire de gros."
+   ],
+   "dateCourte": "CCN 12/07/2001 + avenant n° 99 (2026)",
    "source": "https://code.travail.gouv.fr/convention-collective/2216",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie"
+  }
  ]
 }

@@ -1,111 +1,168 @@
 {
  "idcc": "2614",
  "titre": "Travaux publics — ETAM (CCN du 12/07/2006)",
- "dateDerniereActu": "06/12/2024",
+ "dateDerniereActu": "16/01/2026",
  "themes": [
-  {"cle": "minima", "titre": "Minima ETAM TP : grilles régionales",
-   "cleValeur": "Grilles RÉGIONALES par niveau — accords 2023-2024 par région",
+  {
+   "cle": "minima",
+   "titre": "Minima ETAM TP : grilles régionales",
+   "cleValeur": "Grilles RÉGIONALES par niveaux A-H — accords 2026 par région",
    "points": [
-    "Minima fixés **région par région** (niveau, position, coefficient) — pas de montant national unique.",
-    "Derniers accords relevés : Hauts-de-France **06/12/2024**, Pays de la Loire **05/12/2024**, Bretagne **06/12/2023**, PACA **11/12/2023**, AURA **15/12/2023** (autres régions : accords propres).",
+    "Minima fixés **région par région** par niveaux A à H — pas de montant national unique ; les grilles récentes sont en salaires minima hiérarchiques ANNUELS, base 35 h (plus de « coefficient »).",
+    "Vague 2026 (tous étendus) : Île-de-France **16/01/2026**, Centre-Val de Loire **23/12/2025**, Nouvelle-Aquitaine **11/12/2025**, Bretagne et BFC **09/12/2025**, Occitanie **08/12/2025**.",
+    "Également étendus : Hauts-de-France **05/12/2025**, Grand Est **28/11/2025**, Normandie **26/11/2025** ; grilles 2025 : Grand Est **25/11/2024**, Normandie **05/12/2024**, PDL **05/12/2024**.",
     "Le plus favorable s'applique entre SMIC, minimum régional et salaire d'entreprise.",
-    "Relever la grille de LA région du chantier avant paramétrage."],
-   "dateCourte": "accords régionaux 2023-2024",
+    "Relever la grille de LA région du chantier avant paramétrage."
+   ],
+   "dateCourte": "accords régionaux 2025-2026 (IDF 16/01/2026)",
    "source": "https://code.travail.gouv.fr/contribution/2614-quel-est-le-salaire-minimum",
-   "fiabilite": "verifie"},
-  {"cle": "nuit", "titre": "Travail de nuit",
-   "cleValeur": "Contreparties à relever sur le texte / accords régionaux",
+   "fiabilite": "verifie",
+   "detail": "Accords vérifiés en base KALI (tous VIGUEUR_ETEN) : Île-de-France 16/01/2026 (KALITEXT000054162121), Centre-Val de Loire 23/12/2025 (54040652), Nouvelle-Aquitaine 11/12/2025 (54092323), Bretagne 09/12/2025 (54034018), BFC 09/12/2025 (53748366), Occitanie 08/12/2025 (54040636), Hauts-de-France 05/12/2025 (53914252), Grand Est 28/11/2025 (53973475), Normandie 26/11/2025 (54034002) ; grilles 2025 : Grand Est 25/11/2024 (51472621), Normandie 05/12/2024 (51379519) ; 2024 : HDF 06/12/2024 (51314997), PDL 05/12/2024 (51472643). Repère de structure : grille HDF 2025 annuelle base 35 h, niveaux A (22 949 €) à H (40 714 €)."
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit",
+   "cleValeur": "Nuit habituelle : repos compensateur ; nuit exceptionnelle +100 %",
    "points": [
-    "Pas de fiche officielle CDTN dédiée — relever le régime de nuit ETAM TP sur le texte ou l'accord régional avant paramétrage.",
-    "À défaut : droit commun (plage 21 h-6 h, contreparties pour le travailleur de nuit habituel)."],
-   "dateCourte": "relevé à compléter",
+    "Travailleur de nuit HABITUEL : plage **21 h-6 h**, statut si 2 fois/sem. au moins **3 h** de nuit ou **270 h**/12 mois (art. 4.2.11 CCN, KALIARTI000018926398, étendu) — régime identique au bâtiment ETAM.",
+    "Repos compensateur : **1 jour** (270 à 349 h de nuit) ou **2 jours** (≥ **350 h**) ; compensation financière des heures 21 h-6 h fixée au niveau de l'ENTREPRISE (pas de taux national).",
+    "Garanties : transport si nécessaire, indemnité de panier, pause **30 min** (poste ≥ 6 h) ; durées max de nuit **8 h**/j et **40 h**/12 sem.",
+    "Travail de nuit EXCEPTIONNEL (20 h-6 h) : majoration **100 %**, non cumulable avec les majorations HS (art. 4.2.10 CCN)."
+   ],
+   "dateCourte": "art. 4.2.11 et 4.2.10 CCN — étendus (arr. 15/06/2007)",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635221",
-   "fiabilite": "aConfirmer"},
-  {"cle": "hs", "titre": "Heures supplémentaires",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
    "cleValeur": "Contingent : 220 h/an (légal — pas de contingent conventionnel)",
    "points": [
-    "Contingent annuel : **220 h** — c'est le contingent LÉGAL, la convention n'en fixe pas (différence avec le bâtiment ETAM : 180 h conventionnel).",
-    "Majoration de salaire et/ou repos compensateur de remplacement ; au-delà du contingent : repos obligatoire.",
-    "Taux : à défaut de taux conventionnel, **25 %** (8 premières HS) / **50 %** au-delà.",
-    "Un accord d'entreprise du client peut différer — le demander au déclaratif."],
-   "dateCourte": "fiche ministère (CDTN)",
+    "Contingent annuel : **220 h** — c'est le contingent LÉGAL : le titre IV de la CCN n'en fixe aucun (art. 4.1.2, KALIARTI000018926369) ; différence avec le bâtiment ETAM (180 h conventionnel).",
+    "Décompte hebdomadaire des HS sauf entreprises annualisées ; majorations « conformément aux dispositions légales » : **25 %** (8 premières HS) / **50 %** au-delà.",
+    "Au-delà du contingent : HS exceptionnelles avec repos compensateur équivalent aux heures effectuées (art. 4.1.3 CCN).",
+    "Un accord d'entreprise du client peut différer — le demander au déclaratif."
+   ],
+   "dateCourte": "titre IV CCN + fiche ministère (CDTN)",
    "source": "https://code.travail.gouv.fr/contribution/2614-heures-supplementaires",
-   "fiabilite": "verifie"},
-  {"cle": "weekend", "titre": "Samedi / dimanche",
-   "cleValeur": "Pas de majoration nationale relevée — voir accords",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Samedi / dimanche",
+   "cleValeur": "Dimanche/férié exceptionnel +100 % ; samedi 2e jour de repos prioritaire",
    "points": [
-    "Samedi jour ouvrable ordinaire ; dimanche selon dérogations de droit commun (chantiers TP : cas particuliers).",
-    "Contreparties éventuelles dans accords régionaux/d'entreprise — à demander au client."],
-   "dateCourte": "relevé à compléter",
+    "Travail EXCEPTIONNEL du dimanche (ou d'un jour férié) : majoration **100 %**, non cumulable avec les majorations HS (art. 4.2.10 CCN, KALIARTI000018926395, étendu sous réserve des dérogations dominicales).",
+    "Le samedi n'est pas un simple jour ouvrable : repos hebdo de **48 h** = 2 jours consécutifs dont le dimanche, le samedi en priorité ; semaine max **5 jours** consécutifs (art. 4.2.2 CCN).",
+    "Contreparties supplémentaires éventuelles dans accords régionaux/d'entreprise — à demander au client."
+   ],
+   "dateCourte": "art. 4.2.10 et 4.2.2 CCN — étendus",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635221",
-   "fiabilite": "aConfirmer"},
-  {"cle": "feries", "titre": "Jours fériés",
-   "cleValeur": "Régime à détailler ; rappel : intérimaire payé sans ancienneté",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés",
+   "cleValeur": "Fériés chômés non récupérables ; férié travaillé exceptionnel +100 %",
    "points": [
-    "Régime conventionnel des fériés ETAM TP à relever sur le texte.",
-    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."],
-   "dateCourte": "relevé à compléter",
+    "Chômage des jours fériés légaux : indemnisé dans les conditions légales et NON RÉCUPÉRABLE (art. 5.3 CCN, KALIARTI000018926284) — texte identique au bâtiment ETAM.",
+    "Férié travaillé à titre exceptionnel : majoration **100 %**, non cumulable avec les majorations HS (art. 4.2.10 CCN).",
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+   ],
+   "dateCourte": "art. 5.3 et 4.2.10 CCN",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635221",
-   "fiabilite": "aConfirmer"},
-  {"cle": "repas", "titre": "Repas / déplacements assimilés",
-   "cleValeur": "Régime « zones/paniers » = ouvriers ; ETAM : frais professionnels",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "repas",
+   "titre": "Repas / déplacements assimilés",
+   "cleValeur": "ETAM non sédentaire : REPAS + TRANSPORT des ouvriers TP de plein droit",
    "points": [
-    "Les indemnités de petits déplacements par zones (repas, transport, trajet) sont le régime des OUVRIERS TP (1702) — pas des ETAM de plein droit.",
-    "ETAM : frais réels/barèmes d'entreprise, grands déplacements selon le poste.",
-    "Vérifier au déclaratif ce que le client verse à ses propres ETAM (égalité de traitement)."],
-   "dateCourte": "architecture conventionnelle TP",
+    "L'ETAM TP **non sédentaire** bénéficie DE PLEIN DROIT, aux mêmes conditions que les ouvriers TP, des indemnités de REPAS (panier) et de TRANSPORT des barèmes régionaux, sauf accord d'entreprise plus favorable (art. 7.1.9 CCN, KALIARTI000018926420, étendu).",
+    "Seule l'indemnité de TRAJET n'est pas visée par l'art. 7.1.9 ; non cumul avec les indemnités de grands déplacements (chap. VII-2).",
+    "Barèmes IPD ouvriers TP 2023-2026 rattachés au même conteneur (Grand Est, HDF, Bretagne, Normandie, Occitanie, IDF…) — relever le barème de la région du chantier.",
+    "ETAM sédentaires : frais réels/barèmes d'entreprise ; vérifier au déclaratif ce que le client verse à ses propres ETAM (égalité de traitement)."
+   ],
+   "dateCourte": "art. 7.1.9 CCN — étendu",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635221",
-   "fiabilite": "aConfirmer"},
-  {"cle": "transport", "titre": "Transport",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
    "cleValeur": "50 % transports publics + frais professionnels",
    "points": [
     "Prise en charge légale de **50 %** des abonnements de transports publics.",
-    "Déplacements professionnels : frais réels ou barème d'entreprise."],
-   "dateCourte": "droit commun",
+    "ETAM non sédentaire : indemnité de TRANSPORT des barèmes ouvriers TP due de plein droit (art. 7.1.9 CCN).",
+    "Véhicule personnel utilisé après accord : barème d'entreprise qui ne peut être INFÉRIEUR au barème fiscal, assurance spécifique à la charge de l'entreprise (art. 7.1.6 CCN, KALIARTI000018926417)."
+   ],
+   "dateCourte": "droit commun + art. 7.1.9 et 7.1.6 CCN",
    "source": "https://code.travail.gouv.fr/convention-collective/2614",
-   "fiabilite": "verifie"},
-  {"cle": "primes", "titre": "Primes : vacances 30 % (6 mois TP)",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "Primes : vacances 30 % (6 mois TP)",
    "cleValeur": "Prime de vacances : 30 % de l'indemnité CP (24 j) dès 6 MOIS de TP",
    "points": [
-    "Prime de vacances (art. 5.1.2) : **30 %** de l'indemnité de congés correspondant à **24 jours ouvrables**.",
-    "Condition : **6 mois** d'ancienneté dans le secteur des travaux publics — ancienneté cumulée entre entreprises du secteur.",
+    "Prime de vacances (art. 5.1.2, KALIARTI000018926273) : **30 %** de l'indemnité de congés correspondant à **24 jours ouvrables**.",
+    "Condition : **6 mois** de présence dans une ou plusieurs entreprises relevant d'une caisse de congés payés du BÂTIMENT ou des TP — cumul inter-entreprises sur tout le champ caisse CP BTP, missions comprises.",
     "Versée avec l'indemnité de congés ; non cumulable avec les versements de même objet.",
     "Mise en garde : oubli fréquent au déclaratif client pour les délégations ETAM.",
-    "Différence avec les OUVRIERS TP (1702) : chez eux la prime exige 1 200 h — pour les ETAM c'est 6 mois d'ancienneté."],
+    "Différence avec les OUVRIERS TP (1702) : chez eux la prime exige 1 200 h — pour les ETAM c'est 6 mois d'ancienneté."
+   ],
    "dateCourte": "art. 5.1.2 — fiche CDTN maj 21/11/2023",
    "source": "https://code.travail.gouv.fr/contribution/2614-quelles-sont-les-primes-prevues-par-la-convention-collective",
-   "fiabilite": "verifie"},
-  {"cle": "annualisation", "titre": "Annualisation",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Annualisation",
    "cleValeur": "Par accord — vérifier le régime du client",
    "points": [
-    "Aménagements du temps (annualisation, RTT) par accords d'entreprise/branche.",
-    "Pour l'intérimaire : aménagement du client applicable (art. L.1251-21) — à relever au contrat de mise à disposition."],
-   "dateCourte": "relevé à compléter",
+    "Aménagements du temps renvoyés à l'accord national BTP du **06/11/1998** (annexe VI CCN) ; décompte des HS à la semaine sauf entreprises annualisées (art. 4.1.2 CCN).",
+    "Pour l'intérimaire : aménagement du client applicable (art. L.1251-21) — à relever au contrat de mise à disposition."
+   ],
+   "dateCourte": "art. 4.1.2 CCN + accord BTP 06/11/1998",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635221",
-   "fiabilite": "aConfirmer"},
-  {"cle": "saisonniers", "titre": "Saisonniers",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers",
    "cleValeur": "Rien de spécifique ETAM TP",
    "points": [
-    "Pas de dispositif saisonnier propre — régime intérim de droit commun (IFM 10 % + ICCP 10 %)."],
+    "Pas de dispositif saisonnier propre — régime intérim de droit commun (IFM 10 % + ICCP 10 %)."
+   ],
    "dateCourte": "—",
    "source": "https://code.travail.gouv.fr/convention-collective/2614",
-   "fiabilite": "verifie"},
-  {"cle": "durees", "titre": "Durées maximales",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales",
    "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
    "points": [
-    "Maxima légaux à défaut de dérogation : **10 h**/jour, **48 h**/semaine, **44 h**/12 semaines.",
-    "Chantiers TP : dérogations ponctuelles possibles (autorisations) — exiger la copie avant suivi des heures."],
-   "dateCourte": "droit commun",
+    "Maxima opérationnels : **10 h**/jour, **48 h**/semaine, **44 h**/12 semaines.",
+    "La CCN fixe 10 h/j, 48 h/sem et 45 h/12 sem (art. 4.1.6, KALIARTI000018926374) mais l'extension est SOUS RÉSERVE de l'art. L.212-7 : le plafond pratique reste **44 h**/12 sem ; s'ajoute **44 h** en moyenne par semestre civil.",
+    "Chantiers TP : dérogations ponctuelles possibles (autorisations) — exiger la copie avant suivi des heures."
+   ],
+   "dateCourte": "droit commun + art. 4.1.6 CCN",
    "source": "https://code.travail.gouv.fr/convention-collective/2614",
-   "fiabilite": "verifie"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
-   "cleValeur": "Région du chantier · vacances 6 mois vs 1 200 h ouvriers · catégorie du poste",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
+   "cleValeur": "Région du chantier · vacances 6 mois vs 1 200 h ouvriers · catégorie poste",
    "points": [
     "Toujours identifier la RÉGION du chantier : minima régionaux.",
     "Ne pas confondre les seuils de prime de vacances : ETAM **6 mois** (2609/2614) vs ouvriers TP **1 200 h** (1702).",
-    "CCN ETAM TP du **12/07/2006** (IDCC 2614), distincte des ouvriers (1702) et des cadres (3212) — vérifier la catégorie réelle du poste délégué."],
+    "CCN ETAM TP du **12/07/2006** (IDCC 2614), distincte des ouvriers (1702) et des cadres (3212) — vérifier la catégorie réelle du poste délégué."
+   ],
    "dateCourte": "CCN 12/07/2006 + fiches CDTN",
    "source": "https://code.travail.gouv.fr/convention-collective/2614",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie"
+  }
  ]
 }

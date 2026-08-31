@@ -3,92 +3,147 @@
  "titre": "ETAM du bâtiment, des travaux publics et industries connexes — GUYANE (convention régionale du 05/12/2011)",
  "dateDerniereActu": "16/12/2025",
  "themes": [
-  {"cle": "minima", "titre": "Grille des minima (accord du 06/06/2025)",
-   "cleValeur": "Catégories A-H : 1 814 € → 3 397 €/mois (au 01/06/2025)",
+  {
+   "cle": "minima",
+   "titre": "Grille des minima (accord du 06/06/2025)",
+   "cleValeur": "Catégories A-H : 1 814 € → 3 397 €/mois ; forfait-jours +15 %",
    "points": [
     "Grille par catégories **A à H** au **01/06/2025** : A **1 814 €**, B **1 874 €**, C **1 941 €**, D **2 154 €**, E **2 381 €**, F **2 807 €**, G **2 950 €**, H **3 397 €** — base 151,67 h.",
-    "Accord du **06/06/2025** (BOCC n° 2025-49) + avenant du **16/12/2025** (clauses entreprises < 50 salariés) ; avis d'extension publié le **22/01/2026** ; signataires FRBTP/MEDEF/CPME Guyane + CFTC, CFE-CGC, FO.",
+    "Accord du **06/06/2025**, art. 2 (BOCC n° 2025-49, NOR ASET2550939M) — signataires MEDEF/CPME/FRBTP Guyane + FO, CFTC, CFE-CGC ; avis d'extension publié le **22/01/2026**.",
+    "Avenant du **16/12/2025** (BOCC 2026-4, NOR ASET2650061M) : objet unique art. L.2261-23-1 — pas de stipulations spécifiques pour les entreprises < 50 salariés ; en vigueur à signature.",
+    "ETAM en **forfait-jours** : minimum conventionnel majoré de **15 %** (accord du 06/06/2025, art. 2 in fine, en application de la CCR ETAM BTP du 05/12/2011).",
     "Le bas de grille (A) est sous le SMIC actuel : le **SMIC** s'applique alors.",
-    "Piège : ne PAS confondre avec les grilles ETAM métropole (2609/2614) — la Guyane a sa convention propre."],
+    "Piège : ne PAS confondre avec les grilles ETAM métropole (2609/2614) — la Guyane a sa convention propre."
+   ],
    "dateCourte": "accord du 06/06/2025 + avenant 16/12/2025",
    "source": "https://www.juristique.org/conventionnel/salaires-etam-batiment-guyane-2026",
-   "fiabilite": "verifie"},
-  {"cle": "nuit", "titre": "Travail de nuit",
-   "cleValeur": "Régime régional à relever sur le texte (KALI)",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit",
+   "cleValeur": "Régime régional à relever au BOCC (pas de conteneur KALI)",
    "points": [
-    "Convention régionale non couverte par les fiches du ministère — relever le régime de nuit sur le texte Légifrance avant paramétrage.",
-    "À défaut : droit commun (21 h-6 h)."],
+    "Convention régionale sans conteneur KALI (absente de Légifrance) — relever le régime de nuit au **BOCC** avant paramétrage.",
+    "À défaut : droit commun (21 h-6 h)."
+   ],
    "dateCourte": "relevé à compléter",
    "source": "https://www.legifrance.gouv.fr/search/kali?tab_selection=kali&searchField=ALL&query=3128&page=1",
-   "fiabilite": "aConfirmer"},
-  {"cle": "hs", "titre": "Heures supplémentaires",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
    "cleValeur": "Taux légaux 25/50 % à défaut ; contingent à relever",
    "points": [
-    "Taux légaux **25/50 %** à défaut de disposition régionale ; contingent à relever sur le texte."],
+    "Taux légaux **25/50 %** à défaut de disposition régionale ; contingent à relever sur le texte."
+   ],
    "dateCourte": "relevé à compléter",
    "source": "https://www.legifrance.gouv.fr/search/kali?tab_selection=kali&searchField=ALL&query=3128&page=1",
-   "fiabilite": "aConfirmer"},
-  {"cle": "weekend", "titre": "Samedi / dimanche",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Samedi / dimanche",
    "cleValeur": "Régime à relever",
-   "points": ["Contreparties éventuelles à relever sur le texte régional ; à défaut droit commun."],
+   "points": [
+    "Contreparties éventuelles à relever sur le texte régional ; à défaut droit commun."
+   ],
    "dateCourte": "relevé à compléter",
    "source": "https://www.legifrance.gouv.fr/search/kali?tab_selection=kali&searchField=ALL&query=3128&page=1",
-   "fiabilite": "aConfirmer"},
-  {"cle": "feries", "titre": "Jours fériés (attention Guyane)",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés (attention Guyane)",
    "cleValeur": "Fériés locaux en sus (abolition de l'esclavage 10 juin…) ; régime à relever",
    "points": [
     "En Guyane s'ajoutent des fériés locaux (notamment l'abolition de l'esclavage, **10 juin**) — vérifier le calendrier applicable au chantier.",
-    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."],
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+   ],
    "dateCourte": "droit local + relevé à compléter",
    "source": "https://www.legifrance.gouv.fr/search/kali?tab_selection=kali&searchField=ALL&query=3128&page=1",
-   "fiabilite": "aConfirmer"},
-  {"cle": "repas", "titre": "Repas / déplacements",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "repas",
+   "titre": "Repas / déplacements",
    "cleValeur": "Régime ETAM : frais professionnels ; barèmes locaux à relever",
    "points": [
-    "Comme en métropole, le régime « paniers/zones » est celui des OUVRIERS (IDCC 2870 en Guyane) — pour les ETAM : frais professionnels et grands déplacements selon le poste, barèmes locaux à relever."],
+    "Comme en métropole, le régime « paniers/zones » est celui des OUVRIERS (IDCC 2870 en Guyane) — pour les ETAM : frais professionnels et grands déplacements selon le poste, barèmes locaux à relever."
+   ],
    "dateCourte": "relevé à compléter",
    "source": "https://www.legifrance.gouv.fr/search/kali?tab_selection=kali&searchField=ALL&query=3128&page=1",
-   "fiabilite": "aConfirmer"},
-  {"cle": "transport", "titre": "Transport",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
    "cleValeur": "50 % transports publics + frais professionnels",
-   "points": ["Prise en charge légale de **50 %** des abonnements ; indemnités locales éventuelles à relever."],
+   "points": [
+    "Prise en charge légale de **50 %** des abonnements ; indemnités locales éventuelles à relever."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/3128",
-   "fiabilite": "verifie"},
-  {"cle": "primes", "titre": "Primes",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "Primes",
    "cleValeur": "Prime de vacances et indemnités régionales à relever",
    "points": [
     "Les primes régionales (vacances, ancienneté éventuelle) sont à relever sur le texte et ses avenants ; une prévoyance de branche ouvriers/ETAM existe (avis d'extension publié).",
-    "Demander au client la liste écrite des primes versées à ses ETAM (égalité de traitement)."],
+    "Demander au client la liste écrite des primes versées à ses ETAM (égalité de traitement)."
+   ],
    "dateCourte": "relevé à compléter",
    "source": "https://presse.tripalio.fr/avis-dextension-dun-accord-de-prevoyance-chez-les-ouvriers-et-etam-du-batiment-et-des-travaux-publics-de-la-guyane/",
-   "fiabilite": "aConfirmer"},
-  {"cle": "annualisation", "titre": "Aménagement du temps",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Aménagement du temps",
    "cleValeur": "Par accord — régime du client",
-   "points": ["Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."],
+   "points": [
+    "Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."
+   ],
    "dateCourte": "—",
    "source": "https://code.travail.gouv.fr/convention-collective/3128",
-   "fiabilite": "verifie"},
-  {"cle": "saisonniers", "titre": "Saisonniers",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers",
    "cleValeur": "Sans objet (saison des pluies : intempéries plutôt que saisonnalité)",
-   "points": ["Régime intérim de droit commun (IFM 10 % + ICCP 10 %) ; le régime intempéries BTP s'applique côté employeur."],
+   "points": [
+    "Régime intérim de droit commun (IFM 10 % + ICCP 10 %) ; le régime intempéries BTP s'applique côté employeur."
+   ],
    "dateCourte": "—",
    "source": "https://code.travail.gouv.fr/convention-collective/3128",
-   "fiabilite": "verifie"},
-  {"cle": "durees", "titre": "Durées maximales",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales",
    "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
-   "points": ["Maxima légaux à défaut de dérogation ; autorisations locales à documenter en pointe de chantier."],
+   "points": [
+    "Maxima légaux à défaut de dérogation ; autorisations locales à documenter en pointe de chantier."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/3128",
-   "fiabilite": "verifie"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
    "cleValeur": "Trio Guyane : 2870 ouvriers · 3128 ETAM · 3204 cadres",
    "points": [
     "Le BTP guyanais a ses trois conventions propres : **2870** (ouvriers), **3128** (ETAM), **3204** (ingénieurs et cadres) — vérifier la catégorie réelle du poste délégué.",
     "Cotisations et exonérations spécifiques outre-mer (LODEOM) côté employeur : à paramétrer distinctement de la métropole.",
-    "Convention régionale du **05/12/2011**, non couverte par les fiches CDTN — contrôles sur Légifrance/BOCC."],
+    "Convention régionale du **05/12/2011** (date confirmée par l'accord salaires 2025), non couverte par les fiches CDTN et **sans conteneur KALI** — le contrôle authentique passe par le **BOCC** uniquement."
+   ],
    "dateCourte": "convention du 05/12/2011",
    "source": "https://code.travail.gouv.fr/convention-collective/3128",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie"
+  }
  ]
 }

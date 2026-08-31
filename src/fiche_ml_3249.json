@@ -1,105 +1,162 @@
 {
  "idcc": "3249",
  "titre": "Industries de carrières et matériaux de construction (CCN du 06/07/2022)",
- "dateDerniereActu": "27/08/2026",
+ "dateDerniereActu": "01/09/2026",
  "themes": [
-  {"cle": "minima", "titre": "Grille des minima (accords régionaux)",
+  {
+   "cle": "minima",
+   "titre": "Grille des minima (accords régionaux)",
    "cleValeur": "Minima RÉGIONAUX — ex. IDF 1 840 → 3 240 €/mois (01/01/2026)",
    "points": [
-    "Minima fixés par **accords régionaux** (comme le BTP) : relever la grille de la région du site client avant tout paramétrage.",
-    "Île-de-France (effet **01/01/2026**, +**1,25 %** en moyenne) : **1 840 → 3 240 €**/mois bruts selon niveaux 1 à 7 — base 35 h.",
-    "Autres régions relevées : Grand Est +**1,07 %**, Auvergne-Rhône-Alpes +**1,06 %**, Pays de la Loire **1 855 → 3 169 €** — accords signés début 2026, dates exactes à confirmer."],
+    "Minima fixés par **accords régionaux** (niveaux 1-7, 12 régions — annexe 5 CCN, KALI KALIARTI000046599228) ; cadres (niveaux 8-10) : barèmes nationaux. Relever la grille de la région du site client.",
+    "Île-de-France (accord du 19/03/2026, étendu, effet **01/01/2026**, +**1,25 %** en moyenne) : **1 840 → 3 240 €**/mois bruts, niveaux 1 à 7 (20 échelons), base 35 h (KALI KALITEXT000054337807).",
+    "Grand Est (accord du 19/02/2026, étendu, effet 01/01/2026) : **1 839 → 3 191 €** ; taux différenciés 0,50 à 1,50 % selon l'échelon — paramétrer la grille en euros (KALI KALITEXT000054262441).",
+    "Pays de la Loire (accord du 17/02/2026, étendu, effet 01/01/2026, +**1 %** en moyenne) : **1 855 → 3 169 €** (KALI KALITEXT000054304146).",
+    "AURA +**1,06 %** cité : accord 2026 **absent de KALI** (dernier accord étendu : 20/03/2025) — ne pas paramétrer sans texte.",
+    "Autres accords 2026 étendus : Normandie (06/02), Centre-Val de Loire (24/02), Nouvelle-Aquitaine (12/03), Hauts-de-France (16/03) ; BFC (11/03) et Occitanie (13/03) non étendus à ce jour."
+   ],
+   "detail": "Grille IDF non applicable aux entreprises d'éléments préfabriqués en béton (2361.Z), soumises à l'accord d'harmonisation du 11/04/2024.",
    "dateCourte": "accords régionaux 2026 — effet 01/01/2026",
-   "source": "https://www.juristique.org/conventionnel/salaires-industries-carrieres-materiaux-ile-de-france-2026",
-   "fiabilite": "aConfirmer"},
-  {"cle": "nuit", "titre": "Travail de nuit / posté",
-   "cleValeur": "Sources divergentes : 15 % habituel à 100 % exceptionnel — à confirmer",
-   "points": [
-    "Sources spécialisées **divergentes** : nuit 22h-6h **15 %** selon l'une ; travaux programmés de nuit **25 %** et travail exceptionnel de nuit **100 %** selon d'autres — relever le texte.",
-    "Demander au client le taux réellement appliqué (accords d'entreprise fréquents en carrières/BPE) — égalité de traitement pour l'intérimaire."],
-   "dateCourte": "à confirmer sur le texte KALI",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000050551393",
-   "fiabilite": "aConfirmer"},
-  {"cle": "hs", "titre": "Heures supplémentaires",
-   "cleValeur": "Taux légaux 25/50 % ; contingent à relever",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit / posté",
+   "cleValeur": "Nuit exceptionnelle 100 % HS comprises ; nuit postée = accord d'entreprise",
    "points": [
-    "Majorations : **25 %** (36e à 43e heure) / **50 %** au-delà, à défaut de disposition différente relevée.",
-    "Contingent conventionnel à relever sur le texte ; à défaut **220 h**/an."],
-   "dateCourte": "à relever",
+    "Travail **exceptionnel** de nuit (22 h-6 h) : **100 %** HS comprises, soit **75 %** hors HS — non cumulable avec la majoration HS (art. 17.1 CCN, KALI KALIARTI000046598991).",
+    "Nuit habituelle/postée (2×8, 3×8) : **aucun taux de branche**, renvoi à l'**accord d'entreprise** (art. 17.4 CCN) — demander le taux appliqué chez le client (égalité de traitement).",
+    "Les taux **15 %**/**25 %** cités par des sources privées ne figurent pas dans la CCN 3249."
+   ],
+   "dateCourte": "CCN 06/07/2022, art. 17.1 et 17.4",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000050551393",
-   "fiabilite": "aConfirmer"},
-  {"cle": "weekend", "titre": "Samedi / dimanche",
-   "cleValeur": "Dimanche exceptionnel : 100 % cité (25 % selon source) — à confirmer",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
+   "cleValeur": "HS 25/50 % ; contingent 145 ou 180 h/an (BPE 180/225 h)",
    "points": [
-    "Travail exceptionnel du dimanche : majoration **100 %** citée par la doctrine (une source indique 25 %) — divergence à trancher sur le texte KALI.",
-    "Sites en feu continu (ciment, chaux, BPE) : majorations de week-end souvent fixées par accord d'entreprise — les demander au déclaratif client."],
-   "dateCourte": "à confirmer sur le texte KALI",
+    "Majorations : **25 %** pour les huit premières heures au-delà de 35 h (36e-43e) / **50 %** à partir de la 9e (art. 17.2 CCN, KALI KALIARTI000046598992).",
+    "Contingent **conventionnel** : **145 h**/an (temps annualisé) / **180 h** (hors annualisation) ; BPE : **180/225 h** (art. 19.4 et 20.14.1, KALI KALIARTI000050614645) — le légal 220 h ne s'applique pas."
+   ],
+   "dateCourte": "CCN 06/07/2022, art. 17.2 et 19.4",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000050551393",
-   "fiabilite": "aConfirmer"},
-  {"cle": "feries", "titre": "Jours fériés",
-   "cleValeur": "Exceptionnel férié : 100 % cité ; intérim payés sans ancienneté",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Samedi / dimanche",
+   "cleValeur": "Dimanche exceptionnel : 100 % HS comprises (75 % hors HS)",
    "points": [
-    "Travail exceptionnel un jour férié : majoration **100 %** citée — à confirmer sur le texte ; **1er mai** obligatoirement chômé et payé.",
-    "**2 jours de ponts**/an cités entre l'Ascension et la Pentecôte (source unique — à confirmer).",
-    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."],
-   "dateCourte": "à confirmer sur le texte KALI",
+    "Travail exceptionnel du jour de repos hebdomadaire (urgence, surcroît) : **100 %** HS comprises / **75 %** hors HS — aucun taux 25 % dans la CCN (art. 17.1 CCN, KALI KALIARTI000046598991).",
+    "Sites en feu continu (ciment, chaux, BPE) : majorations de week-end fixées par accord d'entreprise (art. 17.4 CCN) — les demander au déclaratif client."
+   ],
+   "dateCourte": "CCN 06/07/2022, art. 17.1",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000050551393",
-   "fiabilite": "aConfirmer"},
-  {"cle": "repas", "titre": "Repas / paniers",
-   "cleValeur": "Pas de panier national uniforme relevé — pratique du site à demander",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés",
+   "cleValeur": "Férié travaillé : 100 % HS comprises ; pas de ponts conventionnels",
    "points": [
-    "Aucun panier/indemnité repas national uniforme relevé : paniers d'équipe et de nuit relèvent d'accords régionaux ou d'entreprise — demander la pratique écrite du site.",
-    "Oubli déclaratif fréquent en carrières et BPE (postes 2×8/3×8, prise de poste très matinale) : poser la question explicitement."],
-   "dateCourte": "à confirmer",
+    "Travail exceptionnel un jour férié : **100 %** HS comprises / **75 %** hors HS (art. 17.1 CCN, KALI KALIARTI000046598991) ; fériés légaux chômés payés comme le **1er mai** (art. 18.3, KALI KALIARTI000046599004).",
+    "Pas de jours de **ponts** conventionnels (les « 2 jours Ascension-Pentecôte » cités ne figurent pas dans la CCN) ; seule la récupération des heures perdues en cas de pont est prévue (art. 17.3 CCN).",
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+   ],
+   "dateCourte": "CCN 06/07/2022, art. 17.1 et 18.3",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000050551393",
-   "fiabilite": "aConfirmer"},
-  {"cle": "transport", "titre": "Transport",
-   "cleValeur": "0,50 €/km au-delà de 5 km cité (à confirmer) ; 50 % transports publics",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "repas",
+   "titre": "Repas / paniers",
+   "cleValeur": "Aucun panier dans la CCN — pratique du site à demander",
    "points": [
-    "Indemnité de déplacement **0,50 €/km au-delà de 5 km** du domicile citée par une source unique — à confirmer sur le texte avant paramétrage.",
-    "À défaut : prise en charge légale de **50 %** des abonnements de transports publics."],
-   "dateCourte": "à confirmer",
-   "source": "https://advizexperts.fr/convention-collective/convention-collective-carrieres-materiaux-idcc-3249/",
-   "fiabilite": "aConfirmer"},
-  {"cle": "primes", "titre": "Ancienneté + pénibilité",
-   "cleValeur": "Ancienneté 3 % (3 ans) → 12 % (15 ans) citée — à confirmer",
-   "points": [
-    "**Prime d'ancienneté** progressive citée : **3 %** après 3 ans jusqu'à **12 %** après 15 ans — taux et assiette à confirmer sur le texte KALI.",
-    "Primes de pénibilité (≈ **10 %** travaux en milieu poussiéreux) et de productivité citées — vérifier l'accord réellement applicable chez le client.",
-    "Intérim : primes dues via **égalité de traitement** (comparable du client) — ancienneté et pénibilité sont souvent omises au déclaratif."],
-   "dateCourte": "à confirmer sur le texte KALI",
-   "source": "https://advizexperts.fr/convention-collective/convention-collective-carrieres-materiaux-idcc-3249/",
-   "fiabilite": "aConfirmer"},
-  {"cle": "annualisation", "titre": "Aménagement du temps",
-   "cleValeur": "Annualisation possible (1 607 h) — régime du client applicable",
-   "points": [
-    "Annualisation jusqu'à **1 607 h**/an possible ; activité dépendante de la météo et des chantiers : modulation fréquente par accord d'entreprise.",
-    "Le régime de temps de travail du client s'applique à l'intérimaire (art. L.1251-21)."],
-   "dateCourte": "—",
+    "**Aucun panier/indemnité repas** dans la CCN (vérifié sur le conteneur KALI 3249, KALITEXT000046598805) : paniers d'équipe/nuit = accords régionaux ou d'entreprise — demander la pratique écrite du site.",
+    "Oubli déclaratif fréquent en carrières et BPE (postes 2×8/3×8, prise de poste très matinale) : poser la question explicitement."
+   ],
+   "dateCourte": "CCN 06/07/2022 — vérifié",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000050551393",
-   "fiabilite": "verifie"},
-  {"cle": "saisonniers", "titre": "Saisonniers",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
+   "cleValeur": "Pas d'IK dans la CCN nationale ; indemnités transport régionales",
+   "points": [
+    "**Aucune indemnité kilométrique** dans la CCN nationale — le 0,50 €/km au-delà de 5 km cité par une source privée n'y figure pas (vérifié chapitres 16-17 et annexes, KALI).",
+    "Des indemnités de transport existent au niveau **régional** (ex. Bretagne, accord du 11/10/2022, KALI KALITEXT000047376134) — relever le texte de la région du site.",
+    "À défaut : prise en charge légale de **50 %** des abonnements de transports publics."
+   ],
+   "dateCourte": "CCN vérifiée — indemnités régionales",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000050551393",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "Ancienneté + prime de vacances",
+   "cleValeur": "Ancienneté fermée (3 → 15 %, bénéf. 01/01/2010) ; vacances 30 % ICP",
+   "points": [
+    "**Prime d'ancienneté** : **3/6/9/12 %** puis **15 %** à 15 ans — réservée aux ouvriers/ETAM bénéficiaires au **01/01/2010** (population fermée, cadres exclus) (art. 17.6 CCN, KALI KALIARTI000046598997).",
+    "Intérim : due via l'**égalité de traitement** seulement si le comparable du client en bénéficie ; montant majoré forfaitairement de **7 %** à chaque changement de niveau/échelon.",
+    "**Prime de vacances** : **30 %** de l'indemnité de congés payés (art. 18.2 CCN, KALI KALIARTI000046599003) — à intégrer au contrôle de l'égalité de traitement.",
+    "**Aucune prime de pénibilité ni de productivité** dans la CCN unifiée (chiffres hérités des CCN 1955 abrogées) — vérifier un éventuel accord d'entreprise chez le client."
+   ],
+   "dateCourte": "CCN 06/07/2022, art. 17.6 et 18.2",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000050551393",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Aménagement du temps",
+   "cleValeur": "Annualisation conventionnelle 1 607 h (BPE forfait 1 832 h)",
+   "points": [
+    "Annualisation jusqu'à **1 607 h**/an (HS non comprises) : dispositif conventionnel mobilisable même **sans accord d'entreprise** (art. 20.2 CCN, KALI KALIARTI000046599028) ; BPE : forfait jusqu'à **1 832 h**.",
+    "Le régime de temps de travail du client s'applique à l'intérimaire (art. L.1251-21)."
+   ],
+   "dateCourte": "CCN 06/07/2022, art. 20.2",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000050551393",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers",
    "cleValeur": "Activité liée au BTP : pointes saisonnières via droit commun",
    "points": [
-    "Pointes d'activité printemps-automne (approvisionnement des chantiers) sans statut saisonnier de branche relevé — régime intérim de droit commun (**IFM 10 %** + **ICCP 10 %** dues)."],
+    "Pointes d'activité printemps-automne (approvisionnement des chantiers) sans statut saisonnier de branche relevé — régime intérim de droit commun (**IFM 10 %** + **ICCP 10 %** dues)."
+   ],
    "dateCourte": "—",
    "source": "https://code.travail.gouv.fr/convention-collective/3249",
-   "fiabilite": "verifie"},
-  {"cle": "durees", "titre": "Durées maximales",
-   "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales",
+   "cleValeur": "10 h/j (BPE 12 h) ; 48 h/sem, 44 h/12 sem, 3 sem. à 48 h max",
    "points": [
-    "Maxima légaux à défaut de dérogation relevée ; carrières = travaux extérieurs à forte pointe : vérifier les autorisations DREETS du client avant suivi des heures."],
-   "dateCourte": "droit commun",
-   "source": "https://code.travail.gouv.fr/convention-collective/3249",
-   "fiabilite": "verifie"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
+    "Droit commun **10 h**/jour ; en annualisation : **48 h** max/semaine, **44 h** en moyenne sur 12 semaines, max **3 semaines** à 48 h (BPE : 6 semaines) (art. 20.4 CCN, KALI KALIARTI000046599030).",
+    "BPE : durée quotidienne portée à **12 h** si l'approvisionnement d'un chantier l'exige (art. 20.14.3 CCN, KALI KALIARTI000046599047) — vigilance heures des intérimaires en centrale à béton.",
+    "Carrières = travaux extérieurs à forte pointe : vérifier les autorisations DREETS du client avant suivi des heures."
+   ],
+   "dateCourte": "CCN 06/07/2022, art. 20.4 et 20.14.3",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000050551393",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
    "cleValeur": "CCN unifiée 06/07/2022 (ex-87/135/211) · minima régionaux · UNICEM",
    "points": [
-    "CCN **unifiée du 06/07/2022** (fusion des anciennes CCN ouvriers 1955, ETAM et cadres 1956 — ex-IDCC 87, 135, 211), étendue le **24/09/2024**, en vigueur depuis le **18/11/2024**.",
-    "Champ : carrières, granulats, béton prêt à l'emploi, industrie du béton, plâtre, chaux, pierres — signataires UNICEM, FIB, UP'Chaux.",
-    "Minima par **accords régionaux** (réflexe « grille régionale », comme le BTP) ; pas de fiches CDTN pour cet IDCC : contrôles sur Légifrance (KALICONT000050551393)."],
-   "dateCourte": "CCN 06/07/2022, en vigueur 18/11/2024",
+    "CCN **unifiée du 06/07/2022** (fusion des CCN ouvriers 1955, ETAM 1955, cadres 1956 — ex-IDCC 87/135/211), étendue le **24/09/2024**, applicable depuis le **17/11/2024** (art. 34.1, KALI KALITEXT000046598805).",
+    "Champ : carrières, granulats, béton prêt à l'emploi, industrie du béton, plâtre, chaux, pierres — signataires UNICEM, FIB, UP'Chaux (dispositions transitoires pour les entreprises chaux).",
+    "Minima par **accords régionaux** (réflexe « grille régionale », comme le BTP) ; pas de fiches CDTN pour cet IDCC : contrôles sur Légifrance (KALICONT000050551393)."
+   ],
+   "dateCourte": "CCN 06/07/2022, applicable 17/11/2024",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000050551393",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie"
+  }
  ]
 }

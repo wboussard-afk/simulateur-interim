@@ -3,97 +3,163 @@
  "titre": "Restauration de collectivités (CCN du 20/06/1983)",
  "dateDerniereActu": "14/02/2025",
  "themes": [
-  {"cle": "minima", "titre": "Minima par niveau/échelon",
-   "cleValeur": "Grille par niveaux et échelons — montants à relever",
+  {
+   "cle": "minima",
+   "titre": "Minima par niveau",
+   "cleValeur": "Grille par niveaux I-IX (sans échelons) — av. n° 68, 01/03/2025",
    "points": [
-    "Grille par **niveaux et échelons** (employés → cadres) — relever l'avenant salaires en vigueur sur Légifrance avant paramétrage.",
-    "Le plus favorable s'applique vs SMIC (bas de grille régulièrement rattrapés)."],
-   "dateCourte": "montants à relever",
+    "Grille par **niveaux I à IX** uniquement (pas d'échelons) : taux horaire, salaire minimum mensuel (SMM) et revenu minimum annuel (RMA) — avenant n° **68 du 14/02/2025**, effet **01/03/2025**, étendu (KALI KALITEXT000051694275).",
+    "Taux horaires : I **11,89** · II **11,95** · III **12,10** · IV **12,30** · V **12,96** · VI **13,46** · VII **14,30** · VIII **15,02** · IX **19,31 €**.",
+    "SMM : I **1 803,32 €** → IX **2 928,68 €** ; RMA (réservé aux salariés justifiant **1 an** d'ancienneté continue et révolue) : I **23 443,16 €** → IX **38 072,84 €**.",
+    "Le plus favorable s'applique vs SMIC (bas de grille régulièrement rattrapés)."
+   ],
+   "detail": "Dernier texte salaires présent dans la base KALI (vérifiée au 31/08/2026) : avenant n° 68 du 14/02/2025, étendu par arrêté du 30/04/2025 (JORF 13/06/2025) — prochaine NAO à surveiller.",
+   "dateCourte": "avenant n° 68 du 14/02/2025 — effet 01/03/2025",
    "source": "https://code.travail.gouv.fr/contribution/1266-quel-est-le-salaire-minimum",
-   "fiabilite": "aConfirmer"},
-  {"cle": "nuit", "titre": "Travail de nuit",
-   "cleValeur": "Régime à relever (santé/EHPAD : services du soir)",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit",
+   "cleValeur": "+10 % toute heure de nuit (21 h-6 h) ; repos compensateur 1-2 j",
    "points": [
-    "Régime de nuit à relever pour les sites en continu (santé, EHPAD) ; à défaut : droit commun."],
-   "dateCourte": "à relever",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635604",
-   "fiabilite": "aConfirmer"},
-  {"cle": "hs", "titre": "Heures supplémentaires",
-   "cleValeur": "Taux légaux 25/50 % ; contingent à relever",
+    "Nuit = **21 h-6 h** ; majoration **+10 %** du taux horaire de base pour TOUTE heure de nuit, travailleur de nuit ou non (avenant n° 29 du 03/07/2002, KALI KALITEXT000005640489).",
+    "Travailleur de nuit = 2×3 h/sem ou **270 h**/12 mois ; repos compensateur **1 j**/an (270-810 h de nuit), **2 j**/an au-delà ; non-cumul avec avantages de même objet.",
+    "Sites en continu (santé, EHPAD) : vérifier aussi les majorations réelles du site (égalité de traitement)."
+   ],
+   "dateCourte": "avenant n° 29 du 03/07/2002",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635418",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
+   "cleValeur": "Contingent 130 h (188 h encadrement forfait) ; taux 25/50 %",
    "points": [
-    "Taux : légaux **25/50 %** à défaut de disposition ; contingent conventionnel à relever.",
-    "Modulation fréquente (rythmes scolaires) — le régime du site client conditionne les HS."],
-   "dateCourte": "à relever",
+    "Contingent annuel conventionnel : **130 h** par salarié ; **188 h** pour l'encadrement en convention de forfait (accord RTT du 15/01/1999, art. 3.1, KALI KALIARTI000005767213).",
+    "Augmentable par accord d'entreprise dans la limite de **+50 h**.",
+    "Taux : légaux **25/50 %** à défaut de disposition.",
+    "Modulation fréquente (rythmes scolaires) — le régime du site client conditionne les HS."
+   ],
+   "dateCourte": "accord RTT du 15/01/1999",
    "source": "https://code.travail.gouv.fr/contribution/1266-heures-supplementaires",
-   "fiabilite": "aConfirmer"},
-  {"cle": "weekend", "titre": "Dimanche / week-end",
-   "cleValeur": "Sites santé 7 j/7 : PAC/PSM (voir primes)",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Dimanche / week-end",
+   "cleValeur": "Sites 7 j/7 : PAC 53 €/mois dès dimanche travaillé ; PSM 22,50 €",
    "points": [
-    "En restauration de santé, le week-end travaillé est compensé notamment via les primes d'activité continue/service minimum (voir thème primes).",
-    "Demander le régime réel du site (égalité de traitement)."],
-   "dateCourte": "—",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635604",
-   "fiabilite": "aConfirmer"},
-  {"cle": "feries", "titre": "Jours fériés",
-   "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
+    "Sites 7 j/7 : la **PAC** (**53 €** bruts/mois, art. 36.1 rédaction avenant n° 68, KALI KALIARTI000051704912) est due dès que le salarié travaille le dimanche.",
+    "**PSM 22,50 €**/mois (art. 36.2) pour l'astreinte de service minimum auprès de convives dépendants — voir thème primes.",
+    "Demander le régime réel du site (égalité de traitement)."
+   ],
+   "dateCourte": "art. 36.1-36.2 (avenant n° 68 du 14/02/2025)",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635418",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés",
+   "cleValeur": "11 fériés (art. 21) — sans perte de salaire si site client chômé",
    "points": [
-    "Régime des fériés (10 fériés + compensations selon sites) à relever.",
-    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."],
-   "dateCourte": "à relever",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635604",
-   "fiabilite": "aConfirmer"},
-  {"cle": "repas", "titre": "Nourriture (avantage en nature)",
-   "cleValeur": "Repas fournis sur site : avantage en nature à intégrer en paie",
+    "**11 jours fériés** listés (art. 21 CCN, KALI KALIARTI000005767315) : 1er janv., lundi de Pâques, 1er mai, 8 mai, Ascension, lundi de Pentecôte, 14 juil., 15 août, 1er nov., 11 nov., 25 déc.",
+    "Observés sans perte de salaire quand ils sont chômés dans l'entreprise cliente pour laquelle fonctionne le restaurant (le personnel suit les horaires du site client).",
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+   ],
+   "dateCourte": "art. 21 CCN",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635418",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "repas",
+   "titre": "Nourriture (avantage en nature)",
+   "cleValeur": "Nourriture gratuite obligatoire ; AN forfaitaire 21 × MG/mois",
    "points": [
-    "Le personnel de restauration collective est généralement nourri sur site : **avantage en nature repas** à valoriser en paie selon le barème en vigueur.",
-    "Vérifier la pratique du site (repas fournis ou non) — impact cotisations."],
-   "dateCourte": "barème avantage en nature en vigueur",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635604",
-   "fiabilite": "aConfirmer"},
-  {"cle": "transport", "titre": "Transport",
+    "L'employeur est **tenu de nourrir gratuitement** le personnel de service présent aux repas (art. 22 CCN, KALI KALIARTI000005767316).",
+    "Avantage en nature nourriture : évaluation forfaitaire de branche, pour 151,67 h, à **21 × le minimum garanti par mois**, quel que soit le nombre de repas consommés (art. 16.1, rédaction avenant du 11/03/2016).",
+    "Règle de branche plus précise que le barème général — impact paie/cotisations direct ; vérifier la pratique du site."
+   ],
+   "dateCourte": "art. 22 + art. 16.1 CCN",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635418",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
    "cleValeur": "50 % transports publics",
-   "points": ["Prise en charge légale de **50 %** des abonnements."],
+   "points": [
+    "Prise en charge légale de **50 %** des abonnements."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/1266",
-   "fiabilite": "verifie"},
-  {"cle": "primes", "titre": "PAC, PSM, 13e mois (avenant n° 68)",
-   "cleValeur": "Prime d'activité continue + prime de service minimum + 13e mois",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "PAC, PSM, intermittence, 13e mois",
+   "cleValeur": "PAC 53 €/m · PSM 22,50 €/m · intermittence 2 % · 13e mois (16.3)",
    "points": [
-    "La branche prévoit notamment : **prime d'activité continue** (PAC) et **prime d'intermittence** — refondues par l'avenant n° **68 du 14/02/2025** ; montants en vigueur à relever sur cet avenant.",
-    "**13e mois** conventionnel (prime de fin d'année) selon conditions d'ancienneté — à relever (art. 36).",
-    "Mise en garde : PAC/PSM et 13e mois sont les omissions déclaratives classiques du secteur — l'intérimaire comparable y a droit au prorata.",
-    "Références : art. 10, 11, 22-24, 36.1-36.2 + accord du 18/06/2019."],
-   "dateCourte": "avenant n° 68 du 14/02/2025 — montants à relever",
+    "**PAC** (art. 36.1, refondu par avenant n° **68 du 14/02/2025**, KALI KALIARTI000051704912) : **53 €** bruts/mois, prorata du temps de travail effectif (plancher **50 %** temps partiel mois complet) ; due dès dimanche travaillé en site 7 j/7.",
+    "**PSM** (art. 36.2, avenant du 04/06/2012) : **22,50 €** bruts/mois, mêmes règles de prorata.",
+    "**Prime d'intermittence** (art. 5 av. n° 68) : **2 %** du salaire annuel de base, **3,5 %** si <1 000 h/an ; 6 mois d'ancienneté ; versée au plus tard sur la paie de septembre.",
+    "Prime de coupure (avenant 52, étendue aux intermittents) : **57 %** du MG par coupure >2 h.",
+    "**13e mois** : art. **16.3** CCN (rédaction 2016, KALI KALIARTI000032749130) — et non art. 36 : 1/12 du salaire de base réellement perçu sur l'année civile ; acquis après **1 an** d'ancienneté continue et révolue, prorata ensuite.",
+    "13e mois : assiette hors prime d'ancienneté, PAC et PSM ; hors calcul des indemnités de CP ; versé au plus tard avec la paie de janvier N+1 (remplace la prime de fin d'année depuis le 01/01/2017).",
+    "Mise en garde : PAC/PSM et 13e mois sont les omissions déclaratives classiques du secteur — l'intérimaire comparable y a droit **au prorata**.",
+    "Références : art. 16.3 + 36.1-36.2 CCN, avenant n° 68 du 14/02/2025 ; intermittence scolaire : accord du 14/06/1993."
+   ],
+   "dateCourte": "avenant n° 68 du 14/02/2025 + art. 16.3 CCN",
    "source": "https://code.travail.gouv.fr/contribution/1266-quelles-sont-les-primes-prevues-par-la-convention-collective",
-   "fiabilite": "aConfirmer"},
-  {"cle": "annualisation", "titre": "Aménagement du temps",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Aménagement du temps",
    "cleValeur": "Rythmes scolaires : modulation répandue",
-   "points": ["Sites scolaires : temps fortement modulé — le régime du site s'applique à l'intérimaire (art. L.1251-21)."],
+   "points": [
+    "Sites scolaires : temps fortement modulé — le régime du site s'applique à l'intérimaire (art. L.1251-21)."
+   ],
    "dateCourte": "—",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635604",
-   "fiabilite": "verifie"},
-  {"cle": "saisonniers", "titre": "Intermittence scolaire",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635418",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Intermittence scolaire",
    "cleValeur": "CDI intermittent scolaire (prime d'intermittence)",
    "points": [
-    "La branche organise le **CDI intermittent** calé sur les périodes scolaires, avec prime d'intermittence (avenant n° 68 du 14/02/2025).",
-    "Pour l'intérim : missions de renfort classiques (IFM + ICCP 10 % dues)."],
-   "dateCourte": "avenant n° 68 du 14/02/2025",
+    "La branche organise le **CDI intermittent** calé sur les périodes scolaires (accord du 14/06/1993, étendu + avenant n° 2 du 25/05/2022, KALI KALITEXT000005640445).",
+    "Prime d'intermittence : **2 %** du salaire annuel de base (**3,5 %** si <1 000 h/an) — avenant n° 68 du 14/02/2025.",
+    "Pour l'intérim : missions de renfort classiques (IFM + ICCP 10 % dues)."
+   ],
+   "dateCourte": "accord du 14/06/1993 + avenant n° 68 (2025)",
    "source": "https://code.travail.gouv.fr/contribution/1266-quelles-sont-les-primes-prevues-par-la-convention-collective",
-   "fiabilite": "verifie"},
-  {"cle": "durees", "titre": "Durées maximales",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales",
    "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
-   "points": ["Maxima légaux à défaut de dérogation ; coupures/amplitudes selon sites."],
+   "points": [
+    "Maxima légaux à défaut de dérogation ; coupures/amplitudes selon sites."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/1266",
-   "fiabilite": "verifie"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
    "cleValeur": "PAC/PSM · 13e mois prorata · avantage nourriture · site santé vs scolaire",
    "points": [
     "Identifier le TYPE de site (santé 7 j/7 vs scolaire intermittent) : primes et rythmes en découlent.",
     "Chiffrer PAC/PSM et 13e mois au prorata dans coût et paie.",
-    "CCN du **20/06/1983** (IDCC 1266) — ne pas confondre avec HCR (1979) ni restauration rapide (1501)."],
+    "CCN du **20/06/1983** (IDCC 1266) — ne pas confondre avec HCR (1979) ni restauration rapide (1501)."
+   ],
    "dateCourte": "CCN 20/06/1983 + avenant 68 (2025)",
    "source": "https://code.travail.gouv.fr/convention-collective/1266",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie"
+  }
  ]
 }

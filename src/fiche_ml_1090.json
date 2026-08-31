@@ -3,104 +3,180 @@
  "titre": "Services de l'automobile (CCN du 15/01/1981)",
  "dateDerniereActu": "2026",
  "themes": [
-  {"cle": "minima", "titre": "Minima : 3 grilles nationales",
-   "cleValeur": "3 grilles (ouvriers/employés, maîtrise, cadres) par échelon — nationales",
+  {
+   "cle": "minima",
+   "titre": "Minima : 3 grilles nationales",
+   "cleValeur": "3 grilles nationales — O/E éch. 1-12 : 1 853-2 259 € (01/05/2026)",
    "points": [
-    "**3 grilles nationales** selon la catégorie : ouvriers/employés (échelons 3 à 12), agents de maîtrise (17 à 25), cadres (niveaux I-V).",
-    "Les minima de branche sont **supérieurs au SMIC** et s'imposent (fiche officielle).",
-    "Montants exacts : relever l'avenant salaires en vigueur sur Légifrance (art. 1.16 et annexes) avant paramétrage — revalorisation généralement annuelle.",
-    "Le plus favorable s'applique entre minimum de branche et salaire d'entreprise."],
-   "dateCourte": "fiche CDTN maj 2026 — montants à relever",
+    "**3 grilles nationales** : ouvriers/employés échelons **1 à 12** (éch. 1-2 = emplois sans qualification, art. 3.03), agents de maîtrise **17 à 25**, cadres niveaux **I à V** avec degrés.",
+    "O/E au **01/05/2026** : éch. 1 **1 853 €**, éch. 2 **1 870 €**, éch. 3 **1 888 €**, éch. 6 **1 965 €**, éch. 9 **2 106 €**, éch. 12 **2 259 €** (MG 35 h — avenant n° 110 du 22/01/2026).",
+    "Maîtrise : de **2 241 €** (éch. 17) à **2 831 €** (éch. 25) ; cadres : de **2 541 €** (I A) à **5 904 €** (V) — fourchettes indicatives, hors cible intérim.",
+    "Révision au moins **1 fois/an** en commission paritaire (art. 1.16 a + annexe « Salaires minima ») ; le plus favorable s'applique entre minimum de branche et salaire d'entreprise.",
+    "Plancher de grille : **1 853 €**/mois pour 35 h au 01/05/2026 (échelon 1) — un taux horaire client au niveau du SMIC est un signal d'alerte égalité de traitement."
+   ],
+   "dateCourte": "avenant n° 110 du 22/01/2026, étendu — effet 01/05/2026",
    "source": "https://code.travail.gouv.fr/contribution/1090-quel-est-le-salaire-minimum",
-   "fiabilite": "aConfirmer"},
-  {"cle": "nuit", "titre": "Travail de nuit",
-   "cleValeur": "Régime conventionnel à relever (dépannage/astreintes fréquents)",
+   "fiabilite": "verifie",
+   "detail": "Avenant n° 110 du 22/01/2026 étendu (arrêté 02/04/2026, JORF 16/04/2026), effet 01/05/2026 — grille numérisée dans KALI (KALITEXT000054161858 ; art. 3.03 KALIARTI000030087080). Attention paie : ne pas démarrer la grille O/E à l'échelon 3 — les échelons 1-2 (sans qualification) ont leur propre minimum."
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit",
+   "cleValeur": "21 h-6 h · +10 % du minimum/h · panier 6,09 € · RC 1,66 %/h",
    "points": [
-    "Le régime de nuit (plage, majorations, astreintes de dépannage) est à relever sur le texte pour le poste concerné.",
-    "À défaut : droit commun (21 h-6 h, contreparties travailleur de nuit habituel).",
-    "Mise en garde : les astreintes et dépannages de nuit sont fréquents dans la branche — demander le régime du client."],
-   "dateCourte": "relevé à compléter",
+    "Régime de branche étendu (art. 1.10 d CCN, avenant n° 37 du 13/01/2004) : plage **21 h-6 h** (l'employeur peut fixer 22 h-7 h après consultation).",
+    "Travailleur de nuit : **2×3 h/sem** ou **270 h/an** ; majoration de CHAQUE heure de nuit = **10 %** du minimum conventionnel mensuel /151,66 ; repos compensateur **1,66 %** par heure de nuit.",
+    "Panier de nuit : **6,09 €** dès **2 h** travaillées dans la plage (au 01/05/2026, avenant n° 110 art. 3) — dû aussi au travail exceptionnel de nuit.",
+    "Travail exceptionnel de nuit (non-travailleur de nuit) : **+50 %** du salaire horaire de base + panier dès 2 h.",
+    "Durées max : **8 h**/j et **40 h** en moyenne/12 sem (dérogations : 12 h/42 h stations-service 24/24 ; 12 h/44 h parcs et dépannage-remorquage).",
+    "Astreintes (art. 1.10 e) : compensation financière obligatoire, modalités au contrat, programmation **15 j** à l'avance ; trajets d'intervention sous astreinte = temps de travail effectif."
+   ],
+   "dateCourte": "art. 1.10 CCN (avenant n° 37/2004) + avenant n° 110 (panier 01/05/2026)",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635191",
-   "fiabilite": "aConfirmer"},
-  {"cle": "hs", "titre": "Heures supplémentaires",
-   "cleValeur": "Contingent : 220 h/an · taux légaux 25/50 %",
+   "fiabilite": "verifie",
+   "detail": "Art. 1.10 consolidé KALIARTI000038569467 (VIGUEUR_ETEN) ; avenant n° 37 étendu arrêté 05/08/2004 (KALITEXT000005685362) ; panier : avenant n° 110 art. 3 (KALIARTI000054161865). Dépannages/astreintes de nuit fréquents dans la branche : penser majoration 10 %, RC 1,66 % et panier 6,09 €."
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
+   "cleValeur": "Contingent conventionnel 220 h · 25/50 % (art. 1.09 bis)",
    "points": [
-    "Contingent annuel : **220 h** (fiche officielle CDTN).",
+    "Contingent annuel **conventionnel** : **220 h** (art. 1.09 bis c CCN, KALIARTI000038237465).",
+    "Taux fixés par la convention, identiques aux légaux : **25 %** les 8 premières HS, **50 %** au-delà (art. 1.09 bis d), sauf accord d'entreprise.",
     "Majoration de salaire et/ou repos compensateur ; au-delà du contingent : repos obligatoire.",
-    "Taux : légaux **25 %** (8 premières HS) / **50 %** au-delà, sauf accord d'entreprise."],
-   "dateCourte": "fiche CDTN",
+    "« Heures choisies » au-delà du contingent, sur accord écrit employeur/salarié : majoration **30 %** (se substituant au 25 %) puis **50 %**, plafond **44 h** en moyenne/12 sem (art. 1.09 bis g)."
+   ],
+   "dateCourte": "art. 1.09 bis CCN (avenant n° 51/2008, étendu) — vérifié KALI",
    "source": "https://code.travail.gouv.fr/contribution/1090-heures-supplementaires",
-   "fiabilite": "verifie"},
-  {"cle": "weekend", "titre": "Samedi / dimanche",
-   "cleValeur": "Samedi ordinaire (commerce auto) — dimanche : dérogations",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Samedi / dimanche",
+   "cleValeur": "Samedi ordinaire · dimanche dérogatoire : +100 % + repos (branche)",
    "points": [
-    "Le samedi est un jour ouvré ordinaire dans la branche (garages, concessions).",
-    "Dimanche : uniquement sur dérogation (permanences) — contreparties selon l'entreprise, à demander au déclaratif."],
-   "dateCourte": "droit commun branche",
+    "Samedi : jour ouvré ordinaire — l'horaire collectif répartit la semaine en excluant le dimanche (art. 1.09 b) ; repos hebdo **36 h** consécutives incluant le dimanche (art. 1.10 b).",
+    "Dimanche travaillé sur dérogation (préfectorale/municipale) : majoration **100 %** du salaire horaire brut de base + repos — fixée par la BRANCHE (art. 1.10 b CCN, KALIARTI000038569467), cumulable avec les majorations HS.",
+    "Travaux urgents (sauvetage/accidents) : **+50 %** ; vendeurs de véhicules : max **5 dimanches**/an ; forfait-jours : dimanche dérogatoire = **2 jours** décomptés + **1/22** du forfait (art. 1.09 f 3).",
+    "Dérogations permanentes de plein droit (roulement) : repos hebdo réduit à **24 h**, rémunération devant tenir compte de ces conditions."
+   ],
+   "dateCourte": "art. 1.10 b CCN consolidé — vérifié KALI",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635191",
-   "fiabilite": "aConfirmer"},
-  {"cle": "feries", "titre": "Jours fériés",
-   "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés",
+   "cleValeur": "Férié exceptionnel travaillé : +100 % · habituel : pas de majoration",
    "points": [
-    "Régime conventionnel des fériés à relever sur le texte.",
-    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."],
-   "dateCourte": "relevé à compléter",
+    "Férié travaillé **à titre exceptionnel** : majoration **100 %** du salaire brut de base (remplaçable par un jour de repos d'un commun accord), cumulable avec les majorations HS (art. 1.10 c CCN).",
+    "Fériés **habituellement** travaillés (hors 1er Mai) : ni majoration ni repos compensateur ; en repos par roulement : 1 jour de repos par férié travaillé si déficit de jours de repos annuels.",
+    "1er Mai : régime légal (chômé payé ; travaillé = salaire + indemnité égale).",
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+   ],
+   "dateCourte": "art. 1.10 c CCN — vérifié KALI",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635191",
-   "fiabilite": "aConfirmer"},
-  {"cle": "repas", "titre": "Repas",
-   "cleValeur": "Pas de panier de branche généralisé",
+   "fiabilite": "verifie",
+   "detail": "Art. 1.10 c consolidé KALIARTI000038569467 (VIGUEUR_ETEN)."
+  },
+  {
+   "cle": "repas",
+   "titre": "Repas",
+   "cleValeur": "Panier nuit 6,09 € dès 2 h (21 h-6 h) · pas de panier jour",
    "points": [
-    "Pas d'indemnité de repas conventionnelle généralisée relevée — titres-restaurant selon l'entreprise.",
-    "Demander au déclaratif la pratique du client (égalité de traitement)."],
-   "dateCourte": "relevé à compléter",
+    "Panier de nuit conventionnel **national** : **6,09 €** au 01/05/2026, dû dès **2 h** travaillées entre 21 h et 6 h — travailleur de nuit OU travail exceptionnel de nuit (art. 1.10 d 6 et 8 CCN ; avenant n° 110 art. 3).",
+    "Pas de panier « jour » généralisé dans la branche.",
+    "Titres-restaurant : obligation conventionnelle **conditionnelle** (art. 1.14) — local de restauration si ≥ 25 salariés souhaitent déjeuner sur place ; à défaut, remise de titres-restaurant **obligatoire**.",
+    "Demander au déclaratif la pratique du client (égalité de traitement) ; penser au panier nuit pour les dépannages/astreintes de nuit."
+   ],
+   "dateCourte": "art. 1.10 d + 1.14 CCN, avenant n° 110 — vérifié KALI",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635191",
-   "fiabilite": "aConfirmer"},
-  {"cle": "transport", "titre": "Transport",
+   "fiabilite": "verifie",
+   "detail": "Panier : KALIARTI000054161865 (avenant n° 110 art. 3) + KALIARTI000038569467 (art. 1.10 d 6 et 8) ; titres-restaurant : art. 1.14 KALIARTI000038237463 (VIGUEUR_ETEN)."
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
    "cleValeur": "50 % transports publics",
    "points": [
-    "Prise en charge légale de **50 %** des abonnements de transports publics ; pas de barème de branche relevé."],
-   "dateCourte": "droit commun",
+    "Prise en charge légale de **50 %** des abonnements de transports publics ; pas de barème de branche (absence vérifiée sur les 467 textes du conteneur KALI)."
+   ],
+   "dateCourte": "droit commun — absence de barème vérifiée KALI",
    "source": "https://code.travail.gouv.fr/convention-collective/1090",
-   "fiabilite": "verifie"},
-  {"cle": "primes", "titre": "Primes : PFQ, suppléance, intégration",
+   "fiabilite": "verifie",
+   "detail": "Ne pas confondre : temps de trajet inhabituel = contreparties en temps (art. 1.09 ter) ; postes de nuit : l'employeur doit s'assurer d'un moyen de transport (art. 1.10 d 7)."
+  },
+  {
+   "cle": "primes",
+   "titre": "Primes : PFQ, suppléance, intégration",
    "cleValeur": "PFQ (formation, 6 mois d'anc.) · suppléance · intégration alternants",
    "points": [
-    "**Prime de formation-qualification (PFQ)** : ouvriers/employés dès **6 mois** d'ancienneté, lors de formations continues externes (montant selon durée et promotion).",
-    "**Prime de suppléance** (entreprises ≤ 8 salariés) : suppléance maîtrise > **6 jours ouvrés** consécutifs → différence entre son minimum et celui de l'échelon **20**.",
-    "**Prime d'intégration** : alternant embauché en CDI (certification niveau 2 min.) → **50 %** de la rémunération brute du 12ᵉ mois.",
-    "Pas de 13ᵉ mois de branche — primes d'entreprise à demander au déclaratif (égalité de traitement)."],
-   "dateCourte": "fiche CDTN 2026",
+    "**PFQ** (art. 2.05 CCN) : ouvriers/employés dès **6 mois** d'ancienneté, formation continue par organisme extérieur : **8 points** (18-35 h) ou **16 points** (> 35-105 h), prime mensuelle versée 6 mois.",
+    "PFQ > 105 h : majoration du salaire de base de **32 points** (promotion d'échelon), **24** (sans promotion) ou **16** (certification non obtenue) ; valeur du point **3,47 €** au 01/05/2026 (avenant n° 110 art. 2).",
+    "**Prime de suppléance** (entreprises ≤ **8** salariés) : suppléance maîtrise > **6 jours ouvrés** consécutifs → différence entre le minimum de l'échelon **20** (**2 259 €** au 01/05/2026) et celui de son échelon (art. 3.02 c).",
+    "**Prime d'intégration** (art. 1.22, avenant n° 88 étendu) : apprentissage ou professionnalisation avec certification **série 2 ou +** du RNCSA, embauche en CDI dans la même entreprise → fin du **12ᵉ mois** du CDI : **50 % du salaire de base** (art. 1.16 a — pas de la rémunération brute).",
+    "Intégration : rupture par l'employeur avant 12 mois (hors faute grave/lourde) = prorata ; CDD immédiatement suivi d'un CDI = prime à l'issue du CDD.",
+    "Pas de 13ᵉ mois de branche (balayage des 467 textes KALI) — primes d'entreprise à demander au déclaratif (égalité de traitement)."
+   ],
+   "dateCourte": "art. 2.05, 3.02 c, 1.22 CCN + avenant n° 110 — vérifié KALI",
    "source": "https://code.travail.gouv.fr/contribution/1090-quelles-sont-les-primes-prevues-par-la-convention-collective",
-   "fiabilite": "verifie"},
-  {"cle": "annualisation", "titre": "Annualisation",
-   "cleValeur": "Par accord d'entreprise — vérifier le client",
+   "fiabilite": "verifie",
+   "detail": "Réfs KALI : art. 2.05 KALIARTI000023400667 (avenant n° 57/2010, étendu) ; art. 3.02 c KALIARTI000037964052 ; art. 1.22 KALIARTI000041559880 (avenant n° 88 du 10/04/2019, étendu arrêté 31/01/2020) ; point 3,47 € KALIARTI000054161864."
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Annualisation",
+   "cleValeur": "Cadre de branche : annexes + forfaits 1 920 h / 218 j",
    "points": [
-    "Aménagements (annualisation, RTT) par accord d'entreprise ; pour l'intérimaire, le régime du client s'applique (art. L.1251-21)."],
-   "dateCourte": "—",
+    "Cadre de branche propre : annexes « Annualisation des horaires de travail » et « 35 heures par attribution de jours de repos » (art. 1.09 b 2 CCN).",
+    "Forfait en heures sur l'année : max **1 920 h** (art. 1.09 e) ; forfait-jours : **218 j**, minimum conventionnel majoré de **25 %** (art. 1.09 f).",
+    "Pour l'intérimaire, le régime d'aménagement du client s'applique (art. L.1251-21) — demander l'accord applicable."
+   ],
+   "dateCourte": "art. 1.09 CCN + annexes — vérifié KALI",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635191",
-   "fiabilite": "verifie"},
-  {"cle": "saisonniers", "titre": "Saisonniers",
+   "fiabilite": "verifie",
+   "detail": "Annexes KALITEXT000005685174 (annualisation) et KALITEXT000005685172 (35 h/JRTT) ; art. 1.09 consolidé KALIARTI000037958825."
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers",
    "cleValeur": "Rien de spécifique",
    "points": [
-    "Pas de dispositif saisonnier de branche — régime intérim de droit commun (IFM 10 % + ICCP 10 %)."],
+    "Pas de dispositif saisonnier de branche (aucun texte « saisonnier » parmi les 467 textes du conteneur KALI) — régime intérim de droit commun (IFM 10 % + ICCP 10 %)."
+   ],
    "dateCourte": "—",
    "source": "https://code.travail.gouv.fr/convention-collective/1090",
-   "fiabilite": "verifie"},
-  {"cle": "durees", "titre": "Durées maximales",
-   "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales",
+   "cleValeur": "10/48/44 h légal + régimes spéciaux (équivalence 43 h, nuit 8 h)",
    "points": [
-    "Maxima légaux à défaut de dérogation : **10 h**/jour, **48 h**/semaine, **44 h**/12 semaines."],
-   "dateCourte": "droit commun",
+    "Maxima légaux à défaut de dérogation : **10 h**/jour, **48 h**/semaine, **44 h**/12 semaines.",
+    "Régimes spéciaux de branche : gardiennage temps plein = équivalence **35 h payées pour 43 h** effectuées (art. 1.10 e 3) ; équipes en rythme continu 24/24 = **33 h 36** en moyenne annuelle (art. 1.09 b 1).",
+    "Nuit : max **8 h**/j et **40 h** moy./12 sem — dérogations 12 h/42 h (stations-service 24/24, location) et 12 h/44 h (parcs, dépannage-remorquage) (art. 1.10 d).",
+    "Forfait heures sur l'année : **42 h** en moyenne/12 sem, portées à **12 h**/j et **44 h** pour l'encadrement SAV (art. 1.09 e 2)."
+   ],
+   "dateCourte": "droit commun + art. 1.09/1.10 CCN — vérifié KALI",
    "source": "https://code.travail.gouv.fr/convention-collective/1090",
-   "fiabilite": "verifie"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
-   "cleValeur": "Échelon du poste (3 grilles) · RNQSA · minima > SMIC",
+   "fiabilite": "verifie",
+   "detail": "Art. 1.10 d/e KALIARTI000038569467 ; art. 1.09 b/e KALIARTI000037958825 (VIGUEUR_ETEN)."
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
+   "cleValeur": "Échelon RNQSA obligatoire · éch. 1-2 sans qualif. · minima > SMIC",
    "points": [
-    "Identifier l'ÉCHELON exact du poste (répertoire national des qualifications RNQSA) — il détermine le minimum applicable.",
+    "Classement **obligatoire** quels que soient forme et durée du contrat (art. 3.01/3B.01) : fiche de qualification **RNQSA**, dénomination d'emploi au contrat et au bulletin (art. 3.02 a) — l'échelon détermine le minimum.",
+    "Échelons de référence **3/6/9/12** (O/E) et **17/20/23** (maîtrise) pour les qualifications de branche, échelons majorés entre eux ; emplois **sans qualification = échelons 1-2**.",
     "Les minima de branche étant supérieurs au SMIC, un taux horaire client au SMIC est un signal d'alerte égalité de traitement.",
-    "CCN du **15/01/1981** (IDCC 1090) — garages, concessions, contrôle technique, stations-service, enseignement de la conduite."],
-   "dateCourte": "CCN 15/01/1981 + fiches CDTN",
+    "CCN du **15/01/1981** (IDCC 1090), étendue (arrêté du 30/10/1981) — garages, concessions, contrôle technique, stations-service, enseignement de la conduite ; une modification du champ (2024) est à relever si le périmètre client est limite."
+   ],
+   "dateCourte": "CCN 15/01/1981 étendue + RNQSA — vérifié KALI",
    "source": "https://code.travail.gouv.fr/convention-collective/1090",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie",
+   "detail": "Classement : KALIARTI000037964061 (art. 3.01), KALIARTI000037964052 (art. 3.02) ; conteneur KALICONT000005635191 (VIGUEUR_ETEN) ; champ 2024 : KALITEXT000049620572 (non examiné en détail)."
+  }
  ]
 }

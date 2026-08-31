@@ -554,7 +554,7 @@
       }
      },
      "Savoie": {
-      "repas": null,
+      "repas": 12.25,
       "vigueur": "2026-01-01",
       "accord": "accord paritaire du 16/12/2025",
       "kali": {
@@ -1549,6 +1549,18 @@
    "extension": null,
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000050962265",
    "commentaire": "première intégration : current.ipd était vide depuis le relevé initial"
+  },
+  {
+   "date": "2026-09-01",
+   "type": "ipd",
+   "idcc": "1596/1597",
+   "region": "Auvergne-Rhone-Alpes / variante Savoie",
+   "element": "repas",
+   "avant": null,
+   "apres": 12.25,
+   "accord": "accord paritaire Savoie du 16/12/2025 - repas fixe a 12,25 EUR au 01/01/2026",
+   "reference": "passe de verification KALI du 01/09/2026 (base DILA locale, verdict DIVERGE lot A)",
+   "source": "workflow verif baremes BTP lot A"
   }
  ]
 }

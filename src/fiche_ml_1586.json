@@ -1,115 +1,171 @@
 {
  "idcc": "1586",
  "titre": "Industries charcutières — salaisons, charcuterie en gros, conserves de viandes (CCN du 29/03/1972)",
- "dateDerniereActu": "28/08/2026",
+ "dateDerniereActu": "01/09/2026",
  "themes": [
-  {"cle": "minima", "titre": "Grille des minima",
-   "cleValeur": "01/02/2026 : 1 835,57 € (niv. I) → 5 763,44 € (niv. X) /mois",
+  {
+   "cle": "minima",
+   "titre": "Grille des minima",
+   "cleValeur": "01/02/2026 : 1 835,60 € (niv. I) → 5 763,40 € (niv. X) /mois",
    "points": [
-    "Grille au **01/02/2026** (+**1,2 %** en moyenne) : niveau I (coef. 125) **1 835,57 €** → niveau X (coef. 700) **5 763,44 €**/mois bruts, base 35 h (151,67 h).",
-    "Repères intermédiaires : niv. III (170-195) **1 912,07 → 2 078,55 €** ; niv. V (230-255) **2 301,90 → 2 486,38 €** ; niv. VII (300-345) **2 827,83 → 3 168,27 €**.",
-    "Date de l'accord divergente selon les sources (**16/01** ou 16/02/2026 ; extension citée au 14/04/2026) — recouper la grille sur Légifrance avant paramétrage.",
-    "Bas de grille sous le SMIC (12,31 €/h au 01/06/2026) : appliquer le plus favorable SMIC / minimum conventionnel."],
-   "dateCourte": "accord salaires 2026 — effet 01/02/2026",
+    "Grille au **01/02/2026** (+**1,20 %** linéaire sur toute la grille) : niv. I (coef. 125) **1 835,60 €** → niv. X (coef. 700) **5 763,40 €**/mois bruts, base 35 h (accord du 16/01/2026, KALI KALIARTI000054092006).",
+    "Repères : niv. III (170-195) **1 912,10 → 2 078,50 €** ; niv. V (230-255) **2 301,90 → 2 486,40 €** ; niv. VII (300-345) **2 827,80 → 3 168,30 €** — grille officielle exprimée à une décimale (BOCC 2026-10).",
+    "Accord signé le **16/01/2026** (CPPNI), effet **01/02/2026**, étendu par arrêté du **14/04/2026** (JORF 17/04/2026) ; il annule et remplace l'accord du 19/12/2024 (KALI KALITEXT000054092002).",
+    "Bas de grille sous le SMIC (12,31 €/h au 01/06/2026) : appliquer le plus favorable SMIC / minimum conventionnel (clause de rendez-vous à l'art. 4 de l'accord)."
+   ],
+   "dateCourte": "accord du 16/01/2026 — effet 01/02/2026, étendu 14/04/2026",
    "source": "https://www.juristique.org/conventionnel/salaires-industrie-charcutiere-2026",
-   "fiabilite": "aConfirmer"},
-  {"cle": "nuit", "titre": "Travail de nuit",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit",
    "cleValeur": "21h-6h : +20 % habituel, +40 % exceptionnel ; pause payée si ≥ 4 h",
    "points": [
-    "Nuit (**21 h - 6 h**) : majoration **20 %** en travail habituel, **40 %** en travail exceptionnel — concordant sur 2 sources, à recouper sur le texte KALI.",
-    "Au moins **4 h de nuit** : pause payée de **15 min** avec casse-croûte fourni OU indemnité compensatrice = **1,5 ×** le taux horaire de base du manœuvre ordinaire de l'entreprise.",
-    "Industrie en 2×8/3×8 fréquente : demander au client si la nuit est « habituelle » (20 %) ou « exceptionnelle » (40 %) pour l'intérimaire — écart de paie significatif."],
-   "dateCourte": "texte conventionnel — relevé 28/08/2026",
+    "Nuit (**21 h - 6 h**) : majoration **20 %** du taux horaire en travail habituel, **40 %** en travail exceptionnel (art. 50 a et c CCN, KALI KALIARTI000005867413).",
+    "Au moins **4 h de nuit** : pause payée de **15 min** (non assimilée à du temps de travail effectif) + casse-croûte fourni OU indemnité = **1,5 ×** le taux horaire de base du manœuvre ordinaire (art. 50 d).",
+    "Statut « travailleur de nuit » (2×3 h/sem ou 300 h/an) : repos compensateur jusqu'à **1 semaine**/an ; durées max **8 h**/j et **40 h**/12 sem (44 h en modulation), 5 nuits consécutives max.",
+    "Industrie en 2×8/3×8 fréquente : demander au client si la nuit est « habituelle » (20 %) ou « exceptionnelle » (40 %) pour l'intérimaire — écart de paie significatif."
+   ],
+   "dateCourte": "art. 50 CCN (réd. accord du 29/04/2002, étendu)",
    "source": "https://ressources.convention.fr/ressources-juridiques/temps-de-travail-convention-charcutieres-industries-salaisons-charcuterie-en-gros-et-conserves-de-viandes",
-   "fiabilite": "aConfirmer"},
-  {"cle": "hs", "titre": "Heures supplémentaires",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
    "cleValeur": "Taux légaux 25/50 % ; contingent conventionnel 155 h/an",
    "points": [
-    "Majorations légales : **25 %** (36e-43e heure), **50 %** au-delà — pas de dérogation conventionnelle relevée.",
-    "Contingent annuel conventionnel : **155 h**, y compris en cas de modulation (inférieur au 220 h de droit commun) — à surveiller sur les missions longues.",
-    "Majoration dimanche/férié/nuit **cumulable** avec la majoration heures supplémentaires (précisé pour le dimanche)."],
-   "dateCourte": "contingent 155 h — à recouper KALI",
+    "Majorations légales : **25 %** (36e-43e heure), **50 %** au-delà — pas de dérogation de taux (art. 48 CCN + accord HS du 12/11/2009, KALI KALIARTI000022418522).",
+    "Contingent annuel conventionnel : **155 h**, y compris en modulation (accord du 12/11/2009 étendu, KALI KALITEXT000022418518) — inférieur aux 220 h de droit commun, à surveiller sur les missions longues.",
+    "Au-delà du contingent : contrepartie obligatoire en repos **100 %** (> 20 salariés) / **50 %** (≤ 20 salariés), dépassement plafonné à **30 h**/an.",
+    "Majoration dimanche/férié/nuit **cumulable** avec la majoration heures supplémentaires (précisé pour le dimanche, art. 49)."
+   ],
+   "dateCourte": "accord HS du 12/11/2009, étendu (arrêté 25/05/2010)",
    "source": "https://ressources.convention.fr/ressources-juridiques/temps-de-travail-convention-charcutieres-industries-salaisons-charcuterie-en-gros-et-conserves-de-viandes",
-   "fiabilite": "aConfirmer"},
-  {"cle": "weekend", "titre": "Samedi / dimanche",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Samedi / dimanche",
    "cleValeur": "Dimanche exceptionnel : +50 %, cumulable avec les HS",
    "points": [
-    "Travail **exceptionnel du dimanche** : majoration **50 %** des heures effectuées, **cumulable** avec la majoration pour heures supplémentaires.",
-    "Samedi : pas de majoration conventionnelle spécifique relevée (jour ouvrable ordinaire) — vérifier les accords d'entreprise du client (abattoirs/salaisons souvent en équipes)."],
-   "dateCourte": "texte conventionnel — relevé 28/08/2026",
+    "Travail **exceptionnel du dimanche** : majoration **50 %** des heures effectuées, **cumulable** avec la majoration pour heures supplémentaires (art. 49 CCN, KALI KALIARTI000005867410).",
+    "Samedi : pas de majoration conventionnelle spécifique (simple jour de répartition, art. 48) — vérifier les accords d'entreprise du client (abattoirs/salaisons souvent en équipes)."
+   ],
+   "dateCourte": "art. 49 CCN — vérifié KALI 31/08/2026",
    "source": "https://www.convention.fr/convention-charcutieres-industries-salaisons-charcuterie-en-gros-et-conserves-de-viandes-3125.html",
-   "fiabilite": "aConfirmer"},
-  {"cle": "feries", "titre": "Jours fériés",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés",
    "cleValeur": "Férié travaillé : repos compensateur ou régime du 1er mai (doublement)",
    "points": [
-    "Travail **exceptionnel un jour férié** : repos compensateur d'une journée, ou à défaut indemnisation dans les conditions légales prévues pour le **1er mai** (= paiement double).",
-    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18) — les clients l'omettent souvent au déclaratif."],
-   "dateCourte": "texte conventionnel — relevé 28/08/2026",
+    "Travail **exceptionnel un jour férié** : repos compensateur d'une journée sans réduction de rémunération, ou à défaut indemnisation dans les conditions du **1er mai** (= paiement double) (art. 49 CCN, KALI KALIARTI000005867410).",
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18) — les clients l'omettent souvent au déclaratif."
+   ],
+   "dateCourte": "art. 49 CCN — vérifié KALI 31/08/2026",
    "source": "https://www.convention.fr/convention-charcutieres-industries-salaisons-charcuterie-en-gros-et-conserves-de-viandes-3125.html",
-   "fiabilite": "aConfirmer"},
-  {"cle": "repas", "titre": "Repas / paniers / pauses",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "repas",
+   "titre": "Repas / paniers / pauses",
    "cleValeur": "Pauses casse-croûte PAYÉES : 30 min si ≥ 8 h, 20 min si > 7 h",
    "points": [
-    "Horaire ininterrompu d'au moins **8 h** : pause casse-croûte **payée de 30 min** ; horaire > 7 h et < 8 h : pause payée de **20 min** — du temps de travail rémunéré à ne pas décompter.",
+    "Horaire ininterrompu d'au moins **8 h** : pause casse-croûte **payée de 30 min** ; horaire > 7 h et < 8 h : pause payée de **20 min** (annexe Ouvriers art. 5, KALI KALIARTI000005867510) — temps rémunéré à ne pas décompter.",
     "Nuit ≥ 4 h : **casse-croûte fourni** ou indemnité compensatrice (voir thème nuit).",
-    "Aucun panier/prime de repas chiffré national relevé au-delà de ces dispositions — demander la pratique écrite du site (accords d'entreprise fréquents)."],
-   "dateCourte": "texte conventionnel — relevé 28/08/2026",
+    "Aucun panier/prime de repas chiffré national au-delà de ces dispositions (inventaire des 150 textes du conteneur KALI) — demander la pratique écrite du site."
+   ],
+   "dateCourte": "annexe Ouvriers art. 5 — vérifié KALI 31/08/2026",
    "source": "https://ressources.convention.fr/ressources-juridiques/temps-de-travail-convention-charcutieres-industries-salaisons-charcuterie-en-gros-et-conserves-de-viandes",
-   "fiabilite": "aConfirmer"},
-  {"cle": "transport", "titre": "Transport",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
    "cleValeur": "Rien de conventionnel relevé — droit commun 50 % transports publics",
    "points": [
     "Aucune indemnité de transport conventionnelle nationale relevée.",
-    "À défaut : prise en charge légale de **50 %** des abonnements de transports publics ; sites souvent en zone rurale/agroalimentaire — vérifier une éventuelle prime de transport d'entreprise."],
+    "À défaut : prise en charge légale de **50 %** des abonnements de transports publics ; sites souvent en zone rurale/agroalimentaire — vérifier une éventuelle prime de transport d'entreprise."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/1586-industries-charcutieres-salaisons-charcuteries-conserves-de-viandes",
-   "fiabilite": "verifie"},
-  {"cle": "primes", "titre": "13e mois + ancienneté + froid",
-   "cleValeur": "13e mois (50 % juin / 50 % nov.) ; ancienneté 2 % → 12 % ; prime de froid",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "Prime de froid + 13e mois",
+   "cleValeur": "Froid ouvriers 4/8/15 % selon T°, TAM 4 % ; 13e mois à recouper",
    "points": [
-    "**Prime annuelle (13e mois)** versée en deux fois : **50 % en juin, 50 % en novembre** — due à l'intérimaire au prorata via l'égalité de traitement, omission déclarative fréquente.",
-    "**Prime d'ancienneté** : **2 %** après 2 ans puis **+1 %** par année, plafond **12 %** — calculée sur le minimum conventionnel (rarement atteinte en intérim mais à connaître).",
-    "**Prime de froid** : sources divergentes (**0,24 €/h** sous +4 °C selon l'une ; **4 à 15 %** du minimum selon l'intensité du froid selon d'autres) — relever le montant réel chez le client.",
-    "Ateliers frais/frigorifiques = cœur du secteur : la prime de froid concerne la majorité des postes intérimaires."],
-   "dateCourte": "montants à recouper — relevé 28/08/2026",
+    "**Prime de froid ouvriers** : **15 %** du minimum garanti de la catégorie si T° < **−5 °C**, **8 %** de −5 à +3 °C, **4 %** de +3 à +10 °C, au prorata des heures au froid (annexe Ouvriers art. 13, KALI KALIARTI000005867528).",
+    "**TAM** : prime de froid **4 %** uniforme si locaux ≤ **10 °C**, non cumulable avec une mesure d'entreprise équivalente (avenant du 08/03/2016 étendu, KALI KALIARTI000032772315).",
+    "Le « **0,24 €/h** sous +4 °C » avancé par une source secondaire est introuvable dans les textes authentiques : à écarter du paramétrage.",
+    "**Prime annuelle (13e mois)** 50 % juin / 50 % nov. : aucun texte de branche KALI ne la porte — porteur probable : accord de mensualisation IAA du 22/06/1979 (hors base) ; recouper avant paramétrage, prorata intérimaire si due.",
+    "**Prime d'ancienneté « 2 % → 12 % »** : aucun texte authentique ne l'institue pour l'IDCC 1586 (probable confusion de branche d'une source secondaire) — ne pas provisionner sans texte.",
+    "Ateliers frais/frigorifiques = cœur du secteur : la prime de froid concerne la majorité des postes intérimaires."
+   ],
+   "dateCourte": "froid : textes KALI ; 13e mois hors base — relevé 31/08/2026",
    "source": "https://ressources.convention.fr/ressources-juridiques/primes-convention-charcutieres-industries-salaisons-charcuterie-en-gros-et-conserves-de-viandes",
-   "fiabilite": "aConfirmer"},
-  {"cle": "annualisation", "titre": "Annualisation / modulation",
-   "cleValeur": "Modulation ±6 h autour de 39 h (chapitre II) ; contingent 155 h maintenu",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Annualisation / modulation",
+   "cleValeur": "Modulation : 35 h moy., plafonds 46-47 h et 45 h/10 sem ; 155 h",
    "points": [
-    "Chapitre conventionnel dédié à l'**organisation du temps de travail sur l'année** : modulation possible pour tout ou partie du personnel en cas de fluctuation d'activité.",
-    "Amplitude citée : variation de **± 6 h** par rapport à 39 h ; contingent HS de **155 h** maintenu en modulation.",
-    "Le régime de temps de travail du client s'applique à l'intérimaire (art. L.1251-21) : demander si le site est en modulation avant de traiter les compteurs d'heures."],
-   "dateCourte": "chapitre II annualisation — relevé 28/08/2026",
+    "Organisation du temps de travail sur l'année (accord-cadre ARTT du 18/11/1998, ch. II, étendu — KALI KALISCTA000005730487) : modulation possible pour tout ou partie du personnel, y compris saisonnière.",
+    "Régime en vigueur : moyenne **35 h**/sem (**1 587 h**/an), plancher **15 h**/sem en basse activité, plafonds **46 h** (47 h exceptionnel) et **45 h**/10 semaines consécutives, **9 h 30**/jour ; rémunération lissée sur 35 h.",
+    "L'amplitude « **±6 h** autour de 39 h » citée par des sources secondaires est un vestige pré-35 h absent des textes étendus en vigueur : à écarter.",
+    "Contingent HS de **155 h** maintenu en modulation (accord du 12/11/2009).",
+    "Le régime de temps de travail du client s'applique à l'intérimaire (art. L.1251-21) : demander si le site est en modulation avant de traiter les compteurs d'heures."
+   ],
+   "dateCourte": "ARTT du 18/11/1998, ch. II — vérifié KALI 31/08/2026",
    "source": "https://www.juritravail.com/convention-collective/brochure-3125/idcc-1586/industrie-salaison-charcuterie-gros-conserves-viandes-29-mars-1972/KALISCTA000005730487.html",
-   "fiabilite": "aConfirmer"},
-  {"cle": "saisonniers", "titre": "Saisonniers",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers",
    "cleValeur": "Pointes saisonnières (fêtes) gérées par modulation — IFM + ICCP dues",
    "points": [
-    "La modulation peut être mise en place **sur une période de l'année (saisonnalité)** — fortes pointes de fin d'année (fêtes) dans les salaisons/conserves.",
-    "Pas de statut saisonnier de branche dérogatoire relevé : intérim de droit commun, **IFM 10 %** + **ICCP 10 %** dues."],
-   "dateCourte": "—",
+    "La modulation peut être mise en place **sur une période de l'année (saisonnalité)** (ARTT 1998 ch. II art. 6, KALI KALIARTI000005867779) — fortes pointes de fin d'année (fêtes) dans les salaisons/conserves.",
+    "Pas de statut saisonnier de branche dérogatoire : intérim de droit commun, **IFM 10 %** + **ICCP 10 %** dues."
+   ],
+   "dateCourte": "ARTT 1998 art. 6 — vérifié KALI 31/08/2026",
    "source": "https://www.juritravail.com/convention-collective/brochure-3125/idcc-1586/industrie-salaison-charcuterie-gros-conserves-viandes-29-mars-1972/KALISCTA000005730487.html",
-   "fiabilite": "aConfirmer"},
-  {"cle": "durees", "titre": "Durées maximales + congés",
-   "cleValeur": "Droit commun 10 h/j, 48 h/sem, 44 h/12 sem ; congés ancienneté +1 à +3 j",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales + congés",
+   "cleValeur": "10 h/j ; 45 h/12 sem (art. 48) ; congés ancienneté +1 à +3 j",
    "points": [
-    "Maxima légaux à défaut de dérogation relevée : **10 h**/jour, **48 h**/semaine isolée, **44 h** en moyenne sur 12 semaines.",
-    "Congés supplémentaires d'ancienneté : **+1 jour** après 15 ans, **+2 jours** après 20 ans, **+3 jours** après 25 ans (dans l'entreprise — rarement applicable en intérim).",
-    "Pauses payées obligatoires selon l'amplitude (voir thème repas) : les inclure dans le temps rémunéré."],
-   "dateCourte": "droit commun + congés conventionnels",
+    "Maxima : **10 h**/jour et **48 h**/semaine isolée, mais moyenne conventionnelle portée à **45 h**/12 semaines consécutives par l'art. 48 CCN (KALI KALIARTI000005867408) — et non 44 h de droit commun.",
+    "Selon le régime du site : modulation **46 h** (47 h exceptionnel), 45 h/10 sem et **9 h 30**/j (ARTT 1998) ; travailleurs de nuit **8 h**/j (10 h par dérogation) et **40 h**/12 sem (44 h en modulation).",
+    "Congés supplémentaires d'ancienneté : **+1 jour** après 15 ans, **+2** après 20 ans, **+3** après 25 ans dans l'entreprise (art. 55 CCN, KALI KALIARTI000005867428) — rarement applicable en intérim.",
+    "Pauses payées obligatoires selon l'amplitude (voir thème repas) : les inclure dans le temps rémunéré."
+   ],
+   "dateCourte": "art. 48 et 55 CCN — vérifié KALI 31/08/2026",
    "source": "https://code.travail.gouv.fr/convention-collective/1586-industries-charcutieres-salaisons-charcuteries-conserves-de-viandes",
-   "fiabilite": "verifie"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
    "cleValeur": "CCN 29/03/1972 (brochure 3125) · 13e mois + froid + nuit 20 % à réclamer",
    "points": [
-    "CCN du **29/03/1972**, étendue par arrêté du **14/05/1975** — brochure JO **3125** ; en vigueur, pas de fusion/remplacement.",
+    "CCN du **29/03/1972**, étendue par arrêté du **14/05/1975** — brochure JO **3125** ; en vigueur (état KALI VIGUEUR_ETEN, KALITEXT000005685767).",
     "Champ : salaisons, charcuterie en gros, conserves de viandes (industrie, hors artisans charcutiers IDCC 953).",
+    "Le champ a absorbé la CCN boyauderie (**IDCC 1543**, fusion par arrêté du **23/01/2019**) : un client ex-boyauderie relève bien de l'IDCC 1586 (art. 5 de l'accord du 16/01/2026, KALI KALIARTI000054092016).",
     "Égalité de traitement intérim : **13e mois prorata**, **prime de froid**, **nuit habituelle 20 %**, **pauses payées** — les 4 omissions déclaratives les plus probables du secteur.",
-    "Frais de santé : avenant n° 9 du **26/11/2025** (non-cadres) et accord du **03/11/2025** (cadres) — régime de branche récent, sans impact direct paie intérim.",
-    "Pas de fiches CDTN pour cet IDCC : contrôles à faire sur le texte Légifrance (base KALI)."],
+    "**Prévoyance** (et non « frais de santé ») : avenant n° 9 du **26/11/2025** (non-cadres) et accord cadres du **03/11/2025**, effet 01/01/2026, étendus par arrêté du 18/03/2026 — sans impact direct paie intérim (KALI KALITEXT000054033858).",
+    "Pas de fiches CDTN pour cet IDCC : contrôles à faire sur le texte Légifrance (base KALI)."
+   ],
    "dateCourte": "CCN 29/03/1972, étendue 14/05/1975",
    "source": "https://code.travail.gouv.fr/convention-collective/1586-industries-charcutieres-salaisons-charcuteries-conserves-de-viandes",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie"
+  }
  ]
 }

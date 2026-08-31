@@ -3,92 +3,145 @@
  "titre": "Commerces de détail non alimentaires (CCN du 14/06/1988)",
  "dateDerniereActu": "2026",
  "themes": [
-  {"cle": "minima", "titre": "Minima par niveau (I à VI + cadres)",
-   "cleValeur": "Niveau I ≈ 1 679 €/mois (référence prime d'ancienneté) — grille à relever",
+  {
+   "cle": "minima",
+   "titre": "Minima par niveau (N1 à N9)",
+   "cleValeur": "N1 1 829 € → N9 4 034 € au 01/06/2026 (avenant n° 15 étendu)",
    "points": [
-    "Grille par **niveaux** (employés I-VI, agents de maîtrise, cadres) ; le minimum du niveau I sert de référence à la prime d'ancienneté : **1 679 €**/mois (fiche officielle).",
-    "Grille complète : relever l'avenant salaires en vigueur sur Légifrance avant paramétrage."],
-   "dateCourte": "fiche CDTN 2026",
+    "Grille au 01/06/2026 (151,67 h, 9 niveaux du chap. XII) : N1 = **1 829 €** ; N2 = **1 838** ; N3 = **1 843** ; N4 = **1 867** ; N5 = **1 967** ; N6 = **2 146 €** (avenant n° 15 du 06/02/2026, KALITEXT000054303837).",
+    "N7-N9 (encadrement/cadres) : **2 741 → 4 034 €** — fourchette hors cible intérim ; N1 limité à 6 mois d'ancienneté max (sauf employés de nettoyage).",
+    "Le minimum N1 sert de base à la prime d'ancienneté : **1 829 €** au 01/06/2026 (l'ancien 1 679 € = grille 2022, périmée)."
+   ],
+   "dateCourte": "avenant n° 15 du 06/02/2026, étendu 04/05/2026",
    "source": "https://code.travail.gouv.fr/contribution/1517-quand-le-salarie-a-t-il-droit-a-une-prime-danciennete-quel-est-son-montant",
-   "fiabilite": "aConfirmer"},
-  {"cle": "nuit", "titre": "Travail de nuit",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit",
    "cleValeur": "Marginal dans la branche — droit commun",
    "points": [
-    "Travail de nuit marginal (commerces) — à défaut de disposition relevée : droit commun (21 h-6 h)."],
+    "Travail de nuit marginal (commerces) — à défaut de disposition relevée : droit commun (21 h-6 h)."
+   ],
    "dateCourte": "—",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635421",
-   "fiabilite": "aConfirmer"},
-  {"cle": "hs", "titre": "Heures supplémentaires",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
    "cleValeur": "Contingent : 180 h/an · taux légaux 25/50 %",
    "points": [
-    "Contingent annuel conventionnel : **180 h** ; majoration et/ou repos compensateur ; au-delà : repos obligatoire.",
-    "Taux : légaux **25/50 %** à défaut d'accord."],
-   "dateCourte": "fiche CDTN",
+    "Contingent annuel conventionnel : **180 h** par période de référence ; contrepartie en repos au-delà : **50 %** (≤ 20 salariés) / **100 %** (> 20) (chap. IX art. 9, KALIARTI000047249138).",
+    "Taux écrits dans la convention : **25 %** entre 35 et 39 h en moyenne, **50 %** au-delà — appréciés dans le cadre annualisé (HS au-delà de **1 607 h**/an)."
+   ],
+   "dateCourte": "chap. IX art. 9 (fiche CDTN)",
    "source": "https://code.travail.gouv.fr/contribution/1517-heures-supplementaires",
-   "fiabilite": "verifie"},
-  {"cle": "weekend", "titre": "Samedi / dimanche",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Samedi / dimanche",
    "cleValeur": "Samedi ordinaire ; dimanche : dérogations commerce",
    "points": [
-    "Samedi = jour clé du commerce, non majoré conventionnellement ; dimanche selon dérogations (zones touristiques/commerciales) avec contreparties légales — demander la situation du magasin."],
+    "Samedi = jour clé du commerce, non majoré conventionnellement ; dimanche selon dérogations (zones touristiques/commerciales) avec contreparties légales — demander la situation du magasin."
+   ],
    "dateCourte": "droit commun commerce",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635421",
-   "fiabilite": "aConfirmer"},
-  {"cle": "feries", "titre": "Jours fériés",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés",
    "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
    "points": [
     "Régime conventionnel à relever.",
-    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."],
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+   ],
    "dateCourte": "relevé à compléter",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635421",
-   "fiabilite": "aConfirmer"},
-  {"cle": "repas", "titre": "Repas",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "repas",
+   "titre": "Repas",
    "cleValeur": "Pas de panier de branche",
    "points": [
-    "Pas d'indemnité repas conventionnelle relevée — titres-restaurant selon l'entreprise."],
+    "Pas d'indemnité repas conventionnelle relevée — titres-restaurant selon l'entreprise."
+   ],
    "dateCourte": "—",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635421",
-   "fiabilite": "aConfirmer"},
-  {"cle": "transport", "titre": "Transport",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
    "cleValeur": "50 % transports publics",
-   "points": ["Prise en charge légale de **50 %** des abonnements."],
+   "points": [
+    "Prise en charge légale de **50 %** des abonnements."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/1517",
-   "fiabilite": "verifie"},
-  {"cle": "primes", "titre": "Prime d'ancienneté 3-15 % (employés I-VI)",
-   "cleValeur": "3 % (3 ans) → 15 % (15 ans) du minimum niveau I (1 679 €)",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "Prime d'ancienneté 3-15 % (employés I-VI)",
+   "cleValeur": "3 % (3 ans) → 15 % (15 ans) du minimum N1 en vigueur (1 829 €)",
    "points": [
-    "Employés niveaux I-VI : **3 %** (3 ans), **6 %** (6 ans), **9 %** (9 ans), **12 %** (12 ans), **15 %** (15 ans) — calculés sur le minimum conventionnel du NIVEAU I (**1 679 €**), pas sur le salaire réel.",
-    "Exemple officiel : 10 ans à temps plein → 9 % × 1 679 = **151,11 €**/mois ; temps partiel proratisé.",
+    "Employés niveaux I-VI : **3 %** (3 ans), **6 %** (6 ans), **9 %** (9 ans), **12 %** (12 ans), **15 %** (15 ans) — calculés sur le minimum du NIVEAU I, pas sur le salaire réel (chap. XIII art. 2, KALIARTI000048586955).",
+    "Base = minimum N1 EN VIGUEUR : **1 829 €** au 01/06/2026 → 10 ans = 9 % × 1 829 = **164,61 €**/mois ; temps partiel proratisé (et absences sans maintien de salaire).",
     "S'ajoute au salaire réel et figure sur une ligne distincte du bulletin.",
-    "Intérim : à proratiser via l'égalité de traitement pour un salarié comparable — omission fréquente."],
-   "dateCourte": "chap. XIII art. 2 (fiche CDTN)",
+    "Intérim : à proratiser via l'égalité de traitement pour un salarié comparable — omission fréquente."
+   ],
+   "dateCourte": "chap. XIII art. 2 + avenant n° 15",
    "source": "https://code.travail.gouv.fr/contribution/1517-quand-le-salarie-a-t-il-droit-a-une-prime-danciennete-quel-est-son-montant",
-   "fiabilite": "verifie"},
-  {"cle": "annualisation", "titre": "Aménagement du temps",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Aménagement du temps",
    "cleValeur": "Par accord — régime du client",
-   "points": ["Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."],
+   "points": [
+    "Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."
+   ],
    "dateCourte": "—",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635421",
-   "fiabilite": "verifie"},
-  {"cle": "saisonniers", "titre": "Saisonniers",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers",
    "cleValeur": "Renforts (fêtes, soldes) via droit commun",
-   "points": ["Pas de statut saisonnier de branche — régime intérim de droit commun (IFM + ICCP 10 %)."],
+   "points": [
+    "Pas de statut saisonnier de branche — régime intérim de droit commun (IFM + ICCP 10 %)."
+   ],
    "dateCourte": "—",
    "source": "https://code.travail.gouv.fr/convention-collective/1517",
-   "fiabilite": "verifie"},
-  {"cle": "durees", "titre": "Durées maximales",
-   "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
-   "points": ["Maxima légaux à défaut de dérogation."],
-   "dateCourte": "droit commun",
-   "source": "https://code.travail.gouv.fr/convention-collective/1517",
-   "fiabilite": "verifie"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
-   "cleValeur": "Prime d'ancienneté sur base niveau I · multi-secteurs",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales",
+   "cleValeur": "10 h/j, 48 h/sem, 44 h/12 sem — repris par la CCN (chap. IX art. 8)",
    "points": [
-    "La prime d'ancienneté se calcule sur la base FIXE du niveau I (1 679 €) quel que soit le poste — piège de paramétrage.",
-    "CCN du **14/06/1988** (IDCC 1517) — brocante, droguerie, équipement du foyer, jouets, maroquinerie, presse…"],
-   "dateCourte": "CCN 14/06/1988 + fiches CDTN",
+    "Maxima repris par la convention elle-même : **10 h**/jour, **48 h**/semaine, **44 h** sur 12 semaines consécutives (chap. IX art. 8, KALIARTI000048152759)."
+   ],
+   "dateCourte": "chap. IX art. 8",
    "source": "https://code.travail.gouv.fr/convention-collective/1517",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
+   "cleValeur": "Prime d'ancienneté sur minimum N1 en vigueur · multi-secteurs",
+   "points": [
+    "La prime d'ancienneté se calcule sur le minimum du niveau I EN VIGUEUR (**1 829 €** au 01/06/2026) quel que soit le poste — pointer la base sur la grille, jamais sur un montant codé en dur.",
+    "CCN du **14/06/1988** (IDCC 1517), réécrite par l'avenant du 09/05/2012 = texte consolidé de référence (KALITEXT000026803629) — brocante, droguerie, équipement du foyer, jouets, maroquinerie, presse…"
+   ],
+   "dateCourte": "CCN 14/06/1988 réécrite 09/05/2012 + fiches CDTN",
+   "source": "https://code.travail.gouv.fr/convention-collective/1517",
+   "fiabilite": "verifie"
+  }
  ]
 }

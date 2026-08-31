@@ -3,84 +3,146 @@
  "titre": "Maisons à succursales de vente au détail d'habillement (CCN du 30/06/1972)",
  "dateDerniereActu": "14/05/2024",
  "themes": [
-  {"cle": "minima", "titre": "Minima : 3 grilles",
-   "cleValeur": "3 grilles par catégorie/niveau — accord du 14/05/2024",
+  {
+   "cle": "minima",
+   "titre": "Minima : 3 grilles",
+   "cleValeur": "Employés 1 767-1 842 € ; AM/cadres en fourchettes (accord 14/05/2024)",
    "points": [
-    "**3 grilles** par catégorie d'emploi et niveau (classification issue de l'accord du 20/06/2016).",
-    "Dernier accord salaires relevé : **14/05/2024** (salaires mensuels minima garantis) — montants à relever sur Légifrance avant paramétrage."],
-   "dateCourte": "accord du 14/05/2024",
+    "Grilles au **01/06/2024** (accord du 14/05/2024 étendu, KALI KALITEXT000050028149) — employés niveaux 1 à 4 : **1 767 / 1 780 / 1 794 / 1 842 €**/mois (temps complet, France métropolitaine).",
+    "AM 1-2 : **1 920 / 1 995 €** ; cadres 1-3 : **2 276-2 950 €** (fourchettes, hors cible intérim) ; cadres au forfait jours : majoration minimale **15 %**.",
+    "Rappel de l'accord : minimum + prime d'ancienneté = rémunération minimale conventionnelle des employés/AM.",
+    "Classification issue de l'accord du **20/06/2016** étendu ; aucun accord salaires postérieur dans la base KALI (vérifiée au 12/08/2026)."
+   ],
+   "dateCourte": "accord du 14/05/2024, étendu 23/07/2024, effet 01/06/2024",
    "source": "https://code.travail.gouv.fr/contribution/675-quel-est-le-salaire-minimum",
-   "fiabilite": "aConfirmer"},
-  {"cle": "nuit", "titre": "Travail de nuit",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit",
    "cleValeur": "Marginal (inventaires) — droit commun",
-   "points": ["Marginal (inventaires nocturnes ponctuels) — droit commun à défaut ; contreparties d'entreprise à demander."],
+   "points": [
+    "Marginal (inventaires nocturnes ponctuels) — droit commun à défaut ; contreparties d'entreprise à demander."
+   ],
    "dateCourte": "—",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635617",
-   "fiabilite": "aConfirmer"},
-  {"cle": "hs", "titre": "Heures supplémentaires",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
    "cleValeur": "Taux légaux 25/50 % ; contingent à relever",
-   "points": ["Taux légaux **25/50 %** à défaut ; contingent conventionnel à relever."],
+   "points": [
+    "Taux légaux **25/50 %** à défaut ; contingent conventionnel à relever."
+   ],
    "dateCourte": "à relever",
    "source": "https://code.travail.gouv.fr/contribution/675-heures-supplementaires",
-   "fiabilite": "aConfirmer"},
-  {"cle": "weekend", "titre": "Samedi / dimanche",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Samedi / dimanche",
    "cleValeur": "Samedi = jour clé ; dimanche selon zones dérogatoires",
-   "points": ["Samedi non majoré conventionnellement ; dimanche selon dérogations de zone (contreparties légales) — demander la situation du magasin."],
+   "points": [
+    "Samedi non majoré conventionnellement ; dimanche selon dérogations de zone (contreparties légales) — demander la situation du magasin."
+   ],
    "dateCourte": "droit commun commerce",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635617",
-   "fiabilite": "aConfirmer"},
-  {"cle": "feries", "titre": "Jours fériés",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés",
    "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
-   "points": ["Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."],
+   "points": [
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+   ],
    "dateCourte": "à relever",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635617",
-   "fiabilite": "aConfirmer"},
-  {"cle": "repas", "titre": "Repas",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "repas",
+   "titre": "Repas",
    "cleValeur": "Pas de panier de branche",
-   "points": ["Pas d'indemnité repas de branche relevée."],
-   "dateCourte": "—",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635617",
-   "fiabilite": "aConfirmer"},
-  {"cle": "transport", "titre": "Transport",
-   "cleValeur": "50 % transports publics",
-   "points": ["Prise en charge légale de **50 %** des abonnements."],
-   "dateCourte": "droit commun",
-   "source": "https://code.travail.gouv.fr/convention-collective/675",
-   "fiabilite": "verifie"},
-  {"cle": "primes", "titre": "Ancienneté + affectation temporaire",
-   "cleValeur": "Prime d'ancienneté (art. 29-31) + complément d'affectation temporaire",
    "points": [
-    "**Prime d'ancienneté** prévue (fiche dédiée CDTN) — barème à relever ; à proratiser via égalité de traitement.",
-    "**Affectation temporaire** sur un autre poste : complément dès le 1ᵉʳ jour = différence entre le salaire fixe et le minimum du poste occupé.",
-    "Primes d'objectifs/vente courantes en entreprise — à demander au déclaratif."],
-   "dateCourte": "art. 29 et 31 (fiche CDTN)",
-   "source": "https://code.travail.gouv.fr/contribution/675-quelles-sont-les-primes-prevues-par-la-convention-collective",
-   "fiabilite": "verifie"},
-  {"cle": "annualisation", "titre": "Aménagement du temps",
-   "cleValeur": "Modulation commerciale — régime du client",
-   "points": ["Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."],
+    "Pas d'indemnité repas de branche relevée."
+   ],
    "dateCourte": "—",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635617",
-   "fiabilite": "verifie"},
-  {"cle": "saisonniers", "titre": "Saisonniers (soldes, fêtes)",
-   "cleValeur": "Renforts via droit commun",
-   "points": ["Pas de statut saisonnier de branche — régime intérim de droit commun (IFM + ICCP 10 %)."],
-   "dateCourte": "—",
-   "source": "https://code.travail.gouv.fr/convention-collective/675",
-   "fiabilite": "verifie"},
-  {"cle": "durees", "titre": "Durées maximales",
-   "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
-   "points": ["Maxima légaux."],
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
+   "cleValeur": "50 % transports publics",
+   "points": [
+    "Prise en charge légale de **50 %** des abonnements."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/675",
-   "fiabilite": "verifie"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "Ancienneté + affectation temporaire",
+   "cleValeur": "Ancienneté 3-20 ans en € (art. 31) + complément d'affectation temporaire",
+   "points": [
+    "**Prime d'ancienneté** en valeur absolue par catégorie à **3/6/9/12/15/20 ans**, ligne à part du bulletin, indexée à 60 % de l'évolution des barèmes (art. 31 CCN, KALI KALIARTI000005851070).",
+    "Barème 2024 (temps complet) : employé 1 : **30,18 → 200,74 €** ; employé 4 : 32,68 → 218,21 ; AM : 34,40 → 250,74 ; cadres : 43,26 → **385,34 €** (accord du 14/05/2024).",
+    "Cadres : prime incluse forfaitairement dans la rémunération si celle-ci ≥ minima + prime (art. 11 de l'avenant Cadres du 30/06/1972).",
+    "**Affectation temporaire** (art. 29, KALI KALIARTI000028533052) : complément dès le **1ᵉʳ jour** et pour la stricte durée = différence avec le minimum du poste occupé (celui de l'entreprise, à défaut conventionnel).",
+    "Volontariat requis ; primes variables du poste dues ; vise les remplacements longs (maladie longue, maternité, vacance de poste), pas les absences courtes.",
+    "Primes d'objectifs/vente courantes en entreprise — à demander au déclaratif ; ancienneté à proratiser via égalité de traitement."
+   ],
+   "dateCourte": "art. 29 et 31 CCN + barèmes de l'accord du 14/05/2024",
+   "source": "https://code.travail.gouv.fr/contribution/675-quelles-sont-les-primes-prevues-par-la-convention-collective",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Aménagement du temps",
+   "cleValeur": "Modulation commerciale — régime du client",
+   "points": [
+    "Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."
+   ],
+   "dateCourte": "—",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635617",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers (soldes, fêtes)",
+   "cleValeur": "Renforts via droit commun",
+   "points": [
+    "Pas de statut saisonnier de branche — régime intérim de droit commun (IFM + ICCP 10 %)."
+   ],
+   "dateCourte": "—",
+   "source": "https://code.travail.gouv.fr/convention-collective/675",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales",
+   "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+   "points": [
+    "Maxima légaux."
+   ],
+   "dateCourte": "droit commun",
+   "source": "https://code.travail.gouv.fr/convention-collective/675",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
    "cleValeur": "Succursalistes uniquement · classification 2016",
    "points": [
     "Champ : chaînes succursalistes d'habillement (enseignes intégrées) — le commerce d'habillement indépendant relève de l'IDCC 1483.",
-    "CCN du **30/06/1972** (IDCC 675), classification refondue par l'accord du 20/06/2016."],
+    "CCN du **30/06/1972** (IDCC 675), classification refondue par l'accord du 20/06/2016."
+   ],
    "dateCourte": "CCN 30/06/1972",
    "source": "https://code.travail.gouv.fr/convention-collective/675",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie"
+  }
  ]
 }

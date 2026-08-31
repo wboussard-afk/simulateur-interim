@@ -3,97 +3,154 @@
  "titre": "Aide, accompagnement, soins et services à domicile — BAD (CCN du 21/05/2010)",
  "dateDerniereActu": "2026",
  "themes": [
-  {"cle": "minima", "titre": "Minima : système de points",
-   "cleValeur": "Rémunération = points × valeur du point (avenants réguliers) — à relever",
+  {
+   "cle": "minima",
+   "titre": "Minima : système de points",
+   "cleValeur": "Point 5,77 € ; employé D1 308-331, D2 344-383 (au 01/01/2024)",
    "points": [
-    "La rémunération BAD repose sur des **coefficients de points** par catégorie/degré, multipliés par la valeur du point de branche — relever l'avenant en vigueur avant paramétrage (revalorisations fréquentes).",
-    "Le plus favorable s'applique vs SMIC ; les bas de grille sont régulièrement rattrapés par le SMIC."],
-   "dateCourte": "avenants salaires réguliers — à relever",
+    "Valeur du point : **5,77 €** (avenant 54-2022, étendu 03/07/2023, KALITEXT000047783125) — dernier montant étendu ; dernier texte salaires = avenant 61/2023 (coefficients au 01/01/2024).",
+    "Coefficients employé : degré 1 = **308/315/331** (éch. 1-3), degré 2 = **344/359/383** ; ex. 308 × 5,77 = **1 777,16 €** < SMIC → indemnité différentielle (art. III-12 : « sans pouvoir être inférieur au Smic »).",
+    "Avenant 70/2025 (étendu 26/03/2026, effet 01/02/2026) : l'aide-soignant est reclassé en TAM degré 1, sans changement du système points × valeur."
+   ],
+   "dateCourte": "avenants 54-2022 + 61/2023, étendus",
    "source": "https://code.travail.gouv.fr/contribution/2941-quel-est-le-salaire-minimum",
-   "fiabilite": "aConfirmer"},
-  {"cle": "nuit", "titre": "Travail de nuit / gardes",
-   "cleValeur": "Gardes de nuit à domicile : régimes spécifiques — à relever",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit / gardes",
+   "cleValeur": "Nuit 22 h-7 h : ECR 5 % + repos compensateur 5 %",
    "points": [
-    "Les interventions et présences de nuit à domicile ont des régimes conventionnels spécifiques (présence responsable vs travail effectif) — à relever selon le poste.",
-    "Demander à la structure cliente son régime réel (égalité de traitement)."],
-   "dateCourte": "à relever",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027181212",
-   "fiabilite": "aConfirmer"},
-  {"cle": "hs", "titre": "Heures supplémentaires",
+    "Nuit = toute intervention entre **22 h et 7 h** (art. V.25) ; travailleur de nuit (art. V.26) : 2 fois/sem. au moins 3 h de nuit, ou 78 h de nuit/mois sur 6 mois.",
+    "ECR travailleur de nuit : majoration **5 %** du taux horaire + repos compensateur **5 %** du temps de nuit (art. III-19.2, KALIARTI000047519049).",
+    "Travail occasionnel de nuit : volontariat prioritaire, droit de refus 4 fois/an (arts. V.33-34) — demander à la structure son régime réel (égalité de traitement)."
+   ],
+   "dateCourte": "titre V arts. 25-26 + art. III-19.2",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000025805800",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
    "cleValeur": "Temps de travail souvent modulé — HS selon régime de la structure",
    "points": [
     "La branche pratique largement la modulation : le seuil de déclenchement des HS dépend du régime de la structure (art. L.1251-21 pour l'intérimaire).",
-    "Taux : légaux **25/50 %** à défaut de disposition."],
+    "Taux : légaux **25/50 %** à défaut de disposition."
+   ],
    "dateCourte": "—",
    "source": "https://code.travail.gouv.fr/contribution/2941-heures-supplementaires",
-   "fiabilite": "aConfirmer"},
-  {"cle": "weekend", "titre": "Dimanche / jours fériés travaillés",
-   "cleValeur": "Majoration conventionnelle dimanche/férié — taux à relever",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Dimanche / jours fériés travaillés",
+   "cleValeur": "Dimanche/férié : ECR 45 % (majoration OU repos équivalent)",
    "points": [
-    "Le travail du dimanche et des fériés est courant (continuité de l'aide) et majoré conventionnellement — taux exact à relever sur le texte en vigueur.",
-    "Oubli déclaratif fréquent des structures — demander le taux réellement versé."],
-   "dateCourte": "à relever",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027181212",
-   "fiabilite": "aConfirmer"},
-  {"cle": "feries", "titre": "Jours fériés",
-   "cleValeur": "Travaillés par roulement, majorés ; rappel intérim sans ancienneté",
+    "ECR dimanche/férié : majoration de **45 %** du taux horaire OU repos compensateur de **45 %** du temps travaillé, à prendre dans les 2 mois (art. III-19.2, KALIARTI000047519049) ; 1er Mai exclu (régime légal).",
+    "Rythmes : équipes de fin de semaine max 3 dimanches travaillés sur 4 ; sinon de 1/4 à 1/2 max (titre V arts. 17-18).",
+    "Taux unique **45 %** dimanche ET férié — oubli déclaratif fréquent : demander le taux réellement versé."
+   ],
+   "dateCourte": "art. III-19.2, étendu",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000025805800",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés",
+   "cleValeur": "Roulement max 1 férié sur 2 ; ECR 45 % ; 1er Mai légal",
    "points": [
-    "Fériés travaillés par roulement avec majoration conventionnelle (voir thème dimanche).",
-    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."],
-   "dateCourte": "à relever",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027181212",
-   "fiabilite": "aConfirmer"},
-  {"cle": "repas", "titre": "Repas",
+    "Fériés travaillés par roulement : max **1 férié travaillé sur 2** ; ECR **45 %** (majoration ou repos équivalent) ; 1er Mai : régime légal (titre V arts. 17-18 + art. III-19.2).",
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+   ],
+   "dateCourte": "titre V arts. 17-18 + art. III-19.2",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000025805800",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "repas",
+   "titre": "Repas",
    "cleValeur": "Pas de panier généralisé",
-   "points": ["Pas d'indemnité repas de branche généralisée relevée."],
-   "dateCourte": "—",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027181212",
-   "fiabilite": "aConfirmer"},
-  {"cle": "transport", "titre": "Déplacements ENTRE interventions (clé du secteur)",
-   "cleValeur": "Temps entre interventions = travail effectif + frais km indemnisés",
    "points": [
-    "Le **temps de déplacement entre deux interventions** est du temps de travail effectif et les kilomètres sont indemnisés selon le barème conventionnel — poste de paie central du secteur, à relever précisément.",
-    "Mise en garde : c'est LE poste omis ou sous-évalué dans les déclaratifs — exiger le barème kilométrique et la méthode de comptage du temps inter-vacations.",
-    "S'ajoute la prise en charge légale de **50 %** des transports publics."],
-   "dateCourte": "texte + avenants — barème à relever",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027181212",
-   "fiabilite": "aConfirmer"},
-  {"cle": "primes", "titre": "ECR ancienneté 2-20 %",
+    "Pas d'indemnité repas de branche généralisée relevée."
+   ],
+   "dateCourte": "—",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000025805800",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "transport",
+   "titre": "Déplacements ENTRE interventions (clé du secteur)",
+   "cleValeur": "Temps inter-interventions = travail effectif ; 0,38 €/km auto",
+   "points": [
+    "Temps de déplacement entre deux séquences successives de travail d'une même demi-journée = **temps de travail effectif** rémunéré (reconstitué si séquences non consécutives ; idem la nuit) — art. V.14, KALIARTI000047495024.",
+    "Barème km : **0,38 €/km** (auto), **0,16 €/km** (2-roues) — avenant 50-2022, étendu 31/03/2023, effet 01/10/2022.",
+    "Transports en commun : **100 %** de l'abonnement si durée du travail ≥ mi-temps (sinon billets à l'unité, ou abonnement si moins cher) — la CCN va au-delà du 50 % légal.",
+    "LE poste omis dans les déclaratifs : vérifier temps et km sur la base du réel effectué — opposable aux outils de comptage de la structure."
+   ],
+   "dateCourte": "art. V.14 + avenant 50-2022, étendu",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000025805800",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "ECR ancienneté 2-20 %",
    "cleValeur": "Élément complémentaire ancienneté : 2 % (5 ans) → 20 % (30 ans)",
    "points": [
-    "**ECR ancienneté** (tous salariés, titre III art. 19) : **2 %** (5 ans + 1 j), **4 %** (10 ans), **8 %** (15 ans), **12 %** (20 ans), **16 %** (25 ans), **20 %** (30 ans) — en % du salaire de base, proratisé à temps partiel.",
-    "D'autres ECR existent (diplômes, tutorat…) selon la classification — à relever selon le poste.",
-    "Intérim : égalité de traitement — comparer au salarié comparable de la structure."],
-   "dateCourte": "titre III art. 19 (fiche CDTN)",
+    "**ECR ancienneté** (tous salariés, art. III-19.1, KALIARTI000047519049) : **2 %** (5 ans), **4 %** (10), **8 %** (15), **12 %** (20), **16 %** (25), **20 %** (30) — tous les seuils s'entendent « X ans **et 1 jour** ».",
+    "Assiette = salaire de base, majoré le cas échéant de l'indemnité différentielle SMIC ; proratisé à temps partiel.",
+    "Ancienneté appréciée dans la BRANCHE (pas seulement l'entreprise) — clé pour l'égalité de traitement intérim.",
+    "Autres ECR chiffrés : diplôme 11-17 points, astreinte 8-12 points/24 h, tutorat 7 points, maître d'apprentissage 11 points."
+   ],
+   "dateCourte": "art. III-19.1 (avenant 53-2022, étendu)",
    "source": "https://code.travail.gouv.fr/contribution/2941-quand-le-salarie-a-t-il-droit-a-une-prime-danciennete-quel-est-son-montant",
-   "fiabilite": "verifie"},
-  {"cle": "annualisation", "titre": "Modulation",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Modulation",
    "cleValeur": "Modulation de branche répandue — régime de la structure",
-   "points": ["Pour l'intérimaire, le régime de la structure cliente s'applique (art. L.1251-21) et conditionne les HS."],
+   "points": [
+    "Pour l'intérimaire, le régime de la structure cliente s'applique (art. L.1251-21) et conditionne les HS."
+   ],
    "dateCourte": "—",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027181212",
-   "fiabilite": "verifie"},
-  {"cle": "saisonniers", "titre": "Saisonniers",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000025805800",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers",
    "cleValeur": "Non pertinent — remplacements au fil de l'eau",
-   "points": ["Pas de saisonnalité de branche — remplacements ponctuels via droit commun (IFM + ICCP 10 %)."],
+   "points": [
+    "Pas de saisonnalité de branche — remplacements ponctuels via droit commun (IFM + ICCP 10 %)."
+   ],
    "dateCourte": "—",
    "source": "https://code.travail.gouv.fr/convention-collective/2941",
-   "fiabilite": "verifie"},
-  {"cle": "durees", "titre": "Durées maximales / amplitude",
-   "cleValeur": "Amplitude des journées à surveiller (interventions morcelées)",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales / amplitude",
+   "cleValeur": "Amplitude 12 h (13 h soins/SSIAD) ; 48 h/sem, 44 h/12 sem",
    "points": [
-    "Journées morcelées : surveiller l'**amplitude** (bornes conventionnelles) autant que la durée du travail — à relever sur le texte.",
-    "Socle légal : 10 h/j, 48 h/sem, 44 h/12 sem."],
-   "dateCourte": "à relever",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027181212",
-   "fiabilite": "aConfirmer"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
+    "Amplitude max **12 h** pour les services autres que soins (portable à **13 h** en cas de besoin exceptionnel, 7 jours/mois max) ; **13 h** pour SSIAD et centres de soins infirmiers (titre V art. 7).",
+    "Durée effective : jamais plus de **48 h**/semaine ni **44 h** en moyenne sur 12 semaines consécutives (titre V art. 6, KALIARTI000025805643).",
+    "Journées morcelées : l'amplitude conventionnelle est la borne opérante — la surveiller autant que la durée du travail."
+   ],
+   "dateCourte": "titre V arts. 6-7",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000025805800",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
    "cleValeur": "Temps inter-interventions · km · majorations dim/férié · points",
    "points": [
     "Les 3 pièges BAD : **temps et km entre interventions**, majorations **dimanche/férié**, système de **points**.",
-    "CCN du **21/05/2010** (IDCC 2941) — secteur associatif de l'aide à domicile (ne pas confondre avec les entreprises privées de services à la personne, IDCC 3127)."],
+    "CCN du **21/05/2010** (IDCC 2941) — secteur associatif de l'aide à domicile (ne pas confondre avec les entreprises privées de services à la personne, IDCC 3127)."
+   ],
    "dateCourte": "CCN 21/05/2010 + fiches CDTN",
    "source": "https://code.travail.gouv.fr/convention-collective/2941",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie"
+  }
  ]
 }

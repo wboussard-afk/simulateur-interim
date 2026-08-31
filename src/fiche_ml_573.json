@@ -1,102 +1,163 @@
 {
  "idcc": "573",
  "titre": "Commerces de gros (CCN du 23/06/1970)",
- "dateDerniereActu": "2026",
+ "dateDerniereActu": "17/03/2026",
  "themes": [
-  {"cle": "minima", "titre": "Minima par niveau/échelon/coefficient",
-   "cleValeur": "Grille par niveau, échelon et coefficient — montants à relever",
+  {
+   "cle": "minima",
+   "titre": "Minima par niveau/échelon/coefficient",
+   "cleValeur": "Accord 17/03/2026 : I-1 1 839,81 € → VI-3 2 371,78 € (mensuels)",
    "points": [
-    "Minima par **catégorie, niveau, échelon et coefficient**.",
-    "Montants exacts : relever l'avenant salaires en vigueur (lien KALI direct dans la fiche officielle) avant paramétrage.",
-    "Le plus favorable s'applique entre SMIC, minimum conventionnel et salaire d'entreprise."],
-   "dateCourte": "fiche CDTN maj 01/06/2026 — montants à relever",
+    "Minima par **niveau (I-X), échelon (1-3) et coefficient** (1,006 à 1,2) — accord salaires du **17/03/2026**, effet **01/03/2026**, étendu (KALI KALITEXT000054454077).",
+    "Employés/ouvriers (mensuels 151,67 h) : I-1 **1 839,81** · I-2 **1 850,85** · I-3 **1 861,96** · II-1 **1 873,13** · II-2 **1 884,37** · II-3 **1 895,67 €**.",
+    "Suite : III-1 **1 907,05** · III-2 **1 918,49** · III-3 **1 930,00** · IV-1 **1 941,58** · IV-2 **1 953,23** · IV-3 **1 964,95 €**.",
+    "TAM V-VI : **1 973,03 → 2 371,78 €** mensuels ; cadres VII-X : minima **ANNUELS** appréciés au 31/12, **30 338,30 → 78 210,61 €** — hors cible intérim.",
+    "2e échelon lié à l'expérience (1 à 6 ans selon niveau, réduite de moitié si diplôme pertinent) ; le plus favorable s'applique vs SMIC."
+   ],
+   "detail": "Mécanique de grille (accord du 05/05/1992, section III) : écarts fixes entre échelons — +0,60 % (niveaux I-IV), +3,75 % (V-VI), +5/10/15/20 % (cadres) — utile pour contrôler une grille client.",
+   "dateCourte": "accord du 17/03/2026 — effet 01/03/2026",
    "source": "https://code.travail.gouv.fr/contribution/573-quel-est-le-salaire-minimum",
-   "fiabilite": "aConfirmer"},
-  {"cle": "nuit", "titre": "Travail de nuit",
-   "cleValeur": "Entrepôts/préparation de nuit : régime à relever",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit",
+   "cleValeur": "+10 % nuit habituelle, +25 % exceptionnelle ; casse-croûte 1,5 MG",
    "points": [
-    "Préparation de commandes et logistique de nuit fréquentes — régime conventionnel à relever sur le texte.",
-    "À défaut : droit commun ; demander au client ses majorations réelles (égalité de traitement)."],
-   "dateCourte": "relevé à compléter",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635573",
-   "fiabilite": "aConfirmer"},
-  {"cle": "hs", "titre": "Heures supplémentaires",
-   "cleValeur": "Contingent VARIABLE selon le secteur d'activité",
+    "Nuit **habituelle** (22 h-6 h) : **+10 %** du taux horaire ; nuit **exceptionnelle** : **+25 %** (art. 47 CCN, KALI KALIARTI000005836419).",
+    "Casse-croûte ou indemnité **1,5 × taux horaire du minimum garanti** si ≥**4 h** de travail de nuit.",
+    "Accord du 30/09/2002 (plage 21 h-6 h, KALI KALITEXT000005673659) : travailleur de nuit = 2×3 h/sem ou **270 h**/12 mois ; primes 10 %/25 % sur salaire réel.",
+    "Repos compensateur : **1 j** (270 h), **2 j** (540 h), **3 j** (940 h), **4 j** (1 180 h de nuit)."
+   ],
+   "dateCourte": "art. 47 CCN + accord du 30/09/2002",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635373",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
+   "cleValeur": "Alimentaire 180 h (120 h en modulation) ; non-alim : légal",
    "points": [
-    "Le contingent annuel **varie selon les secteurs d'activité** de la branche (fiche officielle) — relever celui du secteur du client.",
+    "Contingent annuel : secteur **alimentaire 180 h** (dépassement exceptionnel possible **+10 %**) ; secteur **non alimentaire : contingent légal** (accord ARTT du 14/12/2001, art. 1.7, KALI KALIARTI000005836612).",
+    "En modulation : contingent légal ; **réduit à 120 h** pour les secteurs alimentaires (entreprises à 35 h, art. 2.1.10).",
     "Majoration et/ou repos compensateur ; au-delà : repos obligatoire.",
-    "Taux : légaux **25/50 %** à défaut d'accord."],
-   "dateCourte": "fiche CDTN",
+    "Taux : légaux **25/50 %** à défaut d'accord."
+   ],
+   "dateCourte": "accord ARTT du 14/12/2001 (étendu 31/07/2002)",
    "source": "https://code.travail.gouv.fr/contribution/573-heures-supplementaires",
-   "fiabilite": "verifie"},
-  {"cle": "weekend", "titre": "Samedi / dimanche",
-   "cleValeur": "Pas de majoration de branche relevée",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Samedi / dimanche",
+   "cleValeur": "Dimanche : +10 % habituel ; +100 % + repos si exceptionnel (3/an)",
    "points": [
-    "Samedi ordinaire ; dimanche selon dérogations logistiques — contreparties d'entreprise à demander au déclaratif."],
-   "dateCourte": "relevé à compléter",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635573",
-   "fiabilite": "aConfirmer"},
-  {"cle": "feries", "titre": "Jours fériés",
+    "Samedi : jour ouvré ordinaire.",
+    "Dimanche **habituel** : majoration **+10 %** du taux horaire (art. 46 CCN, KALI KALIARTI000005836418).",
+    "Dimanche **exceptionnel** (limite **3/an**) : **+100 %** s'ajoutant aux majorations HS + **1 journée** compensatoire de repos ; interdit aux moins de 18 ans.",
+    "Non-alimentaire : repos hebdomadaire de **48 h consécutives** incluant le dimanche (accord ARTT, art. 1.5)."
+   ],
+   "dateCourte": "art. 46 CCN (étendu, arrêté du 04/02/1985)",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635373",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés",
    "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
    "points": [
     "Régime conventionnel à relever.",
-    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."],
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+   ],
    "dateCourte": "relevé à compléter",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635573",
-   "fiabilite": "aConfirmer"},
-  {"cle": "repas", "titre": "Repas",
-   "cleValeur": "Pas de panier de branche généralisé",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635373",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "repas",
+   "titre": "Repas",
+   "cleValeur": "Pas de panier généralisé ; casse-croûte de nuit 1,5 × MG (≥4 h)",
    "points": [
-    "Pas d'indemnité repas conventionnelle généralisée relevée — pratique du client à demander."],
-   "dateCourte": "relevé à compléter",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635573",
-   "fiabilite": "aConfirmer"},
-  {"cle": "transport", "titre": "Transport",
+    "Pas d'indemnité repas conventionnelle généralisée — seule exception : **casse-croûte de nuit 1,5 × MG** si ≥**4 h** de nuit (art. 47 CCN et accord du 30/09/2002).",
+    "Titres-restaurant / paniers éventuels : pratique du client à demander."
+   ],
+   "dateCourte": "vérifié sur textes consolidés KALI",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635373",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
    "cleValeur": "50 % transports publics",
    "points": [
-    "Prise en charge légale de **50 %** des abonnements de transports publics."],
+    "Prise en charge légale de **50 %** des abonnements de transports publics."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/573",
-   "fiabilite": "verifie"},
-  {"cle": "primes", "titre": "Garanties d'ancienneté +5/9/13/17 %",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "Garanties d'ancienneté +5/9/13/17 %",
    "cleValeur": "Garantie annuelle : +5 % (4 ans) → +17 % (16 ans) — non-alimentaire",
    "points": [
-    "Pas de prime d'ancienneté classique mais des **garanties annuelles de rémunération** liées à l'ancienneté (accord du 05/05/1992).",
+    "Pas de prime d'ancienneté classique mais des **garanties annuelles de rémunération** liées à l'ancienneté (accord du 05/05/1992, section IV, KALI KALIARTI000026802051).",
     "Secteur NON-ALIMENTAIRE (tous salariés) : garantie = 12 salaires mensuels conventionnels majorés de **5 %** (4 ans), **9 %** (8 ans), **13 %** (12 ans), **17 %** (16 ans).",
     "Secteur ALIMENTAIRE (dès **1 an**) : garantie = 12 salaires conventionnels + **2 %**.",
-    "Fonctionnement : si le brut réel des 12 mois est inférieur à la garantie, un COMPLÉMENT est dû.",
-    "Intérim : sur longues missions, comparer le cumul versé à la garantie du salarié comparable (égalité de traitement) — contrôle rarement fait par les clients."],
-   "dateCourte": "accord du 05/05/1992 (fiche CDTN)",
+    "Vérification au **31/12** ou au départ : si le brut réel des 12 mois est inférieur à la garantie, un COMPLÉMENT est dû.",
+    "Assiette : hors HS, majorations conventionnelles, primes liées aux contraintes de l'emploi et — non-alim — primes type 13e mois.",
+    "Intérim : sur longues missions, comparer le cumul versé à la garantie du salarié comparable (égalité de traitement) — contrôle rarement fait par les clients."
+   ],
+   "dateCourte": "accord du 05/05/1992 (section IV)",
    "source": "https://code.travail.gouv.fr/contribution/573-quand-le-salarie-a-t-il-droit-a-une-prime-danciennete-quel-est-son-montant",
-   "fiabilite": "verifie"},
-  {"cle": "annualisation", "titre": "Aménagement du temps",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Aménagement du temps",
    "cleValeur": "Par accord d'entreprise — régime du client",
    "points": [
-    "Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."],
+    "Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."
+   ],
    "dateCourte": "—",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635573",
-   "fiabilite": "verifie"},
-  {"cle": "saisonniers", "titre": "Saisonniers",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635373",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers",
    "cleValeur": "Rien de spécifique",
    "points": [
-    "Pas de dispositif saisonnier de branche — régime intérim de droit commun (IFM 10 % + ICCP 10 %)."],
+    "Pas de dispositif saisonnier de branche — régime intérim de droit commun (IFM 10 % + ICCP 10 %)."
+   ],
    "dateCourte": "—",
    "source": "https://code.travail.gouv.fr/convention-collective/573",
-   "fiabilite": "verifie"},
-  {"cle": "durees", "titre": "Durées maximales",
-   "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales",
+   "cleValeur": "10 h/j (12 h alim. très exceptionnel) ; repos 11 h réductible 9 h",
    "points": [
-    "Maxima légaux à défaut de dérogation sectorielle — vérifier le secteur du client (logistique)."],
-   "dateCourte": "droit commun",
+    "Maxima légaux (10 h/j, 48 h/sem, 44 h/12 sem) à défaut de dérogation sectorielle.",
+    "Secteur **alimentaire** : journée prolongeable jusqu'à **12 h** à titre très exceptionnel (max **10 fois/an**) — accord ARTT, annexe alimentaire art. 1er (KALI KALIARTI000005836629).",
+    "Repos quotidien 11 h réductible à **9 h** en cas de surcroît (max **10 fois/an**, heures compensées en repos)."
+   ],
+   "dateCourte": "accord ARTT du 14/12/2001, annexe alimentaire",
    "source": "https://code.travail.gouv.fr/convention-collective/573",
-   "fiabilite": "verifie"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
    "cleValeur": "Secteur alim/non-alim · garanties annuelles · contingent sectoriel",
    "points": [
     "D'abord déterminer si le client est **alimentaire ou non-alimentaire** : garanties d'ancienneté et contingents diffèrent.",
-    "CCN du **23/06/1970** (IDCC 573) — négoce, distribution B2B, quincaillerie, matériaux…"],
+    "CCN du **23/06/1970** (IDCC 573, KALICONT000005635373, étendue par arrêté du 15/06/1972) — négoce, distribution B2B, quincaillerie, matériaux…"
+   ],
    "dateCourte": "CCN 23/06/1970 + fiches CDTN",
    "source": "https://code.travail.gouv.fr/convention-collective/573",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie"
+  }
  ]
 }

@@ -3,117 +3,173 @@
  "titre": "Hôtels, cafés, restaurants — HCR (CCN du 30/04/1997)",
  "dateDerniereActu": "19/06/2024",
  "themes": [
-  {"cle": "minima", "titre": "Grille des minima (avenant n° 33)",
+  {
+   "cle": "minima",
+   "titre": "Grille des minima (avenant n° 33)",
    "cleValeur": "5 niveaux × 3 échelons : 12,00 €/h (N1E1, rattrapé SMIC) → 28,12 €/h",
    "points": [
     "Grille : **5 niveaux × 3 échelons** (15 positions), de N1E1 **12,00 €/h** à NV E3 **28,12 €/h**.",
     "Avenant n° **33** du **19/06/2024**, étendu en **novembre 2024** — grille en vigueur en 2026.",
     "N1E1 (12,00 €) est sous le SMIC actuel : c'est le **SMIC (12,02 €/h)** qui s'applique en pied de grille.",
-    "Le plus favorable s'applique entre SMIC, minimum conventionnel et salaire d'entreprise."],
+    "Le plus favorable s'applique entre SMIC, minimum conventionnel et salaire d'entreprise."
+   ],
    "dateCourte": "avenant n° 33 du 19/06/2024, étendu 11/2024",
    "source": "https://code.travail.gouv.fr/contribution/1979-quel-est-le-salaire-minimum",
-   "fiabilite": "verifie"},
-  {"cle": "nuit", "titre": "Travail de nuit",
-   "cleValeur": "Pas de majoration de branche généralisée — vérifier l'établissement",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit",
+   "cleValeur": "Pas de majoration de branche — repos compensateur 1 %/h (2 j/an)",
    "points": [
-    "La CCN HCR ne prévoit pas de majoration de nuit généralisée : le travail de nuit est inhérent à l'activité (plage type 22 h-7 h fixée par accord d'entreprise).",
-    "Contreparties du travailleur de nuit habituel : repos compensateur selon les règles applicables dans l'établissement — demander au client son régime.",
-    "Mise en garde déclaratif : certains établissements versent des majorations de nuit d'usage — les demander explicitement (égalité de traitement)."],
-   "dateCourte": "CCN 30/04/1997 — régime d'établissement",
+    "La CCN HCR ne prévoit aucune majoration de nuit généralisée : le travail de nuit est inhérent à l'activité du secteur (art. 12, avenant n° 2 du 05/02/2007, KALI KALIARTI000005826395).",
+    "Plage de nuit **22 h-7 h** fixée par l'avenant de branche étendu lui-même (art. 12.1) — pas par accord d'entreprise.",
+    "Travailleur de nuit habituel : **2×/sem ≥ 3 h** de nuit, ou **280 h/an** (permanents), ou **70 h/trimestre** (saisonniers) — art. 12.2.",
+    "Contrepartie minimale de branche : repos compensateur **1 %** par heure de nuit, forfaitisé **2 jours/an** temps plein ; seules les modalités d'attribution relèvent de l'établissement (art. 12.4).",
+    "Mise en garde déclaratif : certains établissements versent des majorations de nuit d'usage — les demander explicitement (égalité de traitement)."
+   ],
+   "dateCourte": "avenant n° 2 du 05/02/2007, art. 12",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635534",
-   "fiabilite": "aConfirmer"},
-  {"cle": "hs", "titre": "Heures supplémentaires (taux HCR réduits !)",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires (taux HCR réduits !)",
    "cleValeur": "+10 % (36-39ᵉ) · +20 % (40-43ᵉ) · +50 % au-delà — contingent 360 h",
    "points": [
     "Taux conventionnels DÉROGATOIRES : **+10 %** de la 36ᵉ à la 39ᵉ h, **+20 %** de la 40ᵉ à la 43ᵉ h, **+50 %** au-delà.",
     "Piège de paie n° 1 en HCR : ne PAS appliquer les 25/50 % légaux — la branche a ses propres taux.",
     "Contingent annuel : **360 h** (établissements permanents) ; **90 h par trimestre civil** (établissements saisonniers).",
-    "Beaucoup d'établissements sont à 39 h contractuelles : les 36ᵉ-39ᵉ h sont des HS structurelles à +10 % intégrées au salaire — vérifier la base contractuelle du poste."],
+    "Beaucoup d'établissements sont à 39 h contractuelles : les 36ᵉ-39ᵉ h sont des HS structurelles à +10 % intégrées au salaire — vérifier la base contractuelle du poste."
+   ],
    "dateCourte": "CCN HCR + fiche CDTN maj 04/12/2025",
    "source": "https://code.travail.gouv.fr/contribution/1979-heures-supplementaires",
-   "fiabilite": "verifie"},
-  {"cle": "weekend", "titre": "Samedi / dimanche",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Samedi / dimanche",
    "cleValeur": "Jours ordinaires en HCR — pas de majoration de branche",
    "points": [
     "Samedi et dimanche sont des jours ouvrés ordinaires en HCR (activité continue) — **aucune majoration conventionnelle de branche**.",
     "Le repos hebdomadaire est de 2 jours (consécutifs ou non, modalités selon l'établissement) — vérifier le régime du client.",
-    "Des majorations dimanche d'entreprise/d'usage peuvent exister — à demander au déclaratif."],
+    "Des majorations dimanche d'entreprise/d'usage peuvent exister — à demander au déclaratif."
+   ],
    "dateCourte": "CCN 30/04/1997",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635534",
-   "fiabilite": "verifie"},
-  {"cle": "feries", "titre": "Fériés : 1ᵉʳ mai + 10 dont 6 garantis (1 an)",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "feries",
+   "titre": "Fériés : 1ᵉʳ mai + 10 dont 6 garantis (1 an)",
    "cleValeur": "Dès 1 an d'ancienneté : 1ᵉʳ mai + 10 fériés dont 6 GARANTIS",
    "points": [
     "Dès **1 an** d'ancienneté dans l'établissement : en plus du **1ᵉʳ mai**, droit à **10 jours fériés** dont **6 garantis** (chômés payés, compensés en repos ou indemnisés — même si le salarié est en repos ce jour-là).",
     "Avenant n° **2** du **05/02/2007**, modifié par avenant n° **6** du **15/12/2009**.",
     "Sans 1 an d'ancienneté : seul le 1ᵉʳ mai est obligatoirement chômé/payé (doublé si travaillé).",
     "Rappel intérim : pour les fériés CHÔMÉS dans l'établissement, l'intérimaire est payé **sans condition d'ancienneté** (art. L.1251-18) ; pour le régime des « fériés garantis », l'ancienneté s'apprécie en cumulant les missions.",
-    "Mise en garde : régime souvent mal appliqué par les clients — demander leur calendrier de fériés garantis."],
+    "Saisonniers : ancienneté requise **9 mois** (art. 6.1.2, avenant n° 6 du 15/12/2009) ; les fériés garantis restant dus sont payés en fin de contrat saisonnier.",
+    "Mise en garde : régime souvent mal appliqué par les clients — demander leur calendrier de fériés garantis."
+   ],
    "dateCourte": "avenants n° 2 (05/02/2007) et n° 6 (15/12/2009)",
    "source": "https://payfit.com/fr/ccn/hotellerie-cafe-restaurant/jours-feries/",
-   "fiabilite": "verifie"},
-  {"cle": "repas", "titre": "Nourriture : obligation de nourrir ou 1 MG/repas",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "repas",
+   "titre": "Nourriture : obligation de nourrir ou 1 MG/repas",
    "cleValeur": "1 repas dû par plage de présence — sinon indemnité 1 MG (4,35 €)",
    "points": [
     "Obligation HCR : nourrir le salarié présent aux heures de repas OU verser une **indemnité compensatrice = 1 MG par repas** (max **2 repas/jour**).",
     "MG 2026 : **4,25 €** (01/01-31/05) puis **4,35 €** au **01/06/2026** — soit jusqu'à **8,70 €/jour**.",
     "L'avantage en nature nourriture (repas fournis) est valorisé 1 MG/repas en paie et soumis à cotisations.",
-    "Piège intérim : l'indemnité nourriture est due aussi aux intérimaires présents aux heures de repas — oubli déclaratif très fréquent."],
+    "Piège intérim : l'indemnité nourriture est due aussi aux intérimaires présents aux heures de repas — oubli déclaratif très fréquent."
+   ],
    "dateCourte": "MG au 01/06/2026 : 4,35 € (arrêté 22/05/2026)",
    "source": "https://www.lhotellerie-restauration.fr/sos-experts/avantage-en-nature-nourriture-2026",
-   "fiabilite": "verifie"},
-  {"cle": "transport", "titre": "Transport",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
    "cleValeur": "Rien de conventionnel — 50 % transports publics",
    "points": [
     "Pas d'indemnité de transport conventionnelle HCR.",
     "Prise en charge légale : **50 %** des abonnements de transports publics.",
-    "Une prime de transport d'entreprise/d'usage peut exister — à demander au déclaratif."],
+    "Une prime de transport d'entreprise/d'usage peut exister — à demander au déclaratif."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/1979",
-   "fiabilite": "verifie"},
-  {"cle": "primes", "titre": "Primes : tutorat, remplacement",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "Primes : tutorat, remplacement",
    "cleValeur": "Peu de primes de branche : tutorat 2 %, remplacement temporaire",
    "points": [
     "Prime de **tutorat** : **2 %** du salaire de base mensuel (hors avantage nourriture), max 12 mois, versée en une fois en fin de contrat de professionnalisation.",
     "**Remplacement temporaire** sur un poste supérieur : salaire + prime ≥ minimum conventionnel du poste occupé.",
-    "PAS de 13ᵉ mois ni de prime d'ancienneté de branche — celles rencontrées sont d'entreprise/d'usage : les demander au déclaratif (égalité de traitement au prorata)."],
-   "dateCourte": "fiche CDTN 2026",
+    "PAS de 13ᵉ mois ni de prime d'ancienneté de branche — celles rencontrées sont d'entreprise/d'usage : les demander au déclaratif (égalité de traitement au prorata).",
+    "Nuance : prime « TVA » (avenant n° 6 du 15/12/2009, art. 5) : **2 %** du salaire de base annuel, plafond **500 €/an** — conditionnée à la TVA 5,5 % : de fait caduque, mais jamais abrogée (VIGUEUR_ETEN KALI).",
+    "À connaître : échelon supplémentaire d'expérience pour N1E1 après **1 an** d'ancienneté (art. 34 III CCN) — relève le minimum applicable au-dessus du pied de grille."
+   ],
+   "dateCourte": "fiche CDTN 2026 + avenants n° 6 et n° 10 (15/12/2009)",
    "source": "https://code.travail.gouv.fr/contribution/1979-quelles-sont-les-primes-prevues-par-la-convention-collective",
-   "fiabilite": "verifie"},
-  {"cle": "annualisation", "titre": "Aménagement du temps",
-   "cleValeur": "Avenant n° 2 (2007) : modulation possible — régime de l'établissement",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Aménagement du temps",
+   "cleValeur": "Avenants n° 2 (2007) et n° 19 (2014) : annualisation jusqu'à 12 mois",
    "points": [
     "L'avenant n° 2 du 05/02/2007 encadre l'aménagement du temps de travail HCR (modulation/annualisation possibles par établissement).",
-    "Pour l'intérimaire : l'aménagement du client s'applique (art. L.1251-21) — il conditionne le seuil de décompte des HS ; le relever au contrat de mise à disposition."],
-   "dateCourte": "avenant n° 2 du 05/02/2007",
+    "Régime le plus récent : avenant n° **19** du **29/09/2014** (étendu 08/03/2016, KALI KALITEXT000030068661) — période de référence jusqu'à **12 mois**, référence **1 607 h** (CDD inclus, hors alternants).",
+    "Pour l'intérimaire : l'aménagement du client s'applique (art. L.1251-21) et conditionne le seuil de décompte des HS — chez un client annualisé, c'est l'avenant n° 19 qu'il faut relever au contrat."
+   ],
+   "dateCourte": "avenants n° 2 (05/02/2007) et n° 19 (29/09/2014)",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635534",
-   "fiabilite": "verifie"},
-  {"cle": "saisonniers", "titre": "Saisonniers (secteur clé)",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers (secteur clé)",
    "cleValeur": "Contingent HS trimestriel 90 h ; reconduction saisonnière encadrée",
    "points": [
     "Établissements saisonniers : contingent HS de **90 h par trimestre civil** (au lieu de 360 h/an).",
-    "Le CDD saisonnier HCR est très encadré (droit commun + usages de branche : reconduction, priorité de réembauche selon accords).",
-    "Rappel intérim : mission saisonnière possible, mais l'**IFM 10 %** reste due (seul un accord de la branche TT ou d'ETT peut l'écarter) ; ICCP 10 % toujours due."],
-   "dateCourte": "fiche CDTN HS + droit commun",
+    "CDD saisonnier encadré par l'art. 14 CCN (KALI KALIARTI000005826270) : durée **1 à 9 mois**, reconduction possible (LRAR 2 mois avant), **3 saisons** complètes consécutives → requalification possible.",
+    "Extras (art. 14 CCN) : au-delà de **60 jours** de vacations par trimestre, requalification possible.",
+    "Rappel intérim : mission saisonnière possible, mais l'**IFM 10 %** reste due (seul un accord de la branche TT ou d'ETT peut l'écarter) ; ICCP 10 % toujours due."
+   ],
+   "dateCourte": "art. 14 CCN + avenant n° 2 du 05/02/2007 (art. 5.3)",
    "source": "https://code.travail.gouv.fr/contribution/1979-heures-supplementaires",
-   "fiabilite": "verifie"},
-  {"cle": "durees", "titre": "Durées maximales HCR",
-   "cleValeur": "Régime HCR spécifique par catégorie — vérifier avant suivi des heures",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales HCR",
+   "cleValeur": "Journalier 10-12 h selon catégorie · 46 h moy./12 sem. · 48 h abs.",
    "points": [
-    "Le secteur a des durées maximales aménagées par catégorie de personnel (cuisiniers, personnel de réception/veilleurs, autres) fixées par la CCN et ses avenants — relever le détail par poste sur le texte.",
-    "Socle légal : **48 h**/semaine absolues, **44 h**/12 semaines, journalier aménagé.",
-    "Vérifier aussi la durée contractuelle de l'établissement (35 h vs 39 h) qui change le calcul des HS structurelles."],
-   "dateCourte": "CCN + avenants — relevé détaillé à compléter",
+    "Maxima journaliers (HS comprises, art. 6 avenant n° 2 du 05/02/2007, KALIARTI000005826388) : administratif hors site **10 h** ; cuisinier **11 h** ; autres **11 h 30** ; réception/veilleur **12 h**.",
+    "Hebdomadaire : **46 h** en moyenne sur 12 semaines consécutives (dérogation conventionnelle étendue — pas 44 h) ; **48 h** absolues.",
+    "Travailleurs de nuit : **44 h** en moyenne sur 12 semaines (art. 12.3.2, avenant n° 2).",
+    "Vérifier aussi la durée contractuelle de l'établissement (35 h vs 39 h) qui change le calcul des HS structurelles."
+   ],
+   "dateCourte": "avenant n° 2 du 05/02/2007, art. 6 et 12.3",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635534",
-   "fiabilite": "aConfirmer"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
    "cleValeur": "Taux HS 10/20/50 · nourriture 2 MG/j · fériés garantis · base 39 h",
    "points": [
     "Les 4 pièges HCR : taux d'HS dérogatoires (**10/20/50 %**), indemnité **nourriture** (2 MG/j), **fériés garantis** (1 an), base contractuelle **39 h** fréquente.",
     "Toujours demander au client : durée contractuelle du poste, régime de nuit/dimanche d'entreprise, calendrier des fériés garantis, pratique nourriture (repas fournis ou indemnité).",
-    "Grille avenant 33 : vérifier niveau ET échelon du poste — le SMIC rattrape le bas de grille."],
+    "Grille avenant 33 : vérifier niveau ET échelon du poste — le SMIC rattrape le bas de grille."
+   ],
    "dateCourte": "synthèse fiches officielles 2026",
    "source": "https://code.travail.gouv.fr/convention-collective/1979",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie"
+  }
  ]
 }

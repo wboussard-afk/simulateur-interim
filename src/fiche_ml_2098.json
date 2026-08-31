@@ -1,85 +1,146 @@
 {
  "idcc": "2098",
  "titre": "Prestataires de services du secteur tertiaire (CCN du 13/08/1999)",
- "dateDerniereActu": "08/04/2025",
+ "dateDerniereActu": "24/03/2026",
  "themes": [
-  {"cle": "minima", "titre": "Minima : 3 grilles",
-   "cleValeur": "3 grilles (employés/AM/cadres) par coefficient — accord 08/04/2025",
+  {
+   "cle": "minima",
+   "titre": "Minima : 3 grilles",
+   "cleValeur": "3 valeurs de point (employés/TAM/cadres) — accord 08/04/2025 en 2 temps",
    "points": [
-    "**3 grilles** par catégorie, niveau et coefficient.",
-    "Dernier accord salaires relevé : **08/04/2025** (annexes II et IV) — montants à relever sur Légifrance avant paramétrage."],
-   "dateCourte": "accord du 08/04/2025",
+    "**3 grilles** par catégorie, niveau et coefficient — accord du **08/04/2025** étendu (KALI KALITEXT000051843359), appliqué en 2 temps : grilles n° 1 au **01/07/2025**, grilles n° 2 au **01/11/2025**.",
+    "Valeurs de point (art. 2) — grilles n° 1 : employés **4,105 €**, TAM **3,763 €**, cadres **3,687 €** ; grilles n° 2 : employés **3,876 €**, TAM/cadres inchangés ; coef 120 : **11,88** puis **11,91 €**/h.",
+    "Grilles mensuelles = annexes **I et III** ; annexes II et IV = garantie ANNUELLE de rémunération des commerciaux (coef ≥ 280 : mensuel × 12 × **1,10**, base 151,67 h).",
+    "Coefficients transitoires plafonnés en durée : 120 max **6 mois** ; 200 max **24 mois** ; 280/290 max **12 mois** (art. 3) — utile au contrôle déclaratif intérim."
+   ],
+   "dateCourte": "accord du 08/04/2025, étendu 17/06/2025 (2 étapes : 01/07 et 01/11/2025)",
    "source": "https://code.travail.gouv.fr/contribution/2098-quel-est-le-salaire-minimum",
-   "fiabilite": "aConfirmer"},
-  {"cle": "nuit", "titre": "Travail de nuit",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit",
    "cleValeur": "Centres d'appels étendus : régime à relever",
-   "points": ["Certaines activités (centres de relation client, accueil) travaillent en horaires étendus — régime de nuit à relever ; à défaut droit commun."],
+   "points": [
+    "Certaines activités (centres de relation client, accueil) travaillent en horaires étendus — régime de nuit à relever ; à défaut droit commun."
+   ],
    "dateCourte": "à relever",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635550",
-   "fiabilite": "aConfirmer"},
-  {"cle": "hs", "titre": "Heures supplémentaires",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
    "cleValeur": "Taux légaux 25/50 % ; contingent à relever",
-   "points": ["Taux légaux **25/50 %** à défaut ; contingent conventionnel à relever selon l'activité."],
+   "points": [
+    "Taux légaux **25/50 %** à défaut ; contingent conventionnel à relever selon l'activité."
+   ],
    "dateCourte": "à relever",
    "source": "https://code.travail.gouv.fr/contribution/2098-heures-supplementaires",
-   "fiabilite": "aConfirmer"},
-  {"cle": "weekend", "titre": "Samedi / dimanche",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Samedi / dimanche",
    "cleValeur": "Selon l'activité (accueil événementiel…) — à relever",
-   "points": ["Contreparties selon activité et accords d'entreprise — demander au client."],
-   "dateCourte": "à relever",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635550",
-   "fiabilite": "aConfirmer"},
-  {"cle": "feries", "titre": "Jours fériés",
-   "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
-   "points": ["Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."],
-   "dateCourte": "à relever",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635550",
-   "fiabilite": "aConfirmer"},
-  {"cle": "repas", "titre": "Repas",
-   "cleValeur": "Pas de panier de branche",
-   "points": ["Pas d'indemnité repas de branche relevée — pratique d'entreprise à demander."],
-   "dateCourte": "—",
-   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635550",
-   "fiabilite": "aConfirmer"},
-  {"cle": "transport", "titre": "Transport",
-   "cleValeur": "50 % transports publics",
-   "points": ["Prise en charge légale de **50 %** des abonnements."],
-   "dateCourte": "droit commun",
-   "source": "https://code.travail.gouv.fr/convention-collective/2098",
-   "fiabilite": "verifie"},
-  {"cle": "primes", "titre": "AUCUNE prime de branche",
-   "cleValeur": "La CCN ne prévoit PAS de prime obligatoire (fiche officielle)",
    "points": [
-    "Fiche officielle : « cette convention collective ne prévoit pas de prime » — ni 13ᵉ mois ni ancienneté de branche.",
-    "Les primes rencontrées sont d'entreprise/d'usage : les demander au déclaratif (égalité de traitement au prorata)."],
-   "dateCourte": "fiche CDTN maj 11/01/2024",
-   "source": "https://code.travail.gouv.fr/contribution/2098-quelles-sont-les-primes-prevues-par-la-convention-collective",
-   "fiabilite": "verifie"},
-  {"cle": "annualisation", "titre": "Aménagement du temps",
-   "cleValeur": "Par accord — régime du client",
-   "points": ["Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."],
+    "Contreparties selon activité et accords d'entreprise — demander au client."
+   ],
+   "dateCourte": "à relever",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635550",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés",
+   "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
+   "points": [
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+   ],
+   "dateCourte": "à relever",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635550",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "repas",
+   "titre": "Repas",
+   "cleValeur": "Pas de panier de branche",
+   "points": [
+    "Pas d'indemnité repas de branche relevée — pratique d'entreprise à demander."
+   ],
    "dateCourte": "—",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635550",
-   "fiabilite": "verifie"},
-  {"cle": "saisonniers", "titre": "Saisonniers",
-   "cleValeur": "Rien de spécifique",
-   "points": ["Régime intérim de droit commun (IFM + ICCP 10 %)."],
-   "dateCourte": "—",
-   "source": "https://code.travail.gouv.fr/convention-collective/2098",
-   "fiabilite": "verifie"},
-  {"cle": "durees", "titre": "Durées maximales",
-   "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
-   "points": ["Maxima légaux à défaut de dérogation."],
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
+   "cleValeur": "50 % transports publics",
+   "points": [
+    "Prise en charge légale de **50 %** des abonnements."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/2098",
-   "fiabilite": "verifie"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "AUCUNE prime de branche (mais congés d'ancienneté)",
+   "cleValeur": "Aucune prime de branche ; congés d'ancienneté 1-4 j (5/10/15/20 ans)",
+   "points": [
+    "Aucun texte de branche n'institue de 13ᵉ mois ni de prime d'ancienneté (conteneur KALI passé au crible — la fiche officielle « pas de prime » est confirmée).",
+    "**Congés d'ancienneté** en revanche : 1/2/3/4 jours ouvrés à 5/10/15/20 ans (avenant du 28/06/2011 étendu, KALI KALITEXT000024891474, art. 17.3) — à intégrer à l'égalité de traitement le cas échéant.",
+    "Les primes rencontrées sont d'entreprise/d'usage : les demander au déclaratif (égalité de traitement au prorata)."
+   ],
+   "dateCourte": "avenant du 28/06/2011 (congés) ; base KALI vérifiée au 12/08/2026",
+   "source": "https://code.travail.gouv.fr/contribution/2098-quelles-sont-les-primes-prevues-par-la-convention-collective",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Aménagement du temps",
+   "cleValeur": "Par accord — régime du client",
+   "points": [
+    "Pour l'intérimaire, l'aménagement du client s'applique (art. L.1251-21)."
+   ],
+   "dateCourte": "—",
+   "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635550",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers",
+   "cleValeur": "Rien de spécifique",
+   "points": [
+    "Régime intérim de droit commun (IFM + ICCP 10 %)."
+   ],
+   "dateCourte": "—",
+   "source": "https://code.travail.gouv.fr/convention-collective/2098",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales",
+   "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
+   "points": [
+    "Maxima légaux à défaut de dérogation."
+   ],
+   "dateCourte": "droit commun",
+   "source": "https://code.travail.gouv.fr/convention-collective/2098",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
    "cleValeur": "Branche « fourre-tout » tertiaire — identifier l'activité réelle",
    "points": [
     "Branche large (centres d'appels, accueil, animation, recouvrement…) : vérifier que l'IDCC 2098 est bien celui applicable à l'activité réelle du client.",
-    "CCN du **13/08/1999** (IDCC 2098)."],
-   "dateCourte": "CCN 13/08/1999",
+    "Champ d'application (art. 2) révisé par avenants étendus des **10/12/2024** et **24/03/2026** — la vérification de l'activité réelle reste essentielle.",
+    "CCN du **13/08/1999** (IDCC 2098, KALI KALITEXT000005679043)."
+   ],
+   "dateCourte": "CCN 13/08/1999 (champ révisé 24/03/2026)",
    "source": "https://code.travail.gouv.fr/convention-collective/2098",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie"
+  }
  ]
 }
