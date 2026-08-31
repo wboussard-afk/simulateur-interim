@@ -3397,18 +3397,26 @@ function buildEtudePrix() {
   const libLog = logFacture ? "(logement facturé en sus)" : (logExiste ? "(logement compris)" : "(sans logement)");
   const txGlobal = logFacture ? m.O66 : m.O62;   /* facturé à part -> taux hors logement */
   s += "<h2>L'offre commerciale</h2><table>";
-  /* l'offre est EXPRIMÉE en coefficient OU en taux global (sélecteur « Offre exprimée en ») :
-   * la valeur choisie porte l'encadré, l'autre figure en dessous « pour information ». */
+  /* l'offre n'affiche QUE la valeur choisie (sélecteur « Offre exprimée en ») ;
+   * l'AUTRE figure en petit, « pour information », sous la dernière ligne du bloc
+   * (jamais en ligne pleine — consigne 31/08). */
   const exprTaux = inp.offreExpr === "taux";
-  const rowCoef = hl => kv("Coefficient de facturation (arrondi au centième supérieur)" +
-                           (hl ? "" : " — <i>pour information</i>"),
-                           hl ? "<span class='valbox'>" + N2.format(coefAff) + "</span>" : N2.format(coefAff));
-  const rowTaux = hl => kv("Taux global facturé HT " + libLog + (isBTPe ? " — jusqu'à la 43ᵉ heure" : "") +
-                           (hl ? "" : " — <i>pour information</i>"),
-                           hl ? "<span class='valbox'>" + fmtE(txGlobal) + "/h</span>" : fmtE(txGlobal) + "/h");
-  const rowTaux43 = () => isBTPe ? kv("Au-delà de la 43ᵉ heure (majoration 50 %)", fmtE(txGlobal * 1.5) + "/h") : "";
-  if (exprTaux) { s += rowTaux(true) + rowTaux43() + rowCoef(false); }
-  else          { s += rowCoef(true) + rowTaux(false) + rowTaux43(); }
+  const libTaux = "Taux global facturé HT " + libLog;
+  if (exprTaux) {
+    const infoCoef = "<span class='sublet'>pour information : coefficient de facturation " +
+                     N2.format(coefAff) + " (arrondi au centième supérieur)</span>";
+    if (isBTPe) {
+      s += kv(libTaux + " — jusqu'à la 43ᵉ heure", "<span class='valbox'>" + fmtE(txGlobal) + "/h</span>");
+      s += kv("Au-delà de la 43ᵉ heure (majoration 50 %)" + infoCoef, fmtE(txGlobal * 1.5) + "/h");
+    } else {
+      s += kv(libTaux + infoCoef, "<span class='valbox'>" + fmtE(txGlobal) + "/h</span>");
+    }
+  } else {
+    s += kv("Coefficient de facturation (arrondi au centième supérieur)" +
+            "<span class='sublet'>pour information : taux global facturé HT " + libLog + " " + fmtE(txGlobal) + "/h" +
+            (isBTPe ? " jusqu'à la 43ᵉ heure · au-delà (majoration 50 %) : " + fmtE(txGlobal * 1.5) + "/h" : "") + "</span>",
+            "<span class='valbox'>" + N2.format(coefAff) + "</span>");
+  }
   s += kv("Base horaire de l'offre",
           "<b>" + N2.format(inp.heures) + " h/sem sur " + inp.jours + " j</b>" +
           "<span class='sublet'>" + N2.format(m.D24) + " h normales" +
