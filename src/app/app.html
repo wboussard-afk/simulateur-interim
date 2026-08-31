@@ -416,7 +416,7 @@ table.grille td.neg { color: var(--bad); }
           </div>
         </div>
       </div>
-      <div class="field"><label for="in-agence">Agence PALMA (taux AT)</label>
+      <div class="field"><label for="in-agence">Agence PALMA</label>
         <select id="in-agence" title="Sélectionner l'agence remplit automatiquement son taux AT-MP dans « Tx AT en % » (carte Charges) — le taux reste modifiable à la main ensuite. L'agence est reprise dans l'étude de prix.">
           <option value="">— (AT moyen 2,08 %)</option>
         </select></div>
@@ -2082,7 +2082,7 @@ const AGENCES_PALMA = {
 };
 Object.keys(AGENCES_PALMA).forEach(a => {
   const o = document.createElement("option");
-  o.value = a; o.textContent = a + " — AT " + N2.format(AGENCES_PALMA[a]) + " %";
+  o.value = a; o.textContent = a;   // le taux AT est appliqué silencieusement (visible carte Charges)
   $("in-agence").appendChild(o);
 });
 $("in-agence").addEventListener("change", () => {
