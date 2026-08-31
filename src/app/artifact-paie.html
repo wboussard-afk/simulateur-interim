@@ -483,6 +483,11 @@ function defaultInputs(DB, sector) {
     remisePct: 0,               // M63
     recrutTarifH: 0,            // prestataire externe de recrutement — € HT par heure travaillée (0,50-1,30 constatés ; 0 = aucun)
     participationHorsPaie: false, // true = participation logement par PRÉLÈVEMENT BANCAIRE : net de paie non réduit, coût logement toujours amorti
+    agence: "",                 // agence PALMA sélectionnée (fixe le taux AT par défaut ; portée dans l'étude de prix)
+    cetCoutsReels: false,       // intégrer les coûts CET maison (abondement + causeries) dans la marge
+    cetAbondPct: 5,             // abondement % versé à chaque déblocage (politique maison : 5 %)
+    cetDebloc: 3,               // déblocages CET par an (fonctionnement normal : 3)
+    cetCauserieH: 1.5,          // heures de causerie par déblocage, payées NON facturées (contrat : 1 h 50)
     refactDim: true, refactFerie: true, refactNuit: true,
     annualisation: false,
     heuresFactNormal: null,     // L24 — null = auto min(35 ; heures)
@@ -776,6 +781,17 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   /* --- Provision CET (ligne 85) --- */
   S.D85 = (S.F32 + S.F33) > 0 ? 0 : S.D32 * 0.21;
   S.H85 = S.D85 * 0.45;
+  /* Coûts CET réels (politique maison, OPTION — décochée = classeur d'origine) :
+     abondement versé à chaque déblocage (régime permanent : X % du flux hebdo provisionné,
+     le nombre de déblocages ne change pas le total d'abondement, seulement les causeries)
+     + causeries payées NON FACTURÉES (nbDéblocages × heures × taux brut, ramenées à la semaine).
+     Les deux sont chargés au taux des charges décalées du classeur (H85/D85 = 45 %). */
+  S.cetAbondCout = 0; S.cetCauserieCout = 0;
+  if (i.cetCoutsReels && S.D85 > 0) {
+    S.cetAbondCout = (i.cetAbondPct || 0) / 100 * S.D85 * 1.45;
+    S.cetCauserieCout = ((i.cetDebloc || 0) * (i.cetCauserieH || 0) / 52) * i.thBrut * 1.45;
+  }
+  S.cetCoutReel = S.cetAbondCout + S.cetCauserieCout;
 
   /* --- Totaux cotisations (ligne 88) ---
    * agri : F88 inclut F77 ; tarifaire : pas de F77 (taux 0 → terme nul). */
@@ -963,8 +979,8 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   /* Prestataire externe de recrutement : € HT × heures travaillées, en déduction directe de la marge
      (coût interne agence — n'apparaît jamais dans l'étude de prix client). */
   S.recrutCout = (i.recrutTarifH || 0) * (i.heures || 0);
-  S.O61 = S.O60 - S.F93 - S.recrutCout;
-  S.P61 = S.P60 - S.F93 - S.recrutCout;
+  S.O61 = S.O60 - S.F93 - S.recrutCout - (S.cetCoutReel || 0);
+  S.P61 = S.P60 - S.F93 - S.recrutCout - (S.cetCoutReel || 0);
   S.O62 = i.heures ? S.O60 / i.heures : 0;
   S.P62 = i.heures ? S.P60 / i.heures : 0;
   S.O63 = S.O60 - (S.O42 * i.remisePct / 100);

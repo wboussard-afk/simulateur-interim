@@ -416,6 +416,10 @@ table.grille td.neg { color: var(--bad); }
           </div>
         </div>
       </div>
+      <div class="field"><label for="in-agence">Agence PALMA (taux AT)</label>
+        <select id="in-agence" title="Sélectionner l'agence remplit automatiquement son taux AT-MP dans « Tx AT en % » (carte Charges) — le taux reste modifiable à la main ensuite. L'agence est reprise dans l'étude de prix.">
+          <option value="">— (AT moyen 2,08 %)</option>
+        </select></div>
       <div class="field"><label for="in-client">Client</label><input type="text" id="in-client" placeholder="Nom du client"></div>
       <div class="field"><label for="in-dept">Département de mission</label><select id="in-dept"><option value="">—</option></select>
         <span class="hint only-btp" id="dept-region"></span></div>
@@ -493,7 +497,13 @@ table.grille td.neg { color: var(--bad); }
           <div class="field"><label for="in-majoferie">Majoration férié</label><select id="in-majoferie"></select></div>
           <div class="field"><label for="in-majodim">Majoration dimanche</label><select id="in-majodim"></select></div>
         </div>
-        <p class="hint"><b>Mise en CET</b> : 100 % des IFM/ICCP placés sur le compte épargne temps — le classeur provisionne 21 % de la base + 45 % de charges (D85/H85) au lieu de payer les indemnités en paie ; déblocage conseillé à l'issue du 2ᵉ contrat de prolongation. <span id="cet-eco"></span><br>
+        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-top:8px">
+          <label class="check" style="align-self:center"><input type="checkbox" id="in-cetreel" title="Intègre au taux de MB les coûts réels de la politique CET maison : abondement versé à chaque déblocage + causeries payées non facturées. Décoché = provision du classeur seule (comparable à l'Excel d'origine et aux anciennes études)."> Coûts CET réels (abondement + causeries)</label>
+          <div class="field"><label for="in-cetabond">Abondement % / déblocage</label><input type="number" id="in-cetabond" step="0.5" min="0"></div>
+          <div class="field"><label for="in-cetdebloc">Déblocages / an</label><input type="number" id="in-cetdebloc" step="1" min="0"></div>
+          <div class="field"><label for="in-cetcaus">Causerie h / déblocage</label><input type="number" id="in-cetcaus" step="0.25" min="0" title="Contrat de causerie : heures payées au salarié et NON facturées au client, à chaque déblocage."></div>
+        </div>
+        <p class="hint"><b>Mise en CET</b> : 100 % des IFM/ICCP placés sur le compte épargne temps — le classeur provisionne 21 % de la base + 45 % de charges (D85/H85) au lieu de payer les indemnités en paie ; déblocage conseillé à l'issue du 2ᵉ contrat de prolongation. <span id="cet-eco"></span> <span id="cet-reel-out"></span><br>
         Attestation fiscale <b>OUI</b> : maladie salariale 5,5&nbsp;% et pas de CSG/CRDS. <b>NON</b> : CSG/CRDS, pas de maladie salariale.</p>
       </div>
     </section>
@@ -1106,6 +1116,11 @@ function defaultInputs(DB, sector) {
     remisePct: 0,               // M63
     recrutTarifH: 0,            // prestataire externe de recrutement — € HT par heure travaillée (0,50-1,30 constatés ; 0 = aucun)
     participationHorsPaie: false, // true = participation logement par PRÉLÈVEMENT BANCAIRE : net de paie non réduit, coût logement toujours amorti
+    agence: "",                 // agence PALMA sélectionnée (fixe le taux AT par défaut ; portée dans l'étude de prix)
+    cetCoutsReels: false,       // intégrer les coûts CET maison (abondement + causeries) dans la marge
+    cetAbondPct: 5,             // abondement % versé à chaque déblocage (politique maison : 5 %)
+    cetDebloc: 3,               // déblocages CET par an (fonctionnement normal : 3)
+    cetCauserieH: 1.5,          // heures de causerie par déblocage, payées NON facturées (contrat : 1 h 50)
     refactDim: true, refactFerie: true, refactNuit: true,
     annualisation: false,
     heuresFactNormal: null,     // L24 — null = auto min(35 ; heures)
@@ -1399,6 +1414,17 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   /* --- Provision CET (ligne 85) --- */
   S.D85 = (S.F32 + S.F33) > 0 ? 0 : S.D32 * 0.21;
   S.H85 = S.D85 * 0.45;
+  /* Coûts CET réels (politique maison, OPTION — décochée = classeur d'origine) :
+     abondement versé à chaque déblocage (régime permanent : X % du flux hebdo provisionné,
+     le nombre de déblocages ne change pas le total d'abondement, seulement les causeries)
+     + causeries payées NON FACTURÉES (nbDéblocages × heures × taux brut, ramenées à la semaine).
+     Les deux sont chargés au taux des charges décalées du classeur (H85/D85 = 45 %). */
+  S.cetAbondCout = 0; S.cetCauserieCout = 0;
+  if (i.cetCoutsReels && S.D85 > 0) {
+    S.cetAbondCout = (i.cetAbondPct || 0) / 100 * S.D85 * 1.45;
+    S.cetCauserieCout = ((i.cetDebloc || 0) * (i.cetCauserieH || 0) / 52) * i.thBrut * 1.45;
+  }
+  S.cetCoutReel = S.cetAbondCout + S.cetCauserieCout;
 
   /* --- Totaux cotisations (ligne 88) ---
    * agri : F88 inclut F77 ; tarifaire : pas de F77 (taux 0 → terme nul). */
@@ -1586,8 +1612,8 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   /* Prestataire externe de recrutement : € HT × heures travaillées, en déduction directe de la marge
      (coût interne agence — n'apparaît jamais dans l'étude de prix client). */
   S.recrutCout = (i.recrutTarifH || 0) * (i.heures || 0);
-  S.O61 = S.O60 - S.F93 - S.recrutCout;
-  S.P61 = S.P60 - S.F93 - S.recrutCout;
+  S.O61 = S.O60 - S.F93 - S.recrutCout - (S.cetCoutReel || 0);
+  S.P61 = S.P60 - S.F93 - S.recrutCout - (S.cetCoutReel || 0);
   S.O62 = i.heures ? S.O60 / i.heures : 0;
   S.P62 = i.heures ? S.P60 / i.heures : 0;
   S.O63 = S.O60 - (S.O42 * i.remisePct / 100);
@@ -1987,6 +2013,9 @@ function setFormFromInputs() {
   $("in-majonuit").value = inp.majoNuitLabel; $("in-hsup").value = inp.hSupLabel;
   $("in-majonorm").value = inp.majoNormLabel; $("in-majonormq").value = inp.majoNormQty;
   $("in-atmp").value = inp.rates.atPat;
+  $("in-agence").value = inp.agence || "";
+  $("in-cetreel").checked = !!inp.cetCoutsReels;
+  $("in-cetabond").value = inp.cetAbondPct; $("in-cetdebloc").value = inp.cetDebloc; $("in-cetcaus").value = inp.cetCauserieH;
   /* IFM/ICCP : « paiement direct » (indemnités payées en paie) ou « mise en CET »
    * (non payées → provision CET 21 % + 45 % du classeur, D85/H85) */
   const direct = !!inp.iccp || !!inp.ifm;
@@ -2109,6 +2138,9 @@ function readInputsFromForm() {
   inp.tauxReduits = $("in-tauxreduits").checked;
   for (const [key] of RATE_DEFS) { const el = $("rate-" + key); if (el) inp.rates[key] = num(el); }
   inp.rates.atPat = num($("in-atmp"));
+  inp.agence = $("in-agence").value;
+  inp.cetCoutsReels = $("in-cetreel").checked;
+  inp.cetAbondPct = num($("in-cetabond")); inp.cetDebloc = num($("in-cetdebloc")); inp.cetCauserieH = num($("in-cetcaus"));
 }
 
 /* ================= RENDER ================= */
@@ -2129,7 +2161,12 @@ function render(r) {
   $("out-mb").textContent = fmtE(m.O64);
   $("out-mbpct").textContent = fmtP(m.H17);
   $("out-ca").textContent = fmtE(m.O60);
-  $("out-cout").textContent = fmtE(m.F93 + (m.recrutCout || 0));
+  $("out-cout").textContent = fmtE(m.F93 + (m.recrutCout || 0) + (m.cetCoutReel || 0));
+  /* coûts CET réels (abondement + causeries) : impact affiché dans la carte CET */
+  $("cet-reel-out").innerHTML = (m.cetCoutReel > 0.005 && m.O60 > 0)
+    ? "<b>Coûts CET réels :</b> abondement " + fmtE(m.cetAbondCout) + "/sem + causeries " + fmtE(m.cetCauserieCout) +
+      "/sem = <b>−" + fmtE(m.cetCoutReel) + "/sem</b> de marge (−" + N2.format(m.cetCoutReel / m.O60 * 100) + " pt de taux)."
+    : (inp.cetCoutsReels && !(m.D85 > 0) ? "<b>Coûts CET réels :</b> sans objet (IFM/ICCP payés en direct)." : "");
   /* les deux nets selon le mode de participation logement (carte Logement) */
   (function () {
     const partHebdo = Math.max(0, -(inp.participationLibre || 0));
@@ -2766,6 +2803,7 @@ function renderFact(m) {
   s += kvRow("CA HT total", "O60", fmtE(m.O60), "total");
   if (inp.remisePct) s += kvRow("Remise fin d'année " + N2.format(inp.remisePct) + " % × CA soumis à cotisations (" + fmtE(m.O42) + ")", "M63", fmtE(-m.O42 * inp.remisePct / 100));
   if (m.recrutCout) s += kvRow("Prestataire recrutement " + N2.format(inp.recrutTarifH) + " € HT × " + N2.format(inp.heures) + " h travaillées (coût interne, non refacturé)", "", fmtE(-m.recrutCout));
+  if (m.cetCoutReel > 0.005) s += kvRow("Coûts CET réels — abondement " + N2.format(inp.cetAbondPct) + " %/débloc. + causeries " + N2.format(inp.cetCauserieH) + " h × " + N2.format(inp.cetDebloc) + "/an (payées non facturées)", "", fmtE(-m.cetCoutReel));
   s += kvRow("Volume de marge brute", "O64", fmtE(m.O64), "total");
   s += kvRow("Taux de marge", "H17", fmtP(m.H17), "total");
   $("tbl-fact").innerHTML = s;
@@ -3052,6 +3090,24 @@ document.querySelectorAll("input, select").forEach(el => {
  * RÉELLE routière (ex. Savoie) : corriger alors le champ km à la main. */
 wireAdrAutocomplete("in-adr-dom", "sug-adr-dom");
 wireAdrAutocomplete("in-adr-cha", "sug-adr-cha");
+/* ===== Agences PALMA : taux AT-MP par entité (fournis par la direction, 08/2026).
+   Sélection = remplit in-atmp (modifiable ensuite à la main). ===== */
+const AGENCES_PALMA = {
+  "PALMA ILE DE FRANCE": 1.25, "PALMA AQUITAINE": 1.92, "PALMA RHONE ALPES": 2.00,
+  "PALMA OCCITANIE": 2.78, "PALMA NORMANDIE": 2.78, "PALMA ALSACE": 1.21,
+  "PALMA HAUTS DE FRANCE": 2.20, "PALMA BRETAGNE": 1.25, "PALMA ATLANTIQUE": 0.63,
+  "PALMA ANJOU": 2.22, "PALMA PROVENCE": 2.78
+};
+Object.keys(AGENCES_PALMA).forEach(a => {
+  const o = document.createElement("option");
+  o.value = a; o.textContent = a + " — AT " + N2.format(AGENCES_PALMA[a]) + " %";
+  $("in-agence").appendChild(o);
+});
+$("in-agence").addEventListener("change", () => {
+  const a = $("in-agence").value;
+  if (a && AGENCES_PALMA[a] != null) $("in-atmp").value = AGENCES_PALMA[a];
+  onChange();
+});
 /* deux modalités : zone BTP (orthodromique ALLER, BTP seulement) et tranche URSSAF
  * (km RÉELS ALLER-RETOUR — industrie ET btp) */
 function refreshDistHint(infoGeo) {
@@ -3181,6 +3237,7 @@ function buildEtudePrix() {
     '<img class="logo-etude" src="' + LOGO_AB2PRO + '" alt="AB2Pro — Groupe Triangle Solutions RH">' +
     "<h1>Synthèse étude de prix — " + esc(inp.client || "(client à renseigner)") + "</h1>" +
     '<div class="meta">' + esc(secteur) + " · établie le " + dateStr + " · année " + now.getFullYear() +
+    (inp.agence ? " · " + esc(inp.agence) : "") +
     (inp.dept ? " · mission : " + esc(inp.dept) : "") +
     (inp.niveauQualif && inp.sector === "tarifaire" && inp.branche === "btp" ? " · qualification " + esc(inp.niveauQualif) : "") +
     "</div></div>";
