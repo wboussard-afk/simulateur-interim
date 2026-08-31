@@ -418,7 +418,7 @@ table.grille td.neg { color: var(--bad); }
           <option value="">— (AT moyen 2,08 %)</option>
         </select></div>
       <div class="field"><label for="in-client">Client</label><input type="text" id="in-client" placeholder="Nom du client"></div>
-      <div class="field"><label for="in-dept">Département de mission</label><select id="in-dept"><option value="">—</option></select>
+      <div class="field"><label for="in-dept" title="Le département du SIÈGE SOCIAL du client (ou prospect) détermine la grille salariale régionale BTP applicable — pas le lieu de la mission.">Département du siège social du client (BTP)</label><select id="in-dept"><option value="">—</option></select>
         <span class="hint only-btp" id="dept-region"></span></div>
       <!-- « Type de simulateur » supprimé (20/08/2026) : le mode est déduit du secteur
            (agri → MSA, BTP → GRAND D, industrie → INDUSTRIE) — select caché pour l'état moteur -->
@@ -3307,7 +3307,7 @@ function buildEtudePrix() {
     "<h1>Synthèse étude de prix — " + esc(inp.client || "(client à renseigner)") + "</h1>" +
     '<div class="meta">' + esc(secteur) + " · établie le " + dateStr + " · année " + now.getFullYear() +
     (inp.agence ? " · <span class='agence'>" + esc(inp.agence) + "</span>" : "") +
-    (inp.dept ? " · mission : " + esc(inp.dept) : "") +
+    (inp.dept ? " · siège client : " + esc(inp.dept) : "") +
     (inp.niveauQualif && inp.sector === "tarifaire" && inp.branche === "btp" ? " · qualification " + esc(inp.niveauQualif) : "") +
     "</div></div>";
 
