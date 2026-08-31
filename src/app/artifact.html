@@ -754,9 +754,10 @@ table.grille td.neg { color: var(--bad); }
         <table class="kv">
           <tr><td>Salaire brut total<span class="ref">F42</span></td><td class="n" id="out-brut">—</td></tr>
           <tr><td>Net réel avant régul / h (indemnités et participation incluses)<span class="ref">D14</span></td><td class="n" id="out-neth">—</td></tr>
-          <tr><td>Net attendu / h<span class="ref">D12</span></td><td class="n" id="out-netatt">—</td></tr>
+          <tr><td>Net attendu / h — fiche de paie<span class="ref">D12</span></td><td class="n" id="out-netatt">—</td></tr>
           <tr><td>Écart net réel − attendu</td><td class="n" id="out-netdelta">—</td></tr>
-          <tr><td>Net atteint / h (avances, indemnités et primes incluses)</td><td class="n" id="out-netifm">—</td></tr>
+          <tr><td>Net atteint / h — FICHE DE PAIE (avances, indemnités et primes incluses)</td><td class="n" id="out-netifm">—</td></tr>
+                <tr id="tr-netmiroir" hidden><td id="lbl-netmiroir">…</td><td class="n" id="out-netmiroir">—</td></tr>
           <tr><td><span id="lbl-ras">Retenue à la source</span><span class="ref">F43</span></td><td class="n" id="out-ras">—</td></tr>
           <tr><td>Avance sur salaire (régul)<span class="ref">F57/F58</span></td><td class="n" id="out-avance">—</td></tr>
           <tr><td>CET disponible (net estimé)<span class="ref">D85</span></td><td class="n" id="out-cetdispo">—</td></tr>
@@ -2142,6 +2143,21 @@ function badgeFor(elig) {
   return elig === "TOTALE" ? ["good", "Exonération totale"] :
          elig === "PARTIELLE" ? ["warn", "Exonération partielle"] : ["bad", "Non éligible"];
 }
+/* Carte Logement — les deux nets, calculés depuis le net de PAIE fourni (€/h).
+   Appelée deux fois par rendu : provisoirement depuis render() (net avant régul),
+   puis par le bloc cascade avec le NET ATTEINT (avances incluses) qui fait foi. */
+function majLogNets(netPaieH) {
+  const zone = $("log-nets"); if (!zone) return;
+  const partHebdo = Math.max(0, -(inp.participationLibre || 0));
+  if (!(partHebdo > 0) || !(inp.heures > 0) || !(netPaieH > 0)) { zone.innerHTML = ""; return; }
+  const partH = partHebdo / inp.heures;
+  zone.innerHTML = inp.participationHorsPaie
+    ? "Net FICHE DE PAIE versé ≈ <b>" + fmtE(netPaieH) + "/h</b> (participation non déduite en paie) · " +
+      "net une fois logé ≈ <b>" + fmtE(netPaieH - partH) + "/h</b> — participation " + fmtE(partHebdo) +
+      "/sem (≈ " + fmtE(partHebdo * 4) + " par 4 semaines) par prélèvement bancaire : budget logement ENGAGÉ (plafond) à annoncer au salarié."
+    : "Net FICHE DE PAIE versé (retenue déduite, avances incluses) ≈ <b>" + fmtE(netPaieH) + "/h</b> · " +
+      "hors retenue logement ≈ <b>" + fmtE(netPaieH + partH) + "/h</b> — retenue " + fmtE(partHebdo) + "/sem sur la paie.";
+}
 function kvRow(label, ref, val, cls) {
   return "<tr" + (cls ? ' class="' + cls + '"' : "") + "><td>" + label +
          (ref ? '<span class="ref">' + ref + "</span>" : "") + '</td><td class="n">' + val + "</td></tr>";
@@ -2161,22 +2177,11 @@ function render(r) {
     ? "<b>Coûts CET réels :</b> abondement " + fmtE(m.cetAbondCout) + "/sem + causeries " + fmtE(m.cetCauserieCout) +
       "/sem = <b>−" + fmtE(m.cetCoutReel) + "/sem</b> de marge (−" + N2.format(m.cetCoutReel / m.O60 * 100) + " pt de taux)."
     : (inp.cetCoutsReels && !(m.D85 > 0) ? "<b>Coûts CET réels :</b> sans objet (IFM/ICCP payés en direct)." : "");
-  /* les deux nets selon le mode de participation logement (carte Logement) */
-  (function () {
-    const partHebdo = Math.max(0, -(inp.participationLibre || 0));
-    /* le levier participation n'est sans objet que si la CIBLE est le net hors prélèvement */
-    $("pilot-part").disabled = !!($("in-ciblenet-type") && $("in-ciblenet-type").value === "paie");
-    if (!(partHebdo > 0) || !(inp.heures > 0)) { $("log-nets").innerHTML = ""; return; }
-    const h = inp.heures;
-    const netPaie = m.F90 / h, apres = (m.F90ApresLog !== undefined ? m.F90ApresLog : m.F90) / h,
-          hors = (m.F90HorsLog !== undefined ? m.F90HorsLog : m.F90) / h;
-    $("log-nets").innerHTML = inp.participationHorsPaie
-      ? "Net FICHE DE PAIE ≈ <b>" + fmtE(netPaie) + "/h</b> (participation non déduite en paie) · " +
-        "net une fois logé ≈ <b>" + fmtE(apres) + "/h</b> — participation " + fmtE(partHebdo) +
-        "/sem (≈ " + fmtE(partHebdo * 4) + " par 4 semaines) par prélèvement bancaire : c'est le budget logement ENGAGÉ (plafond) à annoncer au salarié."
-      : "Net fiche de paie (retenue déduite) ≈ <b>" + fmtE(netPaie) + "/h</b> · " +
-        "hors retenue logement ≈ <b>" + fmtE(hors) + "/h</b> — retenue " + fmtE(partHebdo) + "/sem sur la paie.";
-  })();
+  /* le levier participation n'est sans objet que si la CIBLE est le net hors prélèvement */
+  $("pilot-part").disabled = !!($("in-ciblenet-type") && $("in-ciblenet-type").value === "paie");
+  /* premier remplissage (avant régul) — le bloc cascade REFINE ensuite avec le net atteint (avances incluses),
+     pour que la carte Logement et le panneau « Contrôle du net » racontent la MÊME histoire */
+  if (inp.heures > 0) majLogNets(((m.F91 !== undefined ? m.F91 : m.F90)) / inp.heures);
   $("out-mbh").textContent = inp.heures ? fmtE(m.O64 / inp.heures) + "/h" : "—";
   $("out-mbhdn").textContent = fmtE(m.F93);
   $("out-mbhdnpct").textContent = inp.heures ? fmtE(m.F93 / inp.heures) + "/h" : "—";
@@ -2266,6 +2271,22 @@ function render(r) {
    * − participation + avances couvertes par le CET (une avance sans fonds ne compte pas) */
   const netAtteint = m.D31 ? (m.F90 + cetUtilise) / m.D31 : 0;
   $("out-netifm").textContent = inp.heures ? fmtE(netAtteint) : "—";
+  /* ligne miroir : le MÊME net atteint lu dans l'autre référentiel logement */
+  (function () {
+    const tr = $("tr-netmiroir"); if (!tr) return;
+    const partH = Math.max(0, -(inp.participationLibre || 0)) / (inp.heures || 1);
+    if (!(partH > 0) || !inp.heures) { tr.hidden = true; return; }
+    tr.hidden = false;
+    if (inp.participationHorsPaie) {
+      $("lbl-netmiroir").textContent = "… soit une fois le logement prélevé (prélèvement bancaire)";
+      $("out-netmiroir").textContent = fmtE(netAtteint - partH);
+    } else {
+      $("lbl-netmiroir").textContent = "… soit hors retenue logement (avant la retenue sur paie)";
+      $("out-netmiroir").textContent = fmtE(netAtteint + partH);
+    }
+  })();
+  /* la carte Logement s'aligne sur ce net ATTEINT (avances incluses) — une seule vérité */
+  majLogNets(netAtteint);
   const na = $("ro-netatteint");
   na.value = inp.heures ? N2.format(netAtteint) + " €/h" : "—";
   if (inp.netAttendu != null && inp.heures) {
@@ -2604,6 +2625,16 @@ function prRecalc() {
   const h = inp.heures;
   const ids = { paie: "pr-netpaie", prelev: "pr-prelev", loge: "pr-netloge" };
   const v = { paie: num($(ids.paie)), prelev: num($(ids.prelev)), loge: num($(ids.loge)) };
+  /* UNE seule valeur saisie (net logé ou net paie) : le prélèvement se pré-remplit depuis
+     la carte Logement (participation en place, sinon coût du logement) — modifiable ensuite */
+  let prelevAuto = false;
+  if (h > 0 && prOrder.length === 1 && prOrder[0] !== "prelev" && v[prOrder[0]] > 0 && !(v.prelev > 0)) {
+    const def = Math.max(0, -(inp.participationLibre || 0)) || num($("in-loghebdo"));
+    if (def > 0) {
+      v.prelev = def; $("pr-prelev").value = Math.round(def * 100) / 100;
+      prTouch("prelev"); prelevAuto = true;
+    }
+  }
   if (h > 0 && prOrder.length >= 2 && v[prOrder[0]] > 0 && v[prOrder[1]] > 0) {
     const manque = ["paie", "prelev", "loge"].find(k => !prOrder.includes(k));
     if (manque === "loge") v.loge = v.paie - v.prelev / h;
@@ -2621,7 +2652,8 @@ function prRecalc() {
   }
   zone.innerHTML = "Promesse : <b>" + fmtE(v.paie) + "/h sur la fiche de paie</b> − prélèvement <b>" + fmtE(v.prelev) +
     "/sem</b> (≈ " + fmtE(v.prelev * 4) + " par 4 semaines) = <b>" + fmtE(v.loge) + "/h une fois logé</b> (" +
-    N2.format(h) + " h/sem). Budget logement engagé : plafond " + fmtE(v.prelev) + "/sem.";
+    N2.format(h) + " h/sem). Budget logement engagé : plafond " + fmtE(v.prelev) + "/sem." +
+    (prelevAuto ? " <span class='note'>Prélèvement repris de la carte Logement — modifiable.</span>" : "");
 }
 ["pr-netpaie", "pr-prelev", "pr-netloge"].forEach(id => $(id).addEventListener("input", () => {
   prTouch(id === "pr-netpaie" ? "paie" : (id === "pr-prelev" ? "prelev" : "loge")); prRecalc();
