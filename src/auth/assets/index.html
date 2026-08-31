@@ -3,21 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
 <title>AB2Pro — Connexion</title>
 <style>
-:root { --paper:#F5F6F8; --card:#FFFFFF; --card2:#EFF1F4; --ink:#1F2328; --muted:#5F6670;
-  --line:#D9DDE3; --brass:#C8102E; --brass-deep:#9E0C24;
+:root { --paper:#f4f4f5; --card:#FFFFFF; --card2:#ececef; --ink:#29293b; --muted:#5f5f74;
+  --line:#d9d9e0; --brass:#db303f; --brass-deep:#681316;
   --shadow:0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --paper:#161719; --card:#1E2024; --card2:#262930; --ink:#ECEDEF; --muted:#9BA2AB;
-  --line:#373B42; --brass:#E4586C; --brass-deep:#F08A97;
+  --paper:#1b1b25; --card:#232330; --card2:#2c2c3b; --ink:#ececf1; --muted:#a2a2b5;
+  --line:#3b3b4d; --brass:#e85160; --brass-deep:#f0929c;
   --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3); } }
 * { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
 body { background: var(--paper); color: var(--ink); font: 15px/1.5 "Segoe UI", system-ui, sans-serif;
   min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 18px; }
 .boite { width: 100%; max-width: 400px; background: var(--card); border: 1px solid var(--line);
   border-radius: 12px; box-shadow: var(--shadow); padding: 26px 24px; }
-h1 { font-family: Cambria, Georgia, serif; font-size: 23px; margin: 0 0 2px; text-align: center; }
+h1 { font-family: "Nexa", "Poppins", "Segoe UI", system-ui, sans-serif; font-size: 23px; margin: 0 0 2px; text-align: center; }
 h1 b { color: var(--brass); }
 .sous { color: var(--muted); font-size: 12.5px; text-align: center; margin-bottom: 18px; }
 label { display: block; font-size: 11.5px; color: var(--muted); font-weight: 600; margin: 12px 0 3px; }
@@ -35,7 +36,7 @@ button.sec { background: none; border: 1px solid var(--line); color: var(--ink);
 <body>
 <div class="boite">
   <h1><b>AB2Pro</b> — Outils</h1>
-  <div class="sous">Simulateur · Veille Paie · Veille Conventions</div>
+  <div class="sous">L'intérim européen qui tient parole.</div>
 
   <form id="f-login">
     <label>E-mail</label>

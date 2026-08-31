@@ -396,13 +396,13 @@ async function api(req, env, url, u) {
 /* ---------- page renvoyée quand la section n'est pas autorisée pour l'utilisateur ---------- */
 const PAGE_SECTION_REFUSEE = `<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>AB2Pro — Accès non autorisé</title>
-<style>body{margin:0;font:15px/1.6 "Segoe UI",system-ui,sans-serif;background:#F5F6F8;color:#1F2328;
+<style>body{margin:0;font:15px/1.6 "Segoe UI",system-ui,sans-serif;background:#f4f4f5;color:#29293b;
 display:flex;align-items:center;justify-content:center;min-height:100vh}
-.c{background:#fff;border:1px solid #D9DDE3;border-radius:12px;box-shadow:0 4px 14px rgba(60,50,20,.07);
+.c{background:#fff;border:1px solid #d9d9e0;border-radius:12px;box-shadow:0 4px 14px rgba(60,50,20,.07);
 padding:30px 34px;max-width:460px;text-align:center}
-h1{font:22px Cambria,Georgia,serif;margin:0 0 8px}b{color:#C8102E}
-a{display:inline-block;margin-top:16px;background:#C8102E;color:#fff;text-decoration:none;
-padding:9px 20px;border-radius:18px;font-weight:600}p{color:#5F6670;margin:6px 0}</style></head><body>
+h1{font:22px Cambria,Georgia,serif;margin:0 0 8px}b{color:#db303f}
+a{display:inline-block;margin-top:16px;background:#db303f;color:#fff;text-decoration:none;
+padding:9px 20px;border-radius:18px;font-weight:600}p{color:#5f5f74;margin:6px 0}</style></head><body>
 <div class="c"><h1><b>Accès</b> non autorisé</h1>
 <p>Votre compte n'a pas accès à cette section du portail AB2Pro.</p>
 <p>Si vous en avez besoin, demandez à un administrateur de vous l'ouvrir.</p>
@@ -450,9 +450,9 @@ const BALISE_ACTIVITE = `<script>
       }
       var p = location.pathname;
       var estPortail = (p === "/app" || p === "/app/" || p === "/app/index.html");
-      if (!estPortail) barre.appendChild(btn("⌂ Portail", "/app/", "#C8102E"));
-      if (moi.role === "admin" || moi.role === "super_admin") barre.appendChild(btn("🛡 Admin", "/admin", "#1F2328"));
-      var dec = btn("Quitter", "#", "#5F6670");
+      if (!estPortail) barre.appendChild(btn("⌂ Portail", "/app/", "#db303f"));
+      if (moi.role === "admin" || moi.role === "super_admin") barre.appendChild(btn("🛡 Admin", "/admin", "#29293b"));
+      var dec = btn("Quitter", "#", "#5f5f74");
       dec.addEventListener("click", async function (e) {
         e.preventDefault();
         try { await fetch("/api/logout", { method: "POST" }); } catch (err) {}
