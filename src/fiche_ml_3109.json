@@ -1,101 +1,169 @@
 {
  "idcc": "3109",
  "titre": "5 branches — industries alimentaires diverses (CCN du 21/03/2012)",
- "dateDerniereActu": "16/01/2026",
+ "dateDerniereActu": "05/03/2026",
  "themes": [
-  {"cle": "minima", "titre": "Grille des minima (avenant n° 31)",
+  {
+   "cle": "minima",
+   "titre": "Grille des minima (avenant n° 31)",
    "cleValeur": "9 niveaux : N1E1 1 841,03 € → N9 5 294,03 €/mois (01/01/2026)",
    "points": [
-    "Grille **9 niveaux × échelons** : O/E N1-N3 (**1 841,03 → 2 100,03 €**), TAM N4-N6 (**2 165,03 → 2 870,03 €**), cadres N7-N9 (**2 974,03 → 5 294,03 €**) — base 35 h.",
-    "Avenant n° **31 du 16/01/2026**, effet **01/01/2026** (+**1,69 %** en moyenne) — extension en attente de publication au JO.",
-    "Le plus favorable s'applique entre SMIC, minimum conventionnel et salaire d'entreprise."],
+    "Ouvriers/employés — détail par échelon (mensuel brut, base 35 h) : **N1** : E1 **1 841,03 €** · E2 **1 859,03 €** · E3 **1 877,03 €**.",
+    "**N2** : E1 **1 899,03 €** · E2 **1 928,03 €** · E3 **1 967,03 €**.",
+    "**N3** : E1 **2 013,03 €** · E2 **2 054,03 €** · E3 **2 100,03 €**.",
+    "TAM N4-N6 (**2 165,03 → 2 870,03 €**) et cadres N7-N9 E1/E2 (**2 974,03 → 5 294,03 €**) — hors cible intérim : fourchettes seules.",
+    "Avenant n° **31 du 16/01/2026**, effet **01/01/2026** (+**1,69 %** en moyenne) — **ÉTENDU par arrêté du 02/04/2026, JORF du 17/04/2026**. Grille VÉRIFIÉE au centime sur le texte authentique (BOCC n° 2026-8, NOR ASET2650194M · KALI KALITEXT000054162157, base DILA locale).",
+    "Le plus favorable s'applique entre SMIC, minimum conventionnel et salaire d'entreprise."
+   ],
    "dateCourte": "avenant n° 31 du 16/01/2026",
    "source": "https://www.juristique.org/conventionnel/salaires-5-branches-industries-alimentaires-janvier-2026",
-   "fiabilite": "verifie"},
-  {"cle": "nuit", "titre": "Travail de nuit / posté",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "pates",
+   "titre": "Champ pâtes alimentaires sèches & couscous (ex-IDCC 1987)",
+   "cleValeur": "Accord du 05/03/2026 : barème HORAIRE +2,50 % (01/01/2026) · poste 5,20 €/j · panier nuit 11 €",
+   "points": [
+    "Barème horaire brut au 01/01/2026 — coefficients détaillés (cible intérim) : **135 : 12,08 €** · 140 : 12,17 · 145 : 12,20 · 150 : 12,22 · 155 : 12,29 · 160 : 12,33 · 165 : 12,38 · 170 : 12,50 · 175 : 12,55 · 180 : 12,60 · 185 : 12,65 · 190 : 12,70 · 195 : 12,84 · **200 : 13,02 €**.",
+    "Coefficients supérieurs — fourchettes seules (hors cible) : 210→350 : **13,51 → 19,91 €** ; 400/500/600 : **22,22 / 26,87 / 31,49 €**.",
+    "**Prime d'ancienneté** (ouvriers ET employés, art. 10 annexe I) : **3 % à 3 ans · 6 % à 6 ans · 9 % à 9 ans · 12 % à 12 ans · 15 % à 15 ans**, appliqués à un barème horaire DÉDIÉ (≠ salaire) — coefficients cible : 135 : **9,33 €** · 140 : 9,35 · 145 : 9,38 · 150 : 9,41 · 155 : 9,43 · 160 : 9,46 · 165 : 9,47 · 170 : 9,48 · 175 : 9,62 · 180 : 9,77 · 185 : 9,93 · 190 : 10,09 · 195 : 10,27 · 200 : **10,45 €** (barème jusqu'à 340 : 15,61 €).",
+    "**Indemnité de poste 5,20 €/jour** · **panier de nuit 11,00 €** · prime de vacances **600 €** (au 31/05/2026) — ce champ dispose donc d'un barème posté/nuit DE BRANCHE, contrairement au reste de la 3109 (accords d'entreprise).",
+    "Accord du **05/03/2026** (SIFPAF, Alliance 7, CSFL, Fedalim + CFDT Agri-Agro, FGTA-FO, CSFV-CFTC, CFE-CGC AGRO), effet **01/01/2026** (+**2,50 %** en moyenne) — **ÉTENDU par arrêté du 20/05/2026, JORF du 29/05/2026**. Intégralité VÉRIFIÉE sur le texte authentique (KALI KALITEXT000054337523, BOCC n° 2026-16, NOR ASET2650436M — base DILA locale)."
+   ],
+   "dateCourte": "accord du 05/03/2026",
+   "source": "https://www.juristique.org/conventionnel/salaires-pates-alimentaires-seches-2026",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit / posté",
    "cleValeur": "Pas de barème posté uniforme de branche — accords d'entreprise",
    "points": [
     "La CCN ne fixe **pas de barème posté/nuit uniforme** : majorations d'équipes et de nuit relèvent le plus souvent des accords d'entreprise — les demander au déclaratif client.",
     "Un panier de nuit (≈ **7,40 €**) est cité par des sources spécialisées — à confirmer sur le texte/accord applicable avant paramétrage.",
-    "Production 3×8 fréquente (biscuiteries, chocolateries) : oubli classique des majorations d'équipes au déclaratif."],
+    "Production 3×8 fréquente (biscuiteries, chocolateries) : oubli classique des majorations d'équipes au déclaratif.",
+    "Exception : le champ pâtes sèches/couscous (ex-1987) a un barème DE BRANCHE — indemnité de poste **5,20 €/j**, panier de nuit **11,00 €** (accord du 05/03/2026, voir thème dédié)."
+   ],
    "dateCourte": "accords d'entreprise — à confirmer",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027172335",
-   "fiabilite": "aConfirmer"},
-  {"cle": "hs", "titre": "Heures supplémentaires",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
    "cleValeur": "Taux légaux 25/50 % ; contingent à relever",
    "points": [
     "Taux : légaux **25 %** (8 premières HS) / **50 %** au-delà, à défaut de disposition d'entreprise.",
-    "Contingent conventionnel à relever sur le texte ; à défaut **220 h**/an."],
+    "Contingent conventionnel à relever sur le texte ; à défaut **220 h**/an."
+   ],
    "dateCourte": "à relever",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027172335",
-   "fiabilite": "aConfirmer"},
-  {"cle": "weekend", "titre": "Samedi / dimanche",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Samedi / dimanche",
    "cleValeur": "Majorations d'entreprise (production continue) — à demander",
    "points": [
-    "Pas de majoration nationale uniforme relevée — le travail de week-end en production est régi par les accords d'entreprise : demander les taux réels (égalité de traitement)."],
+    "Pas de majoration nationale uniforme relevée — le travail de week-end en production est régi par les accords d'entreprise : demander les taux réels (égalité de traitement)."
+   ],
    "dateCourte": "à relever",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027172335",
-   "fiabilite": "aConfirmer"},
-  {"cle": "feries", "titre": "Jours fériés",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés",
    "cleValeur": "Régime à relever ; rappel intérim : payés sans ancienneté",
    "points": [
     "Régime conventionnel des fériés à relever sur le texte.",
-    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."],
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+   ],
    "dateCourte": "à relever",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027172335",
-   "fiabilite": "aConfirmer"},
-  {"cle": "repas", "titre": "Repas / paniers",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "repas",
+   "titre": "Repas / paniers",
    "cleValeur": "Paniers d'équipe selon accords — à demander au client",
    "points": [
     "Paniers d'équipe/de nuit selon les accords d'entreprise (panier de nuit ≈ 7,40 € cité — à confirmer).",
-    "Demander explicitement la pratique paniers du site (oubli déclaratif fréquent en production)."],
+    "Demander explicitement la pratique paniers du site (oubli déclaratif fréquent en production)."
+   ],
    "dateCourte": "à confirmer",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027172335",
-   "fiabilite": "aConfirmer"},
-  {"cle": "transport", "titre": "Transport",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
    "cleValeur": "50 % transports publics",
-   "points": ["Prise en charge légale de **50 %** des abonnements ; pas de barème de branche relevé."],
+   "points": [
+    "Prise en charge légale de **50 %** des abonnements ; pas de barème de branche relevé."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/3109",
-   "fiabilite": "verifie"},
-  {"cle": "primes", "titre": "Ancienneté (assiettes par niveau) + habillage",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "Ancienneté (assiettes par niveau) + habillage",
    "cleValeur": "Prime d'ancienneté sur assiettes 970-1 766 €/an + habillage 8,40 €/mois",
    "points": [
-    "**Prime d'ancienneté** : progresse par paliers de **3 ans**, calculée sur des **assiettes annuelles par niveau** (2026 : N1 **970,63-1 082,02 €** → N6 **1 649,54-1 766,23 €**) — taux par palier à relever sur le texte pour le calcul exact.",
+    "**Ancienneté** (avenant n° 31, annexe — authentique) : pas de prime distincte au barème 5 branches, mais des RESSOURCES GARANTIES ANNUELLES par niveau/échelon croissant avec l'ancienneté (3 tranches : ≥ 1 an, ≥ 2 ans, ≥ 3 ans ; ex. N1E1 : **23 381,08 / 23 749,29 / 23 933,39 €**/an) — contrôle en cumul annuel, pas sur la paie mensuelle.",
     "**Indemnité forfaitaire habillage-déshabillage** : **8,40 €**/mois (01/01/2026) — due quand la tenue est imposée (production alimentaire : quasi systématique).",
-    "Intérim : ancienneté via égalité de traitement (comparable du client) ; l'indemnité d'habillage est due aux intérimaires en tenue — oubli très fréquent."],
+    "Intérim : ancienneté via égalité de traitement (comparable du client) ; l'indemnité d'habillage est due aux intérimaires en tenue — oubli très fréquent."
+   ],
    "dateCourte": "avenant n° 31 du 16/01/2026",
    "source": "https://www.juristique.org/conventionnel/salaires-5-branches-industries-alimentaires-janvier-2026",
-   "fiabilite": "verifie"},
-  {"cle": "annualisation", "titre": "Aménagement du temps",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Aménagement du temps",
    "cleValeur": "Production saisonnière (chocolat, glaces) : modulation d'entreprise",
    "points": [
-    "Fortes saisonnalités (chocolat avant fêtes, glaces l'été) : modulation par accords d'entreprise — le régime du client s'applique à l'intérimaire (art. L.1251-21)."],
+    "Fortes saisonnalités (chocolat avant fêtes, glaces l'été) : modulation par accords d'entreprise — le régime du client s'applique à l'intérimaire (art. L.1251-21)."
+   ],
    "dateCourte": "—",
    "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000027172335",
-   "fiabilite": "verifie"},
-  {"cle": "saisonniers", "titre": "Saisonniers",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers",
    "cleValeur": "Pointes saisonnières via droit commun",
    "points": [
-    "Renforts saisonniers courants (fêtes, été) sans statut de branche spécifique relevé — régime intérim de droit commun (**IFM 10 %** + **ICCP 10 %** dues)."],
+    "Renforts saisonniers courants (fêtes, été) sans statut de branche spécifique relevé — régime intérim de droit commun (**IFM 10 %** + **ICCP 10 %** dues)."
+   ],
    "dateCourte": "—",
    "source": "https://code.travail.gouv.fr/convention-collective/3109",
-   "fiabilite": "verifie"},
-  {"cle": "durees", "titre": "Durées maximales",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales",
    "cleValeur": "Droit commun : 10 h/j, 48 h/sem, 44 h/12 sem",
    "points": [
-    "Maxima légaux à défaut de dérogation ; en pointe saisonnière, vérifier les autorisations du client avant suivi des heures."],
+    "Maxima légaux à défaut de dérogation ; en pointe saisonnière, vérifier les autorisations du client avant suivi des heures."
+   ],
    "dateCourte": "droit commun",
    "source": "https://code.travail.gouv.fr/convention-collective/3109",
-   "fiabilite": "verifie"},
-  {"cle": "specifique", "titre": "Points de vigilance paie intérim",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
    "cleValeur": "10 codes NAF · habillage 8,40 € · équipes/paniers d'entreprise",
    "points": [
     "Champ « 5 branches » très large : biscuiterie, chocolaterie-confiserie, café-thé, condiments, diététique/enfance, glaces, céréales… (NAF 10.39B à 10.89Z) — vérifier que le client en relève bien.",
     "Les majorations d'équipes/nuit et paniers sont presque toujours d'ENTREPRISE : exiger l'accord ou la pratique écrite du client.",
-    "CCN du **21/03/2012** (IDCC 3109) — pas de fiches CDTN pour cette convention : contrôles sur Légifrance."],
+    "CCN du **21/03/2012** (IDCC 3109) — pas de fiches CDTN pour cette convention : contrôles sur Légifrance."
+   ],
    "dateCourte": "CCN 21/03/2012 + avenant n° 31 (2026)",
    "source": "https://code.travail.gouv.fr/convention-collective/3109",
-   "fiabilite": "verifie"}
+   "fiabilite": "verifie"
+  }
  ]
 }
