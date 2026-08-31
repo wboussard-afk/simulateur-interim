@@ -431,6 +431,7 @@ function defaultInputs(DB, sector) {
     remisePct: 0,               // M63
     recrutTarifH: 0,            // prestataire externe de recrutement — € HT par heure travaillée (0,50-1,30 constatés ; 0 = aucun)
     participationHorsPaie: false, // true = participation logement par PRÉLÈVEMENT BANCAIRE : net de paie non réduit, coût logement toujours amorti
+                                  // (le sélecteur de cible du pilotage et ce mode sont SYNCHRONISÉS : AVEC PARTICIPATION = retenue, SANS = prélèvement)
     agence: "",                 // agence PALMA sélectionnée (fixe le taux AT par défaut ; portée dans l'étude de prix)
     cetCoutsReels: false,       // intégrer les coûts CET maison (abondement + causeries) dans la marge
     cetAbondPct: 5,             // abondement % versé à chaque déblocage (politique maison : 5 %)

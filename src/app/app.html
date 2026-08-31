@@ -634,8 +634,8 @@ table.grille td.neg { color: var(--bad); }
         </div>
         <div class="field" style="margin:2px 0 8px"><label for="in-ciblenet-type">La cible ci-dessus est un net…</label>
           <select id="in-ciblenet-type" title="« Logement déduit » : le net une fois le logement payé (référentiel historique — c'est le net de la fiche de paie quand la participation est retenue sur la paie). « Fiche de paie hors prélèvement » : le net affiché sur la fiche de paie quand la participation passe par prélèvement bancaire — il ne dépend pas du montant de la participation.">
-            <option value="apres">LOGEMENT DÉDUIT (participation retenue sur la paie)</option>
-            <option value="paie">FICHE DE PAIE — hors prélèvement logement</option>
+            <option value="apres">FICHE DE PAIE — AVEC PARTICIPATION (retenue sur la paie)</option>
+            <option value="paie">FICHE DE PAIE — SANS PARTICIPATION (prélèvement bancaire)</option>
           </select></div>
         <div style="display:flex; gap:18px; flex-wrap:wrap">
           <label class="check"><input type="checkbox" id="pilot-part" checked title="La participation est ramenée au COÛT EXACT du logement (plancher — société logement à l'équilibre) et peut monter au-delà pour rabaisser un net trop haut. Fonctionne dans les deux modes : retenue sur paie (agit sur le net de paie) comme prélèvement bancaire (agit sur le net une fois logé et sur le prélèvement annoncé). Sans objet uniquement quand la cible est le net FICHE DE PAIE hors prélèvement (ce net ne dépend pas de la participation). Décochée : la participation saisie n'est jamais modifiée."> Ajuster par la participation logement</label>
@@ -1165,8 +1165,7 @@ function render(r) {
     ? "<b>Coûts CET réels :</b> abondement " + fmtE(m.cetAbondCout) + "/sem + causeries " + fmtE(m.cetCauserieCout) +
       "/sem = <b>−" + fmtE(m.cetCoutReel) + "/sem</b> de marge (−" + N2.format(m.cetCoutReel / m.O60 * 100) + " pt de taux)."
     : (inp.cetCoutsReels && !(m.D85 > 0) ? "<b>Coûts CET réels :</b> sans objet (IFM/ICCP payés en direct)." : "");
-  /* le levier participation n'est sans objet que si la CIBLE est le net hors prélèvement */
-  $("pilot-part").disabled = !!($("in-ciblenet-type") && $("in-ciblenet-type").value === "paie");
+  $("pilot-part").disabled = false;   /* levier toujours disponible (rôle plancher en mode SANS participation) */
   /* premier remplissage (avant régul) — le bloc cascade REFINE ensuite avec le net atteint (avances incluses),
      pour que la carte Logement et le panneau « Contrôle du net » racontent la MÊME histoire */
   if (inp.heures > 0) majLogNets(((m.F91 !== undefined ? m.F91 : m.F90)) / inp.heures);
@@ -1425,11 +1424,13 @@ function findAdjustTargets() {
   if (idx < 0) idx = inp.indemnites.findIndex(p => !(p.q * p.r));
   return { idx, adjSet };
 }
-/* En mode prélèvement bancaire avec cible « logement déduit », le net évalué est F90 − participation/h :
-   la participation redevient un vrai levier (elle change le net APRÈS logement et le prélèvement annoncé). */
-let NETPLAN_OFFSET_APRES = false;
+/* Référentiel du solveur, exprimé par un OFFSET SIGNÉ appliqué dynamiquement à chaque évaluation :
+   +1 = net APRÈS participation en mode prélèvement (net évalué = F90 − part/h) ;
+   −1 = net SANS participation en mode retenue (net évalué = F90 + part/h — invariant en part) ;
+    0 = le net évalué est directement F90. */
+let NETPLAN_OFFSET_SIGNE = 0;
 function evalNetAtteint(cible, part, indem1, idx, adjSet) {
-  const offsetSem = NETPLAN_OFFSET_APRES ? part : 0;
+  const offsetSem = NETPLAN_OFFSET_SIGNE * part;
   const t = Object.assign({}, inp, {
     netAttendu: cible + offsetSem / (inp.heures || 1), noNet: false,
     participationLibre: -part,
@@ -1453,17 +1454,21 @@ function computeNetPlan(cible) {
   if (!(cible > 0) || !(inp.heures > 0) || !(inp.thBrut > 0)) return null;
   /* Deux référentiels de cible :
    * « apres » (logement déduit) — le levier participation fonctionne dans les DEUX modes :
-   *   retenue = F52 dans F90 (comme toujours) ; prélèvement = offset dynamique F90 − part/h (NETPLAN_OFFSET_APRES).
+   *   retenue = F52 dans F90 (comme toujours) ; prélèvement = offset dynamique F90 − part/h (NETPLAN_OFFSET_SIGNE = +1).
    *   Plancher du levier = COÛT EXACT du logement (société logement à l'équilibre).
    * « paie » (fiche de paie hors prélèvement) — ce net ne dépend PAS de la participation : levier sans objet ;
    *   en mode retenue la cible se convertit avec la participation FIGÉE (− part/h). */
   const typeCible = $("in-ciblenet-type") ? $("in-ciblenet-type").value : "apres";
-  const partFixeH = Math.max(0, -(inp.participationLibre || 0)) / inp.heures;
   const cibleAffichee = cible;
-  NETPLAN_OFFSET_APRES = (typeCible === "apres") && !!inp.participationHorsPaie;
-  if (typeCible === "paie" && !inp.participationHorsPaie) cible = cible - partFixeH;
+  NETPLAN_OFFSET_SIGNE = (typeCible === "apres" && inp.participationHorsPaie) ? 1
+                       : (typeCible === "paie" && !inp.participationHorsPaie) ? -1 : 0;
   if (!(cible > 0.01)) return null;
-  const usePart = $("pilot-part").checked && typeCible !== "paie",
+  /* Le levier participation est TOUJOURS disponible. Mais quand la cible est le net SANS
+     participation, ce net est invariant en participation : le levier ne fait alors qu'une
+     chose — CALER la participation au coût exact du logement (société logement à l'équilibre),
+     sans régulation possible du net par la participation. */
+  const usePart = $("pilot-part").checked,
+        partPlancherSeul = (typeCible === "paie"),
         useIndem = $("pilot-indem").checked;
   const cur = compute(inp).main;
   const coutLog = cur.F92 || 0;
@@ -1486,12 +1491,13 @@ function computeNetPlan(cible) {
   const a0 = evalNetAtteint(cible, partBase, 0, idx, adjSet);
   if (!a0) return null;
   const base = { plancher, coutLog, partAct, nuitee, repas, plafondTotal, dejaVersees, plafond,
-                 cible, cibleAffichee, typeCible, usePart, useIndem, idx, adjSet, montantConsolide,
+                 cible, cibleAffichee, typeCible, usePart, partPlancherSeul,
+                 offsetSigne: NETPLAN_OFFSET_SIGNE, useIndem, idx, adjSet, montantConsolide,
                  nbConsolidees: Array.from(adjSet).filter(k => k !== idx && inp.indemnites[k].q * inp.indemnites[k].r > 0).length };
   if (a0.net >= cible - 0.005) {
     if (a0.net <= cible + 0.005)   /* déjà au promis, sans indemnité d'ajustement */
       return Object.assign(base, { part: partBase, indem: 0, res: a0, statut: "ok", manque: 0 });
-    if (!usePart)                  /* net trop haut mais levier participation désactivé */
+    if (!usePart || partPlancherSeul)  /* levier désactivé, ou net invariant en participation */
       return Object.assign(base, { part: partBase, indem: 0, res: a0, statut: "tropHaut",
                                    manque: (a0.net - cible) * a0.hN });
     /* net trop haut : hausse de participation (régulation) — la PLUS HAUTE part
@@ -1507,7 +1513,7 @@ function computeNetPlan(cible) {
   /* BAISSE de participation SOUS le coût du logement (autorisée : la société
    * logement finance la différence, signalée) — la plus HAUTE part qui atteint la cible */
   function tryLowerPart(indemFix) {
-    if (!usePart || partBase <= 0.005) return null;
+    if (!usePart || partPlancherSeul || partBase <= 0.005) return null;
     const aZero = evalNetAtteint(cible, 0, indemFix, idx, adjSet);
     if (!aZero || aZero.net < cible - 0.005) return null;   /* même à 0 : insuffisant */
     let pLo = 0, pHi = partBase;
@@ -1557,8 +1563,7 @@ function renderNetPlan() {
   }
   /* affichage « atteint » dans le référentiel de la cible saisie */
   const _partFinal = Math.max(0, plan.part || 0), _h = plan.res.hN;
-  const _offsetActif = inp.participationHorsPaie && plan.typeCible === "apres";
-  const _netPaieH = plan.res.net + (_offsetActif ? _partFinal / _h : 0);          // net FICHE DE PAIE (F90 + avance)
+  const _netPaieH = plan.res.net + (plan.offsetSigne || 0) * _partFinal / _h;     // net FICHE DE PAIE (F90 + avance)
   const _netHorsH = inp.participationHorsPaie ? _netPaieH : _netPaieH + _partFinal / _h;
   const _netApresH = inp.participationHorsPaie ? _netPaieH - _partFinal / _h : _netPaieH;
   outNet.textContent = N2.format(plan.typeCible === "paie" ? _netHorsH : _netApresH) + " €/h";
@@ -1573,6 +1578,8 @@ function renderNetPlan() {
       partStatut = " (<b>sous le coût réel</b> " + fmtE(plan.coutLog) + " — la société logement finance " + fmtE(plan.coutLog - plan.part) + ")";
     else partStatut = " (= coût du logement — société logement à l'équilibre)";
   } else partStatut = "";
+  if (plan.usePart && plan.partPlancherSeul)
+    partStatut += " · <span class='note'>référentiel SANS participation : elle n'agit pas sur ce net — calée au coût du logement, elle joue sur la marge et le net une fois logé</span>";
   const ligneNom = plan.idx >= 0 ? esc(($("inn" + plan.idx) && $("inn" + plan.idx).value) || ("Indemnité " + (plan.idx + 1))) : "—";
   detNet.innerHTML = "<b>Plan net à atteindre :</b> participation logement <b>" + fmtE(plan.part) + "/sem</b>" + partStatut +
     (plan.useIndem
@@ -1681,8 +1688,8 @@ function applyNetPlan() {
     });
   }
   /* le « net promis » moteur (D13/compensation) s'exprime TOUJOURS en net de PAIE :
-     conversion si la cible était en référentiel « logement déduit » en mode prélèvement */
-  const cibleF90 = plan.cible + ((inp.participationHorsPaie && plan.typeCible === "apres") ? plan.part / plan.res.hN : 0);
+     conversion par l'offset signé du référentiel de la cible */
+  const cibleF90 = plan.cible + (plan.offsetSigne || 0) * plan.part / plan.res.hN;
   $("in-net").value = Math.round(cibleF90 * 100) / 100;
   $("in-nonet").checked = false;
   readInputsFromForm(); render(compute(inp));
@@ -2120,6 +2127,17 @@ Object.keys(AGENCES_PALMA).forEach(a => {
 $("in-agence").addEventListener("change", () => {
   const a = $("in-agence").value;
   if (a && AGENCES_PALMA[a] != null) $("in-atmp").value = AGENCES_PALMA[a];
+  onChange();
+});
+/* Le référentiel de cible (pilotage) et le mode de participation (carte Logement) sont UNE seule
+   notion, synchronisée dans les deux sens : AVEC PARTICIPATION = retenue sur la paie ;
+   SANS PARTICIPATION = prélèvement bancaire. */
+$("in-ciblenet-type").addEventListener("change", () => {
+  $("in-partmode").value = $("in-ciblenet-type").value === "paie" ? "banque" : "paie";
+  onChange();
+});
+$("in-partmode").addEventListener("change", () => {
+  $("in-ciblenet-type").value = $("in-partmode").value === "banque" ? "paie" : "apres";
   onChange();
 });
 /* deux modalités : zone BTP (orthodromique ALLER, BTP seulement) et tranche URSSAF
