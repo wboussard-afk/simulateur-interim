@@ -646,7 +646,7 @@ table.grille td.neg { color: var(--bad); }
             <option value="paie">FICHE DE PAIE — SANS PARTICIPATION (prélèvement bancaire)</option>
           </select></div>
         <div style="display:flex; gap:18px; flex-wrap:wrap">
-          <label class="check"><input type="checkbox" id="pilot-part" checked title="La participation est ramenée au COÛT EXACT du logement (plancher — société logement à l'équilibre) et peut monter au-delà pour rabaisser un net trop haut. Fonctionne dans les deux modes : retenue sur paie (agit sur le net de paie) comme prélèvement bancaire (agit sur le net une fois logé et sur le prélèvement annoncé). Sans objet uniquement quand la cible est le net FICHE DE PAIE hors prélèvement (ce net ne dépend pas de la participation). Cochée avec une cible net saisie : la RÉGULATION s'applique AUTOMATIQUEMENT — la participation s'écrit toute seule dans la carte Logement (consomme le CET restant via l'avance), sauf participation figée sur la promesse de l'assistant. Décochée : la participation saisie n'est jamais modifiée."> Ajuster par la participation logement</label>
+          <label class="check"><input type="checkbox" id="pilot-part" checked title="La participation est ramenée au COÛT EXACT du logement (plancher — société logement à l'équilibre) et peut monter au-delà pour rabaisser un net trop haut. Fonctionne dans les deux modes : retenue sur paie (agit sur le net de paie) comme prélèvement bancaire (agit sur le net une fois logé et sur le prélèvement annoncé). Sans objet uniquement quand la cible est le net FICHE DE PAIE hors prélèvement (ce net ne dépend pas de la participation). Cochée avec une cible net saisie : la RÉGULATION s'applique AUTOMATIQUEMENT — la participation s'écrit toute seule dans la carte Logement (consomme le CET restant via l'avance) — sauf participation figée sur la promesse de l'assistant, sauf sans coût de logement saisi, et seulement si le net attendu (paramétrage paie) est calé sur la cible ; dans ces cas « Appliquer » reste la voie. Décochée : la participation saisie n'est jamais modifiée."> Ajuster par la participation logement</label>
           <label class="check"><input type="checkbox" id="pilot-indem" checked title="L'ajustement s'écrit sur une ligne dédiée « Ajustement net » (non facturée) — les indemnités propres au client (facturées) ne sont JAMAIS touchées. Plafond URSSAF GD 4ᵉ-24ᵉ mois, déduction faite des indemnités déjà versées."> Ajuster par les indemnités (plafonds URSSAF)</label>
         </div>
         <p class="note" id="gs-net-detail"></p>
@@ -1301,11 +1301,14 @@ function render(r) {
   const _pilotOn = $("pilot-part") && $("pilot-part").checked;
   const _cibleOn = num($("in-ciblenet")) > 0;
   const _promFige = _pilotOn && num($("pr-prelev")) > 0;
+  const _refPaie = $("in-ciblenet-type") && $("in-ciblenet-type").value === "paie";
   const noteAutoReg = _promFige
     ? " <span class='note'>Participation FIGÉE sur la promesse de l'assistant : la régulation ne s'applique pas automatiquement (parité de marge entre les deux méthodes).</span>"
-    : (!_pilotOn || !_cibleOn)
-      ? " <span class='note'>S'applique automatiquement dès qu'une cible net est saisie au Pilotage avec « Ajuster par la participation logement » coché.</span>"
-      : "";
+    : _refPaie
+      ? " <span class='note'>Cible au référentiel SANS participation : ce net ne dépend pas de la participation, la régulation ne s'y applique pas automatiquement — la saisir à la main dans la carte Logement si souhaitée.</span>"
+      : (!_pilotOn || !_cibleOn)
+        ? " <span class='note'>S'applique automatiquement dès qu'une cible net est saisie au Pilotage (cohérente avec le net attendu) avec « Ajuster par la participation logement » coché.</span>"
+        : "";
   const conseilPart = hausse > 0.5
     ? " <b>Régulation par la participation logement :</b> la porter à <b>" + fmtE(partCibleH) +
       "/sem</b> (au lieu de " + fmtE(partAct) + ")" +
@@ -1420,7 +1423,12 @@ function render(r) {
   } else { ndh.textContent = ""; }
 
   /* ===== Pilotage du net à atteindre ===== (résolu sur le moteur complet) */
+  NETPLAN_SKIP_TAIL = false;
   renderNetPlan();
+  /* auto-régulation déclenchée : le render IMBRIQUÉ a déjà tout repeint avec l'état
+     régulé — repeindre la queue avec le m d'AVANT laisserait paie/cotisations/marge
+     périmées à l'écran (trouvaille revue adversariale 31/08) */
+  if (NETPLAN_SKIP_TAIL) { NETPLAN_SKIP_TAIL = false; return; }
   renderTail(m, h);
 }
 
@@ -1451,6 +1459,7 @@ function findAdjustTargets() {
     0 = le net évalué est directement F90. */
 let NETPLAN_OFFSET_SIGNE = 0;
 let NETPLAN_AUTO_DEPTH = 0;   /* garde de récursion de l'auto-application de la régulation */
+let NETPLAN_SKIP_TAIL = false; /* l'auto-application a repeint via un render imbriqué : le render appelant saute sa queue périmée */
 function evalNetAtteint(cible, part, indem1, idx, adjSet) {
   const offsetSem = NETPLAN_OFFSET_SIGNE * part;
   const t = Object.assign({}, inp, {
@@ -1609,14 +1618,23 @@ function renderNetPlan() {
      recopier le conseil du Contrôle du net ni de cliquer « Appliquer ». Jamais pendant
      la saisie du champ participation (on ne tape pas contre l'utilisateur) ; point fixe
      en une itération (la régulation part du plancher, pas de la valeur du champ). */
-  if (plan.statut === "regulation" && plan.coutLog > 0.005 && NETPLAN_AUTO_DEPTH < 2 &&
-      document.activeElement !== $("in-partlog")) {   /* coutLog : sans logement réel, pas d'écriture automatique — « Appliquer » reste le choix conscient */
+  if (plan.statut === "regulation" && plan.coutLog > 0.005 && NETPLAN_AUTO_DEPTH < 2) {
+    /* coutLog : sans logement réel, pas d'écriture automatique — « Appliquer » reste le choix conscient.
+       enFrappe : JAMAIS pendant une saisie clavier — une cible tapée « 1 » en route vers « 15 »
+       produirait une régulation transitoire aberrante qui détruirait la participation.
+       netArme : l'avance CET qui finance le plan n'existe au moteur que si le net promis (in-net)
+       est calé sur la cible — sinon « Appliquer » (qui écrit in-net) reste la voie. */
+    const ae = document.activeElement;
+    const enFrappe = ae && ae.tagName === "INPUT" && (ae.type === "number" || ae.type === "text");
+    const cibleF90Auto = plan.cible + (plan.offsetSigne || 0) * plan.part / plan.res.hN;
+    const netArme = inp.netAttendu != null && Math.abs(inp.netAttendu - cibleF90Auto) <= 0.01;
     const curPart = Math.max(0, -(inp.participationLibre || 0));
-    if (Math.abs(plan.part - curPart) > 0.005) {
+    if (!enFrappe && netArme && Math.abs(plan.part - curPart) > 0.005) {
       NETPLAN_AUTO_DEPTH++;
       try {
         $("in-partlog").value = plan.part;
-        readInputsFromForm(); render(compute(inp)); renderNetPlan();
+        readInputsFromForm(); render(compute(inp));  /* repeint TOUT (renderNetPlan et renderTail inclus) avec l'état régulé */
+        NETPLAN_SKIP_TAIL = true;                    /* le render APPELANT ne repeint pas sa queue avec l'état d'avant */
       } finally { NETPLAN_AUTO_DEPTH--; }
       return;
     }
@@ -1637,7 +1655,9 @@ function renderNetPlan() {
     else if (plan.part < plan.coutLog - 0.005)
       partStatut = " (<b>sous le coût réel</b> " + fmtE(plan.coutLog) + " — la société logement finance " + fmtE(plan.coutLog - plan.part) + ")";
     else partStatut = " (= coût du logement — société logement à l'équilibre)";
-  } else partStatut = "";
+  } else partStatut = plan.part > 0.005
+    ? " (<b>aucun coût de logement saisi</b> — cette participation serait intégralement un excédent société logement)"
+    : "";
   if (plan.usePart && plan.partFigee)
     partStatut += " · <span class='note'>participation FIGÉE sur la promesse de l'assistant — même participation et même marge quelle que soit la méthode (retenue ou prélèvement)</span>";
   else if (plan.usePart && plan.partPlancherSeul)
@@ -1659,7 +1679,8 @@ function renderNetPlan() {
     (plan.statut === "aucuneLigne" ? " <span class='conf-warn'>⚠ il manque " + fmtE(plan.manque) +
       " et les 4 lignes d'indemnités sont occupées — libérer une ligne pour l'ajustement.</span>" : "") +
     (plan.statut === "tropHaut" ? " <span class='conf-warn'>⚠ net au-dessus de la cible de " + fmtE(plan.manque) +
-      " — activer l'ajustement par la participation pour le rabaisser.</span>" : "") +
+      (plan.partFigee ? " — participation FIGÉE sur la promesse de l'assistant : ajuster la promesse pour le rabaisser."
+                      : " — activer l'ajustement par la participation pour le rabaisser.") + "</span>" : "") +
     (plan.nbConsolidees > 0 ? " <br>ℹ " + plan.nbConsolidees + " ligne(s) cochée(s) « Ajust. » (" + fmtE(plan.montantConsolide) +
       ") seront consolidées dans « Ajustement net » à l'application — les lignes non cochées (client) ne bougent jamais." : "");
   /* lecture DOUBLE du plan : net fiche de paie hors prélèvement ↔ net logement déduit */
