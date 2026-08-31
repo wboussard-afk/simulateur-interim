@@ -499,6 +499,7 @@ function defaultInputs(DB, sector) {
     refactDim: true, refactFerie: true, refactNuit: true,
     annualisation: false,
     heuresFactNormal: null,     // L24 — null = auto min(35 ; heures)
+    offreExpr: "coef",          // expression de l'offre dans l'étude : "coef" (coefficient) ou "taux" (taux global facturé) — affichage seul
     cibleMargePct: 0,           // L17 — 0 : le pilotage affiche le seuil de rentabilité
     logementHeures: 43,         // multiplicateur F92 (classeur tarifaire : ×43 en dur)
     exoFormule: "rgdu",         // RGDU 2026 (le Fillon du classeur ne sert plus qu'au mode « constantes du classeur »)
