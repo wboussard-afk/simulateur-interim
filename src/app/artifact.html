@@ -404,6 +404,14 @@ table.grille td.neg { color: var(--bad); }
             <div class="seg" role="group" aria-labelledby="lbl-interim">
               <button type="button" id="sector-btp" aria-pressed="false">BTP</button>
               <button type="button" id="sector-industrie" aria-pressed="false">Industrie</button>
+              <button type="button" id="contrat-saisonnier" aria-pressed="false" title="CTT pour emploi à caractère saisonnier — ATTENTION : en intérim, IFM ET ICCP restent DUES (L.1251-32/33 — aucun accord étendu de la branche TT ne les écarte, accord d'interprétation du 09/06/1998) et la RGDU garde sa majoration ×1,1 : AUCUNE économie de charges vs CTT standard. Atouts opérationnels : zéro délai de carence entre missions saisonnières, terme imprécis possible (durée minimale au contrat), durée max 18 mois.">Saisonnier</button>
+            </div>
+          </div>
+          <div>
+            <label id="lbl-cdi">CDI</label>
+            <div class="seg" role="group" aria-labelledby="lbl-cdi">
+              <button type="button" id="contrat-cdii" aria-pressed="false" title="CDI intérimaire (L.1251-58-1 s., pérenne) : ni IFM ni ICCP (provision congés payés de droit commun 1/10) — MAIS RGDU sans la majoration ×1,1 (D.241-10 CSS), GMMR due chaque mois (plancher SMIC×151,67, +15 % AM / +25 % cadres — accord du 11/03/2022 étendu) et intermissions à la charge de l'agence (régler le taux d'occupation ci-dessous). CET intérim sans objet. Zéro carence, pas de durée max de mission.">CDI-I</button>
+              <button type="button" id="contrat-cdie" aria-pressed="false" title="CDI aux fins d'employabilité (temps partagé, art. 115 loi 2018-771 relancé par la loi du 15/11/2024 — conclusions possibles jusqu'à ~15/11/2028). Publics éligibles SEULEMENT : inscrits France Travail ≥12 mois, ≥55 ans ≥6 mois, <26 ans peu qualifiés ≥6 mois, minima sociaux, RQTH. Ni IFM ni ICCP (provision CP 1/10) ; RGDU sans ×1,1 ; AGS taux plein (+0,22 pt vs ETT) ; pas de mutuelle de branche ; CPF +500 €/an ; intermission au dernier taux de base. Pas de cas de recours ni durée max ni carence.">CDI-E</button>
             </div>
           </div>
           <div>
@@ -424,6 +432,16 @@ table.grille td.neg { color: var(--bad); }
       <!-- « Type de simulateur » supprimé (20/08/2026) : le mode est déduit du secteur
            (agri → MSA, BTP → GRAND D, industrie → INDUSTRIE) — select caché pour l'état moteur -->
       <select id="in-mode" hidden aria-hidden="true" tabindex="-1"></select>
+      <!-- état contrat (source de vérité DOM — sérialisé dans les liens #s=) -->
+      <select id="in-contrat" hidden aria-hidden="true" tabindex="-1">
+        <option value="ctt" selected>ctt</option><option value="saisonnier">saisonnier</option>
+        <option value="cdii">cdii</option><option value="cdie">cdie</option>
+      </select>
+      <div class="field" id="fld-tauxocc" hidden>
+        <label for="in-tauxocc">Taux d'occupation CDI (%)</label>
+        <input type="number" id="in-tauxocc" step="1" min="1" max="100" value="100" title="Heures en mission facturées / heures payées. En CDI-I comme en CDI-E, les intermissions restent payées par l'agence (GMMR pour le CDI-I — plancher SMIC×151,67, +15 % AM, +25 % cadres ; dernier taux de base pour le CDI-E) sans être facturables : le simulateur provisionne (1/τ − 1) × coût salarial chargé de la semaine type (approximation majorante) et le déduit de la marge.">
+        <span class="hint">100 % = aucune intermission · l'écart est provisionné sur la marge</span>
+      </div>
       <div class="top-actions">
         <button class="btn primary" id="btn-etude" title="Génère l'étude de prix (synthèse de l'offre commerciale) et ouvre l'impression — choisir « Enregistrer en PDF ». Nom de fichier automatique : Etude de prix – client – date.">Étude de prix PDF</button>
         <button class="btn" id="btn-share" title="Copier un lien qui restaure ce scénario">Partager</button>
@@ -1129,6 +1147,8 @@ function defaultInputs(DB, sector) {
     refactDim: true, refactFerie: true, refactNuit: true,
     annualisation: false,
     heuresFactNormal: null,     // L24 — null = auto min(35 ; heures)
+    contrat: "ctt",             // "ctt" | "saisonnier" (mêmes coûts, atouts opérationnels) | "cdii" | "cdie"
+    tauxOccupation: 100,        // % heures en mission / heures payées (CDI-I/CDI-E : provision d'intermission)
     offreExpr: "coef",          // expression de l'offre dans l'étude : "coef" (coefficient) ou "taux" (taux global facturé) — affichage seul
     cibleMargePct: 0,           // L17 — 0 : le pilotage affiche le seuil de rentabilité
     logementHeures: 43,         // multiplicateur F92 (classeur tarifaire : ×43 en dur)
@@ -1243,7 +1263,22 @@ function computeTODE(hours, brut, brutHorsHS, smic, seuilTot, seuilMax, basket) 
  * f77Override: secteur agri — le caché reprend F77 de la principale. */
 function computeSheet(i, variant, hiddenAvance, f77Override) {
   const cfg = SECTORS[i.sector || "agri"];
-  const R = i.rates, S = {};
+  /* CONTRATS (recherche vérifiée 01/09/2026, sources officielles + KALI authentique) :
+   * "ctt" (défaut) et "saisonnier" : coûts IDENTIQUES — en intérim saisonnier l'IFM et l'ICCP
+   *   restent dues (L.1251-32/33 : il faudrait un accord étendu de la branche TT pour écarter
+   *   l'IFM, il n'en existe pas — accord d'interprétation du 09/06/1998) et la RGDU garde ×1,1.
+   * "cdii" (CDI intérimaire, L.1251-58-1 s.) : ni IFM ni ICCP (L.1251-58-4) → provision CP de
+   *   droit commun 1/10 ; RGDU SANS ×1,1 (D.241-10 CSS : b=1,1 réservé aux salariés dus ICCP).
+   * "cdie" (CDI temps partagé aux fins d'employabilité, art. 115 loi 2018-771 relancé par la
+   *   loi 2024-1027 — conclusions possibles jusqu'à ~15/11/2028) : idem cdii + AGS taux plein
+   *   0,25 % (vs 0,03 % ETT) + PAS de frais de santé de branche + CPF 500 €/an. */
+  const modeCDI = i.contrat === "cdii" || i.contrat === "cdie";
+  const R = (i.contrat === "cdie")
+    ? Object.assign({}, i.rates, {
+        chomagePat: (i.rates.chomagePat || 0) + 0.22,
+        mutuelleSal: 0, mutuellePat: 0 })
+    : i.rates;
+  const S = {};
   const isMain = variant === "main";
   const mode = i.mode;
   const netNull = (i.netAttendu == null);
@@ -1290,11 +1325,20 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
     // tarifaire : SIMULATOR = Σ lignes SANS F30 ; caché = Σ lignes AVEC F30
     S.D32 = rowsSum - (isMain ? S.F30 : 0);
   }
-  const ifmOn = isMain ? (cfg.ifmMainToggle ? i.ifm : false) : true;  // caché : F11='OUI'
-  S.F32 = ifmOn ? S.D32 * CONST.IFM_TAUX : 0;
-  S.D33 = (cfg.iccpMode === "ifm") ? S.D32 + S.F32 : rowsSum;
-  const iccpOn = isMain ? i.iccp : true;          // caché : F12='OUI'
-  S.F33 = iccpOn ? S.D33 * CONST.ICCP_TAUX : 0;
+  if (modeCDI && isMain) {
+    /* CDI-I / CDI-E : ni IFM ni ICCP — provision CONGÉS PAYÉS de droit commun (1/10 du brut,
+       L.3141-24), lissée en coût hebdo chargé sur la même assiette (versée à la prise des CP).
+       Le garde (F32+F33)>0 -> D85=0 éteint de lui-même la provision CET (sans objet en CDI). */
+    S.F32 = 0;
+    S.D33 = S.D32;
+    S.F33 = S.D33 * CONST.ICCP_TAUX;
+  } else {
+    const ifmOn = isMain ? (cfg.ifmMainToggle ? i.ifm : false) : true;  // caché : F11='OUI'
+    S.F32 = ifmOn ? S.D32 * CONST.IFM_TAUX : 0;
+    S.D33 = (cfg.iccpMode === "ifm") ? S.D32 + S.F32 : rowsSum;
+    const iccpOn = isMain ? i.iccp : true;          // caché : F12='OUI'
+    S.F33 = iccpOn ? S.D33 * CONST.ICCP_TAUX : 0;
+  }
 
   /* --- TOTAL BRUT (F42 = SUM F24:F41) --- */
   S.F42 = rowsSum + S.F32 + S.F33;
@@ -1398,7 +1442,7 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
       coeff = Math.round(Math.min(coeff, tmin + tdelta) * 10000) / 10000;
     }
     S.rgduCoeff = coeff;
-    S.rgduAmount = coeff * S.F42 * (rg.interim === false ? 1 : RGDU_DEFAULTS.interimMajoration);
+    S.rgduAmount = coeff * S.F42 * ((rg.interim === false || modeCDI) ? 1 : RGDU_DEFAULTS.interimMajoration);
   }
 
   /* --- Exonération (H83) : TO-DE (agri) ou allègement Fillon / RGDU (tarifaire) --- */
@@ -1618,8 +1662,19 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   /* Prestataire externe de recrutement : € HT × heures travaillées, en déduction directe de la marge
      (coût interne agence — n'apparaît jamais dans l'étude de prix client). */
   S.recrutCout = (i.recrutTarifH || 0) * (i.heures || 0);
-  S.O61 = S.O60 - S.F93 - S.recrutCout - (S.cetCoutReel || 0);
-  S.P61 = S.P60 - S.F93 - S.recrutCout - (S.cetCoutReel || 0);
+  /* CDI-I / CDI-E : provision d'INTERMISSION lissée sur les heures facturées —
+   * (1/τ − 1) × coût salarial chargé de la semaine type (τ = taux d'occupation).
+   * Approximation MAJORANTE : en intermission la garantie est la GMMR (CDI-I,
+   * plancher SMIC×151,67 — L.1251-58-3) ou le dernier taux de base (CDI-E), sans
+   * IFM/HS/indemnités. CDI-E : + abondement CPF 500 €/an (~9,62 €/sem, art. 115). */
+  S.cdiIntermCout = 0; S.cdieFormationCout = 0;
+  if (modeCDI) {
+    const tau = Math.min(100, Math.max(1, i.tauxOccupation == null ? 100 : i.tauxOccupation)) / 100;
+    S.cdiIntermCout = (1 / tau - 1) * (S.F42 + S.H88);
+    if (i.contrat === "cdie") S.cdieFormationCout = 500 / 52;
+  }
+  S.O61 = S.O60 - S.F93 - S.recrutCout - (S.cetCoutReel || 0) - S.cdiIntermCout - S.cdieFormationCout;
+  S.P61 = S.P60 - S.F93 - S.recrutCout - (S.cetCoutReel || 0) - S.cdiIntermCout - S.cdieFormationCout;
   S.O62 = i.heures ? S.O60 / i.heures : 0;
   S.P62 = i.heures ? S.P60 / i.heures : 0;
   S.O63 = S.O60 - (S.O42 * i.remisePct / 100);
@@ -2056,6 +2111,9 @@ function setFormFromInputs() {
   $("in-coeff").value = inp.coeff;
   $("in-hfact").value = inp.heuresFactNormal == null ? "" : inp.heuresFactNormal;
   $("in-offre-expr").value = inp.offreExpr || "coef";
+  $("in-contrat").value = inp.contrat || "ctt";
+  $("in-tauxocc").value = inp.tauxOccupation == null ? 100 : inp.tauxOccupation;
+  refreshContratUI();
   $("in-remise").value = inp.remisePct;
   $("in-recrut").value = inp.recrutTarifH || "";
   $("in-refprimes").checked = inp.refactPrimes; $("in-refdim").checked = inp.refactDim;
@@ -2128,6 +2186,8 @@ function readInputsFromForm() {
    * il se figeait à « 0 » et toutes les heures partaient en facturation +25 %. */
   inp.heuresFactNormal = $("in-hfact").value === "" ? null : num($("in-hfact"));
   inp.offreExpr = $("in-offre-expr").value;
+  inp.contrat = $("in-contrat").value || "ctt";
+  inp.tauxOccupation = num($("in-tauxocc")) || 100;
   inp.remisePct = num($("in-remise"));
   inp.recrutTarifH = num($("in-recrut"));
   inp.refactPrimes = $("in-refprimes").checked; inp.refactDim = $("in-refdim").checked;
@@ -3326,15 +3386,49 @@ function applyNiveauBrut(force) {
 }
 $("in-niveau").addEventListener("change", () => applyNiveauBrut(true));
 $("in-dept").addEventListener("change", () => applyNiveauBrut(false));
-$("sector-agri").addEventListener("click", () => { if (inp.sector !== "agri") applySector("agri"); });
+/* ===== Contrat (CTT / CTT saisonnier / CDI-I / CDI-E) — recherche vérifiée 01/09/2026 =====
+   Le contrat est un OVERLAY du secteur tarifaire : saisonnier = mêmes coûts que le CTT
+   (IFM/ICCP dues + RGDU ×1,1 conservée) ; cdii/cdie = ni IFM ni ICCP (provision CP 1/10),
+   RGDU sans ×1,1, intermissions provisionnées (cdie : + AGS pleine, − mutuelle branche,
+   + CPF 500 €/an). Secteur agricole (CDD MSA) => toujours contrat "ctt". */
+function refreshContratUI() {
+  const c = $("in-contrat").value || "ctt";
+  $("contrat-saisonnier").setAttribute("aria-pressed", c === "saisonnier" ? "true" : "false");
+  $("contrat-cdii").setAttribute("aria-pressed", c === "cdii" ? "true" : "false");
+  $("contrat-cdie").setAttribute("aria-pressed", c === "cdie" ? "true" : "false");
+  $("fld-tauxocc").hidden = !(c === "cdii" || c === "cdie");
+}
+function applyContrat(c) {
+  $("in-contrat").value = c;
+  if (c !== "ctt" && inp.sector === "agri") {
+    /* les contrats intérim/CDI vivent dans le moteur tarifaire */
+    applySector("tarifaire", undefined, inp.branche || "btp");
+  }
+  refreshContratUI();
+  onChange();
+}
+$("contrat-saisonnier").addEventListener("click", () =>
+  applyContrat($("in-contrat").value === "saisonnier" ? "ctt" : "saisonnier"));
+$("contrat-cdii").addEventListener("click", () =>
+  applyContrat($("in-contrat").value === "cdii" ? "ctt" : "cdii"));
+$("contrat-cdie").addEventListener("click", () =>
+  applyContrat($("in-contrat").value === "cdie" ? "ctt" : "cdie"));
+$("sector-agri").addEventListener("click", () => {
+  if ($("in-contrat").value !== "ctt") { $("in-contrat").value = "ctt"; refreshContratUI(); }
+  if (inp.sector !== "agri") applySector("agri"); else onChange();
+});
 $("sector-btp").addEventListener("click", () => {
-  if (inp.sector === "tarifaire" && inp.branche === "btp") return;
+  const contratActif = $("in-contrat").value !== "ctt";
+  if (contratActif) { $("in-contrat").value = "ctt"; refreshContratUI(); }
+  if (inp.sector === "tarifaire" && inp.branche === "btp") { if (contratActif) onChange(); return; }
   /* même moteur tarifaire : on conserve les saisies en basculant BTP <-> Industrie */
   if (inp.sector === "tarifaire") readInputsFromForm();
   applySector("tarifaire", inp.sector === "tarifaire" ? inp : undefined, "btp");
 });
 $("sector-industrie").addEventListener("click", () => {
-  if (inp.sector === "tarifaire" && inp.branche === "industrie") return;
+  const contratActif = $("in-contrat").value !== "ctt";
+  if (contratActif) { $("in-contrat").value = "ctt"; refreshContratUI(); }
+  if (inp.sector === "tarifaire" && inp.branche === "industrie") { if (contratActif) onChange(); return; }
   if (inp.sector === "tarifaire") readInputsFromForm();
   applySector("tarifaire", inp.sector === "tarifaire" ? inp : undefined, "industrie");
 });
@@ -3371,7 +3465,11 @@ function buildEtudePrix() {
   let s = '<div class="entete">' +
     '<img class="logo-etude" src="' + LOGO_AB2PRO + '" alt="AB2Pro — Groupe Triangle Solutions RH">' +
     "<h1>Synthèse étude de prix — <span class='client'>" + esc(inp.client || "(client à renseigner)") + "</span></h1>" +
-    '<div class="meta">' + esc(secteur) + " · établie le " + dateStr + " · année " + now.getFullYear() +
+    '<div class="meta">' + esc(secteur) +
+    ({ saisonnier: " · <b>CTT SAISONNIER</b> (IFM/ICCP dues — zéro carence, terme imprécis possible)",
+       cdii: " · <b>CDI INTÉRIMAIRE</b> (ni IFM ni ICCP — provision CP 1/10, RGDU sans ×1,1, GMMR)",
+       cdie: " · <b>CDI-E temps partagé</b> (public éligible requis — ni IFM ni ICCP, RGDU sans ×1,1)" }[inp.contrat] || "") +
+    " · établie le " + dateStr + " · année " + now.getFullYear() +
     (inp.agence ? " · <span class='agence'>" + esc(inp.agence) + "</span>" : "") +
     (inp.dept ? " · siège client : " + esc(inp.dept) : "") +
     (inp.niveauQualif && inp.sector === "tarifaire" && inp.branche === "btp" ? " · qualification " + esc(inp.niveauQualif) : "") +
@@ -3496,6 +3594,16 @@ function buildEtudePrix() {
     totalNF += logNet;
     nfRows += kv("Logement — la participation salarié couvre " + fmtE(partAct) +
                  " sur un coût de " + fmtE(m.F92) + " : l'agence finance", fmtE(logNet) + "/sem");
+  }
+  if ((m.cdiIntermCout || 0) > 0.005) {
+    totalNF += m.cdiIntermCout;
+    nfRows += kv("Provision d'intermission CDI (taux d'occupation " + N2.format(inp.tauxOccupation || 100) +
+                 " %)<span class='sublet'>(1/τ − 1) × coût salarial chargé de la semaine type — GMMR/dernier taux garanti, non facturable</span>",
+                 fmtE(m.cdiIntermCout) + "/sem");
+  }
+  if ((m.cdieFormationCout || 0) > 0.005) {
+    totalNF += m.cdieFormationCout;
+    nfRows += kv("Abondement CPF CDI-E (500 €/an lissés)", fmtE(m.cdieFormationCout) + "/sem");
   }
   s += nfRows || kv("Aucun élément à la charge de l'agence", "—");
   if (totalNF > 0.005) s += kv("<b>Total à la charge de l'agence</b>", fmtE(totalNF) + "/sem", "tot");

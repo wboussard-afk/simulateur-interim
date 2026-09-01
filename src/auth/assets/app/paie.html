@@ -500,6 +500,8 @@ function defaultInputs(DB, sector) {
     refactDim: true, refactFerie: true, refactNuit: true,
     annualisation: false,
     heuresFactNormal: null,     // L24 — null = auto min(35 ; heures)
+    contrat: "ctt",             // "ctt" | "saisonnier" (mêmes coûts, atouts opérationnels) | "cdii" | "cdie"
+    tauxOccupation: 100,        // % heures en mission / heures payées (CDI-I/CDI-E : provision d'intermission)
     offreExpr: "coef",          // expression de l'offre dans l'étude : "coef" (coefficient) ou "taux" (taux global facturé) — affichage seul
     cibleMargePct: 0,           // L17 — 0 : le pilotage affiche le seuil de rentabilité
     logementHeures: 43,         // multiplicateur F92 (classeur tarifaire : ×43 en dur)
@@ -614,7 +616,22 @@ function computeTODE(hours, brut, brutHorsHS, smic, seuilTot, seuilMax, basket) 
  * f77Override: secteur agri — le caché reprend F77 de la principale. */
 function computeSheet(i, variant, hiddenAvance, f77Override) {
   const cfg = SECTORS[i.sector || "agri"];
-  const R = i.rates, S = {};
+  /* CONTRATS (recherche vérifiée 01/09/2026, sources officielles + KALI authentique) :
+   * "ctt" (défaut) et "saisonnier" : coûts IDENTIQUES — en intérim saisonnier l'IFM et l'ICCP
+   *   restent dues (L.1251-32/33 : il faudrait un accord étendu de la branche TT pour écarter
+   *   l'IFM, il n'en existe pas — accord d'interprétation du 09/06/1998) et la RGDU garde ×1,1.
+   * "cdii" (CDI intérimaire, L.1251-58-1 s.) : ni IFM ni ICCP (L.1251-58-4) → provision CP de
+   *   droit commun 1/10 ; RGDU SANS ×1,1 (D.241-10 CSS : b=1,1 réservé aux salariés dus ICCP).
+   * "cdie" (CDI temps partagé aux fins d'employabilité, art. 115 loi 2018-771 relancé par la
+   *   loi 2024-1027 — conclusions possibles jusqu'à ~15/11/2028) : idem cdii + AGS taux plein
+   *   0,25 % (vs 0,03 % ETT) + PAS de frais de santé de branche + CPF 500 €/an. */
+  const modeCDI = i.contrat === "cdii" || i.contrat === "cdie";
+  const R = (i.contrat === "cdie")
+    ? Object.assign({}, i.rates, {
+        chomagePat: (i.rates.chomagePat || 0) + 0.22,
+        mutuelleSal: 0, mutuellePat: 0 })
+    : i.rates;
+  const S = {};
   const isMain = variant === "main";
   const mode = i.mode;
   const netNull = (i.netAttendu == null);
@@ -661,11 +678,20 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
     // tarifaire : SIMULATOR = Σ lignes SANS F30 ; caché = Σ lignes AVEC F30
     S.D32 = rowsSum - (isMain ? S.F30 : 0);
   }
-  const ifmOn = isMain ? (cfg.ifmMainToggle ? i.ifm : false) : true;  // caché : F11='OUI'
-  S.F32 = ifmOn ? S.D32 * CONST.IFM_TAUX : 0;
-  S.D33 = (cfg.iccpMode === "ifm") ? S.D32 + S.F32 : rowsSum;
-  const iccpOn = isMain ? i.iccp : true;          // caché : F12='OUI'
-  S.F33 = iccpOn ? S.D33 * CONST.ICCP_TAUX : 0;
+  if (modeCDI && isMain) {
+    /* CDI-I / CDI-E : ni IFM ni ICCP — provision CONGÉS PAYÉS de droit commun (1/10 du brut,
+       L.3141-24), lissée en coût hebdo chargé sur la même assiette (versée à la prise des CP).
+       Le garde (F32+F33)>0 -> D85=0 éteint de lui-même la provision CET (sans objet en CDI). */
+    S.F32 = 0;
+    S.D33 = S.D32;
+    S.F33 = S.D33 * CONST.ICCP_TAUX;
+  } else {
+    const ifmOn = isMain ? (cfg.ifmMainToggle ? i.ifm : false) : true;  // caché : F11='OUI'
+    S.F32 = ifmOn ? S.D32 * CONST.IFM_TAUX : 0;
+    S.D33 = (cfg.iccpMode === "ifm") ? S.D32 + S.F32 : rowsSum;
+    const iccpOn = isMain ? i.iccp : true;          // caché : F12='OUI'
+    S.F33 = iccpOn ? S.D33 * CONST.ICCP_TAUX : 0;
+  }
 
   /* --- TOTAL BRUT (F42 = SUM F24:F41) --- */
   S.F42 = rowsSum + S.F32 + S.F33;
@@ -769,7 +795,7 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
       coeff = Math.round(Math.min(coeff, tmin + tdelta) * 10000) / 10000;
     }
     S.rgduCoeff = coeff;
-    S.rgduAmount = coeff * S.F42 * (rg.interim === false ? 1 : RGDU_DEFAULTS.interimMajoration);
+    S.rgduAmount = coeff * S.F42 * ((rg.interim === false || modeCDI) ? 1 : RGDU_DEFAULTS.interimMajoration);
   }
 
   /* --- Exonération (H83) : TO-DE (agri) ou allègement Fillon / RGDU (tarifaire) --- */
@@ -989,8 +1015,19 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   /* Prestataire externe de recrutement : € HT × heures travaillées, en déduction directe de la marge
      (coût interne agence — n'apparaît jamais dans l'étude de prix client). */
   S.recrutCout = (i.recrutTarifH || 0) * (i.heures || 0);
-  S.O61 = S.O60 - S.F93 - S.recrutCout - (S.cetCoutReel || 0);
-  S.P61 = S.P60 - S.F93 - S.recrutCout - (S.cetCoutReel || 0);
+  /* CDI-I / CDI-E : provision d'INTERMISSION lissée sur les heures facturées —
+   * (1/τ − 1) × coût salarial chargé de la semaine type (τ = taux d'occupation).
+   * Approximation MAJORANTE : en intermission la garantie est la GMMR (CDI-I,
+   * plancher SMIC×151,67 — L.1251-58-3) ou le dernier taux de base (CDI-E), sans
+   * IFM/HS/indemnités. CDI-E : + abondement CPF 500 €/an (~9,62 €/sem, art. 115). */
+  S.cdiIntermCout = 0; S.cdieFormationCout = 0;
+  if (modeCDI) {
+    const tau = Math.min(100, Math.max(1, i.tauxOccupation == null ? 100 : i.tauxOccupation)) / 100;
+    S.cdiIntermCout = (1 / tau - 1) * (S.F42 + S.H88);
+    if (i.contrat === "cdie") S.cdieFormationCout = 500 / 52;
+  }
+  S.O61 = S.O60 - S.F93 - S.recrutCout - (S.cetCoutReel || 0) - S.cdiIntermCout - S.cdieFormationCout;
+  S.P61 = S.P60 - S.F93 - S.recrutCout - (S.cetCoutReel || 0) - S.cdiIntermCout - S.cdieFormationCout;
   S.O62 = i.heures ? S.O60 / i.heures : 0;
   S.P62 = i.heures ? S.P60 / i.heures : 0;
   S.O63 = S.O60 - (S.O42 * i.remisePct / 100);
