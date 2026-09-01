@@ -102,7 +102,7 @@ a { color: var(--brass-deep); }
       <div class="grid">
         <div class="adr-wrap" style="grid-column: 1 / -1">
           <label for="in-adresse">Adresse du chantier (ou « ville », « 35 Saint-Malo »)</label>
-          <input type="text" id="in-adresse" placeholder="ex. 12 rue des Forges, Rennes" autocomplete="off">
+          <input type="text" id="in-adresse" placeholder="ex. 12 rue des Forges, Rennes" autocomplete="off" autofocus>
           <div class="adr-sug" id="sug-adresse" hidden></div>
           <span class="hint" id="hint-adresse">Adresse géocodée par la Base Adresse Nationale (service public).</span>
         </div>
@@ -237,6 +237,7 @@ function rendreLiens() {
   const liens = [
     ["Airbnb", "https://www.airbnb.fr/s/" + q + "/homes?adults=" + n + "&checkin=" + d1 + "&checkout=" + d2 +
        "&price_max=" + pmax + "&min_bedrooms=" + n + "&amenities%5B%5D=8"],
+    ["Appart'City", "https://www.appartcity.com/fr/recherche"],
     ["Booking.com", "https://www.booking.com/searchresults.fr.html?ss=" + q + "&checkin=" + d1 + "&checkout=" + d2 +
        "&group_adults=" + n + "&no_rooms=1&group_children=0"],
     ["Vrbo", "https://www.vrbo.com/fr-fr/search?destination=" + q + "&startDate=" + d1 + "&endDate=" + d2 + "&adults=" + n],
@@ -310,6 +311,10 @@ $("in-depfiltre").addEventListener("change", rendreBailleurs);
 
 majResume();
 chargerBailleurs();
+/* arrivée DIRECTE sur le champ de recherche (demande 02/09) — l'attribut autofocus
+   est doublé d'un focus explicite (fiable après le chargement des polices/layout) */
+window.addEventListener("load", () => $("in-adresse").focus());
+$("in-adresse").focus();
 </script>
 </body>
 </html>
