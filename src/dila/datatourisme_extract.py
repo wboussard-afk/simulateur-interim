@@ -50,7 +50,15 @@ def premiers(v):
 
 def extraire_poi(poi):
     types = premiers(poi.get("@type"))
-    if "RentalAccommodation" not in types:
+    # L = location/gite ; C = camping (mobil-homes, chalets — demande direction 02/09) ;
+    # V = village vacances / hebergement collectif. Priorite C > V > L (types multiples).
+    if any(t in ("CampingAndCaravanning", "Camping", "FarmCamping") for t in types):
+        typ = "C"
+    elif any(t in ("HolidayResort", "CollectiveAccommodation") for t in types):
+        typ = "V"
+    elif "RentalAccommodation" in types:
+        typ = "L"
+    else:
         return None
     # localisation
     lat = lon = None
@@ -105,7 +113,7 @@ def extraire_poi(poi):
     tel = re.sub(r"[^\d+]", "", tel)[:16]
     return dep, [nom[:90], commune[:40], cp, round(lat, 5), round(lon, 5),
                  capacite[:4], classement[:20], tel, mail[:60], site[:120],
-                 createur[:60], maj]
+                 createur[:60], maj, typ]
 
 
 def main():
@@ -159,7 +167,11 @@ def main():
     tailles = sum(os.path.getsize(os.path.join(DEST, f)) for f in os.listdir(DEST))
     avec_tel = sum(1 for l in par_dep.values() for x in l if x[7])
     avec_mail = sum(1 for l in par_dep.values() for x in l if x[8])
-    print(f"TERMINE : {total} lieux -> {gardes} hebergements locatifs, {len(par_dep)} departements, "
+    par_type = {}
+    for l in par_dep.values():
+        for x in l:
+            par_type[x[12]] = par_type.get(x[12], 0) + 1
+    print(f"TERMINE : {total} lieux -> {gardes} hebergements (L/C/V {par_type}), {len(par_dep)} departements, "
           f"{tailles/1e6:.1f} Mo ; tel {avec_tel}, mail {avec_mail}")
 
 
