@@ -130,7 +130,27 @@ a { color: var(--brass-deep); }
     <div class="b">
       <div id="cible-liens" class="note">Cible : <b id="cible-txt">— (saisir l'adresse du chantier)</b></div>
       <div class="liens" id="liens"></div>
+      <div class="note" id="adt-titre" hidden style="margin-top:10px"><b>Portails départementaux officiels (sans commission)</b> — agences de tourisme des départements du rayon :</div>
+      <div class="liens" id="liens-adt"></div>
       <span class="hint">Liens de recherche PRÉ-REMPLIS (destination, dates, nombre de personnes ; prix/nuit et cuisine pré-filtrés quand le site le permet) — vérifier les filtres à l'arrivée sur le site. Airbnb et Vrbo n'ont pas d'API publique de recherche et Booking exige un compte partenaire : l'intégration directe des annonces est une évolution possible, à décider par la direction.</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Hébergements officiels avec contact <span class="eyebrow">DATAtourisme · offices de tourisme</span></h2>
+    <div class="b">
+      <div class="grid" style="margin-bottom:8px">
+        <div><label for="in-dtfiltre">Filtre</label>
+          <select id="in-dtfiltre">
+            <option value="contact" selected>avec téléphone ou e-mail direct</option>
+            <option value="capa">contact + capacité ≥ taille de l'équipe</option>
+            <option value="tous">tous (y compris site web seul)</option>
+          </select></div>
+        <div><label for="in-dtcherche">Recherche (nom, commune)</label><input type="text" id="in-dtcherche" placeholder="ex. gîte, Ploërmel…"></div>
+      </div>
+      <div class="note" id="dt-statut">Saisir l'adresse du chantier : la base officielle nationale est interrogée sur le rayon.</div>
+      <div style="max-height:460px; overflow-y:auto"><table id="tbl-dt"></table></div>
+      <span class="hint">Base nationale <b>DATAtourisme</b> (fiches saisies par les offices de tourisme, ADT et CRT — ~98 000 hébergements locatifs en France, ~70 % avec contact direct), réutilisée sous <b>Licence Ouverte 2.0</b> : le créateur de chaque fiche et sa date de mise à jour sont affichés (attribution obligatoire). Le contact désigné est parfois une centrale de réservation ou l'office — à qualifier au premier appel. Rafraîchissement hebdomadaire depuis le dump national quotidien.</span>
     </div>
   </section>
 
@@ -378,11 +398,82 @@ function rendreLiens() {
     ["Vrbo", "https://www.vrbo.com/fr-fr/search?destination=" + q + "&startDate=" + d1 + "&endDate=" + d2 + "&adults=" + n],
     ["Abritel", "https://www.abritel.fr/search?destination=" + q + "&startDate=" + d1 + "&endDate=" + d2 + "&adults=" + n],
     ["Gîtes de France", "https://www.gites-de-france.com/fr/search?destination=" + q + "&arrival=" + d1 + "&departure=" + d2 + "&capacity=" + n],
+    ["LVP Direct", "https://lvpdirect.fr/"],
   ];
   $("liens").innerHTML = liens.map(([nom, url], i) =>
     "<a class='btn" + (i === 0 ? " primary" : "") + "' target='_blank' rel='noopener' href='" + url + "'>" + nom + " ↗</a>").join("");
   $("eb-liens").textContent = n + " pers · " + d1 + " → " + d2 + " · ≤ " + EURN.format(pmax) + "/nuit";
+  rendreADT();
 }
+
+/* ===== portails départementaux officiels (ADT/CDT — annuaire vérifié 02/09/2026) ===== */
+let ADT = null;
+async function rendreADT() {
+  const deps = Array.from(new Set(RAYON_LISTE.map(v => v.dep)));
+  if (!deps.length) { $("adt-titre").hidden = true; $("liens-adt").innerHTML = ""; return; }
+  if (!ADT) {
+    try { ADT = (await (await fetch("data/adt-fr.json")).json()).adt; } catch (e) { ADT = {}; }
+  }
+  const btns = deps.map(dep => ADT[dep] ? { dep, ...ADT[dep] } : null).filter(Boolean);
+  $("adt-titre").hidden = !btns.length;
+  $("liens-adt").innerHTML = btns.map(a =>
+    "<a class='btn' target='_blank' rel='noopener' href='" + esc(a.url) + "' title='" +
+    (a.statut === "ok" ? "page hébergements testée" : "accueil du site (pas de rubrique hébergements dédiée)") +
+    "'>" + esc(a.nom.replace(/\s*\(.*\)$/, "")) + " (" + a.dep + ") ↗</a>").join("");
+}
+
+/* ===== hébergements officiels DATAtourisme (Licence Ouverte 2.0 — attribution par fiche) ===== */
+const DT_CACHE = {};          // dep -> {h:[...]} ou null (fichier absent)
+async function chargerDT(dep) {
+  if (dep in DT_CACHE) return DT_CACHE[dep];
+  try {
+    const r = await fetch("data/dt/" + dep + ".json");
+    DT_CACHE[dep] = r.ok ? await r.json() : null;
+  } catch (e) { DT_CACHE[dep] = null; }
+  return DT_CACHE[dep];
+}
+async function rendreDT() {
+  if (!CHANTIER || !RAYON_LISTE.length) { $("tbl-dt").innerHTML = ""; return; }
+  const rayon = Math.max(5, parseInt($("in-rayon").value, 10) || 35);
+  const deps = Array.from(new Set(RAYON_LISTE.map(v => v.dep)));
+  $("dt-statut").textContent = "Interrogation de la base officielle (" + deps.join(", ") + ")…";
+  const blocs = await Promise.all(deps.map(chargerDT));
+  const n = parseInt($("in-equipe").value, 10) || 2;
+  const filtre = $("in-dtfiltre").value;
+  const q = ($("in-dtcherche").value || "").trim().toLowerCase();
+  let liste = [];
+  for (const b of blocs) {
+    if (!b) continue;
+    for (const h of b.h) {
+      /* h = [nom, commune, cp, lat, lon, capacite, classement, tel, email, site, createur, maj] */
+      const km = haversineKm(CHANTIER, { lat: h[3], lon: h[4] });
+      if (km > rayon) continue;
+      if (filtre !== "tous" && !h[7] && !h[8]) continue;
+      if (filtre === "capa" && !(parseInt(h[5], 10) >= n)) continue;
+      if (q && !(h[0] + " " + h[1]).toLowerCase().includes(q)) continue;
+      liste.push({ h, km });
+    }
+  }
+  liste.sort((a, b) => a.km - b.km);
+  const total = liste.length;
+  liste = liste.slice(0, 250);
+  let s = "<tr><th>Hébergement</th><th>Commune</th><th class='n'>Km</th><th class='n'>Pers.</th><th>Contact</th></tr>";
+  s += liste.map(({ h, km }) => {
+    const tel = h[7] ? "<a href='tel:" + esc(h[7]) + "'>" + esc(h[7].replace(/^\+33/, "0").replace(/(\d{2})(?=\d)/g, "$1 ")) + "</a>" : "";
+    const mail = h[8] ? "<a href='mailto:" + esc(h[8]) + "'>" + esc(h[8]) + "</a>" : "";
+    const site = h[9] ? "<a target='_blank' rel='noopener' href='" + esc(h[9]) + "'>site</a>" : "";
+    return "<tr><td>" + esc(h[0]) + (h[6] ? " <span class='d' style='color:var(--muted)'>(" + esc(h[6]) + ")</span>" : "") +
+      "<span class='hint'>Source : DATAtourisme / " + esc(h[10] || "office de tourisme") + " · màj " + esc(h[11] || "?") + "</span></td>" +
+      "<td>" + esc(h[1]) + "</td><td class='n'>" + N1.format(km) + "</td><td class='n'>" + esc(h[5] || "?") + "</td>" +
+      "<td class='n'>" + [tel, mail, site].filter(Boolean).join("<br>") + "</td></tr>";
+  }).join("");
+  $("tbl-dt").innerHTML = s;
+  $("dt-statut").innerHTML = "<span class='compteur'>" + total + "</span> hébergement(s) officiel(s) dans le rayon" +
+    (total > 250 ? " — 250 premiers affichés (les plus proches), affiner la recherche." : "") +
+    " · Source : DATAtourisme, Licence Ouverte 2.0.";
+}
+$("in-dtfiltre").addEventListener("change", rendreDT);
+$("in-dtcherche").addEventListener("input", () => { clearTimeout(window._dtT); window._dtT = setTimeout(rendreDT, 250); });
 
 /* ===== bailleurs connus (données confidentielles, servies derrière l'auth) ===== */
 async function chargerBailleurs() {

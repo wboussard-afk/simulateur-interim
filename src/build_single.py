@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """Assemble les applications autonomes (inline db.js + engine.js + geo.js)."""
 import io, sys, re, os
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
@@ -111,6 +111,11 @@ if os.path.isdir(os.path.join(base, "auth")):
         os.makedirs(os.path.join(auth_app, "data"), exist_ok=True)
         open(os.path.join(auth_app, "data", "communes-fr.json"), 'w', encoding='utf-8').write(open(communes, encoding='utf-8').read())
         print("auth/assets/app/data/communes-fr.json copié")
+    adt = os.path.join(os.path.dirname(base), "data", "adt-fr.json")
+    if os.path.isfile(adt):
+        open(os.path.join(auth_app, "data", "adt-fr.json"), 'w', encoding='utf-8').write(open(adt, encoding='utf-8').read())
+        print("auth/assets/app/data/adt-fr.json copié")
     # NB : data/bailleurs.json (données personnelles, .gitignore) est écrit DIRECTEMENT dans
     # auth/assets/app/data/ par le convertisseur — le build ne le touche pas, wrangler le déploie.
     print("auth/assets/app/ alimenté (6 pages protégées + barèmes BTP + communes)")
+

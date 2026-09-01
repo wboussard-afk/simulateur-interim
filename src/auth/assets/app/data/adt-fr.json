@@ -1,0 +1,487 @@
+{
+"maj": "2026-09-02",
+"source": "annuaire verifie (workflow 10 agents, chaque URL testee)",
+"n": 96,
+"adt": {
+"01": {
+"nom": "Ain Tourisme (ADT de l'Ain)",
+"url": "https://www.ain-tourisme.com/sejourner/ou-dormir/",
+"statut": "ok"
+},
+"02": {
+"nom": "Aisne Tourisme — J'aime l'Aisne (ADRT de l'Aisne)",
+"url": "https://www.jaimelaisne.com/",
+"statut": "accueil-seulement"
+},
+"03": {
+"nom": "Allier Bourbonnais Attractivité (allier-auvergne-tourisme.com)",
+"url": "https://www.allier-auvergne-tourisme.com/hebergements-allier-13-1.html",
+"statut": "ok"
+},
+"04": {
+"nom": "Alpes de Haute Provence Tourisme (AD04)",
+"url": "https://www.tourisme-alpes-haute-provence.com/ou-dormir/",
+"statut": "ok"
+},
+"05": {
+"nom": "Hautes-Alpes.net (Agence de Développement des Hautes-Alpes)",
+"url": "https://www.hautes-alpes.net/fr/tourisme/essentiels/hebergements.html",
+"statut": "ok"
+},
+"06": {
+"nom": "Côte d'Azur France Tourisme (comité du tourisme des Alpes-Maritimes)",
+"url": "https://cotedazurfrance.fr/sejourner/hebergements/",
+"statut": "ok"
+},
+"07": {
+"nom": "Ardèche Guide (Ardèche Tourisme, ADT07)",
+"url": "https://www.ardeche-guide.com/hebergements",
+"statut": "ok"
+},
+"08": {
+"nom": "ADT des Ardennes (ardennes.com)",
+"url": "https://www.ardennes.com/preparer-son-sejour/trouver-son-hebergement/",
+"statut": "ok"
+},
+"09": {
+"nom": "Ariège Pyrénées Tourisme (ADT Ariège)",
+"url": "https://www.ariegepyrenees.com/preparer/hebergement/",
+"statut": "ok"
+},
+"10": {
+"nom": "Aube en Champagne Tourisme (ADT de l'Aube)",
+"url": "https://www.aube-champagne.com/fr/trouvez-votre-gite-et-meubles-dans-l-aube-en-champagne/",
+"statut": "ok"
+},
+"11": {
+"nom": "Aude Tourisme (ADT de l'Aude)",
+"url": "https://www.audetourisme.com/fr/ou-dormir/",
+"statut": "ok"
+},
+"12": {
+"nom": "Aveyron Attractivité Tourisme (tourisme-aveyron.com)",
+"url": "https://www.tourisme-aveyron.com/fr/se-loger",
+"statut": "ok"
+},
+"13": {
+"nom": "Provence Tourisme (MyProvence)",
+"url": "https://www.myprovence.fr/les-guides/hebergements",
+"statut": "ok"
+},
+"14": {
+"nom": "Destination Calvados (Calvados Attractivité)",
+"url": "https://www.explore-calvados.com/sejour/tous-les-hebergements/",
+"statut": "ok"
+},
+"15": {
+"nom": "Cantal Destination (CDT du Cantal)",
+"url": "https://www.cantal-destination.com/organisation-pratique/ou-dormir/",
+"statut": "ok"
+},
+"16": {
+"nom": "Infiniment Charentes (Charentes Tourisme, ADT bi-départementale 16+17)",
+"url": "https://www.infiniment-charentes.com/dormir-en-charentes",
+"statut": "ok"
+},
+"17": {
+"nom": "Infiniment Charentes (Charentes Tourisme, ADT bi-départementale 16+17)",
+"url": "https://www.infiniment-charentes.com/dormir-en-charentes",
+"statut": "ok"
+},
+"18": {
+"nom": "Berry Province (Ad2T - Tourisme et Territoires du Cher, marque commune Cher+Indre)",
+"url": "https://www.berryprovince.com/sejourner/",
+"statut": "ok"
+},
+"19": {
+"nom": "Corrèze Tourisme (agence du Conseil départemental)",
+"url": "https://www.tourismecorreze.com/fr/ou_dormir.html",
+"statut": "ok"
+},
+"21": {
+"nom": "Côte-d'Or Attractivité (La Côte-d'Or J'Adore)",
+"url": "https://www.lacotedorjadore.com/ou-dormir/hebergements/",
+"statut": "ok"
+},
+"22": {
+"nom": "Côtes d'Armor Tourisme (cotesdarmor.com)",
+"url": "https://www.cotesdarmor.com/se-loger/",
+"statut": "ok"
+},
+"23": {
+"nom": "Tourisme Creuse Limousin (tourisme-creuse.com)",
+"url": "https://www.tourisme-creuse.com/toute-la-creuse/sejourner/hebergements/",
+"statut": "ok"
+},
+"24": {
+"nom": "Dordogne Périgord Tourisme (dordogne-perigord-tourisme.fr)",
+"url": "https://www.dordogne-perigord-tourisme.fr/preparer-son-sejour/ou-dormir/",
+"statut": "ok"
+},
+"25": {
+"nom": "Doubs Tourisme (doubs.travel)",
+"url": "https://www.doubs.travel/sejourner/hebergements/",
+"statut": "ok"
+},
+"26": {
+"nom": "La Drôme Tourisme (drome-cestmanature.com)",
+"url": "https://www.drome-cestmanature.com/preparez-votre-sejour/les-hebergements/",
+"statut": "ok"
+},
+"27": {
+"nom": "Eurêka, agence d'attractivité de l'Eure (ex-Eure Tourisme)",
+"url": "https://www.eureka-attractivite.fr/hebergements-eure/",
+"statut": "ok"
+},
+"28": {
+"nom": "Eure-et-Loir Tourisme (tourisme28.com)",
+"url": "https://www.tourisme28.com/locations-de-vacances-en-eure-et-loir/",
+"statut": "ok"
+},
+"29": {
+"nom": "Tout commence en Finistère / Finistère 360 (toutcommenceenfinistere.com)",
+"url": "https://www.toutcommenceenfinistere.com/",
+"statut": "accueil-seulement"
+},
+"2A": {
+"nom": "Visit Corsica — Agence du Tourisme de la Corse (ATC)",
+"url": "https://www.visit-corsica.com/fr/Preparer-mon-sejour/Hebergements",
+"statut": "accueil-seulement"
+},
+"2B": {
+"nom": "Visit Corsica — Agence du Tourisme de la Corse (ATC)",
+"url": "https://www.visit-corsica.com/fr/Preparer-mon-sejour/Hebergements",
+"statut": "accueil-seulement"
+},
+"30": {
+"nom": "Gard Tourisme",
+"url": "https://www.tourismegard.com/idees-week-ends-et-sejours/tous-les-hebergements/",
+"statut": "ok"
+},
+"31": {
+"nom": "Haute-Garonne Tourisme",
+"url": "https://resa.hautegaronnetourisme.com/",
+"statut": "ok"
+},
+"32": {
+"nom": "Tourisme Gers (CDT Destination Gers)",
+"url": "https://www.tourisme-gers.com/organiser/ou-dormir/gites-et-locations-dans-le-gers/",
+"statut": "ok"
+},
+"33": {
+"nom": "Gironde Tourisme",
+"url": "https://www.gironde-tourisme.com/sur-place/les-hebergements/",
+"statut": "ok"
+},
+"34": {
+"nom": "Herault Tourisme",
+"url": "https://www.herault-tourisme.com/fr/sejourner/hebergements/",
+"statut": "ok"
+},
+"35": {
+"nom": "Ille-et-Vilaine Tourisme",
+"url": "https://www.ille-et-vilaine-tourisme.bzh/sejourner/hebergements/",
+"statut": "ok"
+},
+"36": {
+"nom": "Berry Province (marque touristique ADT Indre + Cher)",
+"url": "https://www.berryprovince.com/sejourner/gites-et-locations-berry/",
+"statut": "ok"
+},
+"37": {
+"nom": "Touraine Val de Loire (ADT Touraine)",
+"url": "https://www.tourainevaldeloire.com/preparer-votre-sejour/hebergements/tous-les-hebergements/",
+"statut": "ok"
+},
+"38": {
+"nom": "Isere Attractivite / Isere Tourisme (alpes-isere.com)",
+"url": "https://www.alpes-isere.com/decouvrir-l-isere/ou-dormir/tous-les-hebergements/",
+"statut": "ok"
+},
+"39": {
+"nom": "Jura Tourisme",
+"url": "https://www.jura-tourism.com/reserver-mes-vacances/tous-les-gites-et-locations-de-vacances/",
+"statut": "ok"
+},
+"40": {
+"nom": "Tourisme Landes (CDT des Landes / Landes Attractivité)",
+"url": "https://www.tourismelandes.com/preparer-mon-sejour/",
+"statut": "ok"
+},
+"41": {
+"nom": "ADT Val de Loire - Loir-et-Cher",
+"url": "https://www.val-de-loire-41.com/hebergements/tous-les-hebergements/",
+"statut": "ok"
+},
+"42": {
+"nom": "Loire Tourisme (ADT Loire)",
+"url": "https://www.loiretourisme.com/hebergements/",
+"statut": "ok"
+},
+"43": {
+"nom": "My Haute-Loire (Maison du tourisme de la Haute-Loire)",
+"url": "https://www.myhauteloire.fr/hebergements/",
+"statut": "ok"
+},
+"44": {
+"nom": "Loire-Atlantique Tourisme (Loire-Atlantique développement)",
+"url": "https://tourisme-loireatlantique.com/",
+"statut": "accueil-seulement"
+},
+"45": {
+"nom": "Tourisme Loiret (ADT du Loiret)",
+"url": "https://www.tourismeloiret.com/fr/dormir/tous-les-hebergements",
+"statut": "ok"
+},
+"46": {
+"nom": "Lot Tourisme (ADT du Lot)",
+"url": "https://www.tourisme-lot.com/hebergement/",
+"statut": "ok"
+},
+"47": {
+"nom": "Tourisme Lot-et-Garonne (ADRT 47)",
+"url": "https://www.tourisme-lotetgaronne.com/reserver-votre-location-de-vacances/",
+"statut": "ok"
+},
+"48": {
+"nom": "Lozère Tourisme (CDT 48)",
+"url": "https://www.lozere-tourisme.com/hebergements",
+"statut": "ok"
+},
+"49": {
+"nom": "Anjou Tourisme (ADT Maine-et-Loire)",
+"url": "https://www.anjou-tourisme.com/fr/preparer-son-sejour/ou-dormir",
+"statut": "ok"
+},
+"50": {
+"nom": "Attitude Manche (agence d'attractivité, ex-Latitude Manche)",
+"url": "https://www.attitude-manche.fr/ou-manger-dormir/",
+"statut": "ok"
+},
+"51": {
+"nom": "ADT de la Marne — Tourisme en Champagne",
+"url": "https://www.tourisme-en-champagne.com/hebergements",
+"statut": "ok"
+},
+"52": {
+"nom": "Haute-Marne Attractivité — Bienvenue en Haute-Marne",
+"url": "https://www.bienvenue-hautemarne.fr/preparer-vos-vacances/ou-dormir/tous-les-hebergements/",
+"statut": "ok"
+},
+"53": {
+"nom": "Mayenne Tourisme — Destination Mayenne (portail départemental)",
+"url": "https://www.destination-mayenne.com/pratique/hebergements/locations-de-vacances/",
+"statut": "ok"
+},
+"54": {
+"nom": "CDT Meurthe-et-Moselle — tourisme-meurtheetmoselle.fr",
+"url": "https://tourisme-meurtheetmoselle.fr/nos-hebergements/",
+"statut": "ok"
+},
+"55": {
+"nom": "Meuse Attractivité — lameuse.fr",
+"url": "https://www.lameuse.fr/je-sejourne/hebergements-meuse",
+"statut": "ok"
+},
+"56": {
+"nom": "ADT Morbihan — morbihan.com",
+"url": "https://morbihan.com/sejourner/les-hebergements/",
+"statut": "ok"
+},
+"57": {
+"nom": "Moselle Attractivité — MOSL (mosl.fr, ex mosl-tourisme.fr)",
+"url": "https://www.mosl.fr/fr/decouvrir-la-moselle/destination/dormir/locations-de-vacances",
+"statut": "ok"
+},
+"58": {
+"nom": "Nièvre Attractive — La Nièvre naturellement",
+"url": "https://www.lanievrenaturellement.com/sejourner/ou-dormir/",
+"statut": "ok"
+},
+"59": {
+"nom": "Nord Tourisme — Nord Évasion (evasion.lenord.fr)",
+"url": "https://evasion.lenord.fr/organiser/ou-dormir/tous-les-hebergements-dans-le-nord/",
+"statut": "ok"
+},
+"60": {
+"nom": "Oise Tourisme (ADT de l'Oise)",
+"url": "https://www.oisetourisme.com/sejourner/ou-dormir/locations-de-vacances/",
+"statut": "ok"
+},
+"61": {
+"nom": "Orne Tourisme (ADT de l'Orne)",
+"url": "https://www.ornetourisme.com/preparer-mon-sejour/hebergements/",
+"statut": "ok"
+},
+"62": {
+"nom": "Pas-de-Calais Tourisme",
+"url": "https://www.pas-de-calais-tourisme.com/thematique/hebergements/",
+"statut": "ok"
+},
+"63": {
+"nom": "Puy-de-Dome Tourisme - L'Auvergne des Volcans (portail officiel du Departement)",
+"url": "https://www.puydedome-tourisme.com/preparer-mon-sejour/reserver/hebergement/",
+"statut": "ok"
+},
+"64": {
+"nom": "Tourisme 64 - Agence d'attractivite et de developpement touristiques Bearn Pays basque",
+"url": "https://www.tourisme64.com/hebergements/",
+"statut": "ok"
+},
+"65": {
+"nom": "Hautes-Pyrenees Tourisme Environnement (HPTE)",
+"url": "https://www.tourisme-hautes-pyrenees.com/guide-voyage/hebergements/",
+"statut": "ok"
+},
+"66": {
+"nom": "Tourisme Pyrenees-Orientales (ADT 66)",
+"url": "https://www.tourisme-pyreneesorientales.com/hebergements",
+"statut": "ok"
+},
+"67": {
+"nom": "Visit Alsace - Alsace Destination Tourisme (ADT unique Bas-Rhin + Haut-Rhin, Collectivite europeenne d'Alsace)",
+"url": "https://www.visit.alsace/hebergements/",
+"statut": "ok"
+},
+"68": {
+"nom": "Visit Alsace - Alsace Destination Tourisme (ADT unique Bas-Rhin + Haut-Rhin, Collectivite europeenne d'Alsace)",
+"url": "https://www.visit.alsace/hebergements/",
+"statut": "ok"
+},
+"69": {
+"nom": "Rhone Tourisme (departement du Rhone, hors metropole de Lyon)",
+"url": "https://www.rhonetourisme.com/je-prepare/hebergements/",
+"statut": "ok"
+},
+"70": {
+"nom": "Haute-Saône Tourisme (Destination 70, agence départementale)",
+"url": "https://hautesaonetourisme.com/sejourner/ou-dormir/",
+"statut": "ok"
+},
+"71": {
+"nom": "Destination Saône-et-Loire (ADT 71)",
+"url": "https://www.destination-saone-et-loire.fr/fr/les-hebergements-en-saone-et-loire.html",
+"statut": "ok"
+},
+"72": {
+"nom": "Sarthe Tourisme (agence départementale)",
+"url": "https://www.sarthetourisme.com/preparer-mon-sejour/dormir/tous-les-hebergements/",
+"statut": "ok"
+},
+"73": {
+"nom": "Savoie Mont Blanc Tourisme (agence commune Savoie + Haute-Savoie)",
+"url": "https://www.savoie-mont-blanc.com/ou-dormir/",
+"statut": "ok"
+},
+"74": {
+"nom": "Haute-Savoie Mont-Blanc Tourisme (CDT créé en 2025)",
+"url": "https://hautesavoiemontblanc-tourisme.com/votre-voyage/votre-hebergement/",
+"statut": "ok"
+},
+"75": {
+"nom": "Paris je t'aime — Office de Tourisme de Paris (pas d'ADT : Paris = ville-département)",
+"url": "https://parisjetaime.com/paris-pratique/ou-dormir-a-paris-i104",
+"statut": "ok"
+},
+"76": {
+"nom": "Seine-Maritime Attractivité (seine-maritime-tourisme.com)",
+"url": "https://www.seine-maritime-tourisme.com/sejours/hebergements/",
+"statut": "ok"
+},
+"77": {
+"nom": "Seine-et-Marne Attractivité — portail 'Seine-et-Marne Vivre en Grand !'",
+"url": "https://www.tourisme-seine-et-marne.fr/ou-dormir/",
+"statut": "ok"
+},
+"78": {
+"nom": "Destination Yvelines (site tourisme du Département des Yvelines, remplace sortir-yvelines.fr)",
+"url": "https://www.destination-yvelines.fr/en/where-to-sleep/",
+"statut": "ok"
+},
+"79": {
+"nom": "Deux-Sèvres Tourisme (agence de développement touristique des Deux-Sèvres)",
+"url": "https://www.tourisme-deux-sevres.com/hebergements",
+"statut": "ok"
+},
+"80": {
+"nom": "Somme Tourisme",
+"url": "https://www.somme-tourisme.com/jorganise/dormir/",
+"statut": "ok"
+},
+"81": {
+"nom": "Tarn Tourisme (Tarn Attractivite)",
+"url": "https://www.tourisme-tarn.com/sejour/ou-dormir/",
+"statut": "ok"
+},
+"82": {
+"nom": "Tarn-et-Garonne Tourisme (ADT 82)",
+"url": "https://www.tourisme-tarnetgaronne.fr/sejourner/hebergements/",
+"statut": "ok"
+},
+"83": {
+"nom": "Visit Var (Var Tourisme)",
+"url": "https://www.visitvar.fr/fr/selection/hebergement/",
+"statut": "ok"
+},
+"84": {
+"nom": "Vaucluse Provence Attractivite (Provence Guide)",
+"url": "https://www.provenceguide.com/preparer/hebergements/",
+"statut": "ok"
+},
+"85": {
+"nom": "Vendee Tourisme",
+"url": "https://www.vendee-tourisme.com/hebergements",
+"statut": "ok"
+},
+"86": {
+"nom": "ADT de la Vienne (Tourisme Vienne)",
+"url": "https://www.tourisme-vienne.com/preparons/on-dort-ou/",
+"statut": "ok"
+},
+"87": {
+"nom": "Haute-Vienne Tourisme / Visit Limousin",
+"url": "https://www.visitlimousin.com/sejourner/ou-dormir/",
+"statut": "ok"
+},
+"88": {
+"nom": "Tourisme Vosges (agence departementale)",
+"url": "https://www.tourisme.vosges.fr/ou-dormir-dans-les-voges/",
+"statut": "ok"
+},
+"89": {
+"nom": "Yonne Tourisme",
+"url": "https://www.tourisme-yonne.com/lyonne-en-bourgogne/les-hebergements/",
+"statut": "ok"
+},
+"90": {
+"nom": "Belfort Tourisme (Territoire de Belfort)",
+"url": "https://belfort-tourisme.com/preparer-son-sejour/tous-nos-hebergements",
+"statut": "ok"
+},
+"91": {
+"nom": "Essonne Tourisme (Comité départemental du tourisme de l'Essonne)",
+"url": "https://www.essonnetourisme.com/hebergements/",
+"statut": "ok"
+},
+"92": {
+"nom": "Destination Hauts-de-Seine (mission tourisme du Conseil départemental)",
+"url": "https://destination.hauts-de-seine.fr/les-hebergements-dans-les-hauts-de-seine.html",
+"statut": "ok"
+},
+"93": {
+"nom": "Seine-Saint-Denis Tourisme (tourisme93.com, CDT)",
+"url": "https://www.tourisme93.com/hotels.html",
+"statut": "ok"
+},
+"94": {
+"nom": "Val-de-Marne Tourisme & Loisirs (CDT du Val-de-Marne)",
+"url": "https://www.tourisme-valdemarne.com/cote-pratique/hebergements/",
+"statut": "ok"
+},
+"95": {
+"nom": "Val d'Oise Tourisme",
+"url": "https://www.valdoise-tourisme.com/hebergements/",
+"statut": "ok"
+}
+}
+}
