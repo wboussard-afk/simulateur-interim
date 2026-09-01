@@ -111,9 +111,12 @@ def extraire_poi(poi):
     if not nom:
         return None
     tel = re.sub(r"[^\d+]", "", tel)[:16]
+    # uuid du POI (necessaire au bouton « Reserver » : POST /catalog/{uuid}/contact)
+    m_uuid = re.search(r"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
+                       str(poi.get("@id") or poi.get("dc:identifier") or ""))
     return dep, [nom[:90], commune[:40], cp, round(lat, 5), round(lon, 5),
                  capacite[:4], classement[:20], tel, mail[:60], site[:120],
-                 createur[:60], maj, typ]
+                 createur[:60], maj, typ, m_uuid.group(1) if m_uuid else ""]
 
 
 def main():

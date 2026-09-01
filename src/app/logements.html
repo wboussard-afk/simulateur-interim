@@ -341,6 +341,37 @@ async function chargerDT(dep) {
   return DT_CACHE[dep];
 }
 let AF_DATA = null;   // plan B Atout France (national, ~2 400 etablissements classes geocodes)
+/* mode LIVE DATAtourisme : actif quand la clé API est configurée côté serveur
+   (proxy /api/dt — la clé n'apparaît jamais ici). Ajoute le bouton « ✉ Réserver »
+   qui envoie une demande de réservation à l'hôte via l'endpoint officiel
+   POST /catalog/{uuid}/contact (target booking, réponse sur logements@). */
+let DT_LIVE = false;
+fetch("/api/dt/ping").then(r => r.json()).then(j => { DT_LIVE = !!j.configuree; }).catch(() => {});
+async function contacterHote(uuid, nomHeb) {
+  const n = parseInt($("in-equipe").value, 10) || 2;
+  const { d1, d2 } = datesSejour();
+  const sem = Math.max(1, parseInt($("in-semaines").value, 10) || 1);
+  const message =
+"Bonjour,\n\n" +
+"Nous recherchons un logement pour une équipe de " + n + " salariés en mission sur un chantier proche de chez vous, " +
+"du " + d1.split("-").reverse().join("/") + " au " + d2.split("-").reverse().join("/") + " (" + sem + " semaine(s) — durée alignée sur la mission, prolongation possible).\n\n" +
+"Nos besoins : logement entier avec cuisine, " + n + " chambres (une par personne), budget " +
+EURN.format(n * BUDGET_SEM) + " par semaine (" + EURN.format(Math.ceil(n * NUITEE * 100) / 100) + "/nuitée pour l'équipe).\n\n" +
+"Votre hébergement « " + nomHeb + " » est-il disponible sur ces dates, et à quelles conditions pour un séjour à la semaine ?\n\n" +
+"Réponse possible par retour d'e-mail (logements@ab2pro-simulateur.com) ou par téléphone.\n\n" +
+"Cordialement,\nAB2Pro — Groupe Triangle Solutions RH (hébergement de salariés en mission)";
+  if (!window.confirm("Envoyer cette demande de réservation à l'hôte de « " + nomHeb + " » ?\n\n" + message)) return;
+  try {
+    const r = await fetch("/api/dt/contact/" + uuid, {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ message }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok) alert("Demande envoyée ✓ — la réponse arrivera sur logements@ab2pro-simulateur.com.");
+    else if (r.status === 422) alert("Cette fiche n'a pas d'e-mail de réservation — utiliser le téléphone affiché.");
+    else alert("Envoi impossible (" + (j.erreur || r.status) + ").");
+  } catch (e) { alert("Envoi impossible : " + e.message); }
+}
 async function rendreDT() {
   if (!CHANTIER || !RAYON_LISTE.length) { $("tbl-dt").innerHTML = ""; return; }
   const rayon = Math.max(5, parseInt($("in-rayon").value, 10) || 35);
@@ -413,7 +444,9 @@ async function rendreDT() {
       esc(h[0]) + (h[6] ? " <span class='d' style='color:var(--muted)'>(" + esc(h[6]) + ")</span>" : "") +
       "<span class='hint'>Source : DATAtourisme / " + esc(h[10] || "office de tourisme") + " · màj " + esc(h[11] || "?") + "</span></td>" +
       "<td>" + esc(h[1]) + "</td><td class='n'>" + N1.format(km) + "</td><td class='n'>" + esc(h[5] || "?") + "</td>" +
-      "<td class='n'>" + [tel, mail, site].filter(Boolean).join("<br>") + "</td></tr>";
+      "<td class='n'>" + [tel, mail, site].filter(Boolean).join("<br>") +
+      (DT_LIVE && h[13] ? "<br><a href='#' class='dt-resa' data-uuid='" + esc(h[13]) + "' data-nom='" + esc(h[0]) + "'><b>✉ Réserver</b></a>" : "") +
+      "</td></tr>";
   }).join("");
   $("tbl-dt").innerHTML = s;
   /* teaser plan B : rendre l'option Atout France VISIBLE (retour direction 02/09) */
@@ -430,6 +463,10 @@ async function rendreDT() {
     (nAF ? " · <a href='#' id='lnk-planb'><b>Plan B Atout France : " + nAF + " établissement(s) classé(s)</b> (résidences, PRL mobil-homes, auberges) →</a>" : "");
   const lp = document.getElementById("lnk-planb");
   if (lp) lp.addEventListener("click", ev => { ev.preventDefault(); $("in-dttype").value = "AF"; rendreDT(); });
+  Array.from($("tbl-dt").querySelectorAll(".dt-resa")).forEach(a => a.addEventListener("click", ev => {
+    ev.preventDefault();
+    contacterHote(a.dataset.uuid, a.dataset.nom);
+  }));
 }
 $("in-dtfiltre").addEventListener("change", rendreDT);
 $("in-dtcherche").addEventListener("input", () => { clearTimeout(window._dtT); window._dtT = setTimeout(rendreDT, 250); });

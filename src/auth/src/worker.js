@@ -166,6 +166,51 @@ async function api(req, env, url, u) {
   const p = url.pathname;
   const corps = req.method === "POST" ? await req.json().catch(() => ({})) : {};
 
+  /* ===== DATAtourisme LIVE (proxy — la clé API reste un SECRET serveur : la page
+     n'appelle jamais api.datatourisme.fr en direct, sinon la clé fuirait côté client).
+     Secret : wrangler secret put DATATOURISME_API_KEY (dossier src/auth). ===== */
+  if (p === "/api/dt/ping")
+    return json({ configuree: !!env.DATATOURISME_API_KEY });
+  if (p === "/api/dt/catalog") {
+    if (!u) return json({ erreur: "non_connecte" }, 401);
+    if (!sectionsDe(u).includes("logements")) return json({ erreur: "section" }, 403);
+    if (!env.DATATOURISME_API_KEY) return json({ configuree: false }, 503);
+    const cible = new URL("https://api.datatourisme.fr/v1/catalog");
+    for (const k of ["geo_distance", "type", "fields", "page", "page_size", "search", "sort"]) {
+      const v = url.searchParams.get(k);
+      if (v) cible.searchParams.set(k, v);
+    }
+    const rep = await fetch(cible, { headers: { "X-API-Key": env.DATATOURISME_API_KEY } });
+    return new Response(rep.body, { status: rep.status, headers: { "content-type": "application/json; charset=utf-8" } });
+  }
+  if (p.startsWith("/api/dt/contact/") && req.method === "POST") {
+    /* demande de RÉSERVATION à l'hôte via l'endpoint officiel (target booking) —
+       un clic = un envoi, réponse sur logements@ ; journalisé (pas d'envoi en masse) */
+    if (!u) return json({ erreur: "non_connecte" }, 401);
+    if (!sectionsDe(u).includes("logements")) return json({ erreur: "section" }, 403);
+    if (!env.DATATOURISME_API_KEY) return json({ configuree: false }, 503);
+    const uuid = p.slice("/api/dt/contact/".length);
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(uuid))
+      return json({ erreur: "uuid" }, 400);
+    const message = String(corps.message || "").slice(0, 5000);
+    if (message.length < 20) return json({ erreur: "message_trop_court" }, 400);
+    const charge = {
+      name: (u.nom || "AB2Pro — Groupe Triangle Solutions RH").slice(0, 255),
+      email: "logements@ab2pro-simulateur.com",
+      message,
+      subject: String(corps.subject || "Demande de location — équipes en mission (AB2Pro)").slice(0, 255),
+      target: "booking",
+    };
+    const rep = await fetch("https://api.datatourisme.fr/v1/catalog/" + uuid + "/contact", {
+      method: "POST",
+      headers: { "X-API-Key": env.DATATOURISME_API_KEY, "content-type": "application/json" },
+      body: JSON.stringify(charge),
+    });
+    await journal(env, req, u, "dt_contact", uuid, "statut " + rep.status);
+    if (rep.status === 422) return json({ erreur: "pas_email_reservation" }, 422);
+    return json({ ok: rep.ok, statut: rep.status }, rep.ok ? 200 : rep.status);
+  }
+
   /* -- session -- */
   if (p === "/api/moi")
     return u ? json({ email: u.email, nom: u.nom, role: u.role, doit_changer_mdp: !!u.doit_changer_mdp, sections: sectionsDe(u) })
