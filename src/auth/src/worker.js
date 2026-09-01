@@ -16,7 +16,7 @@ const estSuper = x => !!x && x.role === "super_admin";
 /* Accès par section : l'admin choisit les applications visibles par chaque utilisateur.
  * utilisateurs.sections = NULL → accès à tout (héritage) ; sinon tableau JSON de slugs.
  * Les admins et super admins voient toujours tout. */
-const SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe"];
+const SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe", "logements"];
 function sectionsDe(x) {
   if (!x) return [];
   if (estAdmin(x)) return SECTIONS_APPS;
@@ -139,6 +139,11 @@ export default {
       if (mSec && SECTIONS_APPS.includes(mSec[1]) && !sectionsDe(u).includes(mSec[1])) {
         await journal(env, req, u, "acces_refuse_section", mSec[1], cible);
         return new Response(PAGE_SECTION_REFUSEE, { status: 403, headers: { "content-type": "text/html; charset=utf-8" } });
+      }
+      /* données personnelles bailleurs : réservées aux utilisateurs de la section logements */
+      if (cible === "/app/data/bailleurs.json" && !sectionsDe(u).includes("logements")) {
+        await journal(env, req, u, "acces_refuse_section", "logements", cible);
+        return new Response("{}", { status: 403, headers: { "content-type": "application/json" } });
       }
       const rep = await env.ASSETS.fetch(new Request(url.origin + cible, req));
       const ct = rep.headers.get("content-type") || "";

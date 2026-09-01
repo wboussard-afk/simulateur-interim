@@ -99,8 +99,8 @@ const post = (u, o) => fetch(u, { method: "POST", headers: { "content-type": "ap
 
 let SUIS_SUPER = false;
 /* accès par section : slugs + libellés courts (la liste de référence vient de /api/admin/apercu) */
-let SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe"];
-const SEC_LIBELLES = { "simulateur": "Simulateur", "paie": "Veille Paie", "conventions": "Conventions", "salaires-europe": "Salaires E&M" };
+let SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe", "logements"];
+const SEC_LIBELLES = { "simulateur": "Simulateur", "paie": "Veille Paie", "conventions": "Conventions", "salaires-europe": "Salaires E&M", "logements": "Logements" };
 const secLib = s => SEC_LIBELLES[s] || s;
 function sectionsListe(brut) {           // NULL / illisible = accès à tout
   if (brut == null || brut === "") return SECTIONS_APPS.slice();

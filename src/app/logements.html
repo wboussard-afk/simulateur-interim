@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<title>Recherche Logements — AB2Pro</title>
+<style>
+/* ===== Recherche Logements : rayon chantier, bailleurs connus, courte durée =====
+ * Même charte que le simulateur. Données bailleurs servies DERRIÈRE l'authentification
+ * du portail (data/bailleurs.json — jamais dans le dépôt public). */
+:root {
+  --paper:#f4f4f5; --card:#FFFFFF; --card2:#ececef; --ink:#29293b; --muted:#5f5f74;
+  --line:#d9d9e0; --line-soft:#e8e8ee; --brass:#db303f; --brass-deep:#681316;
+  --good:#47713E; --warn:#93660F; --warn-soft:#F1E6C8; --bad:#A8432A; --blue:#95b5dc;
+  --shadow:0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:#1b1b25; --card:#232330; --card2:#2c2c3b; --ink:#ececf1; --muted:#a2a2b5;
+    --line:#3b3b4d; --line-soft:#2f2f3e; --brass:#e85160; --brass-deep:#f0929c;
+    --good:#93BD82; --warn:#D9B45E; --warn-soft:#383018; --bad:#E08A6B; --blue:#6f8cb0;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"] {
+  --paper:#1b1b25; --card:#232330; --card2:#2c2c3b; --ink:#ececf1; --muted:#a2a2b5;
+  --line:#3b3b4d; --line-soft:#2f2f3e; --brass:#e85160; --brass-deep:#f0929c;
+  --good:#93BD82; --warn:#D9B45E; --warn-soft:#383018; --bad:#E08A6B; --blue:#6f8cb0;
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font: 14px/1.5 "Segoe UI", system-ui, sans-serif; }
+h1, h2 { font-family: "Nexa", "Poppins", "Segoe UI", system-ui, sans-serif; }
+header { background: var(--card); border-bottom: 1px solid var(--line); padding: 16px 20px; }
+header h1 { margin: 0; font-size: 24px; } header h1 b { color: var(--brass); }
+header .sub { color: var(--muted); font-size: 12.5px; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 16px 20px 70px; display: flex; flex-direction: column; gap: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+.card h2 { font-size: 16px; margin: 0; padding: 10px 16px; border-bottom: 1px solid var(--line-soft);
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.card h2 .eyebrow { margin-left: auto; font: 600 10.5px "Segoe UI", sans-serif; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.card .b { padding: 12px 16px 14px; overflow-x: auto; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px 14px; }
+label { display: block; font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
+select, input { width: 100%; padding: 7px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--card2); color: var(--ink); font-size: 14px; }
+.btn { display: inline-block; border: 1px solid var(--line); background: var(--card2); color: var(--ink); border-radius: 7px; padding: 8px 14px; font: inherit; font-size: 13.5px; cursor: pointer; text-decoration: none; }
+.btn:hover { border-color: var(--brass); }
+.btn.primary { background: var(--brass); border-color: var(--brass); color: #fff; font-weight: 700; }
+.maison { background: linear-gradient(160deg, var(--warn-soft), var(--card)); border: 1px solid var(--line);
+  border-radius: 10px; box-shadow: var(--shadow); padding: 12px 16px; font-size: 13px; }
+.maison b { color: var(--brass-deep); }
+.maison .t { font: 600 10.5px "Segoe UI", sans-serif; text-transform: uppercase; letter-spacing: .12em; color: var(--brass-deep); display: block; margin-bottom: 4px; }
+.adr-wrap { position: relative; }
+.adr-sug { position: absolute; left: 0; right: 0; top: 100%; z-index: 40; background: var(--card);
+  border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); max-height: 260px; overflow-y: auto; }
+.adr-sug .item { padding: 9px 11px; cursor: pointer; font-size: 13.5px; border-bottom: 1px solid var(--line-soft); }
+.adr-sug .item:last-child { border-bottom: 0; }
+.adr-sug .item:hover { background: var(--card2); }
+.adr-sug .ctx { color: var(--muted); font-size: 11.5px; display: block; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+td, th { padding: 5px 6px; border-bottom: 1px solid var(--line-soft); text-align: left; vertical-align: top; }
+th { font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.note { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+.hint { font-size: 11.5px; color: var(--muted); margin-top: 4px; display: block; }
+a { color: var(--brass-deep); }
+.villes { display: flex; flex-wrap: wrap; gap: 6px; }
+.ville { border: 1px solid var(--line); border-radius: 16px; padding: 4px 11px; font-size: 12.5px;
+  background: var(--card2); cursor: pointer; user-select: none; }
+.ville:hover { border-color: var(--brass); }
+.ville.sel { background: var(--brass); border-color: var(--brass); color: #fff; font-weight: 700; }
+.ville .d { color: inherit; opacity: .75; font-size: 11px; }
+.resume { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 10px; font-size: 13px; }
+.resume b { font-variant-numeric: tabular-nums; }
+.liens { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.compteur { font-weight: 700; color: var(--brass-deep); }
+@media (max-width: 700px) { select, input { font-size: 16px; min-height: 42px; } }
+</style>
+</head>
+<body>
+<header>
+  <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap">
+    <img id="brand-logo" alt="AB2Pro — Groupe Triangle Solutions RH" style="height:36px; border-radius:4px">
+    <h1 style="margin:0"><b>Recherche Logements</b> — équipes en mission</h1>
+  </div>
+  <span class="sub">Adresse du chantier → villes à ≤ 35 km, bailleurs déjà utilisés (base 2019-2026) et recherches courte durée pré-remplies (Airbnb, Booking, Vrbo, Abritel, Gîtes de France).</span>
+</header>
+
+<div class="wrap">
+  <div class="maison">
+    <span class="t">Cadre maison — non négociable (mise à jour : direction uniquement)</span>
+    Budget <b>180 €/semaine/personne</b> soit <b>25,72 €/nuitée</b> · <b>cuisine obligatoire</b> ·
+    <b>1 chambre par personne</b> · équipe de <b>2 minimum</b> (2 à 5) · à <b>≤ 35 km</b> du chantier ·
+    <b>durée de location = durée de mission</b> (mission longue = logement sécurisé ; contrats à la semaine = risque de perdre le logement en semaine +1).
+  </div>
+
+  <section class="card">
+    <h2>Chantier &amp; équipe <span class="eyebrow">point de départ</span></h2>
+    <div class="b">
+      <div class="grid">
+        <div class="adr-wrap" style="grid-column: 1 / -1">
+          <label for="in-adresse">Adresse du chantier (ou « ville », « 35 Saint-Malo »)</label>
+          <input type="text" id="in-adresse" placeholder="ex. 12 rue des Forges, Rennes" autocomplete="off">
+          <div class="adr-sug" id="sug-adresse" hidden></div>
+          <span class="hint" id="hint-adresse">Adresse géocodée par la Base Adresse Nationale (service public).</span>
+        </div>
+        <div><label for="in-equipe">Personnes dans l'équipe</label>
+          <select id="in-equipe"><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+        <div><label for="in-debut">Arrivée</label><input type="date" id="in-debut"></div>
+        <div><label for="in-semaines">Durée (semaines — = durée de mission)</label>
+          <input type="number" id="in-semaines" min="1" max="52" step="1" value="1"></div>
+        <div><label for="in-rayon">Rayon (km)</label><input type="number" id="in-rayon" min="5" max="60" step="5" value="35"></div>
+      </div>
+      <div class="resume" id="resume"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Villes dans le rayon <span class="eyebrow" id="eb-villes">saisir l'adresse du chantier</span></h2>
+    <div class="b">
+      <div class="villes" id="villes"><span class="note">Les communes s'affichent triées par distance dès qu'une adresse est saisie. Cliquer une ville la choisit comme cible des recherches d'annonces.</span></div>
+      <span class="hint" id="villes-plus" hidden><a href="#" id="lnk-plus">afficher plus de communes…</a></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Annonces courte durée <span class="eyebrow" id="eb-liens">recherches pré-remplies</span></h2>
+    <div class="b">
+      <div id="cible-liens" class="note">Cible : <b id="cible-txt">— (saisir l'adresse du chantier)</b></div>
+      <div class="liens" id="liens"></div>
+      <span class="hint">Liens de recherche PRÉ-REMPLIS (destination, dates, nombre de personnes ; prix/nuit et cuisine pré-filtrés quand le site le permet) — vérifier les filtres à l'arrivée sur le site. Airbnb et Vrbo n'ont pas d'API publique de recherche et Booking exige un compte partenaire : l'intégration directe des annonces est une évolution possible, à décider par la direction.</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Bailleurs déjà utilisés <span class="eyebrow">base 2019 - 2026 · confidentiel</span></h2>
+    <div class="b">
+      <div class="grid" style="margin-bottom:8px">
+        <div><label for="in-cherche">Recherche (nom, logement)</label><input type="text" id="in-cherche" placeholder="ex. gîte, LAURENT…"></div>
+        <div><label for="in-depfiltre">Départements</label><select id="in-depfiltre"><option value="rayon">ceux du rayon chantier</option><option value="tous">toute la France</option></select></div>
+      </div>
+      <div class="note" id="bailleurs-statut">Chargement de la base…</div>
+      <div style="max-height:420px; overflow-y:auto"><table id="tbl-bailleurs"></table></div>
+      <span class="hint">La base ne contient que le DÉPARTEMENT de chaque logement (pas l'adresse) : le filtre « rayon » retient les départements ayant au moins une commune dans le rayon du chantier. Beaucoup de fiches proviennent d'annonces Booking/Abritel archivées — e-mails partiels fréquents, le téléphone est la voie fiable. Données confidentielles : servies uniquement aux utilisateurs connectés du portail.</span>
+    </div>
+  </section>
+</div>
+
+<script src="geo.js?r1"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const N1 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const EURN = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
+$("brand-logo").src = LOGO_AB2PRO;
+
+/* ===== état ===== */
+let CHANTIER = null;          // {lat, lon, label}
+let COMMUNES = null;          // [[nom, dep, lat, lon, pop], ...]
+let BAILLEURS = null;         // {n, bailleurs:[{p,l,d,t,e}]}
+let RAYON_LISTE = [];         // communes triées par distance dans le rayon
+let CIBLE = null;             // ville ciblée pour les liens (null = chantier)
+let NB_AFFICHE = 40;
+
+const NUITEE = 25.72, BUDGET_SEM = 180;   /* données MAISON — direction uniquement */
+
+function lundiProchain() {
+  const d = new Date(); const j = d.getDay();
+  d.setDate(d.getDate() + ((8 - j) % 7 || 7));
+  return d.toISOString().slice(0, 10);
+}
+$("in-debut").value = lundiProchain();
+
+function majResume() {
+  const n = parseInt($("in-equipe").value, 10) || 2;
+  const sem = Math.max(1, parseInt($("in-semaines").value, 10) || 1);
+  $("resume").innerHTML =
+    "Budget équipe : <b>" + EURN.format(n * BUDGET_SEM) + "/sem</b> (" + EURN.format(n * BUDGET_SEM * sem) + " sur la mission)" +
+    " · Nuitée équipe max : <b>" + EURN.format(n * NUITEE) + "</b>" +
+    " · Chambres : <b>" + n + "</b> (1/personne) · Cuisine : <b>obligatoire</b>";
+}
+
+/* ===== communes dans le rayon ===== */
+async function chargerCommunes() {
+  if (COMMUNES) return COMMUNES;
+  const r = await fetch("data/communes-fr.json");
+  COMMUNES = (await r.json()).communes;
+  return COMMUNES;
+}
+async function majRayon() {
+  if (!CHANTIER) return;
+  const rayon = Math.max(5, parseInt($("in-rayon").value, 10) || 35);
+  await chargerCommunes();
+  RAYON_LISTE = [];
+  for (const c of COMMUNES) {
+    const km = haversineKm(CHANTIER, { lat: c[2], lon: c[3] });
+    if (km <= rayon) RAYON_LISTE.push({ nom: c[0], dep: c[1], lat: c[2], lon: c[3], pop: c[4], km });
+  }
+  RAYON_LISTE.sort((a, b) => a.km - b.km);
+  NB_AFFICHE = 40;
+  rendreVilles();
+  rendreLiens();
+  rendreBailleurs();
+}
+function rendreVilles() {
+  $("eb-villes").textContent = RAYON_LISTE.length + " communes ≤ " + ($("in-rayon").value || 35) + " km";
+  const vis = RAYON_LISTE.slice(0, NB_AFFICHE);
+  $("villes").innerHTML = vis.map((v, i) =>
+    "<span class='ville" + (CIBLE && CIBLE.nom === v.nom && CIBLE.dep === v.dep ? " sel" : "") +
+    "' data-i='" + i + "'>" + v.nom + " <span class='d'>(" + v.dep + ") · " + N1.format(v.km) + " km</span></span>").join("");
+  $("villes-plus").hidden = RAYON_LISTE.length <= NB_AFFICHE;
+  Array.from($("villes").children).forEach(el => el.addEventListener("click", () => {
+    const v = RAYON_LISTE[parseInt(el.dataset.i, 10)];
+    CIBLE = (CIBLE && CIBLE.nom === v.nom && CIBLE.dep === v.dep) ? null : v;
+    rendreVilles(); rendreLiens();
+  }));
+}
+$("lnk-plus").addEventListener("click", ev => { ev.preventDefault(); NB_AFFICHE += 80; rendreVilles(); });
+
+/* ===== liens de recherche courte durée ===== */
+function datesSejour() {
+  const d1 = $("in-debut").value || lundiProchain();
+  const sem = Math.max(1, parseInt($("in-semaines").value, 10) || 1);
+  const f = new Date(d1 + "T12:00:00"); f.setDate(f.getDate() + sem * 7);
+  return { d1, d2: f.toISOString().slice(0, 10) };
+}
+function rendreLiens() {
+  const n = parseInt($("in-equipe").value, 10) || 2;
+  const { d1, d2 } = datesSejour();
+  const cible = CIBLE ? (CIBLE.nom + " (" + CIBLE.dep + ")") : (CHANTIER ? CHANTIER.label : null);
+  $("cible-txt").textContent = cible || "— (saisir l'adresse du chantier)";
+  if (!cible) { $("liens").innerHTML = ""; return; }
+  const q = encodeURIComponent(CIBLE ? CIBLE.nom + ", France" : CHANTIER.label);
+  const pmax = Math.ceil(n * NUITEE);
+  const liens = [
+    ["Airbnb", "https://www.airbnb.fr/s/" + q + "/homes?adults=" + n + "&checkin=" + d1 + "&checkout=" + d2 +
+       "&price_max=" + pmax + "&min_bedrooms=" + n + "&amenities%5B%5D=8"],
+    ["Booking.com", "https://www.booking.com/searchresults.fr.html?ss=" + q + "&checkin=" + d1 + "&checkout=" + d2 +
+       "&group_adults=" + n + "&no_rooms=1&group_children=0"],
+    ["Vrbo", "https://www.vrbo.com/fr-fr/search?destination=" + q + "&startDate=" + d1 + "&endDate=" + d2 + "&adults=" + n],
+    ["Abritel", "https://www.abritel.fr/search?destination=" + q + "&startDate=" + d1 + "&endDate=" + d2 + "&adults=" + n],
+    ["Gîtes de France", "https://www.gites-de-france.com/fr/search?destination=" + q + "&arrival=" + d1 + "&departure=" + d2 + "&capacity=" + n],
+  ];
+  $("liens").innerHTML = liens.map(([nom, url], i) =>
+    "<a class='btn" + (i === 0 ? " primary" : "") + "' target='_blank' rel='noopener' href='" + url + "'>" + nom + " ↗</a>").join("");
+  $("eb-liens").textContent = n + " pers · " + d1 + " → " + d2 + " · ≤ " + EURN.format(pmax) + "/nuit";
+}
+
+/* ===== bailleurs connus (données confidentielles, servies derrière l'auth) ===== */
+async function chargerBailleurs() {
+  try {
+    const r = await fetch("data/bailleurs.json");
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    BAILLEURS = await r.json();
+    $("bailleurs-statut").innerHTML = "<span class='compteur'>" + BAILLEURS.n + "</span> logements en base (période " +
+      BAILLEURS.periode + ", mise à jour " + BAILLEURS.maj + ").";
+  } catch (e) {
+    BAILLEURS = null;
+    $("bailleurs-statut").innerHTML = "<span style='color:var(--bad)'>Base bailleurs indisponible (" + e.message +
+      ") — accessible uniquement via le portail connecté.</span>";
+  }
+  rendreBailleurs();
+}
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function rendreBailleurs() {
+  if (!BAILLEURS) { $("tbl-bailleurs").innerHTML = ""; return; }
+  const filtre = ($("in-cherche").value || "").trim().toLowerCase();
+  const modeDep = $("in-depfiltre").value;
+  let deps = null;
+  if (modeDep === "rayon" && RAYON_LISTE.length) deps = new Set(RAYON_LISTE.map(v => v.dep));
+  let liste = BAILLEURS.bailleurs.filter(b =>
+    (!deps || deps.has(b.d)) &&
+    (!filtre || (b.p + " " + b.l).toLowerCase().includes(filtre)));
+  const total = liste.length;
+  liste = liste.slice(0, 300);
+  let s = "<tr><th>Propriétaire</th><th>Logement</th><th>Dép.</th><th>Contact</th></tr>";
+  s += liste.map(b => "<tr><td>" + esc(b.p || "—") + "</td><td>" + esc(b.l) + "</td><td>" + esc(b.d || "?") +
+    "</td><td class='n'>" + (b.t ? "<a href='tel:+33" + b.t.replace(/^0/, "") + "'>" + b.t.replace(/(\d{2})(?=\d)/g, "$1 ").trim() + "</a>" : "") +
+    (b.e ? (b.t ? "<br>" : "") + "<a href='mailto:" + esc(b.e) + "'>" + esc(b.e) + "</a>" : "") + "</td></tr>").join("");
+  $("tbl-bailleurs").innerHTML = s;
+  const ou = deps ? " dans les départements du rayon (" + Array.from(deps).sort().join(", ") + ")" : " (toute la France)";
+  $("bailleurs-statut").innerHTML = "<span class='compteur'>" + total + "</span> logement(s) connu(s)" + ou +
+    (total > 300 ? " — 300 premiers affichés, affiner la recherche." : "") +
+    (BAILLEURS ? " · base : " + BAILLEURS.n + " au total." : "");
+}
+
+/* ===== câblage ===== */
+wireAdrAutocomplete("in-adresse", "sug-adresse");
+$("in-adresse").addEventListener("change", async () => {
+  const v = $("in-adresse").value.trim();
+  if (!v) return;
+  try {
+    const c = (typeof ADR_CACHE !== "undefined" && ADR_CACHE[v]) ? ADR_CACHE[v] : await geocodeBAN(v);
+    if (!c || c.lat == null) throw new Error("adresse non géocodée");
+    CHANTIER = { lat: c.lat, lon: c.lon, label: c.label || v };
+    CIBLE = null;
+    $("hint-adresse").textContent = "Chantier géocodé : " + (c.label || v);
+    $("eb-villes").textContent = "calcul du rayon…";
+    await majRayon();
+  } catch (e) {
+    $("hint-adresse").textContent = "Adresse non reconnue — préciser (ex. « 35 Saint-Malo »).";
+  }
+});
+["in-equipe", "in-debut", "in-semaines"].forEach(id => $(id).addEventListener("change", () => { majResume(); rendreLiens(); }));
+$("in-rayon").addEventListener("change", majRayon);
+$("in-cherche").addEventListener("input", rendreBailleurs);
+$("in-depfiltre").addEventListener("change", rendreBailleurs);
+
+majResume();
+chargerBailleurs();
+</script>
+</body>
+</html>

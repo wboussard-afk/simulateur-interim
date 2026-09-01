@@ -1,0 +1,3 @@
+﻿
+# donnees personnelles bailleurs — JAMAIS dans le depot public (servies derriere l'auth du portail)
+src/auth/assets/app/data/bailleurs.json
