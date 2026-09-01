@@ -410,7 +410,7 @@ table.grille td.neg { color: var(--bad); }
             <div class="seg" role="group" aria-labelledby="lbl-interim">
               <button type="button" id="sector-btp" aria-pressed="false">BTP</button>
               <button type="button" id="sector-industrie" aria-pressed="false">Industrie</button>
-              <button type="button" id="contrat-saisonnier" aria-pressed="false" title="CTT pour emploi à caractère saisonnier — ATTENTION : en intérim, IFM ET ICCP restent DUES (L.1251-32/33 — aucun accord étendu de la branche TT ne les écarte, accord d'interprétation du 09/06/1998) et la RGDU garde sa majoration ×1,1 : AUCUNE économie de charges vs CTT standard. Atouts opérationnels : zéro délai de carence entre missions saisonnières, terme imprécis possible (durée minimale au contrat), durée max 18 mois.">Saisonnier</button>
+              <button type="button" id="contrat-saisonnier" aria-pressed="false" title="CTT pour emploi à caractère saisonnier, modélisé AVEC accord d'entreprise écartant l'IFM (L.1251-33 : un accord collectif étendu de la branche TT ou un accord d'entreprise/établissement peut écarter l'IFM saisonnière) — réglage direction pour DÉMONTRER le gain de marge et faire conclure l'accord. L'ICCP reste due (L.1251-19), ce qui CONSERVE la majoration RGDU ×1,1 (conditionnée à l'ICCP, pas à l'IFM — D.241-10 CSS). Tant que l'accord n'est pas signé, les coûts réels restent ceux du CTT standard. Atouts en plus : zéro délai de carence entre missions saisonnières, terme imprécis possible, durée max 18 mois.">Saisonnier</button>
             </div>
           </div>
           <div>
@@ -2414,7 +2414,7 @@ function buildEtudePrix() {
     '<img class="logo-etude" src="' + LOGO_AB2PRO + '" alt="AB2Pro — Groupe Triangle Solutions RH">' +
     "<h1>Synthèse étude de prix — <span class='client'>" + esc(inp.client || "(client à renseigner)") + "</span></h1>" +
     '<div class="meta">' + esc(secteur) +
-    ({ saisonnier: " · <b>CTT SAISONNIER</b> (IFM/ICCP dues — zéro carence, terme imprécis possible)",
+    ({ saisonnier: " · <b>CTT SAISONNIER — accord d'entreprise IFM écartée (L.1251-33)</b> (ICCP due, RGDU ×1,1 conservée — sous réserve de la signature de l'accord)",
        cdii: " · <b>CDI INTÉRIMAIRE</b> (ni IFM ni ICCP — provision CP 1/10, RGDU sans ×1,1, GMMR)",
        cdie: " · <b>CDI-E temps partagé</b> (public éligible requis — ni IFM ni ICCP, RGDU sans ×1,1)" }[inp.contrat] || "") +
     " · établie le " + dateStr + " · année " + now.getFullYear() +
@@ -2431,6 +2431,14 @@ function buildEtudePrix() {
   s += kv("Volume de marge brute", fmtE(m.O64), "tot");
   s += kv("Taux de marge brute avec CET", N2.format(mCET.H17) + " %");
   s += kv("Taux de marge brute sans CET (IFM/CP payés)", N2.format(mDirect.H17) + " %");
+  if (inp.contrat === "saisonnier") {
+    /* l'ARGUMENT de l'accord d'entreprise : gain de marge vs le même cas en CTT standard */
+    const mStd = compute(Object.assign({}, inp, { contrat: "ctt" })).main;
+    const gain = (inp.remisePct ? m.O64 - mStd.O64 : m.O61 - mStd.O61);
+    s += kv("<b>Gain de l'accord d'entreprise saisonnier (IFM écartée, L.1251-33)</b>" +
+            "<span class='sublet'>vs le même cas en CTT standard — argument chiffré pour la conclusion de l'accord</span>",
+            "<b>" + (gain >= 0 ? "+" : "") + fmtE(gain) + "/sem</b>", "tot");
+  }
   s += "</table></div>";
 
   /* ===== 1. L'OFFRE — expression commerciale (ce que voit le client) =====

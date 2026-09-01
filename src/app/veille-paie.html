@@ -617,9 +617,14 @@ function computeTODE(hours, brut, brutHorsHS, smic, seuilTot, seuilMax, basket) 
 function computeSheet(i, variant, hiddenAvance, f77Override) {
   const cfg = SECTORS[i.sector || "agri"];
   /* CONTRATS (recherche vérifiée 01/09/2026, sources officielles + KALI authentique) :
-   * "ctt" (défaut) et "saisonnier" : coûts IDENTIQUES — en intérim saisonnier l'IFM et l'ICCP
-   *   restent dues (L.1251-32/33 : il faudrait un accord étendu de la branche TT pour écarter
-   *   l'IFM, il n'en existe pas — accord d'interprétation du 09/06/1998) et la RGDU garde ×1,1.
+   * "ctt" (défaut) : régime standard.
+   * "saisonnier" : modélisé AVEC accord d'entreprise écartant l'IFM (L.1251-33 : un accord
+   *   collectif étendu de la branche TT OU un accord d'entreprise/établissement peut écarter
+   *   l'IFM pour les emplois à caractère saisonnier — décision direction 01/09/2026 : régler
+   *   le simulateur comme si l'accord était conclu, pour DÉMONTRER le gain de marge et le
+   *   faire signer). ICCP CONSERVÉE (L.1251-19, toujours due) — ce qui maintient la majoration
+   *   RGDU ×1,1 (D.241-10 CSS : conditionnée à l'ICCP, pas à l'IFM). Sans accord signé, les
+   *   coûts réels restent ceux du CTT standard.
    * "cdii" (CDI intérimaire, L.1251-58-1 s.) : ni IFM ni ICCP (L.1251-58-4) → provision CP de
    *   droit commun 1/10 ; RGDU SANS ×1,1 (D.241-10 CSS : b=1,1 réservé aux salariés dus ICCP).
    * "cdie" (CDI temps partagé aux fins d'employabilité, art. 115 loi 2018-771 relancé par la
@@ -686,10 +691,14 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
     S.D33 = S.D32;
     S.F33 = S.D33 * CONST.ICCP_TAUX;
   } else {
-    const ifmOn = isMain ? (cfg.ifmMainToggle ? i.ifm : false) : true;  // caché : F11='OUI'
+    /* saisonnier : IFM écartée par accord d'entreprise (L.1251-33) dans TOUTES les
+       variantes (main, cachée, scénario IFM+ICCP) ; l'ICCP reste due — sans cascade
+       puisque l'IFM n'existe plus dans l'assiette */
+    const ifmWaived = i.contrat === "saisonnier";
+    const ifmOn = ifmWaived ? false : (isMain ? (cfg.ifmMainToggle ? i.ifm : false) : true);  // caché : F11='OUI'
     S.F32 = ifmOn ? S.D32 * CONST.IFM_TAUX : 0;
     S.D33 = (cfg.iccpMode === "ifm") ? S.D32 + S.F32 : rowsSum;
-    const iccpOn = isMain ? i.iccp : true;          // caché : F12='OUI'
+    const iccpOn = isMain ? i.iccp : true;          // caché : F12='OUI' (inchangé — l'ICCP reste due en saisonnier)
     S.F33 = iccpOn ? S.D33 * CONST.ICCP_TAUX : 0;
   }
 
@@ -815,7 +824,9 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   }
 
   /* --- Provision CET (ligne 85) --- */
-  S.D85 = (S.F32 + S.F33) > 0 ? 0 : S.D32 * 0.21;
+  /* provision CET : 21 % (IFM 10 % + ICCP 11 % en cascade) — saisonnier sous accord :
+     l'IFM n'existe plus, seule l'ICCP (10 %, sans cascade) peut partir au CET */
+  S.D85 = (S.F32 + S.F33) > 0 ? 0 : S.D32 * (i.contrat === "saisonnier" ? 0.10 : 0.21);
   S.H85 = S.D85 * 0.45;
   /* Coûts CET réels (politique maison, OPTION — décochée = classeur d'origine) :
      abondement versé à chaque déblocage (régime permanent : X % du flux hebdo provisionné,
