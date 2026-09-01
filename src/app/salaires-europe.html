@@ -31,6 +31,22 @@ header .sub { color: var(--muted); font-size: 12.5px; }
 .card .b { padding: 12px 16px 14px; }
 /* les tableaux larges defilent DANS leur propre conteneur ; les notes restent en place */
 .tscroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+/* .tfit : tableau plein cadre SANS defilement horizontal (demande 01/09) — colonnes fixes,
+   texte replie ; en dessous de 900 px on revient au defilement (10 colonnes illisibles sinon) */
+.tfit { overflow: visible; }
+.tfit table { table-layout: fixed; width: 100%; }
+.tfit th, .tfit td { white-space: normal !important; text-align: left !important;
+  font-size: 11px; line-height: 1.35; padding: 6px 5px; vertical-align: top;
+  overflow-wrap: anywhere; hyphens: auto; }
+.tfit th:first-child, .tfit td:first-child { width: 8.5%; font-weight: 700; max-width: none; min-width: 0; position: static; }
+.tfit th:nth-child(2), .tfit td:nth-child(2) { width: 13%; background: rgba(149, 181, 220, .14); }
+.tfit td.net { font-size: 11px; }
+@media (max-width: 900px) {
+  .tfit { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tfit table { table-layout: auto; width: max-content; }
+  .tfit th, .tfit td { min-width: 132px; }
+  .tfit tr > *:first-child { position: sticky; left: 0; background: var(--card); z-index: 1; max-width: 128px; }
+}
 /* colonne Pays collante : reste visible pendant le defilement horizontal */
 .tscroll tr > *:first-child { position: sticky; left: 0; background: var(--card); z-index: 1;
   box-shadow: 2px 0 0 var(--line-soft); }
@@ -129,7 +145,7 @@ input[type=number] { width: 160px; padding: 9px 10px; border: 1px solid var(--li
       La seule comparaison opposable : <b>le net ANNUEL tout compris, une fois logé</b>. Faits vérifiés le 27/08/2026, sources officielles
       (barèmes conventionnels, Eurostat, régulateurs) — chiffres contrôlés par double vérification indépendante.</p>
 
-      <div class="tscroll"><table>
+      <div class="tfit"><table>
         <tr><th>Repère</th><th>🇫🇷 France</th><th>🇧🇪 Belgique</th><th>🇩🇪 Allemagne</th><th>🇳🇱 Pays-Bas</th><th>🇦🇹 Autriche</th><th>🇮🇹 Italie</th><th>🇪🇸 Espagne</th><th>🇵🇹 Portugal</th><th>🇬🇷 Grèce</th></tr>
         <tr><td>Ouvrier BTP, grille (€/h brut)</td><td class="n">12,31 (SMIC) → 15-16 qualifié + 21 % IFM/ICCP (déjà INTÉGRÉS au net promis AB2Pro : <b>14,50-16,50 € nets/h logement déduit</b>)</td><td class="n">18,39 → 20,85 (CP 124)</td><td class="n">15,86 → 20,11 (BAU)*</td><td class="n">18,95 → 23,78 (CAO Bouw)</td><td class="n">17,03 → 21,96 (KV Bau)</td><td class="n">9,4 → 11,4 (CCNL ; réel 10,5-12,7)</td><td class="n">8,4 (SMI) → 13,3 (peón Madrid)</td><td class="n">≈ 6,2 (SMN ×14 lissé) → ≈ 8,2 (haut de grille CCT)</td><td class="n">≈ 6,2 (min ×14 lissé, + triennats)</td></tr>
         <tr><td>Net/brut ouvrier célibataire</td><td class="n">≈ 78 % + impôt quasi nul</td><td class="n">≈ 75 %**</td><td class="n">≈ 70-72 %</td><td class="n">≈ 75-90 % MAIS santé 157 €/mois + 385 €/an hors bulletin</td><td class="n">≈ 70-72 % mensuel (≈ 74-78 % annuel avec 13ᵉ-14ᵉ)</td><td class="n">≈ 81-84 %</td><td class="n">≈ 83-93 %</td><td class="n">≈ 85-89 %</td><td class="n">≈ 84 %</td></tr>
