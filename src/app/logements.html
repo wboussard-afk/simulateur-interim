@@ -276,10 +276,16 @@ function rendreBailleurs() {
     (!filtre || (b.p + " " + b.l).toLowerCase().includes(filtre)));
   const total = liste.length;
   liste = liste.slice(0, 300);
-  let s = "<tr><th>Propriétaire</th><th>Logement</th><th>Dép.</th><th>Contact</th></tr>";
-  s += liste.map(b => "<tr><td>" + esc(b.p || "—") + "</td><td>" + esc(b.l) + "</td><td>" + esc(b.d || "?") +
+  let s = "<tr><th>Propriétaire</th><th>Logement</th><th>Dép.</th><th>Contact</th><th></th></tr>";
+  s += liste.map(b => {
+    /* recherche inversée : le nom du meublé sur Google Maps retrouve la fiche de l'hôte
+       (téléphone direct, site perso) — utile quand l'e-mail archivé est douteux */
+    const qMaps = encodeURIComponent((b.l || b.p) + " " + (b.d ? "département " + b.d : "France"));
+    return "<tr><td>" + esc(b.p || "—") + "</td><td>" + esc(b.l) + "</td><td>" + esc(b.d || "?") +
     "</td><td class='n'>" + (b.t ? "<a href='tel:+33" + b.t.replace(/^0/, "") + "'>" + b.t.replace(/(\d{2})(?=\d)/g, "$1 ").trim() + "</a>" : "") +
-    (b.e ? (b.t ? "<br>" : "") + "<a href='mailto:" + esc(b.e) + "'>" + esc(b.e) + "</a>" : "") + "</td></tr>").join("");
+    (b.e ? (b.t ? "<br>" : "") + "<a href='mailto:" + esc(b.e) + "'>" + esc(b.e) + "</a>" : "") +
+    "</td><td class='n'><a target='_blank' rel='noopener' title='Retrouver la fiche de l’hôte (téléphone, site) par le nom du meublé' href='https://www.google.com/maps/search/?api=1&query=" + qMaps + "'>Maps</a></td></tr>";
+  }).join("");
   $("tbl-bailleurs").innerHTML = s;
   const ou = deps ? " dans les départements du rayon (" + Array.from(deps).sort().join(", ") + ")" : " (toute la France)";
   $("bailleurs-statut").innerHTML = "<span class='compteur'>" + total + "</span> logement(s) connu(s)" + ou +
