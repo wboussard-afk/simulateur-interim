@@ -311,6 +311,10 @@ function renderRepas() {
   s += kv("Repas atelier / sur le lieu de travail", fmtE(B.repasLieuTravail.value));
   s += kv("Repas chantier (hors des locaux, sans restaurant)", fmtE(B.repasHorsLocaux.value));
   s += kv("Repas au restaurant", fmtE(B.repasRestaurant.value));
+  s += "<tr class='sub'><td colspan='2'>Minimum garanti (revalorisé avec le SMIC)</td></tr>";
+  s += kv("Minimum garanti (MG) — au " + (B.minimumGaranti.date || "").split("-").reverse().join("/") +
+          " · sert à l'avantage nourriture (HCR : 1 MG/repas) et à divers barèmes",
+          fmtE(B.minimumGaranti.value));
   s += "<tr class='sub'><td colspan='2'>Grand déplacement (par jour — nuitée = logement + petit-déjeuner)</td></tr>";
   s += "<tr><th>Période</th><th class='n'>Nuitée province</th><th class='n'>Nuitée Paris + 92/93/94</th><th class='n'>Repas (midi ou soir)</th></tr>";
   const per = ["3 premiers mois", "4ᵉ-24ᵉ mois (−15 %)", "au-delà de 24 mois (−30 %)"];
