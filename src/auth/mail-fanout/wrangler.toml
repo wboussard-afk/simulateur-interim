@@ -1,0 +1,8 @@
+name = "ab2pro-mail-fanout"
+main = "src/worker.js"
+compatibility_date = "2026-08-01"
+workers_dev = false
+
+# Email Worker : recoit les e-mails via une regle Email Routing (action « Send to a Worker »)
+# et les re-transfere a tous les super-admins (liste DESTINATAIRES dans worker.js).
+# Les adresses de destination doivent etre VERIFIEES dans Email Routing au prealable.
