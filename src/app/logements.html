@@ -71,6 +71,8 @@ a { color: var(--brass-deep); }
   background: var(--card2); cursor: pointer; user-select: none; }
 .ville:hover { border-color: var(--brass); }
 .ville.sel { background: var(--brass); border-color: var(--brass); color: #fff; font-weight: 700; }
+.ville.deja { opacity: .5; border-style: dashed; }
+.ville.deja.sel { opacity: 1; border-style: solid; }
 .ville .d { color: inherit; opacity: .75; font-size: 11px; }
 .resume { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 10px; font-size: 13px; }
 .resume b { font-variant-numeric: tabular-nums; }
@@ -120,7 +122,8 @@ a { color: var(--brass-deep); }
   <section class="card">
     <h2>Villes dans le rayon <span class="eyebrow" id="eb-villes">saisir l'adresse du chantier</span></h2>
     <div class="b">
-      <div class="villes" id="villes"><span class="note">Les communes s'affichent triées par distance dès qu'une adresse est saisie. Cliquer une ville la choisit comme cible des recherches d'annonces.</span></div>
+      <div class="note"><b>Toutes les communes affichées sont incluses dans le périmètre</b> — toutes les recherches ci-dessous (annonces, hébergements officiels, Atout France, mairies, bailleurs) les couvrent. Pour <b>réduire le périmètre</b>, cliquez sur la ou les communes à garder : seules celles-là restent prises en compte (re-cliquer pour retirer, « ✕ tout le périmètre » pour tout rétablir).</div>
+      <div class="villes" id="villes" style="margin-top:6px"><span class="note">Les communes s'affichent triées par distance dès qu'une adresse est saisie.</span></div>
       <span class="hint" id="villes-plus" hidden><a href="#" id="lnk-plus">afficher plus de communes…</a></span>
     </div>
   </section>
@@ -132,7 +135,7 @@ a { color: var(--brass-deep); }
       <div class="liens" id="liens"></div>
       <div class="note" id="adt-titre" hidden style="margin-top:10px"><b>Portails départementaux officiels (sans commission)</b> — agences de tourisme des départements du rayon :</div>
       <div class="liens" id="liens-adt"></div>
-      <span class="hint">Liens de recherche PRÉ-REMPLIS (destination, dates, nombre de personnes ; prix/nuit et cuisine pré-filtrés quand le site le permet) — vérifier les filtres à l'arrivée sur le site. Airbnb et Vrbo n'ont pas d'API publique de recherche et Booking exige un compte partenaire : l'intégration directe des annonces est une évolution possible, à décider par la direction.</span>
+      <span class="hint">Airbnb, Booking et Abritel (= Vrbo France, même inventaire) : recherche PRÉ-REMPLIE (destination, dates, personnes ; prix/nuit et cuisine quand le site le permet) — vérifier les filtres à l'arrivée. Appart'City, Gîtes de France et LVP Direct n'ont pas de moteur à paramètres : le lien ouvre directement la page de la <b>ville</b> (Appart'City, la plus proche du périmètre) ou du <b>département</b> (Gîtes de France, LVP) — saisir les dates sur place. L'intégration directe des annonces (API partenaires) reste une évolution possible, à décider par la direction.</span>
     </div>
   </section>
 
@@ -146,7 +149,6 @@ a { color: var(--brass-deep); }
             <option value="L">locations &amp; gîtes</option>
             <option value="C">campings (mobil-homes, chalets)</option>
             <option value="V">villages vacances &amp; collectifs</option>
-            <option value="AF">PLAN B : classés Atout France (résidences, PRL mobil-homes, auberges)</option>
           </select></div>
         <div><label for="in-dtfiltre">Contact</label>
           <select id="in-dtfiltre">
@@ -163,13 +165,27 @@ a { color: var(--brass-deep); }
   </section>
 
   <section class="card">
+    <h2>Établissements classés Atout France <span class="eyebrow">registre officiel du classement</span></h2>
+    <div class="b">
+      <div class="grid" style="margin-bottom:8px">
+        <div><label for="in-afcherche">Recherche (nom, commune)</label><input type="text" id="in-afcherche" placeholder="ex. résidence, camping, Vannes…"></div>
+      </div>
+      <div class="note" id="af-statut">Saisir l'adresse du chantier : les établissements classés du périmètre s'affichent automatiquement.</div>
+      <div style="max-height:460px; overflow-y:auto"><table id="tbl-af"></table></div>
+      <span class="hint">Registre national des hébergements <b>classés Atout France</b> (résidences de tourisme, villages vacances, PRL / mobil-homes, auberges collectives) — capacités officielles vérifiées lors du classement. Le registre ne publie ni téléphone ni e-mail : contact via le site de l'établissement ou Google Maps. Complémentaire de DATAtourisme : des adresses sérieuses de grande capacité qui n'y figurent pas toujours.</span>
+    </div>
+  </section>
+
+  <section class="card">
     <h2>Demander le registre des meublés aux mairies <span class="eyebrow">droit d'accès · CADA</span></h2>
     <div class="b">
-      <div class="note">Toute mairie doit communiquer sa <b>liste des meublés de tourisme déclarés</b> à qui en fait la demande (art. L.311-1 CRPA ; avis CADA n° 20131539) : vous obtenez les <b>adresses des biens, capacités et périodes de location</b> — identités et coordonnées personnelles occultées. Le générateur couvre <b>tout le périmètre courant</b> (toutes les communes du rayon, ou la sélection si des communes sont cliquées) et <b>saute celles déjà demandées</b> (suivi conservé dans ce navigateur).</div>
-      <div class="liens" style="margin-top:8px">
-        <button type="button" class="btn primary" id="btn-cada">Générer les demandes du périmètre</button>
+      <div class="note">Toute mairie doit communiquer sa <b>liste des meublés de tourisme déclarés</b> à qui en fait la demande (art. L.311-1 CRPA ; avis CADA n° 20131539) : vous obtenez les <b>adresses des biens, capacités et périodes de location</b> — identités et coordonnées personnelles occultées. Les <b>communes destinataires s'affichent ci-dessous avant génération</b> : toutes celles du périmètre sont cochées par défaut — cliquer une commune pour l'écarter ou la reprendre. Les communes <b>déjà demandées apparaissent grisées</b> (suivi conservé dans ce navigateur) et redeviennent sélectionnables d'un clic pour une relance.</div>
+      <div class="note" id="cada-compteur" style="margin-top:8px"></div>
+      <div class="villes" id="cada-communes" style="margin-top:6px"></div>
+      <div class="liens" style="margin-top:10px">
+        <button type="button" class="btn primary" id="btn-cada">Générer les demandes sélectionnées</button>
         <button type="button" class="btn" id="btn-cada-copier" hidden>Copier tout</button>
-        <button type="button" class="btn" id="btn-cada-reset" hidden title="Oublier quelles communes ont déjà été demandées (dans ce navigateur)">Réinitialiser le suivi</button>
+        <button type="button" class="btn" id="btn-cada-reset" title="Oublier quelles communes ont déjà été demandées (dans ce navigateur)">Réinitialiser le suivi</button>
       </div>
       <div class="note" id="cada-bilan" style="margin-top:6px"></div>
       <div class="liens" id="cada-mairies" style="margin-top:4px"></div>
@@ -211,7 +227,7 @@ let SELECTION = new Map();    // "nom|dep" -> ville sélectionnée
 let NB_AFFICHE = 40;
 const norm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
 function perimetreVilles() { return SELECTION.size ? Array.from(SELECTION.values()) : RAYON_LISTE; }
-function rendreTout() { rendreVilles(); rendreLiens(); rendreDT(); rendreBailleurs(); }
+function rendreTout() { rendreVilles(); rendreLiens(); rendreDT(); rendreAF(); rendreBailleurs(); rendreCada(); }
 
 const NUITEE = 25.72, BUDGET_SEM = 180;   /* données MAISON — direction uniquement */
 
@@ -250,6 +266,7 @@ async function majRayon() {
   RAYON_LISTE.sort((a, b) => a.km - b.km);
   NB_AFFICHE = 40;
   SELECTION.clear();
+  CADA_EXCLUES.clear(); CADA_REINCLUSES.clear(); NB_CADA = 150;
   rendreTout();
 }
 function rendreVilles() {
@@ -282,6 +299,38 @@ function datesSejour() {
   const f = new Date(d1 + "T12:00:00"); f.setDate(f.getDate() + sem * 7);
   return { d1, d2: f.toISOString().slice(0, 10) };
 }
+/* Appart'City : annuaire des 47 villes France extrait de appartcity.com/fr/recherche le 02/09/2026
+   (clé = nom normalisé, valeur = "region/ville" de l'URL destinations) */
+const AC_VILLES = {};
+["auvergne-rhone-alpes/clermont-ferrand","bretagne/vannes","provence-alpes-cote-dazur/nice","pays-de-la-loire/nantes",
+ "centre-val-de-loire/blois","bretagne/rennes","auvergne-rhone-alpes/montelimar","auvergne-rhone-alpes/lyon",
+ "occitanie/toulouse","nouvelle-aquitaine/limoges","provence-alpes-cote-dazur/marseille","nouvelle-aquitaine/bordeaux",
+ "pays-de-la-loire/saint-nazaire","pays-de-la-loire/la-roche-sur-yon","nouvelle-aquitaine/la-rochelle",
+ "pays-de-la-loire/angers","hauts-de-france/amiens","nouvelle-aquitaine/angouleme","auvergne-rhone-alpes/valence",
+ "centre-val-de-loire/orleans","bourgogne-franche-comte/ahuy","normandie/caen","nouvelle-aquitaine/niort",
+ "bourgogne-franche-comte/chalon-sur-saone","auvergne-rhone-alpes/bourg-en-bresse","auvergne-rhone-alpes/gaillard",
+ "occitanie/montpellier","occitanie/nimes","nouvelle-aquitaine/agen","normandie/cherbourg","bretagne/brest",
+ "occitanie/perpignan","centre-val-de-loire/tours","auvergne-rhone-alpes/thonon-les-bains","grand-est/reims",
+ "pays-de-la-loire/le-mans","nouvelle-aquitaine/pau","hauts-de-france/lille","ile-de-france/paris",
+ "ile-de-france/versailles","grand-est/mulhouse","auvergne-rhone-alpes/annemasse","auvergne-rhone-alpes/grenoble",
+ "provence-alpes-cote-dazur/aix-en-provence","grand-est/strasbourg","provence-alpes-cote-dazur/la-ciotat",
+ "auvergne-rhone-alpes/ferney-voltaire"].forEach(p => { const [reg, v] = p.split("/"); AC_VILLES[norm(v)] = reg; });
+const acSlug = nom => nom.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/['’ ]/g, "-").replace(/-+/g, "-");
+/* dép. -> [région admin (slug), département (slug)] — sert Gîtes de France (pages
+   /fr/regions-de-france/<région>/location-de-vacances-<dép>, testées en masse le 02/09/2026 :
+   93 pages du sitemap + exceptions) et LVP Direct (lvpdirect.fr/<dép>/, sondé 200 OK) */
+const DEP_INFO = {"01":["auvergne-rhone-alpes","ain"],"02":["hauts-de-france","aisne"],"03":["auvergne-rhone-alpes","allier"],"04":["provence-alpes-cote-dazur","alpes-de-haute-provence"],"05":["provence-alpes-cote-dazur","hautes-alpes"],"06":["provence-alpes-cote-dazur","alpes-maritimes"],"07":["auvergne-rhone-alpes","ardeche"],"08":["grand-est","ardennes"],"09":["occitanie","ariege"],"10":["grand-est","aube"],"11":["occitanie","aude"],"12":["occitanie","aveyron"],"13":["provence-alpes-cote-dazur","bouches-du-rhone"],"14":["normandie","calvados"],"15":["auvergne-rhone-alpes","cantal"],"16":["nouvelle-aquitaine","charente"],"17":["nouvelle-aquitaine","charente-maritime"],"18":["centre-val-de-loire","cher"],"19":["nouvelle-aquitaine","correze"],"2A":["corse","corse-du-sud"],"2B":["corse","haute-corse"],"21":["bourgogne-franche-comte","cote-dor"],"22":["bretagne","cotes-darmor"],"23":["nouvelle-aquitaine","creuse"],"24":["nouvelle-aquitaine","dordogne"],"25":["bourgogne-franche-comte","doubs"],"26":["auvergne-rhone-alpes","drome"],"27":["normandie","eure"],"28":["centre-val-de-loire","eure-et-loir"],"29":["bretagne","finistere"],"30":["occitanie","gard"],"31":["occitanie","haute-garonne"],"32":["occitanie","gers"],"33":["nouvelle-aquitaine","gironde"],"34":["occitanie","herault"],"35":["bretagne","ille-et-vilaine"],"36":["centre-val-de-loire","indre"],"37":["centre-val-de-loire","indre-et-loire"],"38":["auvergne-rhone-alpes","isere"],"39":["bourgogne-franche-comte","jura"],"40":["nouvelle-aquitaine","landes"],"41":["centre-val-de-loire","loir-et-cher"],"42":["auvergne-rhone-alpes","loire"],"43":["auvergne-rhone-alpes","haute-loire"],"44":["pays-de-la-loire","loire-atlantique"],"45":["centre-val-de-loire","loiret"],"46":["occitanie","lot"],"47":["nouvelle-aquitaine","lot-et-garonne"],"48":["occitanie","lozere"],"49":["pays-de-la-loire","maine-et-loire"],"50":["normandie","manche"],"51":["grand-est","marne"],"52":["grand-est","haute-marne"],"53":["pays-de-la-loire","mayenne"],"54":["grand-est","meurthe-et-moselle"],"55":["grand-est","meuse"],"56":["bretagne","morbihan"],"57":["grand-est","moselle"],"58":["bourgogne-franche-comte","nievre"],"59":["hauts-de-france","nord"],"60":["hauts-de-france","oise"],"61":["normandie","orne"],"62":["hauts-de-france","pas-de-calais"],"63":["auvergne-rhone-alpes","puy-de-dome"],"64":["nouvelle-aquitaine","pyrenees-atlantiques"],"65":["occitanie","hautes-pyrenees"],"66":["occitanie","pyrenees-orientales"],"67":["grand-est","bas-rhin"],"68":["grand-est","haut-rhin"],"69":["auvergne-rhone-alpes","rhone"],"70":["bourgogne-franche-comte","haute-saone"],"71":["bourgogne-franche-comte","saone-et-loire"],"72":["pays-de-la-loire","sarthe"],"73":["auvergne-rhone-alpes","savoie"],"74":["auvergne-rhone-alpes","haute-savoie"],"75":["ile-de-france","paris"],"76":["normandie","seine-maritime"],"77":["ile-de-france","seine-et-marne"],"78":["ile-de-france","yvelines"],"79":["nouvelle-aquitaine","deux-sevres"],"80":["hauts-de-france","somme"],"81":["occitanie","tarn"],"82":["occitanie","tarn-et-garonne"],"83":["provence-alpes-cote-dazur","var"],"84":["provence-alpes-cote-dazur","vaucluse"],"85":["pays-de-la-loire","vendee"],"86":["nouvelle-aquitaine","vienne"],"87":["nouvelle-aquitaine","haute-vienne"],"88":["grand-est","vosges"],"89":["bourgogne-franche-comte","yonne"],"90":["bourgogne-franche-comte","territoire-de-belfort"],"91":["ile-de-france","essonne"],"92":["ile-de-france","hauts-de-seine"],"93":["ile-de-france","seine-saint-denis"],"94":["ile-de-france","val-de-marne"],"95":["ile-de-france","val-doise"]};
+function gdfUrl(dep) {
+  if (dep === "2A" || dep === "2B") return "https://www.gites-de-france.com/fr/location-vacances-en-corse";
+  if (dep === "75") return "https://www.gites-de-france.com/fr/regions-de-france/ile-de-france/locations-vacances-paris";
+  const i = DEP_INFO[dep]; if (!i) return null;
+  const slug = dep === "36" ? "indre-en-berry" : i[1];
+  return "https://www.gites-de-france.com/fr/regions-de-france/" + i[0] + "/location-de-vacances-" + slug;
+}
+function lvpUrl(dep) {
+  const i = DEP_INFO[dep]; if (!i) return null;
+  return "https://lvpdirect.fr/" + (dep === "90" ? "belfort" : i[1]) + "/";
+}
 function rendreLiens() {
   const n = parseInt($("in-equipe").value, 10) || 2;
   const { d1, d2 } = datesSejour();
@@ -294,20 +343,32 @@ function rendreLiens() {
     : "— (saisir l'adresse du chantier)";
   if (!villeCible) { $("liens").innerHTML = ""; rendreADT(); return; }
   const pmax = Math.ceil(n * NUITEE);
-  /* formats VÉRIFIÉS en navigateur le 02/09/2026 (Booking/Airbnb/Abritel testés sur résultats réels) */
+  /* formats VÉRIFIÉS en navigateur le 02/09/2026 (Booking/Airbnb/Abritel sur résultats réels ;
+     annuaires Appart'City / Gîtes de France / LVP Direct extraits de leurs sites — pas de
+     moteur à paramètres chez eux : on lie la page VILLE ou DÉPARTEMENT, dates à saisir sur place).
+     Vrbo France = Abritel (même plateforme Expedia, même inventaire) : bouton unique. */
   const liens = [
     ["Airbnb", "https://www.airbnb.fr/s/" + encodeURIComponent(villeCible) + "--France/homes?adults=" + n +
        "&checkin=" + d1 + "&checkout=" + d2 + "&price_max=" + pmax + "&min_bedrooms=" + n + "&amenities%5B%5D=8"],
-    ["Appart'City", "https://www.appartcity.com/fr/recherche"],
     ["Booking.com", "https://www.booking.com/searchresults.fr.html?ss=" + encodeURIComponent(villeCible) +
        "&checkin=" + d1 + "&checkout=" + d2 + "&group_adults=" + n + "&no_rooms=1&group_children=0"],
-    ["Abritel", "https://www.abritel.fr/search?destination=" + encodeURIComponent(villeCible + " France") +
+    ["Abritel (Vrbo)", "https://www.abritel.fr/search?destination=" + encodeURIComponent(villeCible + " France") +
        "&startDate=" + d1 + "&endDate=" + d2 + "&adults=" + n],
-    ["Vrbo", "https://www.vrbo.com/fr-fr/search?destination=" + encodeURIComponent(villeCible + " France") +
-       "&startDate=" + d1 + "&endDate=" + d2 + "&adults=" + n],
-    ["Gîtes de France", "https://www.gites-de-france.com/fr/search"],
-    ["LVP Direct", "https://lvpdirect.fr/"],
   ];
+  /* Appart'City : ville la plus proche du périmètre disposant d'un appart'hôtel */
+  const acVille = (perimetreVilles().concat(RAYON_LISTE)).find(v => AC_VILLES[norm(v.nom)]);
+  liens.push(acVille
+    ? ["Appart'City " + acVille.nom, "https://www.appartcity.com/fr/destinations/france/" + AC_VILLES[norm(acVille.nom)] + "/" + acSlug(acVille.nom)]
+    : ["Appart'City (annuaire)", "https://www.appartcity.com/fr/recherche"]);
+  /* Gîtes de France + LVP Direct : page du (des) département(s) du périmètre */
+  const depsPerim = Array.from(new Set(perimetreVilles().map(v => v.dep))).slice(0, 3);
+  const multi = depsPerim.length > 1;
+  depsPerim.forEach(dep => {
+    const g = gdfUrl(dep); if (g) liens.push(["Gîtes de France" + (multi ? " (" + dep + ")" : ""), g]);
+  });
+  depsPerim.forEach(dep => {
+    const l = lvpUrl(dep); if (l) liens.push(["LVP Direct" + (multi ? " (" + dep + ")" : ""), l]);
+  });
   $("liens").innerHTML = liens.map(([nom, url], i) =>
     "<a class='btn" + (i === 0 ? " primary" : "") + "' target='_blank' rel='noopener' href='" + url + "'>" + nom + " ↗</a>").join("");
   $("eb-liens").textContent = n + " pers · " + d1 + " → " + d2 + " · ≤ " + EURN.format(pmax) + "/nuit";
@@ -379,40 +440,7 @@ async function rendreDT() {
   const n = parseInt($("in-equipe").value, 10) || 2;
   const filtre = $("in-dtfiltre").value;
   const q = ($("in-dtcherche").value || "").trim().toLowerCase();
-  /* PLAN B : etablissements classes Atout France (residences de tourisme, villages
-     vacances, PRL/mobil-homes, auberges collectives) — geocodes, sans contact direct :
-     le site web et Maps prennent le relais */
   const selNoms = SELECTION.size ? new Set(Array.from(SELECTION.values()).map(v => norm(v.nom))) : null;
-  if ($("in-dttype").value === "AF") {
-    if (!AF_DATA) {
-      try { AF_DATA = (await (await fetch("data/dt/af.json")).json()).h; } catch (e) { AF_DATA = []; }
-    }
-    let lst = [];
-    for (const h of AF_DATA) {
-      const km = haversineKm(CHANTIER, { lat: h[3], lon: h[4] });
-      if (km > rayon) continue;
-      if (selNoms && !selNoms.has(norm(h[1]))) continue;
-      if (q && !(h[0] + " " + h[1]).toLowerCase().includes(q)) continue;
-      lst.push({ h, km });
-    }
-    lst.sort((a, b) => a.km - b.km);
-    const tot = lst.length;
-    lst = lst.slice(0, 250);
-    let sa = "<tr><th>Établissement classé</th><th>Commune</th><th class='n'>Km</th><th class='n'>Capacité</th><th>Liens</th></tr>";
-    sa += lst.map(({ h, km }) => {
-      const qm = encodeURIComponent(h[0] + " " + h[1]);
-      return "<tr><td><b style='color:var(--brass-deep); font-size:10px; letter-spacing:.05em'>" + esc(h[7].toUpperCase()) + "</b> " +
-        esc(h[0]) + " <span class='d' style='color:var(--muted)'>(" + esc(h[6]) + ")</span>" +
-        "<span class='hint'>Source : Atout France (classement du " + esc(h[9]) + ") · géocodage BAN</span></td>" +
-        "<td>" + esc(h[1]) + "</td><td class='n'>" + N1.format(km) + "</td><td class='n'>" + esc(h[5] || "?") + "</td>" +
-        "<td class='n'>" + (h[8] ? "<a target='_blank' rel='noopener' href='" + esc(h[8]) + "'>site</a><br>" : "") +
-        "<a target='_blank' rel='noopener' href='https://www.google.com/maps/search/?api=1&query=" + qm + "'>Maps</a></td></tr>";
-    }).join("");
-    $("tbl-dt").innerHTML = sa;
-    $("dt-statut").innerHTML = "<span class='compteur'>" + tot + "</span> établissement(s) classé(s) Atout France dans le rayon" +
-      (tot > 250 ? " — 250 premiers affichés." : "") + " · capacités officielles, contact via site/Maps.";
-    return;
-  }
   $("dt-statut").textContent = "Interrogation de la base officielle (" + deps.join(", ") + ")…";
   const blocs = await Promise.all(deps.map(chargerDT));
   let liste = [];
@@ -449,20 +477,10 @@ async function rendreDT() {
       "</td></tr>";
   }).join("");
   $("tbl-dt").innerHTML = s;
-  /* teaser plan B : rendre l'option Atout France VISIBLE (retour direction 02/09) */
-  if (!AF_DATA) { try { AF_DATA = (await (await fetch("data/dt/af.json")).json()).h; } catch (e) { AF_DATA = []; } }
-  let nAF = 0;
-  for (const h of AF_DATA) {
-    const km = haversineKm(CHANTIER, { lat: h[3], lon: h[4] });
-    if (km <= rayon && (!selNoms || selNoms.has(norm(h[1])))) nAF++;
-  }
   $("dt-statut").innerHTML = "<span class='compteur'>" + total + "</span> hébergement(s) officiel(s) " +
     (selNoms ? "dans les communes sélectionnées" : "dans le rayon") +
     (total > 250 ? " — 250 premiers affichés (les plus proches), affiner la recherche." : "") +
-    " · Source : DATAtourisme, Licence Ouverte 2.0." +
-    (nAF ? " · <a href='#' id='lnk-planb'><b>Plan B Atout France : " + nAF + " établissement(s) classé(s)</b> (résidences, PRL mobil-homes, auberges) →</a>" : "");
-  const lp = document.getElementById("lnk-planb");
-  if (lp) lp.addEventListener("click", ev => { ev.preventDefault(); $("in-dttype").value = "AF"; rendreDT(); });
+    " · Source : DATAtourisme, Licence Ouverte 2.0.";
   Array.from($("tbl-dt").querySelectorAll(".dt-resa")).forEach(a => a.addEventListener("click", ev => {
     ev.preventDefault();
     contacterHote(a.dataset.uuid, a.dataset.nom);
@@ -471,9 +489,93 @@ async function rendreDT() {
 $("in-dtfiltre").addEventListener("change", rendreDT);
 $("in-dtcherche").addEventListener("input", () => { clearTimeout(window._dtT); window._dtT = setTimeout(rendreDT, 250); });
 
+/* ===== établissements classés Atout France (carte dédiée — demande direction 02/09) =====
+   Registre du classement : résidences de tourisme, villages vacances, PRL/mobil-homes,
+   auberges collectives — géocodés BAN, sans contact direct (site web + Maps). */
+async function rendreAF() {
+  if (!CHANTIER || !RAYON_LISTE.length) { $("tbl-af").innerHTML = ""; return; }
+  const rayon = Math.max(5, parseInt($("in-rayon").value, 10) || 35);
+  const q = ($("in-afcherche").value || "").trim().toLowerCase();
+  const selNoms = SELECTION.size ? new Set(Array.from(SELECTION.values()).map(v => norm(v.nom))) : null;
+  if (!AF_DATA) {
+    try { AF_DATA = (await (await fetch("data/dt/af.json")).json()).h; } catch (e) { AF_DATA = []; }
+  }
+  let lst = [];
+  for (const h of AF_DATA) {
+    const km = haversineKm(CHANTIER, { lat: h[3], lon: h[4] });
+    if (km > rayon) continue;
+    if (selNoms && !selNoms.has(norm(h[1]))) continue;
+    if (q && !(h[0] + " " + h[1]).toLowerCase().includes(q)) continue;
+    lst.push({ h, km });
+  }
+  lst.sort((a, b) => a.km - b.km);
+  const tot = lst.length;
+  lst = lst.slice(0, 250);
+  let sa = "<tr><th>Établissement classé</th><th>Commune</th><th class='n'>Km</th><th class='n'>Capacité</th><th>Liens</th></tr>";
+  sa += lst.map(({ h, km }) => {
+    const qm = encodeURIComponent(h[0] + " " + h[1]);
+    return "<tr><td><b style='color:var(--brass-deep); font-size:10px; letter-spacing:.05em'>" + esc(h[7].toUpperCase()) + "</b> " +
+      esc(h[0]) + " <span class='d' style='color:var(--muted)'>(" + esc(h[6]) + ")</span>" +
+      "<span class='hint'>Source : Atout France (classement du " + esc(h[9]) + ") · géocodage BAN</span></td>" +
+      "<td>" + esc(h[1]) + "</td><td class='n'>" + N1.format(km) + "</td><td class='n'>" + esc(h[5] || "?") + "</td>" +
+      "<td class='n'>" + (h[8] ? "<a target='_blank' rel='noopener' href='" + esc(h[8]) + "'>site</a><br>" : "") +
+      "<a target='_blank' rel='noopener' href='https://www.google.com/maps/search/?api=1&query=" + qm + "'>Maps</a></td></tr>";
+  }).join("");
+  $("tbl-af").innerHTML = sa;
+  $("af-statut").innerHTML = "<span class='compteur'>" + tot + "</span> établissement(s) classé(s) Atout France " +
+    (selNoms ? "dans les communes sélectionnées" : "dans le rayon") +
+    (tot > 250 ? " — 250 premiers affichés." : "") + " · capacités officielles, contact via site/Maps.";
+}
+$("in-afcherche").addEventListener("input", () => { clearTimeout(window._afT); window._afT = setTimeout(rendreAF, 250); });
+
 /* ===== générateur de demandes CADA (registre des meublés en mairie) =====
-   Couvre TOUT le périmètre courant (rayon ou sélection) et saute les communes
-   déjà demandées — suivi localStorage propre à ce navigateur (limite assumée). */
+   Destinataires AFFICHÉS AVANT génération (demande direction 02/09) : toutes les
+   communes du périmètre cochées par défaut, clic pour en écarter ; les déjà-
+   demandées apparaissent grisées et redeviennent sélectionnables d'un clic.
+   Suivi localStorage propre à ce navigateur (limite assumée). */
+let CADA_EXCLUES = new Set();     // clés "nom|dep" écartées par l'utilisateur
+let CADA_REINCLUSES = new Set();  // déjà-demandées re-cochées pour un nouvel envoi
+let NB_CADA = 150;
+function cadaDestinataires() {
+  const faites = cadaFaites();
+  return perimetreVilles().filter(v => {
+    const cle = v.nom + "|" + v.dep;
+    return faites.has(cle) ? CADA_REINCLUSES.has(cle) : !CADA_EXCLUES.has(cle);
+  });
+}
+function rendreCada() {
+  const villes = perimetreVilles();
+  if (!villes.length) {
+    $("cada-compteur").textContent = ""; $("cada-communes").innerHTML = ""; return;
+  }
+  const faites = cadaFaites();
+  const nbDeja = villes.filter(v => faites.has(v.nom + "|" + v.dep)).length;
+  const dest = cadaDestinataires();
+  $("cada-compteur").innerHTML = "<span class='compteur'>" + dest.length + "</span> commune(s) recevront une demande" +
+    " sur " + villes.length + " du périmètre" +
+    (nbDeja ? " · " + nbDeja + " déjà demandée(s) <span style='opacity:.6'>(grisées — cliquer pour redemander)</span>" : "") +
+    " — cliquer une commune pour l'écarter ou la reprendre :";
+  const vis = villes.slice(0, NB_CADA);
+  $("cada-communes").innerHTML = vis.map((v, i) => {
+    const cle = v.nom + "|" + v.dep;
+    const deja = faites.has(cle);
+    const coche = deja ? CADA_REINCLUSES.has(cle) : !CADA_EXCLUES.has(cle);
+    return "<span class='ville" + (deja ? " deja" : "") + (coche ? " sel" : "") + "' data-ci='" + i + "'>" +
+      (deja && !coche ? "✓ " : "") + v.nom + " <span class='d'>(" + v.dep + ")</span></span>";
+  }).join("") +
+    (villes.length > NB_CADA ? "<span class='ville' id='cada-plus' style='border-color:var(--brass)'>… afficher les " +
+      (villes.length - NB_CADA) + " restantes (incluses)</span>" : "");
+  const plus = document.getElementById("cada-plus");
+  if (plus) plus.addEventListener("click", () => { NB_CADA += 300; rendreCada(); });
+  Array.from($("cada-communes").querySelectorAll(".ville[data-ci]")).forEach(el => el.addEventListener("click", () => {
+    const v = vis[parseInt(el.dataset.ci, 10)];
+    const cle = v.nom + "|" + v.dep;
+    if (faites.has(cle)) {
+      if (CADA_REINCLUSES.has(cle)) CADA_REINCLUSES.delete(cle); else CADA_REINCLUSES.add(cle);
+    } else if (CADA_EXCLUES.has(cle)) CADA_EXCLUES.delete(cle); else CADA_EXCLUES.add(cle);
+    rendreCada();
+  }));
+}
 function cadaFaites() {
   try { return new Set(JSON.parse(localStorage.getItem("cada_faites") || "[]")); } catch (e) { return new Set(); }
 }
@@ -504,35 +606,33 @@ function lettreCada(v, auj) {
 "Fait le " + auj + "\n[Nom, fonction, coordonnées AB2Pro — à compléter avant envoi]";
 }
 $("btn-cada").addEventListener("click", () => {
-  const villes = perimetreVilles();
-  if (!villes.length) { alert("Saisir d'abord l'adresse du chantier."); return; }
-  const auj = new Date().toLocaleDateString("fr-FR");
-  const faites = cadaFaites();
-  const aFaire = villes.filter(v => !faites.has(v.nom + "|" + v.dep));
-  const sautees = villes.length - aFaire.length;
+  if (!perimetreVilles().length) { alert("Saisir d'abord l'adresse du chantier."); return; }
+  const aFaire = cadaDestinataires();
   if (!aFaire.length) {
-    $("cada-bilan").innerHTML = "Toutes les communes du périmètre (" + villes.length + ") ont déjà été demandées — « Réinitialiser le suivi » pour recommencer.";
-    $("btn-cada-reset").hidden = false;
+    $("cada-bilan").innerHTML = "Aucune commune sélectionnée — cliquer des communes ci-dessus (ou « Réinitialiser le suivi » si tout a déjà été demandé).";
     return;
   }
-  $("cada-texte").value = aFaire.map(v =>
-    "======== DEMANDE " + (aFaire.indexOf(v) + 1) + "/" + aFaire.length + " — MAIRIE DE " + v.nom.toUpperCase() + " (" + v.dep + ") ========\n\n" +
+  const auj = new Date().toLocaleDateString("fr-FR");
+  $("cada-texte").value = aFaire.map((v, i) =>
+    "======== DEMANDE " + (i + 1) + "/" + aFaire.length + " — MAIRIE DE " + v.nom.toUpperCase() + " (" + v.dep + ") ========\n\n" +
     lettreCada(v, auj)).join("\n\n\n");
   $("cada-texte").hidden = false;
   $("btn-cada-copier").hidden = false;
-  $("btn-cada-reset").hidden = false;
   $("cada-bilan").innerHTML = "<span class='compteur'>" + aFaire.length + "</span> demande(s) générée(s)" +
-    (sautees ? " · " + sautees + " commune(s) déjà demandée(s), sautée(s)" : "") +
     " · coordonnées des mairies ci-dessous (annuaire officiel) :";
   $("cada-mairies").innerHTML = aFaire.slice(0, 40).map(v =>
     "<a class='btn' target='_blank' rel='noopener' href='https://lannuaire.service-public.gouv.fr/recherche?whoWhat=mairie&where=" +
     encodeURIComponent(v.nom) + "'>" + v.nom + " ↗</a>").join("") +
-    (aFaire.length > 40 ? "<span class='note'>… et " + (aFaire.length - 40) + " autres (réduire le périmètre par sélection de communes).</span>" : "");
+    (aFaire.length > 40 ? "<span class='note'>… et " + (aFaire.length - 40) + " autres (écarter des communes ci-dessus pour réduire).</span>" : "");
   cadaMarquer(aFaire.map(v => v.nom + "|" + v.dep));
+  CADA_REINCLUSES.clear();
+  rendreCada();
 });
 $("btn-cada-reset").addEventListener("click", () => {
   try { localStorage.removeItem("cada_faites"); } catch (e) {}
+  CADA_REINCLUSES.clear();
   $("cada-bilan").textContent = "Suivi réinitialisé — toutes les communes redeviennent demandables.";
+  rendreCada();
 });
 $("btn-cada-copier").addEventListener("click", async () => {
   try { await navigator.clipboard.writeText($("cada-texte").value); $("btn-cada-copier").textContent = "Copié ✓"; }
