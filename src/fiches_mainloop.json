@@ -4182,6 +4182,174 @@
      "fiabilite": "verifie"
     }
    ]
+  },
+  {
+   "idcc": "7019",
+   "titre": "Conchyliculture — cultures marines (CCN du 19/10/2000)",
+   "dateDerniereActu": "02/09/2026",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Grille des minima (avenant n° 50)",
+     "cleValeur": "6 échelons : 12,02 → 18,58 €/h (01/02/2026) — éch. 1-2 sous SMIC",
+     "points": [
+      "Salaires horaires bruts au 01/02/2026 : **éch. 1 : 12,02 €** · éch. 2 : **12,19 €** · éch. 3 : **12,52 €** · éch. 4 : **12,85 €** · éch. 5 : **14,12 €** · éch. 6 : **18,58 €**.",
+      "⚠ SMIC **12,31 €** depuis le 01/06/2026 : les échelons **1 et 2 sont sous le SMIC** → plancher SMIC obligatoire (réserve expresse de l'arrêté d'extension).",
+      "Avenant n° **50 du 13/01/2026**, effet **01/02/2026** — **ÉTENDU par arrêté du 05/08/2026, JORF du 09/08/2026**. Grille VÉRIFIÉE sur le texte authentique (KALI KALITEXT000054371040, base DILA locale).",
+      "Classification art. 59 : ouvriers éch. 1-4 (éch. 4 = chef d'équipe), administratifs éch. 1-2, cadres éch. 5-6 — cible intérim = échelons 1 à 4."
+     ],
+     "dateCourte": "avenant n° 50 du 13/01/2026",
+     "source": "https://www.juristique.org/conventionnel/salaires-conchyliculture-fevrier-2026",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit (art. 49, avenant n° 39)",
+     "cleValeur": "Nuit 20 h-5 h : majoration 10 % dès 20 h (dégustation : 22 h-7 h)",
+     "points": [
+      "Le travail de nuit commence à **20 h** et finit à **5 h** ; les heures de nuit sont majorées de **10 %** à compter de 20 h.",
+      "Exception « activité de dégustation » (bars à huîtres des exploitations) : nuit reportée à **22 h-7 h**, majoration **10 %** à partir de 22 h seulement.",
+      "Avenant n° **39 du 26/05/2021**, étendu par arrêté du 17/03/2023 — VÉRIFIÉ sur le texte authentique (KALI KALITEXT000044253155).",
+      "Réserve d'extension : l'emploi de véritables « travailleurs de nuit » exige en plus un accord d'entreprise (art. L.3122-15) ou l'autorisation de l'inspection — vérifier chez le client."
+     ],
+     "dateCourte": "avenant n° 39 du 26/05/2021",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000044253155",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "Taux légaux 25/50 % (art. 83 à recouper) ; modulation 300 h",
+     "points": [
+      "Majorations : **25 %** (8 premières HS) puis **50 %** — régime légal, concordant avec les sources spécialisées, mais le texte exact de l'art. 83 CCN n'a pu être recoupé : à confirmer.",
+      "En modulation, les heures excédentaires en fin de période sont payées ou récupérées (art. 78) ; contingent conventionnel non relevé — à défaut, régime légal.",
+      "Décompte sur la semaine civile ; en forte saison (vives-eaux, expéditions), les dépassements sont fréquents : suivre les relevés d'heures de près."
+     ],
+     "dateCourte": "art. 83 CCN — à recouper",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635374",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Dimanche (art. 39)",
+     "cleValeur": "Dimanche travaillé par roulement : majoration 20 %",
+     "points": [
+      "Repos hebdomadaire : **35 heures consécutives** incluant en principe le dimanche ; travail dominical possible **par roulement** (rythme des marées), avec au moins **1 dimanche sur 4** de repos.",
+      "Les heures travaillées le dimanche sont majorées de **20 %** (art. 39 CCN — vérifié sur Légifrance).",
+      "Les heures de nuit du samedi minuit au dimanche minuit ouvrent droit à la majoration dimanche de **20 %** (art. 49) — cumul avec la majoration nuit 10 % à contrôler sur le bulletin client."
+     ],
+     "dateCourte": "art. 39 CCN du 19/10/2000",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635374",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés (art. 31-34)",
+     "cleValeur": "Fériés chômés payés ; férié travaillé = repos compensateur équivalent",
+     "points": [
+      "Tous les fériés légaux sont **chômés et payés** quand ils tombent un jour normalement ouvré (art. 32) ; heures perdues **non récupérables** (art. 33) ; 1er mai chômé payé (art. 31).",
+      "Férié travaillé : **repos compensateur d'une durée équivalente**, de préférence accolé au repos hebdomadaire (art. 34) — pas de majoration monétaire conventionnelle relevée.",
+      "La condition branche (présence veille/lendemain + 1 mois d'ancienneté) ne s'applique PAS aux intérimaires : fériés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "art. 31-34 CCN du 19/10/2000",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635374",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas / paniers",
+     "cleValeur": "Pas de panier de branche chiffré ; repas pris en charge en déplacement",
+     "points": [
+      "Aucune indemnité de panier chiffrée de branche relevée dans le texte de base ni les avenants — les pratiques de paniers sont d'ENTREPRISE : demander la pratique écrite du client.",
+      "En déplacement hors bassin d'exploitation avec découcher : **hébergement et repas pris en charge** par l'employeur (art. 62).",
+      "À défaut de barème conventionnel, exonérations URSSAF/MSA de droit commun (barèmes 2026 : repas sur lieu de travail 7,50 €, hors locaux 10,40 €, restaurant 21,40 €)."
+     ],
+     "dateCourte": "art. 62 CCN — montants non fixés",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635374",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport / déplacements (art. 62)",
+     "cleValeur": "Vacation < 4 h et trajet > 10 km : indemnité de transport due",
+     "points": [
+      "Vacation de moins de **4 heures** (marées) imposant un trajet de plus de **10 km** : une **indemnité de transport** est due (art. 62) — montant non fixé dans le texte : à demander au client.",
+      "Déplacements entre bassins : frais de déplacement, hébergement et repas à la charge de l'employeur (art. 62).",
+      "Droit commun en sus : prise en charge de **50 %** des abonnements de transports publics."
+     ],
+     "dateCourte": "art. 62 CCN du 19/10/2000",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635374",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "primes",
+     "titre": "Primes & avantages en nature",
+     "cleValeur": "Pas de prime d'ancienneté de branche relevée ; logement indexé SMIC",
+     "points": [
+      "**Aucune prime d'ancienneté de branche** relevée au chapitre X du texte de base (art. 55-63). Un site secondaire cite « 3 % après 3 ans » : NON retrouvé dans le texte authentique — ne pas paramétrer sans preuve.",
+      "**Prime de remplacement** : salaire du poste supérieur dû après **4 semaines consécutives** de remplacement (art. 59) — vérifié.",
+      "Avantages en nature logement indexés sur le SMIC horaire (art. 63) : pièce meublée 9 m² = **5 × SMIC**/mois ; logement familial = **3 × SMIC**/pièce/mois — à recouper avant retenue sur paie.",
+      "Égalité de traitement : toute prime versée aux permanents du client (salissure, marée, habillage…) est due à l'intérimaire — demander la liste au déclaratif."
+     ],
+     "dateCourte": "chapitre X CCN — relevé 02/09/2026",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635374",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Modulation (art. 70-93)",
+     "cleValeur": "Modulation ≤ 12 mois, 300 h/an max — applicable AUX INTÉRIMAIRES",
+     "points": [
+      "Modulation organisée sur une période **≤ 12 mois** ; heures de modulation limitées à **300 h/an** (art. 78) ; rémunération lissée sur **151,67 h**/mois (art. 72).",
+      "L'art. 78 étend EXPRESSÉMENT la modulation aux CDD, saisonniers **et au personnel intérimaire** : le régime de modulation du client s'applique à la mission — impact direct sur le décompte des HS.",
+      "En fin de période, les heures excédentaires sont payées ou converties en repos — pour une mission courte, exiger le calendrier de modulation du client dès la prise de commande."
+     ],
+     "dateCourte": "chapitre XIII CCN (RTT 35 h)",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635374",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers (art. 25-26)",
+     "cleValeur": "Pointes fêtes de fin d'année & vives-eaux ; 66 h possibles 4 sem./an",
+     "points": [
+      "Contrat **saisonnier** = travaux spécifiques des périodes de pointe (fêtes de fin d'année surtout) ; contrat **occasionnel** = remplacement/surcroît, max 1 an (art. 25-26).",
+      "En pointe saisonnière (expéditions, vives-eaux), la durée hebdomadaire peut atteindre **66 h** pendant **4 semaines/an** (art. 47) — encadrer strictement les relevés d'heures.",
+      "Renfort intérim sur ces pointes : régime de droit commun — **IFM 10 %** + **ICCP 10 %** dues (pas d'exonération de branche)."
+     ],
+     "dateCourte": "art. 25-26 et 47 CCN",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635374",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales (art. 46-48)",
+     "cleValeur": "10 h/j (+2 h except.) · 48 h/sem · 46 h/12 sem · 2 120 h/an",
+     "points": [
+      "Journée : **10 h** max, dépassement exceptionnel de **+2 h** dans la limite de **50 h/an** (art. 46).",
+      "Semaine : **48 h** effectives max, **46 h** en moyenne sur 12 semaines ; dérogation saisonnière conventionnelle jusqu'à **66 h** sur 4 semaines/an (art. 47).",
+      "Plafond annuel : **2 120 h** (2 180 h pour l'entreprise monosalariée) (art. 48) — plus favorable que le droit commun sur la moyenne 12 semaines (46 h vs 44 h légales : appliquer 44 h sauf accord)."
+     ],
+     "dateCourte": "art. 46-48 CCN du 19/10/2000",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635374",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "MSA (+ ENIM en mer) · fusion coopération maritime ANNULÉE en 2024",
+     "points": [
+      "Affiliation **MSA** (salariés des exploitations conchylicoles) ; le temps passé **en mer** du personnel relevant de l'**ENIM** est intégralement du travail effectif (art. 38) — cotisations spécifiques à vérifier selon le poste.",
+      "La fusion avec la coopération maritime (2019) a été **ANNULÉE** par l'accord de substitution du **10/06/2024** (étendu 17/03/2026) : l'IDCC 7019 ne s'applique qu'aux entreprises conchylicoles ; la coopération maritime (IDCC 2494) garde sa propre CCN.",
+      "Abattement jeunes (art. 61 : −20 % avant 17 ans, −10 % de 17 à 18 ans) : ne PAS l'appliquer aux intérimaires payés au comparable d'un permanent adulte (égalité de traitement).",
+      "Pas de fiches CDTN pour cet IDCC agricole (tous slugs 404) : contrôles sur Légifrance/KALI uniquement.",
+      "Période d'essai branche : ouvriers/employés 2 mois (renouvelable 1×) — sans objet en intérim, utile pour le contrôle du déclaratif client sur les délais de préavis (art. 21-22)."
+     ],
+     "dateCourte": "CCN 19/10/2000 + substitution 10/06/2024",
+     "source": "https://code.travail.gouv.fr/convention-collective/7019",
+     "fiabilite": "verifie"
+    }
+   ]
   }
  ],
  "remplacements": [
