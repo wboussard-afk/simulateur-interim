@@ -521,6 +521,7 @@ table.grille td.neg { color: var(--bad); }
         </div>
         <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-top:8px">
           <label class="check" style="align-self:center"><input type="checkbox" id="in-cetreel" title="Intègre au taux de MB les coûts réels de la politique CET maison : abondement versé à chaque déblocage + causeries payées non facturées. Décoché = provision du classeur seule (comparable à l'Excel d'origine et aux anciennes études)."> Coûts CET réels (abondement + causeries)</label>
+          <label class="check" style="align-self:center"><input type="checkbox" id="in-cetpire" title="Borne basse prudentielle : le BOSS (Allègements généraux §900) rattache le CET monétisé à la « dernière mission » — si l'URSSAF y lisait la dernière mission RÉELLE (et non le contrat de causerie), le différé réintégrerait sa rémunération et dégraderait sa réduction générale. Coché = cette perte est appliquée à la marge. Décoché (défaut) = gain préservé par le déblocage isolé en contrat de causerie (doctrine avocat TT)."> Pire scénario §900 (rattachement au dernier contrat réel)</label>
           <div class="field"><label for="in-cetabond">Abondement % / déblocage</label><input type="number" id="in-cetabond" step="0.5" min="0"></div>
           <div class="field"><label for="in-cetdebloc">Déblocages / an</label><input type="number" id="in-cetdebloc" step="1" min="0"></div>
           <div class="field"><label for="in-cetcaus">Causerie h / déblocage</label><input type="number" id="in-cetcaus" step="0.25" min="0" title="Contrat de causerie : heures payées au salarié et NON facturées au client, à chaque déblocage."></div>
@@ -1025,6 +1026,7 @@ function setFormFromInputs() {
   $("in-atmp").value = inp.rates.atPat;
   $("in-agence").value = inp.agence || "";
   $("in-cetreel").checked = !!inp.cetCoutsReels;
+  $("in-cetpire").checked = !!inp.cetPireCas;
   $("in-cetabond").value = inp.cetAbondPct; $("in-cetdebloc").value = inp.cetDebloc; $("in-cetcaus").value = inp.cetCauserieH;
   /* IFM/ICCP : « paiement direct » (indemnités payées en paie) ou « mise en CET »
    * (non payées → provision CET 21 % + 45 % du classeur, D85/H85) */
@@ -1157,6 +1159,7 @@ function readInputsFromForm() {
   inp.rates.atPat = num($("in-atmp"));
   inp.agence = $("in-agence").value;
   inp.cetCoutsReels = $("in-cetreel").checked;
+  inp.cetPireCas = $("in-cetpire").checked;
   inp.cetAbondPct = num($("in-cetabond")); inp.cetDebloc = num($("in-cetdebloc")); inp.cetCauserieH = num($("in-cetcaus"));
 }
 
@@ -1195,10 +1198,15 @@ function render(r) {
   $("out-ca").textContent = fmtE(m.O60);
   $("out-cout").textContent = fmtE(m.F93 + (m.recrutCout || 0) + (m.cetCoutReel || 0));
   /* coûts CET réels (abondement + causeries) : impact affiché dans la carte CET */
-  $("cet-reel-out").innerHTML = (m.cetCoutReel > 0.005 && m.O60 > 0)
+  $("cet-reel-out").innerHTML = ((m.cetCoutReel > 0.005 && m.O60 > 0)
     ? "<b>Coûts CET réels :</b> abondement " + fmtE(m.cetAbondCout) + "/sem + causeries " + fmtE(m.cetCauserieCout) +
       "/sem = <b>−" + fmtE(m.cetCoutReel) + "/sem</b> de marge (−" + N2.format(m.cetCoutReel / m.O60 * 100) + " pt de taux)."
-    : (inp.cetCoutsReels && !(m.D85 > 0) ? "<b>Coûts CET réels :</b> sans objet (IFM/ICCP payés en direct)." : "");
+    : (inp.cetCoutsReels && !(m.D85 > 0) ? "<b>Coûts CET réels :</b> sans objet (IFM/ICCP payés en direct)." : "")) +
+    /* borne basse §900 : toujours affichée quand un différé existe ; appliquée si l'option est cochée */
+    (m.rgduPerte900 > 0.005
+      ? " <b>Pire scénario §900 :</b> réduction générale recalculée avec le différé réintégré au dernier contrat réel → perte de <b>" +
+        fmtE(m.rgduPerte900) + "/sem</b>" + (inp.cetPireCas ? " — <b>appliquée à la marge ci-contre</b> (borne basse)." : " (non appliquée — gain préservé par le déblocage en contrat de causerie).")
+      : "");
   $("pilot-part").disabled = false;   /* levier toujours disponible (rôle plancher en mode SANS participation) */
   /* premier remplissage (avant régul) — le bloc cascade REFINE ensuite avec le net atteint (avances incluses),
      pour que la carte Logement et le panneau « Contrôle du net » racontent la MÊME histoire */
@@ -1937,6 +1945,7 @@ function renderFact(m) {
   if (inp.remisePct) s += kvRow("Remise fin d'année " + N2.format(inp.remisePct) + " % × CA soumis à cotisations (" + fmtE(m.O42) + ")", "M63", fmtE(-m.O42 * inp.remisePct / 100));
   if (m.recrutCout) s += kvRow("Prestataire recrutement " + N2.format(inp.recrutTarifH) + " € HT × " + N2.format(inp.heures) + " h travaillées (coût interne, non refacturé)", "", fmtE(-m.recrutCout));
   if (m.cetCoutReel > 0.005) s += kvRow("Coûts CET réels — abondement " + N2.format(inp.cetAbondPct) + " %/débloc. + contrat de causerie " + N2.format(inp.cetCauserieH) + " h × " + N2.format(inp.cetDebloc) + " déblocage(s)/an (contrat court dédié, fiche de paie à part, payé non facturé — isole le versement du CET des paies de mission)", "", fmtE(-m.cetCoutReel));
+  if (inp.cetPireCas && m.rgduPerte900 > 0.005) s += kvRow("Pire scénario §900 APPLIQUÉ — réduction générale recalculée avec le différé CET réintégré au dernier contrat réel (borne basse prudentielle ; défaut maison = gain préservé par contrat de causerie)", "", fmtE(-m.rgduPerte900));
   s += kvRow("Volume de marge brute", "O64", fmtE(m.O64), "total");
   s += kvRow("Taux de marge", "H17", fmtP(m.H17), "total");
   $("tbl-fact").innerHTML = s;

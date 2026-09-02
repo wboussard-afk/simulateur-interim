@@ -821,6 +821,36 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
      l'IFM n'existe plus, seule l'ICCP (10 %, sans cascade) peut partir au CET */
   S.D85 = (S.F32 + S.F33) > 0 ? 0 : S.D32 * (i.contrat === "saisonnier" ? 0.10 : 0.21);
   S.H85 = S.D85 * 0.45;
+
+  /* --- Pire scénario §900 (BOSS Allègements généraux) --- */
+  /* Lecture défavorable du rattachement : le différé CET monétisé est réintégré dans
+   * la rémunération de la DERNIÈRE MISSION RÉELLE (SMIC de référence inchangé) → le
+   * coefficient chute et rogne le gain du stockage. Défaut maison = gain préservé
+   * (déblocage isolé par contrat de causerie, doctrine avocat TT) ; l'option
+   * cetPireCas applique cette borne basse à l'étude. Toujours calculé pour affichage. */
+  S.rgduPerte900 = 0; S.rgduReduc900 = null;
+  if (S.D85 > 0 && i.exoFormule === "rgdu" && !modeCDI && S.rgduAmount > 0 && S.F42 > 0) {
+    const rg = i.rgdu || {};
+    const smicParam = (rg.smicRef || RGDU_DEFAULTS.smicRef) * S.D31;
+    const tdelta = rg.fnal050 ? (rg.tdeltaGrande || RGDU_DEFAULTS.tdeltaGrande)
+                              : (rg.tdeltaPetite || RGDU_DEFAULTS.tdeltaPetite);
+    const tmin = (rg.tmin != null) ? rg.tmin : RGDU_DEFAULTS.tmin;
+    const p = rg.p || RGDU_DEFAULTS.p;
+    const plaf = rg.plafondSmic || RGDU_DEFAULTS.plafondSmic;
+    const remuPire = S.F42 + S.D85;
+    let coeffPire = 0;
+    if (remuPire < plaf * smicParam) {
+      const t = Math.min(1, 0.5 * (plaf * smicParam / remuPire - 1));
+      coeffPire = tmin + tdelta * Math.pow(t, p);
+      coeffPire = Math.round(Math.min(coeffPire, tmin + tdelta) * 10000) / 10000;
+    }
+    const maj = (rg.interim === false) ? 1 : RGDU_DEFAULTS.interimMajoration;
+    /* panier proportionné à l'assiette gonflée (les cotisations dues croissent avec elle) */
+    const panierPire = S.rgduPanier * (remuPire / S.F42);
+    S.rgduReduc900 = Math.min(coeffPire * remuPire * maj, panierPire);
+    S.rgduPerte900 = Math.max(0, S.H83 - S.rgduReduc900);
+    if (i.cetPireCas) S.H83 = S.rgduReduc900;
+  }
   /* Coûts CET réels (politique maison, OPTION — décochée = classeur d'origine) :
      abondement versé à chaque déblocage (régime permanent : X % du flux hebdo provisionné,
      le nombre de déblocages ne change pas le total d'abondement, seulement les causeries)
