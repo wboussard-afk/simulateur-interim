@@ -526,6 +526,7 @@ table.grille td.neg { color: var(--bad); }
           <div class="field"><label for="in-cetcaus">Causerie h / déblocage</label><input type="number" id="in-cetcaus" step="0.25" min="0" title="Contrat de causerie : heures payées au salarié et NON facturées au client, à chaque déblocage."></div>
         </div>
         <p class="hint"><b>Mise en CET</b> : 100 % des IFM/ICCP placés sur le compte épargne temps — le classeur provisionne 21 % de la base + 45 % de charges (D85/H85) au lieu de payer les indemnités en paie ; déblocage conseillé à l'issue du 2ᵉ contrat de prolongation. <span id="cet-eco"></span> <span id="cet-reel-out"></span><br>
+        <b>Déblocage par contrat de causerie</b> : la liquidation du CET s'appuie sur un <b>contrat court dédié</b> (~1,5 h de causerie sécurité, payées au salarié et non facturées) avec sa <b>fiche de paie à part</b> — le versement du CET est ainsi isolé des paies de mission (leur réduction générale n'est pas dégradée) et l'effet est minimisé sur ce faible volume d'heures. C'est le coût de ce contrat (heures + abondement + charges) que couvre l'option « Coûts CET réels ».<br>
         Attestation fiscale <b>OUI</b> : maladie salariale 5,5&nbsp;% et pas de CSG/CRDS. <b>NON</b> : CSG/CRDS, pas de maladie salariale.</p>
       </div>
     </section>
@@ -3004,7 +3005,7 @@ function renderFact(m) {
   s += kvRow("CA HT total", "O60", fmtE(m.O60), "total");
   if (inp.remisePct) s += kvRow("Remise fin d'année " + N2.format(inp.remisePct) + " % × CA soumis à cotisations (" + fmtE(m.O42) + ")", "M63", fmtE(-m.O42 * inp.remisePct / 100));
   if (m.recrutCout) s += kvRow("Prestataire recrutement " + N2.format(inp.recrutTarifH) + " € HT × " + N2.format(inp.heures) + " h travaillées (coût interne, non refacturé)", "", fmtE(-m.recrutCout));
-  if (m.cetCoutReel > 0.005) s += kvRow("Coûts CET réels — abondement " + N2.format(inp.cetAbondPct) + " %/débloc. + causeries " + N2.format(inp.cetCauserieH) + " h × " + N2.format(inp.cetDebloc) + "/an (payées non facturées)", "", fmtE(-m.cetCoutReel));
+  if (m.cetCoutReel > 0.005) s += kvRow("Coûts CET réels — abondement " + N2.format(inp.cetAbondPct) + " %/débloc. + contrat de causerie " + N2.format(inp.cetCauserieH) + " h × " + N2.format(inp.cetDebloc) + " déblocage(s)/an (contrat court dédié, fiche de paie à part, payé non facturé — isole le versement du CET des paies de mission)", "", fmtE(-m.cetCoutReel));
   s += kvRow("Volume de marge brute", "O64", fmtE(m.O64), "total");
   s += kvRow("Taux de marge", "H17", fmtP(m.H17), "total");
   $("tbl-fact").innerHTML = s;
