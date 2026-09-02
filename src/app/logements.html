@@ -264,6 +264,9 @@ function perimetreVilles() { return SELECTION.size ? Array.from(SELECTION.values
 function rendreTout() { rendreVilles(); rendreLiens(); rendreDT(); rendreAF(); rendreBailleurs(); rendreCada(); }
 
 const NUITEE = 25.72, BUDGET_SEM = 180;   /* données MAISON — direction uniquement */
+/* adresse de réponse des courriers EXTERNES (CADA, réservations) — à basculer sur
+   info@abservice-logement.com dès que le domaine dédié AB Service sera actif */
+const EMAIL_EXTERNE = "logements@ab2pro-simulateur.com";
 
 function lundiProchain() {
   const d = new Date(); const j = d.getDay();
@@ -601,8 +604,8 @@ n + " couchages individuels, environ " + (30 + 9 * Math.max(0, n - 2)) + " m² m
 EURN.format(n * BUDGET_SEM) + " par semaine charges comprises (" + EURN.format(Math.ceil(n * NUITEE * 100) / 100) + "/nuitée pour l'équipe).\n\n" +
 "Votre hébergement « " + nomHeb + " » est-il disponible sur ces dates, et à quelles conditions pour un séjour à la semaine ? " +
 "Un état des lieux d'entrée et de sortie avec photos est réalisé systématiquement.\n\n" +
-"Réponse possible par retour d'e-mail (logements@ab2pro-simulateur.com) ou par téléphone.\n\n" +
-"Cordialement,\nAB Service — Groupe Triangle Solutions RH (hébergement de salariés en mission)";
+"Réponse possible par retour d'e-mail (" + EMAIL_EXTERNE + ") ou par téléphone.\n\n" +
+"Cordialement,\nAB Service (hébergement de salariés en mission)";
   if (!window.confirm("Envoyer cette demande de réservation à l'hôte de « " + nomHeb + " » ?\n\n" + message)) return;
   try {
     const r = await fetch("/api/dt/contact/" + uuid, {
@@ -610,7 +613,7 @@ EURN.format(n * BUDGET_SEM) + " par semaine charges comprises (" + EURN.format(M
       body: JSON.stringify({ message }),
     });
     const j = await r.json().catch(() => ({}));
-    if (r.ok) alert("Demande envoyée ✓ — la réponse arrivera sur logements@ab2pro-simulateur.com.");
+    if (r.ok) alert("Demande envoyée ✓ — la réponse arrivera sur " + EMAIL_EXTERNE + ".");
     else if (r.status === 422) alert("Cette fiche n'a pas d'e-mail de réservation — utiliser le téléphone affiché.");
     else alert("Envoi impossible (" + (j.erreur || r.status) + ").");
   } catch (e) { alert("Envoi impossible : " + e.message); }
@@ -812,9 +815,9 @@ function lettreCada(v, auj) {
 "Conformément à la doctrine de la Commission d'accès aux documents administratifs (avis n° 20131539 du 4 novembre 2013), " +
 "cette liste est communicable à toute personne qui en fait la demande, sous réserve de l'occultation préalable des " +
 "mentions relevant de la vie privée des déclarants (identité, coordonnées personnelles), que vous voudrez bien opérer.\n\n" +
-"La communication peut se faire par courrier électronique à l'adresse logements@ab2pro-simulateur.com, " +
+"La communication peut se faire par courrier électronique à l'adresse " + EMAIL_EXTERNE + ", " +
 "ou selon les modalités prévues à l'article L.311-9 du même code.\n\n" +
-"Contexte de la demande : notre société, " + "AB Service (Groupe Triangle Solutions RH)" + ", recherche des logements " +
+"Contexte de la demande : notre société, " + "AB Service" + ", recherche des logements " +
 "pour héberger ses salariés en mission sur des chantiers proches de votre commune, et souhaite adresser ses " +
 "propositions de location aux adresses des meublés concernés.\n\n" +
 "Je vous remercie par avance et vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.\n\n" +

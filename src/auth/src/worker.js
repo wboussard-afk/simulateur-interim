@@ -17,6 +17,11 @@ const estSuper = x => !!x && x.role === "super_admin";
  * utilisateurs.sections = NULL → accès à tout (héritage) ; sinon tableau JSON de slugs.
  * Les admins et super admins voient toujours tout. */
 const SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe", "logements"];
+
+/* Adresse de réponse des communications EXTERNES d'AB Service (réservations
+ * DATAtourisme, etc.). À basculer sur info@abservice-logement.com dès que le
+ * domaine dédié sera enregistré et son Email Routing actif — une seule ligne. */
+const EMAIL_EXTERNE = "logements@ab2pro-simulateur.com";
 function sectionsDe(x) {
   if (!x) return [];
   if (estAdmin(x)) return SECTIONS_APPS;
@@ -194,11 +199,14 @@ async function api(req, env, url, u) {
       return json({ erreur: "uuid" }, 400);
     const message = String(corps.message || "").slice(0, 5000);
     if (message.length < 20) return json({ erreur: "message_trop_court" }, 400);
+    /* AB Service est une entité à part : AUCUNE mention du groupe parent dans les
+       communications externes (décision direction 02/09). L'adresse de réponse
+       basculera sur info@abservice-logement.com dès que le domaine sera actif. */
     const charge = {
-      name: (u.nom || "AB2Pro — Groupe Triangle Solutions RH").slice(0, 255),
-      email: "logements@ab2pro-simulateur.com",
+      name: (u.nom || "AB Service").slice(0, 255),
+      email: EMAIL_EXTERNE,
       message,
-      subject: String(corps.subject || "Demande de location — équipes en mission (AB2Pro)").slice(0, 255),
+      subject: String(corps.subject || "Demande de location — équipes en mission (AB Service)").slice(0, 255),
       target: "booking",
     };
     const rep = await fetch("https://api.datatourisme.fr/v1/catalog/" + uuid + "/contact", {
