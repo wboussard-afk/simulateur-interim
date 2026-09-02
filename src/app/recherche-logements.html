@@ -96,7 +96,8 @@ a { color: var(--brass-deep); }
     Budget <b>180 €/semaine</b> (<b>160 € loyer + 20 € charges</b> eau-électricité-chauffage) soit <b>25,72 €/nuitée</b> ·
     distance <b>35 km en moyenne</b> (maximum <b>45 min</b>, tolérance ±20 %) ·
     surface mini <b>30 m² pour 2 pers.</b> (+9 m²/pers. suppl.) · <b>1 couchage individuel par intérimaire</b> ·
-    équipements obligatoires : <b>plaques de cuisson, réfrigérateur, micro-ondes</b> ·
+    équipements obligatoires : <b>plaques de cuisson, réfrigérateur, micro-ondes</b>
+    (recommandés : lave-linge, four, grand réfrigérateur, TV, internet) ·
     cohabitation entre intérimaires possible (notamment même nationalité) ·
     interdits : <b>personnes extérieures</b> (conjoints, enfants) et <b>animaux</b> ·
     <b>durée de location = durée de mission</b> (mission longue = logement sécurisé ; contrats à la semaine = risque de perdre le logement en semaine +1).
@@ -118,8 +119,7 @@ a { color: var(--brass-deep); }
           peuvent entraîner des conséquences financières (retenue sur salaire).<br><br>
           <b>Rôle des CR</b> — transmettre clairement ces règles aux intérimaires, sensibiliser aux bonnes pratiques,
           alerter sur les dérives possibles, respecter le cadre défini. Les CR ne sont <b>pas habilités</b> à intervenir dans les
-          décisions du service logement ni à prendre d'initiative sans validation préalable.<br><br>
-          <b>Équipements optionnels recommandés</b> — lave-linge, four, grand réfrigérateur, TV, accès internet (favorisé dans la mesure du possible).
+          décisions du service logement ni à prendre d'initiative sans validation préalable.
         </div>
       </details>
     </div>
@@ -187,7 +187,8 @@ a { color: var(--brass-deep); }
       </div>
       <div class="note" id="dt-statut">Saisir l'adresse du chantier : la base officielle nationale est interrogée sur le rayon.</div>
       <div style="max-height:460px; overflow-y:auto"><table id="tbl-dt"></table></div>
-      <span class="hint">Base nationale <b>DATAtourisme</b> (fiches saisies par les offices de tourisme, ADT et CRT — ~98 000 hébergements locatifs en France, ~70 % avec contact direct), réutilisée sous <b>Licence Ouverte 2.0</b> : le créateur de chaque fiche et sa date de mise à jour sont affichés (attribution obligatoire). Le contact désigné est parfois une centrale de réservation ou l'office — à qualifier au premier appel. Rafraîchissement hebdomadaire depuis le dump national quotidien.</span>
+      <span class="hint">Base nationale <b>DATAtourisme</b> (fiches saisies par les offices de tourisme, ADT et CRT — ~98 000 hébergements locatifs en France, ~70 % avec contact direct), réutilisée sous <b>Licence Ouverte 2.0</b> : le créateur de chaque fiche et sa date de mise à jour sont affichés (attribution obligatoire). Le contact désigné est parfois une centrale de réservation ou l'office — à qualifier au premier appel. Rafraîchissement hebdomadaire depuis le dump national quotidien.
+Les km affichés sont à <b>vol d'oiseau</b> — vérifier la règle des <b>45 min de trajet réel</b> avec le lien « itinéraire » avant toute réservation.</span>
     </div>
   </section>
 
@@ -199,7 +200,8 @@ a { color: var(--brass-deep); }
       </div>
       <div class="note" id="af-statut">Saisir l'adresse du chantier : les établissements classés du périmètre s'affichent automatiquement.</div>
       <div style="max-height:460px; overflow-y:auto"><table id="tbl-af"></table></div>
-      <span class="hint">Registre national des hébergements <b>classés Atout France</b> (résidences de tourisme, villages vacances, PRL / mobil-homes, auberges collectives) — capacités officielles vérifiées lors du classement. Le registre ne publie ni téléphone ni e-mail : contact via le site de l'établissement ou Google Maps. Complémentaire de DATAtourisme : des adresses sérieuses de grande capacité qui n'y figurent pas toujours.</span>
+      <span class="hint">Registre national des hébergements <b>classés Atout France</b> (résidences de tourisme, villages vacances, PRL / mobil-homes, auberges collectives) — capacités officielles vérifiées lors du classement. Le registre ne publie ni téléphone ni e-mail : contact via le site de l'établissement ou Google Maps. Complémentaire de DATAtourisme : des adresses sérieuses de grande capacité qui n'y figurent pas toujours.
+Les km affichés sont à <b>vol d'oiseau</b> — vérifier la règle des <b>45 min de trajet réel</b> avec le lien « itinéraire » avant toute réservation.</span>
     </div>
   </section>
 
@@ -423,7 +425,8 @@ async function chargerCommunes() {
 }
 async function majRayon() {
   if (!CHANTIER) return;
-  const rayon = Math.max(5, parseInt($("in-rayon").value, 10) || 35);
+  /* borne 5-60 aussi côté JS (l'attribut max HTML n'arrête pas une saisie clavier) */
+  const rayon = Math.min(60, Math.max(5, parseInt($("in-rayon").value, 10) || 35));
   await chargerCommunes();
   RAYON_LISTE = [];
   for (const c of COMMUNES) {
@@ -516,7 +519,9 @@ function rendreLiens() {
      Vrbo France = Abritel (même plateforme Expedia, même inventaire) : bouton unique. */
   const liens = [
     ["Airbnb", "https://www.airbnb.fr/s/" + encodeURIComponent(villeCible) + "--France/homes?adults=" + n +
-       "&checkin=" + d1 + "&checkout=" + d2 + "&price_max=" + pmax + "&min_bedrooms=" + n + "&amenities%5B%5D=8"],
+       /* min_beds (couchages), PAS min_bedrooms : la règle 2026 exige n LITS individuels,
+          la cohabitation en chambre partagée entre intérimaires est permise */
+       "&checkin=" + d1 + "&checkout=" + d2 + "&price_max=" + pmax + "&min_beds=" + n + "&amenities%5B%5D=8"],
     ["Booking.com", "https://www.booking.com/searchresults.fr.html?ss=" + encodeURIComponent(villeCible) +
        "&checkin=" + d1 + "&checkout=" + d2 + "&group_adults=" + n + "&no_rooms=1&group_children=0"],
     ["Abritel (Vrbo)", "https://www.abritel.fr/search?destination=" + encodeURIComponent(villeCible + " France") +
@@ -604,7 +609,8 @@ EURN.format(n * BUDGET_SEM) + " par semaine charges comprises (" + EURN.format(M
 }
 async function rendreDT() {
   if (!CHANTIER || !RAYON_LISTE.length) { $("tbl-dt").innerHTML = ""; return; }
-  const rayon = Math.max(5, parseInt($("in-rayon").value, 10) || 35);
+  /* borne 5-60 aussi côté JS (l'attribut max HTML n'arrête pas une saisie clavier) */
+  const rayon = Math.min(60, Math.max(5, parseInt($("in-rayon").value, 10) || 35));
   const deps = Array.from(new Set(RAYON_LISTE.map(v => v.dep)));
   const n = parseInt($("in-equipe").value, 10) || 2;
   const filtre = $("in-dtfiltre").value;
@@ -636,12 +642,15 @@ async function rendreDT() {
     const tel = h[7] ? "<a href='tel:" + esc(h[7]) + "'>" + esc(h[7].replace(/^\+33/, "0").replace(/(\d{2})(?=\d)/g, "$1 ")) + "</a>" : "";
     const mail = h[8] ? "<a href='mailto:" + esc(h[8]) + "'>" + esc(h[8]) + "</a>" : "";
     const site = h[9] ? "<a target='_blank' rel='noopener' href='" + esc(h[9]) + "'>site</a>" : "";
+    /* le critère « 45 min max » ne se vérifie qu'en trajet réel : lien itinéraire chantier → hébergement */
+    const itin = "<a target='_blank' rel='noopener' title='Temps de trajet réel depuis le chantier (règle : 45 min max)' href='https://www.google.com/maps/dir/?api=1&origin=" +
+      CHANTIER.lat + "," + CHANTIER.lon + "&destination=" + h[3] + "," + h[4] + "'>itinéraire</a>";
     const badge = { C: "CAMPING", V: "VILLAGE/COLLECTIF" }[h[12]] || "";
     return "<tr><td>" + (badge ? "<b style='color:var(--brass-deep); font-size:10px; letter-spacing:.05em'>" + badge + "</b> " : "") +
       esc(h[0]) + (h[6] ? " <span class='d' style='color:var(--muted)'>(" + esc(h[6]) + ")</span>" : "") +
       "<span class='hint'>Source : DATAtourisme / " + esc(h[10] || "office de tourisme") + " · màj " + esc(h[11] || "?") + "</span></td>" +
       "<td>" + esc(h[1]) + "</td><td class='n'>" + N1.format(km) + "</td><td class='n'>" + esc(h[5] || "?") + "</td>" +
-      "<td class='n'>" + [tel, mail, site].filter(Boolean).join("<br>") +
+      "<td class='n'>" + [tel, mail, site, itin].filter(Boolean).join("<br>") +
       (DT_LIVE && h[13] ? "<br><a href='#' class='dt-resa' data-uuid='" + esc(h[13]) + "' data-nom='" + esc(h[0]) + "'><b>✉ Réserver</b></a>" : "") +
       "</td></tr>";
   }).join("");
@@ -663,7 +672,8 @@ $("in-dtcherche").addEventListener("input", () => { clearTimeout(window._dtT); w
    auberges collectives — géocodés BAN, sans contact direct (site web + Maps). */
 async function rendreAF() {
   if (!CHANTIER || !RAYON_LISTE.length) { $("tbl-af").innerHTML = ""; return; }
-  const rayon = Math.max(5, parseInt($("in-rayon").value, 10) || 35);
+  /* borne 5-60 aussi côté JS (l'attribut max HTML n'arrête pas une saisie clavier) */
+  const rayon = Math.min(60, Math.max(5, parseInt($("in-rayon").value, 10) || 35));
   const q = ($("in-afcherche").value || "").trim().toLowerCase();
   const selNoms = SELECTION.size ? new Set(Array.from(SELECTION.values()).map(v => norm(v.nom))) : null;
   if (!AF_DATA) {
@@ -688,7 +698,9 @@ async function rendreAF() {
       "<span class='hint'>Source : Atout France (classement du " + esc(h[9]) + ") · géocodage BAN</span></td>" +
       "<td>" + esc(h[1]) + "</td><td class='n'>" + N1.format(km) + "</td><td class='n'>" + esc(h[5] || "?") + "</td>" +
       "<td class='n'>" + (h[8] ? "<a target='_blank' rel='noopener' href='" + esc(h[8]) + "'>site</a><br>" : "") +
-      "<a target='_blank' rel='noopener' href='https://www.google.com/maps/search/?api=1&query=" + qm + "'>Maps</a></td></tr>";
+      "<a target='_blank' rel='noopener' href='https://www.google.com/maps/search/?api=1&query=" + qm + "'>Maps</a><br>" +
+      "<a target='_blank' rel='noopener' title='Temps de trajet réel depuis le chantier (règle : 45 min max)' href='https://www.google.com/maps/dir/?api=1&origin=" +
+      CHANTIER.lat + "," + CHANTIER.lon + "&destination=" + h[3] + "," + h[4] + "'>itinéraire</a></td></tr>";
   }).join("");
   $("tbl-af").innerHTML = sa;
   $("af-statut").innerHTML = "<span class='compteur'>" + tot + "</span> établissement(s) classé(s) Atout France " +
