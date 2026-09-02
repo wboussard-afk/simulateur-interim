@@ -157,7 +157,7 @@ a { color: var(--brass-deep); }
   </section>
 
   <section class="card">
-    <h2>Annonces courte durée <span class="eyebrow" id="eb-liens">recherches pré-remplies</span></h2>
+    <h2>Contact direct — sans commission <span class="eyebrow" id="eb-liens">priorité maison</span></h2>
     <div class="b">
       <div id="cible-liens" class="note">Cible : <b id="cible-txt">— (saisir l'adresse du chantier)</b></div>
       <div class="liens" id="liens"></div>
@@ -165,7 +165,7 @@ a { color: var(--brass-deep); }
       <div class="liens" id="liens-annuaires"></div>
       <div class="note" id="adt-titre" hidden style="margin-top:10px"><b>Portails officiels (sans commission)</b> — offices de tourisme, agences départementales (ADT) et régionales (CRT) du périmètre :</div>
       <div class="liens" id="liens-adt"></div>
-      <span class="hint">Airbnb, Booking et Abritel (= Vrbo France, même inventaire) : recherche PRÉ-REMPLIE (destination, dates, personnes ; prix/nuit et cuisine quand le site le permet) — vérifier les filtres à l'arrivée. Appart'City, Gîtes de France et LVP Direct n'ont pas de moteur à paramètres : le lien ouvre directement la page de la <b>ville</b> (Appart'City, la plus proche du périmètre) ou du <b>département</b> (Gîtes de France, LVP) — saisir les dates sur place. Annuaires et portails officiels : annuaire vérifié le 02/09/2026, densité d'annonces variable selon les sites — les plus fournis d'abord. L'intégration directe des annonces (API partenaires) reste une évolution possible, à décider par la direction.</span>
+      <span class="hint"><b>Priorité maison : le contact direct, sans intermédiaire ni frais de service</b> — avec les hébergements officiels et le registre Atout France ci-dessous. Appart'City (chaîne en direct) ouvre la page de la <b>ville</b> la plus proche du périmètre ; LVP Direct (associatif, 0 % commission) la page du <b>département</b> — dates à saisir sur place. Annuaires vérifiés le 02/09/2026, densité variable selon les sites. Les plateformes à commission (Airbnb, Booking…) sont reléguées en <b>bas de page</b>, en dernier recours.</span>
     </div>
   </section>
 
@@ -211,11 +211,10 @@ La colonne <b>Trajet</b> affiche le temps et la distance <b>réels</b> par la ro
   <section class="card">
     <h2>Demander le registre des meublés aux mairies <span class="eyebrow">droit d'accès · CADA</span></h2>
     <div class="b">
-      <div class="note">Toute mairie doit communiquer sa <b>liste des meublés de tourisme déclarés</b> à qui en fait la demande (art. L.311-1 CRPA ; avis CADA n° 20131539) : vous obtenez les <b>adresses des biens, capacités et périodes de location</b> — identités et coordonnées personnelles occultées. Les <b>communes destinataires s'affichent ci-dessous avant génération</b> : toutes celles du périmètre sont cochées par défaut — cliquer une commune pour l'écarter ou la reprendre. Les communes <b>déjà demandées apparaissent grisées</b> (suivi conservé dans ce navigateur) et redeviennent sélectionnables d'un clic pour une relance.</div>
+      <div class="note">Toute mairie doit communiquer sa <b>liste des meublés de tourisme déclarés</b> à qui en fait la demande (art. L.311-1 CRPA ; avis CADA n° 20131539) : vous obtenez les <b>adresses des biens, capacités et périodes de location</b> — identités et coordonnées personnelles occultées. Le générateur couvre le <b>périmètre courant</b> — toutes les communes, ou celles que vous avez sélectionnées dans le bloc « Communes du périmètre » en haut de page (la sélection pilote tous les blocs). Les communes <b>déjà demandées sont sautées</b> (suivi conservé dans ce navigateur).</div>
       <div class="note" id="cada-compteur" style="margin-top:8px"></div>
-      <div class="villes" id="cada-communes" style="margin-top:6px"></div>
       <div class="liens" style="margin-top:10px">
-        <button type="button" class="btn primary" id="btn-cada">Générer les demandes sélectionnées</button>
+        <button type="button" class="btn primary" id="btn-cada">Générer les demandes du périmètre</button>
         <button type="button" class="btn" id="btn-cada-copier" hidden>Copier tout</button>
         <button type="button" class="btn" id="btn-cada-reset" title="Oublier quelles communes ont déjà été demandées (dans ce navigateur)">Réinitialiser le suivi</button>
       </div>
@@ -235,6 +234,17 @@ La colonne <b>Trajet</b> affiche le temps et la distance <b>réels</b> par la ro
       <div class="note" id="bailleurs-statut">Chargement de la base…</div>
       <div style="max-height:420px; overflow-y:auto"><table id="tbl-bailleurs"></table></div>
       <span class="hint">La base ne contient que le DÉPARTEMENT de chaque logement (pas l'adresse) : le filtre « rayon » retient les départements ayant au moins une commune dans le rayon du chantier. Beaucoup de fiches proviennent d'annonces Booking/Abritel archivées — e-mails partiels fréquents, le téléphone est la voie fiable. Données confidentielles : servies uniquement aux utilisateurs connectés du portail.</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Plateformes avec commission — dernier recours <span class="eyebrow" id="eb-plat">frais de service inclus dans les prix</span></h2>
+    <div class="b">
+      <div class="note">À n'utiliser que si le contact direct et les portails sans commission ci-dessus n'ont rien donné :
+      les prix incluent des <b>frais de service</b> et la relation passe par la plateforme. Recherches pré-remplies
+      (destination, dates, personnes ; prix/nuitée et cuisine quand le site le permet) — vérifier les filtres à l'arrivée.</div>
+      <div class="liens" id="liens-plateformes" style="margin-top:8px"></div>
+      <span class="hint">Airbnb et Abritel (= Vrbo France, même inventaire) prélèvent des frais de service voyageur ; Booking charge le propriétaire (répercuté dans les prix) ; Gîtes de France passe par ses centrales de réservation départementales. L'intégration directe des annonces (API partenaires) reste une évolution possible, à décider par la direction.</span>
     </div>
   </section>
 </div>
@@ -351,7 +361,6 @@ async function majRayon() {
   if (tronque && !ROUTES_KO) RAYON_LISTE.tronque = true;
   NB_AFFICHE = 40;
   SELECTION.clear();
-  CADA_EXCLUES.clear(); CADA_REINCLUSES.clear(); NB_CADA = 150;
   rendreTout();
 }
 function rendreVilles() {
@@ -482,13 +491,26 @@ function rendreLiens() {
   $("cible-txt").textContent = villeCible
     ? villeCible + (SELECTION.size > 1 ? " (+ " + (SELECTION.size - 1) + " commune(s) sélectionnée(s) — les liens visent la 1ʳᵉ)" : "")
     : "— (saisir l'adresse du chantier)";
-  if (!villeCible) { $("liens").innerHTML = ""; rendreADT(); return; }
+  if (!villeCible) { $("liens").innerHTML = ""; $("liens-plateformes").innerHTML = ""; rendreADT(); return; }
   const pmax = Math.ceil(n * NUITEE);
-  /* formats VÉRIFIÉS en navigateur le 02/09/2026 (Booking/Airbnb/Abritel sur résultats réels ;
-     annuaires Appart'City / Gîtes de France / LVP Direct extraits de leurs sites — pas de
-     moteur à paramètres chez eux : on lie la page VILLE ou DÉPARTEMENT, dates à saisir sur place).
-     Vrbo France = Abritel (même plateforme Expedia, même inventaire) : bouton unique. */
-  const liens = [
+  /* DIRECT & SANS COMMISSION en haut de page (priorité maison — décision direction 02/09 soir) :
+     Appart'City (chaîne en direct, page ville la plus proche) + LVP Direct (associatif 0 %,
+     page département). Les PLATEFORMES À COMMISSION (Airbnb, Booking, Abritel=Vrbo, Gîtes de
+     France et ses centrales) sont reléguées dans la carte du BAS de page, en dernier recours.
+     Formats vérifiés en navigateur le 02/09/2026. */
+  const direct = [];
+  const acVille = (perimetreVilles().concat(RAYON_LISTE)).find(v => AC_VILLES[norm(v.nom)]);
+  direct.push(acVille
+    ? ["Appart'City " + acVille.nom, "https://www.appartcity.com/fr/destinations/france/" + AC_VILLES[norm(acVille.nom)] + "/" + acSlug(acVille.nom)]
+    : ["Appart'City (annuaire)", "https://www.appartcity.com/fr/recherche"]);
+  const depsPerim = Array.from(new Set(perimetreVilles().map(v => v.dep))).slice(0, 3);
+  const multi = depsPerim.length > 1;
+  depsPerim.forEach(dep => {
+    const l = lvpUrl(dep); if (l) direct.push(["LVP Direct" + (multi ? " (" + dep + ")" : ""), l]);
+  });
+  $("liens").innerHTML = direct.map(([nom, url], i) =>
+    "<a class='btn" + (i === 0 ? " primary" : "") + "' target='_blank' rel='noopener' href='" + url + "'>" + nom + " ↗</a>").join("");
+  const plat = [
     ["Airbnb", "https://www.airbnb.fr/s/" + encodeURIComponent(villeCible) + "--France/homes?adults=" + n +
        /* min_beds (couchages), PAS min_bedrooms : la règle 2026 exige n LITS individuels,
           la cohabitation en chambre partagée entre intérimaires est permise */
@@ -498,23 +520,14 @@ function rendreLiens() {
     ["Abritel (Vrbo)", "https://www.abritel.fr/search?destination=" + encodeURIComponent(villeCible + " France") +
        "&startDate=" + d1 + "&endDate=" + d2 + "&adults=" + n],
   ];
-  /* Appart'City : ville la plus proche du périmètre disposant d'un appart'hôtel */
-  const acVille = (perimetreVilles().concat(RAYON_LISTE)).find(v => AC_VILLES[norm(v.nom)]);
-  liens.push(acVille
-    ? ["Appart'City " + acVille.nom, "https://www.appartcity.com/fr/destinations/france/" + AC_VILLES[norm(acVille.nom)] + "/" + acSlug(acVille.nom)]
-    : ["Appart'City (annuaire)", "https://www.appartcity.com/fr/recherche"]);
-  /* Gîtes de France + LVP Direct : page du (des) département(s) du périmètre */
-  const depsPerim = Array.from(new Set(perimetreVilles().map(v => v.dep))).slice(0, 3);
-  const multi = depsPerim.length > 1;
   depsPerim.forEach(dep => {
-    const g = gdfUrl(dep); if (g) liens.push(["Gîtes de France" + (multi ? " (" + dep + ")" : ""), g]);
+    const g = gdfUrl(dep); if (g) plat.push(["Gîtes de France" + (multi ? " (" + dep + ")" : ""), g]);
   });
-  depsPerim.forEach(dep => {
-    const l = lvpUrl(dep); if (l) liens.push(["LVP Direct" + (multi ? " (" + dep + ")" : ""), l]);
-  });
-  $("liens").innerHTML = liens.map(([nom, url], i) =>
-    "<a class='btn" + (i === 0 ? " primary" : "") + "' target='_blank' rel='noopener' href='" + url + "'>" + nom + " ↗</a>").join("");
-  $("eb-liens").textContent = n + " pers · " + d1 + " → " + d2 + " · ≤ " + EURN.format(pmax) + "/nuit";
+  $("liens-plateformes").innerHTML = plat.map(([nom, url]) =>
+    "<a class='btn' target='_blank' rel='noopener' href='" + url + "'>" + nom + " ↗</a>").join("");
+  const resume = n + " pers · " + d1 + " → " + d2 + " · ≤ " + EURN.format(pmax) + "/nuit";
+  $("eb-liens").textContent = resume;
+  $("eb-plat").textContent = "cible " + villeCible + " · " + resume;
   rendreADT();
 }
 
@@ -747,52 +760,22 @@ async function rendreAF() {
 $("in-afcherche").addEventListener("input", () => { clearTimeout(window._afT); window._afT = setTimeout(rendreAF, 250); });
 
 /* ===== générateur de demandes CADA (registre des meublés en mairie) =====
-   Destinataires AFFICHÉS AVANT génération (demande direction 02/09) : toutes les
-   communes du périmètre cochées par défaut, clic pour en écarter ; les déjà-
-   demandées apparaissent grisées et redeviennent sélectionnables d'un clic.
+   Destinataires = le PÉRIMÈTRE COURANT (toutes les communes, ou la sélection faite
+   dans le bloc « Communes du périmètre » — une seule sélection pilote tous les blocs,
+   décision direction 02/09 soir), moins les communes déjà demandées.
    Suivi localStorage propre à ce navigateur (limite assumée). */
-let CADA_EXCLUES = new Set();     // clés "nom|dep" écartées par l'utilisateur
-let CADA_REINCLUSES = new Set();  // déjà-demandées re-cochées pour un nouvel envoi
-let NB_CADA = 150;
 function cadaDestinataires() {
   const faites = cadaFaites();
-  return perimetreVilles().filter(v => {
-    const cle = v.nom + "|" + v.dep;
-    return faites.has(cle) ? CADA_REINCLUSES.has(cle) : !CADA_EXCLUES.has(cle);
-  });
+  return perimetreVilles().filter(v => !faites.has(v.nom + "|" + v.dep));
 }
 function rendreCada() {
   const villes = perimetreVilles();
-  if (!villes.length) {
-    $("cada-compteur").textContent = ""; $("cada-communes").innerHTML = ""; return;
-  }
-  const faites = cadaFaites();
-  const nbDeja = villes.filter(v => faites.has(v.nom + "|" + v.dep)).length;
+  if (!villes.length) { $("cada-compteur").textContent = ""; return; }
   const dest = cadaDestinataires();
+  const nbDeja = villes.length - dest.length;
   $("cada-compteur").innerHTML = "<span class='compteur'>" + dest.length + "</span> commune(s) recevront une demande" +
-    " sur " + villes.length + " du périmètre" +
-    (nbDeja ? " · " + nbDeja + " déjà demandée(s) <span style='opacity:.6'>(grisées — cliquer pour redemander)</span>" : "") +
-    " — cliquer une commune pour l'écarter ou la reprendre :";
-  const vis = villes.slice(0, NB_CADA);
-  $("cada-communes").innerHTML = vis.map((v, i) => {
-    const cle = v.nom + "|" + v.dep;
-    const deja = faites.has(cle);
-    const coche = deja ? CADA_REINCLUSES.has(cle) : !CADA_EXCLUES.has(cle);
-    return "<span class='ville" + (deja ? " deja" : "") + (coche ? " sel" : "") + "' data-ci='" + i + "'>" +
-      (deja && !coche ? "✓ " : "") + v.nom + " <span class='d'>(" + v.dep + ")</span></span>";
-  }).join("") +
-    (villes.length > NB_CADA ? "<span class='ville' id='cada-plus' style='border-color:var(--brass)'>… afficher les " +
-      (villes.length - NB_CADA) + " restantes (incluses)</span>" : "");
-  const plus = document.getElementById("cada-plus");
-  if (plus) plus.addEventListener("click", () => { NB_CADA += 300; rendreCada(); });
-  Array.from($("cada-communes").querySelectorAll(".ville[data-ci]")).forEach(el => el.addEventListener("click", () => {
-    const v = vis[parseInt(el.dataset.ci, 10)];
-    const cle = v.nom + "|" + v.dep;
-    if (faites.has(cle)) {
-      if (CADA_REINCLUSES.has(cle)) CADA_REINCLUSES.delete(cle); else CADA_REINCLUSES.add(cle);
-    } else if (CADA_EXCLUES.has(cle)) CADA_EXCLUES.delete(cle); else CADA_EXCLUES.add(cle);
-    rendreCada();
-  }));
+    (SELECTION.size ? " (sélection en cours dans le bloc communes)" : " (tout le périmètre)") +
+    (nbDeja ? " · " + nbDeja + " déjà demandée(s), sautée(s)" : "") + ".";
 }
 function cadaFaites() {
   try { return new Set(JSON.parse(localStorage.getItem("cada_faites") || "[]")); } catch (e) { return new Set(); }
@@ -827,7 +810,7 @@ $("btn-cada").addEventListener("click", () => {
   if (!perimetreVilles().length) { alert("Saisir d'abord l'adresse du chantier."); return; }
   const aFaire = cadaDestinataires();
   if (!aFaire.length) {
-    $("cada-bilan").innerHTML = "Aucune commune sélectionnée — cliquer des communes ci-dessus (ou « Réinitialiser le suivi » si tout a déjà été demandé).";
+    $("cada-bilan").innerHTML = "Toutes les communes du périmètre ont déjà été demandées — « Réinitialiser le suivi » pour recommencer, ou modifier la sélection dans le bloc communes.";
     return;
   }
   const auj = new Date().toLocaleDateString("fr-FR");
@@ -841,14 +824,12 @@ $("btn-cada").addEventListener("click", () => {
   $("cada-mairies").innerHTML = aFaire.slice(0, 40).map(v =>
     "<a class='btn' target='_blank' rel='noopener' href='https://lannuaire.service-public.gouv.fr/recherche?whoWhat=mairie&where=" +
     encodeURIComponent(v.nom) + "'>" + v.nom + " ↗</a>").join("") +
-    (aFaire.length > 40 ? "<span class='note'>… et " + (aFaire.length - 40) + " autres (écarter des communes ci-dessus pour réduire).</span>" : "");
+    (aFaire.length > 40 ? "<span class='note'>… et " + (aFaire.length - 40) + " autres (réduire via la sélection du bloc communes).</span>" : "");
   cadaMarquer(aFaire.map(v => v.nom + "|" + v.dep));
-  CADA_REINCLUSES.clear();
   rendreCada();
 });
 $("btn-cada-reset").addEventListener("click", () => {
   try { localStorage.removeItem("cada_faites"); } catch (e) {}
-  CADA_REINCLUSES.clear();
   $("cada-bilan").textContent = "Suivi réinitialisé — toutes les communes redeviennent demandables.";
   rendreCada();
 });
