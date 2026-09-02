@@ -404,6 +404,8 @@ let SELECTION = new Map();    // "nom|dep" -> ville sélectionnée
 let NB_AFFICHE = 40;
 const norm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
 function perimetreVilles() { return SELECTION.size ? Array.from(SELECTION.values()) : RAYON_LISTE; }
+/* code postal -> département (Corse : 200xx/201xx = 2A, 202xx/206xx = 2B) — même règle que l'extraction */
+const depDeCp = cp => { const c = String(cp || ""); return c.slice(0, 2) === "20" ? (c.slice(0, 3) <= "201" ? "2A" : "2B") : c.slice(0, 2); };
 function rendreTout() { rendreVilles(); rendreLiens(); rendreDT(); rendreAF(); rendreBailleurs(); rendreCada(); }
 
 const NUITEE = 25.72, BUDGET_SEM = 180;   /* données MAISON — direction uniquement */
@@ -762,14 +764,29 @@ EURN.format(n * BUDGET_SEM) + " par semaine charges comprises (" + EURN.format(M
 "Réponse possible par retour d'e-mail (" + ADRESSE_REPONSE + ") ou par téléphone.\n\n" +
 "Cordialement,\n" + SIGNATURE;
 }
-const APRES_ENVOI = () => "Demande envoyée ✓ — la réponse du logeur arrivera sur votre e-mail, celui de vos agences et la boîte générique (" + ADRESSE_REPONSE + ").";
+const APRES_ENVOI = () => "Demande envoyée ✓ — une copie vous a été adressée ; la réponse du logeur arrivera sur votre e-mail, celui de vos agences et la boîte générique (" + ADRESSE_REPONSE + ").";
+/* réservation par e-mail DIRECT (fiche DATAtourisme avec e-mail mais sans canal API,
+   ou croisement Atout France) — l'e-mail part du site, copie à l'expéditeur */
+async function contacterHebergement(dep, email, nomHeb) {
+  const message = messageReservation(nomHeb) ;
+  if (!window.confirm("Envoyer cette demande de réservation à « " + nomHeb + " » ?\n\n" + message)) return;
+  try {
+    const r = await fetch("/api/heberg/contact", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ dep, email, nom: nomHeb, message }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.ok) alert(APRES_ENVOI());
+    else alert("Envoi impossible (" + (j.erreur || r.status) + ") — utiliser le téléphone affiché.");
+  } catch (e) { alert("Envoi impossible : " + e.message); }
+}
 async function contacterHote(uuid, nomHeb) {
   const message = messageReservation(nomHeb);
   if (!window.confirm("Envoyer cette demande de réservation à l'hôte de « " + nomHeb + " » ?\n\n" + message)) return;
   try {
     const r = await fetch("/api/dt/contact/" + uuid, {
       method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, nom: nomHeb }),
     });
     const j = await r.json().catch(() => ({}));
     if (r.ok) alert(APRES_ENVOI());
@@ -836,7 +853,13 @@ async function rendreDT() {
   let s = "<tr><th>Hébergement</th><th>Commune</th><th class='n'>Trajet</th><th class='n'>Pers.</th><th>Contact</th></tr>";
   s += liste.map(({ h, km, reel }) => {
     const tel = h[7] ? "<a href='tel:" + esc(h[7]) + "'>" + esc(h[7].replace(/^\+33/, "0").replace(/(\d{2})(?=\d)/g, "$1 ")) + "</a>" : "";
-    const mail = h[8] ? "<a href='mailto:" + esc(h[8]) + "'>" + esc(h[8]) + "</a>" : "";
+    /* plus de mailto : l'e-mail part du site (bouton Réserver) — canal API DATAtourisme si
+       la fiche a un uuid, sinon e-mail direct validé côté serveur contre la base du département */
+    const mail = "";
+    const dep = depDeCp(h[2]);
+    const resa = (DT_LIVE && h[13])
+      ? "<br><a href='#' class='dt-resa' data-uuid='" + esc(h[13]) + "' data-nom='" + esc(h[0]) + "'><b>✉ Réserver</b></a>"
+      : (h[8] ? "<br><a href='#' class='heberg-resa' data-dep='" + esc(dep) + "' data-email='" + esc(h[8]) + "' data-nom='" + esc(h[0]) + "'><b>✉ Réserver</b></a>" : "");
     const site = h[9] ? "<a target='_blank' rel='noopener' href='" + esc(h[9]) + "'>site</a>" : "";
     const itin = "<a target='_blank' rel='noopener' title='Ouvrir l’itinéraire chantier → hébergement dans Maps' href='https://www.google.com/maps/dir/?api=1&origin=" +
       CHANTIER.lat + "," + CHANTIER.lon + "&destination=" + h[3] + "," + h[4] + "'>itinéraire</a>";
@@ -846,11 +869,14 @@ async function rendreDT() {
       esc(h[0]) + (h[6] ? " <span class='d' style='color:var(--muted)'>(" + esc(h[6]) + ")</span>" : "") +
       "<span class='hint'>Source : DATAtourisme / " + esc(h[10] || "office de tourisme") + " · màj " + esc(h[11] || "?") + "</span></td>" +
       "<td>" + esc(h[1]) + "</td><td class='n'>" + trajet + "</td><td class='n'>" + esc(h[5] || "?") + "</td>" +
-      "<td class='n'>" + [tel, mail, site, itin].filter(Boolean).join("<br>") +
-      (DT_LIVE && h[13] ? "<br><a href='#' class='dt-resa' data-uuid='" + esc(h[13]) + "' data-nom='" + esc(h[0]) + "'><b>✉ Réserver</b></a>" : "") +
+      "<td class='n'>" + [tel, mail, site, itin].filter(Boolean).join("<br>") + resa +
       "</td></tr>";
   }).join("");
   $("tbl-dt").innerHTML = s;
+  Array.from($("tbl-dt").querySelectorAll(".heberg-resa")).forEach(a => a.addEventListener("click", ev => {
+    ev.preventDefault();
+    contacterHebergement(a.dataset.dep, a.dataset.email, a.dataset.nom);
+  }));
   $("dt-statut").innerHTML = "<span class='compteur'>" + total + "</span> hébergement(s) officiel(s) " +
     (selNoms ? "dans les communes sélectionnées" : "dans le périmètre") +
     (reelOk ? " (trajet réel ≤ 45 min et ≤ 42 km, triés par temps)"
@@ -909,15 +935,16 @@ async function rendreAF() {
       !["de", "du", "des", "la", "le", "les", "et", "residence", "residences", "tourisme",
         "hotel", "apparthotel", "aparthotel", "apparthotel"].includes(t)));
   const inclus = (a, b) => Array.from(a).every(t => b.has(t));
+  /* candidats : fiches DATAtourisme avec canal API (uuid, si la clé est active) OU avec un
+     e-mail direct (envoi depuis le site, validé côté serveur) — élargit le nombre de boutons */
   const dtParDep = new Map();
-  if (DT_LIVE) {
-    const depsAF = Array.from(new Set(lst.map(x => {
-      const cp = String(x.h[2] || ""); return cp.slice(0, 2) === "20" ? (cp.slice(0, 3) <= "201" ? "2A" : "2B") : cp.slice(0, 2);
-    }).filter(Boolean)));
+  {
+    const depsAF = Array.from(new Set(lst.map(x => depDeCp(x.h[2])).filter(Boolean)));
     await Promise.all(depsAF.map(chargerDT));
     for (const dep of depsAF) {
       const b = DT_CACHE[dep];
-      if (b) dtParDep.set(dep, b.h.filter(hd => hd[13]).map(hd => ({ j: jetons(hd[0]), uuid: hd[13], nom: hd[0] })));
+      if (b) dtParDep.set(dep, b.h.filter(hd => (DT_LIVE && hd[13]) || hd[8])
+        .map(hd => ({ j: jetons(hd[0]), uuid: DT_LIVE ? (hd[13] || null) : null, email: hd[8] || null, dep, nom: hd[0] })));
     }
   }
   const chercherDT = h => {
@@ -944,13 +971,16 @@ async function rendreAF() {
       "<a target='_blank' rel='noopener' href='https://www.google.com/maps/search/?api=1&query=" + qm + "'>Maps</a><br>" +
       "<a target='_blank' rel='noopener' title='Ouvrir l’itinéraire chantier → établissement dans Maps' href='https://www.google.com/maps/dir/?api=1&origin=" +
       CHANTIER.lat + "," + CHANTIER.lon + "&destination=" + h[3] + "," + h[4] + "'>itinéraire</a>" +
-      (dt ? "<br><a href='#' class='af-resa' data-uuid='" + esc(dt.uuid) + "' data-nom='" + esc(dt.nom) + "'><b>✉ Réserver</b></a>" : "") +
+      (dt ? "<br><a href='#' class='af-resa' data-uuid='" + esc(dt.uuid || "") + "' data-dep='" + esc(dt.dep) +
+            "' data-email='" + esc(dt.email || "") + "' data-nom='" + esc(dt.nom) + "'><b>✉ Réserver</b></a>" : "") +
       "</td></tr>";
   }).join("");
   $("tbl-af").innerHTML = sa;
   Array.from($("tbl-af").querySelectorAll(".af-resa")).forEach(a => a.addEventListener("click", ev => {
     ev.preventDefault();
-    contacterHote(a.dataset.uuid, a.dataset.nom);
+    /* canal API DATAtourisme si uuid, sinon e-mail direct depuis le site */
+    if (a.dataset.uuid) contacterHote(a.dataset.uuid, a.dataset.nom);
+    else contacterHebergement(a.dataset.dep, a.dataset.email, a.dataset.nom);
   }));
   $("af-statut").innerHTML = "<span class='compteur'>" + tot + "</span> établissement(s) classé(s) Atout France " +
     (selNoms ? "dans les communes sélectionnées" : "dans le périmètre") +

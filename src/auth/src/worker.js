@@ -273,6 +273,12 @@ async function api(req, env, url, u) {
     });
     await journal(env, req, u, "dt_contact", uuid, "statut " + rep.status);
     if (rep.status === 422) return json({ erreur: "pas_email_reservation" }, 422);
+    /* copie de la demande à l'expéditeur (DATAtourisme n'en envoie pas) */
+    if (rep.ok)
+      await envoyerEmail(env, u.email,
+        "Copie — votre demande de réservation à « " + String(corps.nom || "l'hébergement").slice(0, 120) + " »",
+        "Votre demande est partie via DATAtourisme :\n\n" + message,
+        { env, req }, { from: FROM_ABSERVICE, replyTo: adresseReponse(u) });
     return json({ ok: rep.ok, statut: rep.status }, rep.ok ? 200 : rep.status);
   }
 
@@ -323,9 +329,58 @@ async function api(req, env, url, u) {
       if (res[0] && res[0].ok) envoyees.push({ ...c, email }); else echecs.push({ ...c, email });
       await new Promise(rr => setTimeout(rr, 150));   /* douceur API Resend */
     }
-    if (!corps.verifier)
-      await journal(env, req, u, "cada_envoi", envoyees.length + " envoyées, " + sansEmail.length + " sans e-mail, " + echecs.length + " échecs");
+    if (!corps.verifier) {
+      await journal(env, req, u, "cada_envoi", envoyees.length + " envoyées (" +
+        envoyees.map(c => c.nom).join(", ").slice(0, 300) + "), " + sansEmail.length + " sans e-mail, " + echecs.length + " échecs");
+      /* RÉCAPITULATIF à l'expéditeur + ses agences : trace de ce qui est parti
+         (demande direction 03/09 — « j'ai fait un test mais rien reçu ») */
+      if (envoyees.length) {
+        const copies = [u.email, ...agencesDe(u).map(a => AGENCES_ABSERVICE[a]).filter(Boolean)];
+        await envoyerEmail(env, copies,
+          "Copie — " + envoyees.length + " demande(s) de registre des meublés envoyée(s) aux mairies",
+          "Vos demandes CADA (registre des meublés de tourisme) sont parties, une par mairie :\n\n" +
+          envoyees.map(c => "  • " + c.nom + " (" + c.dep + ") — " + c.email).join("\n") +
+          (sansEmail.length ? "\n\nSans e-mail dans l'annuaire officiel (à contacter manuellement) : " +
+            sansEmail.map(c => c.nom).join(", ") : "") +
+          "\n\nLes réponses des mairies arriveront sur votre e-mail, ceux de vos agences et la boîte générique (" + reponse + ").\n\n" +
+          "— Texte type envoyé —\n\nMadame, Monsieur,\n\nEn application de l'article L.311-1 du CRPA, demande de communication de la " +
+          "liste des meublés de tourisme déclarés (art. L.324-1-1 du code du tourisme)…\n\nFait le " + auj + "\n" + signatureDe(u),
+          { env, req }, { from: FROM_ABSERVICE, replyTo: reponse });
+      }
+    }
     return json({ ok: true, verifier: !!corps.verifier, envoyees, sans_email: sansEmail, echecs });
+  }
+
+  /* ===== réservation d'un hébergement officiel par e-mail DIRECT (fiches DATAtourisme
+   * avec e-mail mais sans uuid de contact API, et croisements Atout France) =====
+   * Anti-abus : l'e-mail destinataire doit exister dans les fiches du département servies
+   * par le portail (data/dt/<dep>.json, champ e-mail). Copie envoyée à l'expéditeur. */
+  if (p === "/api/heberg/contact" && req.method === "POST") {
+    if (!u) return json({ erreur: "non_connecte" }, 401);
+    if (!sectionsDe(u).includes("logements")) return json({ erreur: "section" }, 403);
+    const dep = String(corps.dep || "").slice(0, 3);
+    const dest = String(corps.email || "").trim().toLowerCase().slice(0, 200);
+    const nomHeb = String(corps.nom || "l'hébergement").slice(0, 120);
+    const message = String(corps.message || "").slice(0, 5000);
+    if (!/^(\d{2}|2A|2B)$/.test(dep)) return json({ erreur: "dep_invalide" }, 400);
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(dest)) return json({ erreur: "email_invalide" }, 400);
+    if (message.length < 20) return json({ erreur: "message_trop_court" }, 400);
+    let connu = false;
+    try {
+      const rd = await env.ASSETS.fetch(new Request("https://interne/app/data/dt/" + dep + ".json"));
+      const base = await rd.json();
+      connu = (base.h || []).some(h => (h[8] || "").trim().toLowerCase() === dest);
+    } catch (e) { return json({ erreur: "base_indisponible" }, 503); }
+    if (!connu) return json({ erreur: "hebergement_inconnu" }, 400);
+    const res = await envoyerEmail(env, dest,
+      "Demande de location — équipes en mission (AB Service)",
+      message, { env, req }, { from: FROM_ABSERVICE, replyTo: adresseReponse(u) });
+    if (res[0] && res[0].ok)
+      await envoyerEmail(env, u.email, "Copie — votre demande de réservation à « " + nomHeb + " »",
+        "Votre demande est partie à " + dest + " :\n\n" + message,
+        { env, req }, { from: FROM_ABSERVICE, replyTo: adresseReponse(u) });
+    await journal(env, req, u, "heberg_contact", dest, "statut " + (res[0] ? res[0].status : "?"));
+    return json({ ok: !!(res[0] && res[0].ok) }, res[0] && res[0].ok ? 200 : 502);
   }
 
   /* ===== réservation auprès d'un bailleur connu (bouton Réserver, comme DATAtourisme) =====
@@ -349,6 +404,10 @@ async function api(req, env, url, u) {
       "Demande de location — équipes en mission (AB Service)",
       message + "\n\n" + signatureDe(u), { env, req },
       { from: FROM_ABSERVICE, replyTo: adresseReponse(u) });
+    if (res[0] && res[0].ok)
+      await envoyerEmail(env, u.email, "Copie — votre demande de réservation (bailleur)",
+        "Votre demande est partie à " + dest + " :\n\n" + message + "\n\n" + signatureDe(u),
+        { env, req }, { from: FROM_ABSERVICE, replyTo: adresseReponse(u) });
     await journal(env, req, u, "bailleur_contact", dest, "statut " + (res[0] ? res[0].status : "?"));
     return json({ ok: !!(res[0] && res[0].ok) }, res[0] && res[0].ok ? 200 : 502);
   }
