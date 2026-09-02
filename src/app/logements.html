@@ -685,6 +685,7 @@ async function rendreDT() {
     contacterHote(a.dataset.uuid, a.dataset.nom);
   }));
 }
+$("in-dttype").addEventListener("change", rendreDT);
 $("in-dtfiltre").addEventListener("change", rendreDT);
 $("in-dtcherche").addEventListener("input", () => { clearTimeout(window._dtT); window._dtT = setTimeout(rendreDT, 250); });
 
