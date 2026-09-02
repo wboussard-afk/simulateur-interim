@@ -1008,7 +1008,10 @@ async function chargerBailleurs() {
   }
   rendreBailleurs();
 }
-const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+/* échappe AUSSI les deux types de guillemets : les valeurs vont dans des attributs
+   HTML entre apostrophes (data-nom='…') — « Chambres d'hôtes » tronquait l'attribut */
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 function rendreBailleurs() {
   if (!BAILLEURS) { $("tbl-bailleurs").innerHTML = ""; return; }
   const filtre = ($("in-cherche").value || "").trim().toLowerCase();
