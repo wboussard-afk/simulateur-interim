@@ -19,9 +19,9 @@ const estSuper = x => !!x && x.role === "super_admin";
 const SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe", "logements"];
 
 /* Adresse de réponse des communications EXTERNES d'AB Service (réservations
- * DATAtourisme, etc.). À basculer sur info@abservice-logement.com dès que le
- * domaine dédié sera enregistré et son Email Routing actif — une seule ligne. */
-const EMAIL_EXTERNE = "logements@ab2pro-simulateur.com";
+ * DATAtourisme, etc.) — domaine dédié actif depuis le 03/09/2026 (Email Routing
+ * + catch-all vers ab2pro-mail-fanout configurés par la direction). */
+const EMAIL_EXTERNE = "info@abservice-logement.com";
 
 /* ===== Entités & agences (décision direction 02/09/2026) =====
  * AB2Pro et AB Service sont deux entités séparées : chaque utilisateur choisit son
@@ -49,10 +49,11 @@ function agencesDe(x) {
   catch (e) { return []; }
 }
 const validerAgences = l => Array.isArray(l) ? JSON.stringify(l.map(String).filter(a => AGENCES_ABSERVICE[a]).slice(0, 11)) : null;
-/* Adresse de réponse par utilisateur (sous-adressage logements+u<id>@ → routage des
- * réponses par le worker mail-fanout). N'ACTIVER qu'une fois la règle CATCH-ALL
- * d'Email Routing pointée sur ab2pro-mail-fanout, sinon les réponses rebondissent. */
-const SOUS_ADRESSAGE_REPONSES = false;
+/* Adresse de réponse par utilisateur (sous-adressage info+u<id>@ → le worker
+ * mail-fanout relaie la réponse du logeur à l'e-mail perso du demandeur + aux
+ * boîtes génériques de ses agences). ACTIF depuis le 03/09/2026 : la règle
+ * CATCH-ALL d'abservice-logement.com pointe sur ab2pro-mail-fanout. */
+const SOUS_ADRESSAGE_REPONSES = true;
 function adresseReponse(u2) {
   if (!SOUS_ADRESSAGE_REPONSES || !u2 || !u2.id) return EMAIL_EXTERNE;
   const [loc, dom] = EMAIL_EXTERNE.split("@");

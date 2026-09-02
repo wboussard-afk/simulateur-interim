@@ -59,7 +59,9 @@ export default {
   async email(message, env, ctx) {
     /* 1) réponse de logeur adressée à logements+u<id>@… → relais e-mail perso + agences */
     try {
-      const mPlus = /^logements\+u(\d+)@/i.exec(message.to || "");
+      /* les deux domaines : logements+u<id>@ab2pro-simulateur.com (historique)
+         et info+u<id>@abservice-logement.com (domaine dédié AB Service) */
+      const mPlus = /^(?:logements|info)\+u(\d+)@/i.exec(message.to || "");
       if (mPlus && env.DB && env.NOTIFY_KEY) {
         const usr = await env.DB.prepare("SELECT id, email, nom, entite, agences FROM utilisateurs WHERE id = ? AND actif = 1")
           .bind(parseInt(mPlus[1], 10)).first();

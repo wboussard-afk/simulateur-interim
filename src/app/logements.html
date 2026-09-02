@@ -274,9 +274,9 @@ function perimetreVilles() { return SELECTION.size ? Array.from(SELECTION.values
 function rendreTout() { rendreVilles(); rendreLiens(); rendreDT(); rendreAF(); rendreBailleurs(); rendreCada(); }
 
 const NUITEE = 25.72, BUDGET_SEM = 180;   /* données MAISON — direction uniquement */
-/* adresse de réponse des courriers EXTERNES (CADA, réservations) — à basculer sur
-   info@abservice-logement.com dès que le domaine dédié AB Service sera actif */
-const EMAIL_EXTERNE = "logements@ab2pro-simulateur.com";
+/* adresse de réponse des courriers EXTERNES (CADA, réservations) — domaine dédié
+   AB Service actif depuis le 03/09/2026 (Email Routing + fanout multi-admins) */
+const EMAIL_EXTERNE = "info@abservice-logement.com";
 
 function lundiProchain() {
   const d = new Date(); const j = d.getDay();
