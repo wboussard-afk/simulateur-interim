@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
   cree_par TEXT NOT NULL DEFAULT 'seed',
   sections TEXT,                 -- accès par section : NULL = tout ; sinon tableau JSON de slugs (simulateur, paie, conventions, salaires-europe)
   entite TEXT,                   -- 'ab2pro' | 'abservice' (NULL = ab2pro, comptes historiques)
-  agences TEXT                   -- AB Service : tableau JSON de slugs d'agences — voir AGENCES_ABSERVICE (worker.js)
+  agences TEXT,                  -- AB Service : tableau JSON de slugs d'agences — voir AGENCES_ABSERVICE (worker.js)
+  fonction TEXT                  -- poste de l'utilisateur (signature automatique des courriers externes)
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
@@ -35,7 +36,8 @@ CREATE TABLE IF NOT EXISTS demandes_acces (
   traite_par TEXT,
   traite_le TEXT,
   entite TEXT,                   -- entité choisie à l'inscription ('ab2pro' | 'abservice')
-  agences TEXT                   -- AB Service : agences choisies (tableau JSON de slugs)
+  agences TEXT,                  -- AB Service : agences choisies (tableau JSON de slugs)
+  fonction TEXT                  -- poste déclaré à l'inscription (signature des courriers)
 );
 
 CREATE TABLE IF NOT EXISTS demandes_fiches (

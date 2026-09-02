@@ -122,10 +122,10 @@ async function charger() {
 
   const zd = $("z-demandes");
   if (!a.demandes.length) zd.innerHTML = "<div class='vide'>Aucune demande en attente.</div>";
-  else zd.innerHTML = "<table><tr><th>Date</th><th>Nom</th><th>E-mail</th><th>Entité · agences</th><th>Motif</th><th>Sections ouvertes</th><th></th></tr>" +
+  else zd.innerHTML = "<table><tr><th>Date</th><th>Nom</th><th>E-mail</th><th>Entité · agences</th><th>Fonction</th><th>Sections ouvertes</th><th></th></tr>" +
     a.demandes.map(d => "<tr><td>" + esc(d.cree_le) + "</td><td>" + esc(d.nom) + "</td><td>" + esc(d.email) +
       "</td><td>" + (d.entite === "abservice" ? "<b>AB SERVICE</b><br>" + esc(agListe(d.agences)) : "AB2PRO") +
-      "</td><td>" + esc(d.motif) + "</td><td>" +
+      "</td><td>" + esc(d.fonction || d.motif || "") + "</td><td>" +
       SECTIONS_APPS.map(s => "<label class='cb-lig'><input type='checkbox' class='cb-sec' data-dem='" + d.id +
         "' value='" + s + "' checked> " + esc(secLib(s)) + "</label>").join("") + "</td><td>" +
       "<button class='btn p' data-app='" + d.id + "'>Approuver</button>" +

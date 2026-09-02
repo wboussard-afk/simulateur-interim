@@ -209,22 +209,6 @@ La colonne <b>Trajet</b> affiche le temps et la distance <b>réels</b> par la ro
   </section>
 
   <section class="card">
-    <h2>Demander le registre des meublés aux mairies <span class="eyebrow">droit d'accès · CADA</span></h2>
-    <div class="b">
-      <div class="note">Toute mairie doit communiquer sa <b>liste des meublés de tourisme déclarés</b> à qui en fait la demande (art. L.311-1 CRPA ; avis CADA n° 20131539) : vous obtenez les <b>adresses des biens, capacités et périodes de location</b> — identités et coordonnées personnelles occultées. Le générateur couvre le <b>périmètre courant</b> — toutes les communes, ou celles que vous avez sélectionnées dans le bloc « Communes du périmètre » en haut de page (la sélection pilote tous les blocs). Les communes <b>déjà demandées sont sautées</b> (suivi conservé dans ce navigateur).</div>
-      <div class="note" id="cada-compteur" style="margin-top:8px"></div>
-      <div class="liens" style="margin-top:10px">
-        <button type="button" class="btn primary" id="btn-cada">Générer les demandes du périmètre</button>
-        <button type="button" class="btn" id="btn-cada-copier" hidden>Copier tout</button>
-        <button type="button" class="btn" id="btn-cada-reset" title="Oublier quelles communes ont déjà été demandées (dans ce navigateur)">Réinitialiser le suivi</button>
-      </div>
-      <div class="note" id="cada-bilan" style="margin-top:6px"></div>
-      <div class="liens" id="cada-mairies" style="margin-top:4px"></div>
-      <textarea id="cada-texte" style="width:100%; min-height:280px; margin-top:8px; font:12.5px/1.55 'Segoe UI', sans-serif" hidden readonly></textarea>
-    </div>
-  </section>
-
-  <section class="card">
     <h2>Bailleurs déjà utilisés <span class="eyebrow">base 2019 - 2026 · confidentiel</span></h2>
     <div class="b">
       <div class="grid" style="margin-bottom:8px">
@@ -234,6 +218,20 @@ La colonne <b>Trajet</b> affiche le temps et la distance <b>réels</b> par la ro
       <div class="note" id="bailleurs-statut">Chargement de la base…</div>
       <div style="max-height:420px; overflow-y:auto"><table id="tbl-bailleurs"></table></div>
       <span class="hint">La base ne contient que le DÉPARTEMENT de chaque logement (pas l'adresse) : le filtre « rayon » retient les départements ayant au moins une commune dans le rayon du chantier. Beaucoup de fiches proviennent d'annonces Booking/Abritel archivées — e-mails partiels fréquents, le téléphone est la voie fiable. Données confidentielles : servies uniquement aux utilisateurs connectés du portail.</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Demander le registre des meublés aux mairies <span class="eyebrow">droit d'accès · CADA · envoi en un clic</span></h2>
+    <div class="b">
+      <div class="note">Toute mairie doit communiquer sa <b>liste des meublés de tourisme déclarés</b> à qui en fait la demande (art. L.311-1 CRPA ; avis CADA n° 20131539) : vous obtenez les <b>adresses des biens, capacités et périodes de location</b> — identités et coordonnées personnelles occultées. <b>L'envoi part directement du site</b>, un e-mail par mairie (adresses issues de l'Annuaire officiel de l'administration), signé automatiquement en votre nom — les réponses arrivent sur votre e-mail, celui de vos agences et la boîte générique. Périmètre couvert : toutes les communes, ou votre sélection du bloc « Communes du périmètre » ; les communes <b>déjà demandées sont sautées</b>.</div>
+      <div class="note" id="cada-compteur" style="margin-top:8px"></div>
+      <div class="liens" style="margin-top:10px">
+        <button type="button" class="btn primary" id="btn-cada">✉ Envoyer les demandes aux mairies</button>
+        <button type="button" class="btn" id="btn-cada-reset" title="Oublier quelles communes ont déjà été demandées (dans ce navigateur)">Réinitialiser le suivi</button>
+      </div>
+      <div class="note" id="cada-bilan" style="margin-top:6px"></div>
+      <div class="liens" id="cada-mairies" style="margin-top:4px"></div>
     </div>
   </section>
 
@@ -743,13 +741,17 @@ fetch("/api/dt/ping").then(r => r.json()).then(j => { DT_LIVE = !!j.configuree; 
    du message écrit ainsi à la bonne boîte — sa réponse est routée vers l'utilisateur
    ET ses agences, pas seulement vers la boîte générique des admins */
 let ADRESSE_REPONSE = EMAIL_EXTERNE;
-fetch("/api/moi").then(r => r.json()).then(j => { if (j && j.adresse_reponse) ADRESSE_REPONSE = j.adresse_reponse; }).catch(() => {});
-async function contacterHote(uuid, nomHeb) {
+let SIGNATURE = "AB Service (hébergement de salariés en mission)";
+fetch("/api/moi").then(r => r.json()).then(j => {
+  if (j && j.adresse_reponse) ADRESSE_REPONSE = j.adresse_reponse;
+  if (j && j.signature) SIGNATURE = j.signature;   /* nom — fonction, agences (signature auto serveur) */
+}).catch(() => {});
+/* message type de demande de réservation (commun DATAtourisme / bailleurs connus) */
+function messageReservation(nomHeb) {
   const n = parseInt($("in-equipe").value, 10) || 2;
   const { d1, d2 } = datesSejour();
   const sem = Math.max(1, parseInt($("in-semaines").value, 10) || 1);
-  const message =
-"Bonjour,\n\n" +
+  return "Bonjour,\n\n" +
 "Nous recherchons un logement pour une équipe de " + n + " salariés en mission sur un chantier proche de chez vous, " +
 "du " + d1.split("-").reverse().join("/") + " au " + d2.split("-").reverse().join("/") + " (" + sem + " semaine(s) — durée alignée sur la mission, prolongation possible).\n\n" +
 "Nos besoins : logement entier avec cuisine équipée (plaques de cuisson, réfrigérateur, micro-ondes), " +
@@ -758,7 +760,11 @@ EURN.format(n * BUDGET_SEM) + " par semaine charges comprises (" + EURN.format(M
 "Votre hébergement « " + nomHeb + " » est-il disponible sur ces dates, et à quelles conditions pour un séjour à la semaine ? " +
 "Un état des lieux d'entrée et de sortie avec photos est réalisé systématiquement.\n\n" +
 "Réponse possible par retour d'e-mail (" + ADRESSE_REPONSE + ") ou par téléphone.\n\n" +
-"Cordialement,\nAB Service (hébergement de salariés en mission)";
+"Cordialement,\n" + SIGNATURE;
+}
+const APRES_ENVOI = () => "Demande envoyée ✓ — la réponse du logeur arrivera sur votre e-mail, celui de vos agences et la boîte générique (" + ADRESSE_REPONSE + ").";
+async function contacterHote(uuid, nomHeb) {
+  const message = messageReservation(nomHeb);
   if (!window.confirm("Envoyer cette demande de réservation à l'hôte de « " + nomHeb + " » ?\n\n" + message)) return;
   try {
     const r = await fetch("/api/dt/contact/" + uuid, {
@@ -766,9 +772,24 @@ EURN.format(n * BUDGET_SEM) + " par semaine charges comprises (" + EURN.format(M
       body: JSON.stringify({ message }),
     });
     const j = await r.json().catch(() => ({}));
-    if (r.ok) alert("Demande envoyée ✓ — la réponse du logeur arrivera sur votre e-mail, celui de vos agences et la boîte générique (" + ADRESSE_REPONSE + ").");
+    if (r.ok) alert(APRES_ENVOI());
     else if (r.status === 422) alert("Cette fiche n'a pas d'e-mail de réservation — utiliser le téléphone affiché.");
     else alert("Envoi impossible (" + (j.erreur || r.status) + ").");
+  } catch (e) { alert("Envoi impossible : " + e.message); }
+}
+/* réservation auprès d'un bailleur connu : e-mail envoyé PAR LE SITE (plus de mailto),
+   même circuit de réponse que DATAtourisme */
+async function contacterBailleur(email, logement) {
+  const message = messageReservation(logement);
+  if (!window.confirm("Envoyer cette demande de réservation au bailleur de « " + logement + " » ?\n\n" + message)) return;
+  try {
+    const r = await fetch("/api/bailleurs/contact", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email, message }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.ok) alert(APRES_ENVOI());
+    else alert("Envoi impossible (" + (j.erreur || r.status) + ") — utiliser le téléphone affiché.");
   } catch (e) { alert("Envoi impossible : " + e.message); }
 }
 async function rendreDT() {
@@ -877,10 +898,44 @@ async function rendreAF() {
     } catch (e) {}
   }
   const tot = lst.length;
+  /* bouton Réserver quand l'établissement classé a un équivalent DATAtourisme porteur
+     d'un uuid de contact — le registre Atout France ne publie aucun e-mail, le croisement
+     raccroche le circuit de réservation quand il existe. Matching par JETONS significatifs
+     (mots hors génériques « résidence/tourisme/hôtel… ») : l'un doit contenir tous les
+     jetons de l'autre, avec au moins 2 jetons communs — tolère les noms verbeux du
+     registre sans créer de faux positifs (l'ambigu ne matche pas). */
+  const jetons = s => new Set(String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .split(/[^a-z0-9]+/).filter(t => t.length >= 2 &&
+      !["de", "du", "des", "la", "le", "les", "et", "residence", "residences", "tourisme",
+        "hotel", "apparthotel", "aparthotel", "apparthotel"].includes(t)));
+  const inclus = (a, b) => Array.from(a).every(t => b.has(t));
+  const dtParDep = new Map();
+  if (DT_LIVE) {
+    const depsAF = Array.from(new Set(lst.map(x => {
+      const cp = String(x.h[2] || ""); return cp.slice(0, 2) === "20" ? (cp.slice(0, 3) <= "201" ? "2A" : "2B") : cp.slice(0, 2);
+    }).filter(Boolean)));
+    await Promise.all(depsAF.map(chargerDT));
+    for (const dep of depsAF) {
+      const b = DT_CACHE[dep];
+      if (b) dtParDep.set(dep, b.h.filter(hd => hd[13]).map(hd => ({ j: jetons(hd[0]), uuid: hd[13], nom: hd[0] })));
+    }
+  }
+  const chercherDT = h => {
+    const cp = String(h[2] || "");
+    const dep = cp.slice(0, 2) === "20" ? (cp.slice(0, 3) <= "201" ? "2A" : "2B") : cp.slice(0, 2);
+    const jAF = jetons(h[0] + " " + h[1]);   /* nom + commune (la commune lève les homonymes) */
+    let trouve = null, nb = 0;
+    for (const c of (dtParDep.get(dep) || [])) {
+      let commun = 0; for (const t of c.j) if (jAF.has(t)) commun++;
+      if (commun >= 2 && (inclus(c.j, jAF) || inclus(jetons(h[0]), c.j))) { trouve = c; nb++; }
+    }
+    return nb === 1 ? trouve : null;   /* ambigu (2+ candidats) : pas de bouton */
+  };
   let sa = "<tr><th>Établissement classé</th><th>Commune</th><th class='n'>Trajet</th><th class='n'>Capacité</th><th>Liens</th></tr>";
   sa += lst.map(({ h, km, reel }) => {
     const qm = encodeURIComponent(h[0] + " " + h[1]);
     const trajet = reel ? "<b>" + reel.min + " min</b><br>" + N1.format(reel.km) + " km" : N1.format(km) + " km*";
+    const dt = chercherDT(h);
     return "<tr><td><b style='color:var(--brass-deep); font-size:10px; letter-spacing:.05em'>" + esc(h[7].toUpperCase()) + "</b> " +
       esc(h[0]) + " <span class='d' style='color:var(--muted)'>(" + esc(h[6]) + ")</span>" +
       "<span class='hint'>Source : Atout France (classement du " + esc(h[9]) + ") · géocodage BAN</span></td>" +
@@ -888,9 +943,15 @@ async function rendreAF() {
       "<td class='n'>" + (h[8] ? "<a target='_blank' rel='noopener' href='" + esc(h[8]) + "'>site</a><br>" : "") +
       "<a target='_blank' rel='noopener' href='https://www.google.com/maps/search/?api=1&query=" + qm + "'>Maps</a><br>" +
       "<a target='_blank' rel='noopener' title='Ouvrir l’itinéraire chantier → établissement dans Maps' href='https://www.google.com/maps/dir/?api=1&origin=" +
-      CHANTIER.lat + "," + CHANTIER.lon + "&destination=" + h[3] + "," + h[4] + "'>itinéraire</a></td></tr>";
+      CHANTIER.lat + "," + CHANTIER.lon + "&destination=" + h[3] + "," + h[4] + "'>itinéraire</a>" +
+      (dt ? "<br><a href='#' class='af-resa' data-uuid='" + esc(dt.uuid) + "' data-nom='" + esc(dt.nom) + "'><b>✉ Réserver</b></a>" : "") +
+      "</td></tr>";
   }).join("");
   $("tbl-af").innerHTML = sa;
+  Array.from($("tbl-af").querySelectorAll(".af-resa")).forEach(a => a.addEventListener("click", ev => {
+    ev.preventDefault();
+    contacterHote(a.dataset.uuid, a.dataset.nom);
+  }));
   $("af-statut").innerHTML = "<span class='compteur'>" + tot + "</span> établissement(s) classé(s) Atout France " +
     (selNoms ? "dans les communes sélectionnées" : "dans le périmètre") +
     (reelOk ? " (trajet réel ≤ 45 min et ≤ 42 km, triés par temps)"
@@ -926,57 +987,53 @@ function cadaMarquer(cles) {
     localStorage.setItem("cada_faites", JSON.stringify(Array.from(s)));
   } catch (e) {}
 }
-function lettreCada(v, auj) {
-  /* NB : pas de retour à la ligne après return (ASI -> undefined) */
-  return "Objet : demande de communication de la liste des meublés de tourisme déclarés — commune de " + v.nom + "\n\n" +
-"Madame, Monsieur,\n\n" +
-"En application de l'article L.311-1 du code des relations entre le public et l'administration, " +
-"je vous prie de bien vouloir me communiquer la liste des meublés de tourisme déclarés auprès de votre commune " +
-"(déclarations prévues à l'article L.324-1-1 du code du tourisme), en indiquant pour chaque meublé : " +
-"l'adresse du bien, le nombre de pièces et de lits, les périodes prévisionnelles de location et, le cas échéant, " +
-"le niveau de classement et le numéro d'enregistrement.\n\n" +
-"Conformément à la doctrine de la Commission d'accès aux documents administratifs (avis n° 20131539 du 4 novembre 2013), " +
-"cette liste est communicable à toute personne qui en fait la demande, sous réserve de l'occultation préalable des " +
-"mentions relevant de la vie privée des déclarants (identité, coordonnées personnelles), que vous voudrez bien opérer.\n\n" +
-"La communication peut se faire par courrier électronique à l'adresse " + EMAIL_EXTERNE + ", " +
-"ou selon les modalités prévues à l'article L.311-9 du même code.\n\n" +
-"Contexte de la demande : notre société, " + "AB Service" + ", recherche des logements " +
-"pour héberger ses salariés en mission sur des chantiers proches de votre commune, et souhaite adresser ses " +
-"propositions de location aux adresses des meublés concernés.\n\n" +
-"Je vous remercie par avance et vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.\n\n" +
-"Fait le " + auj + "\n[Nom, fonction, coordonnées AB Service — à compléter avant envoi]";
-}
-$("btn-cada").addEventListener("click", () => {
+/* ENVOI EN UN CLIC (décision direction 03/09) : le serveur retrouve l'e-mail de
+   chaque mairie (Annuaire officiel de l'administration), compose la lettre signée
+   automatiquement et l'envoie — par lots de 25 pour rester doux avec l'API. */
+$("btn-cada").addEventListener("click", async () => {
   if (!perimetreVilles().length) { alert("Saisir d'abord l'adresse du chantier."); return; }
   const aFaire = cadaDestinataires();
   if (!aFaire.length) {
     $("cada-bilan").innerHTML = "Toutes les communes du périmètre ont déjà été demandées — « Réinitialiser le suivi » pour recommencer, ou modifier la sélection dans le bloc communes.";
     return;
   }
-  const auj = new Date().toLocaleDateString("fr-FR");
-  $("cada-texte").value = aFaire.map((v, i) =>
-    "======== DEMANDE " + (i + 1) + "/" + aFaire.length + " — MAIRIE DE " + v.nom.toUpperCase() + " (" + v.dep + ") ========\n\n" +
-    lettreCada(v, auj)).join("\n\n\n");
-  $("cada-texte").hidden = false;
-  $("btn-cada-copier").hidden = false;
-  $("cada-bilan").innerHTML = "<span class='compteur'>" + aFaire.length + "</span> demande(s) générée(s)" +
-    " · coordonnées des mairies ci-dessous (annuaire officiel) :";
-  $("cada-mairies").innerHTML = aFaire.slice(0, 40).map(v =>
+  if (!window.confirm("Envoyer " + aFaire.length + " demande(s) de registre des meublés aux mairies du périmètre ?\n\n" +
+    "Un e-mail officiel part du site pour chaque mairie, signé en votre nom — les réponses arriveront sur votre e-mail, celui de vos agences et la boîte générique.")) return;
+  const btn = $("btn-cada"); btn.disabled = true;
+  let envoyees = [], sansEmail = [], echecs = [];
+  try {
+    for (let i = 0; i < aFaire.length; i += 25) {
+      const lot = aFaire.slice(i, i + 25).map(v => ({ nom: v.nom, dep: v.dep }));
+      $("cada-bilan").innerHTML = "Envoi en cours… " + Math.min(i + 25, aFaire.length) + " / " + aFaire.length + " communes traitées.";
+      const r = await fetch("/api/cada/envoyer", { method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ communes: lot }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.erreur || ("HTTP " + r.status));
+      envoyees = envoyees.concat(j.envoyees || []);
+      sansEmail = sansEmail.concat(j.sans_email || []);
+      echecs = echecs.concat(j.echecs || []);
+      cadaMarquer((j.envoyees || []).map(v => v.nom + "|" + v.dep));
+      rendreCada();
+    }
+  } catch (e) {
+    $("cada-bilan").innerHTML = "⚠ Envoi interrompu (" + esc(e.message) + ") — " + envoyees.length +
+      " demande(s) déjà parties (marquées) ; recliquer pour reprendre là où ça s'est arrêté.";
+    btn.disabled = false; return;
+  }
+  btn.disabled = false;
+  $("cada-bilan").innerHTML = "✓ <span class='compteur'>" + envoyees.length + "</span> demande(s) envoyée(s) aux mairies" +
+    (echecs.length ? " · <b>" + echecs.length + " échec(s) d'envoi</b> (recliquer pour réessayer)" : "") +
+    (sansEmail.length ? " · " + sansEmail.length + " commune(s) sans e-mail dans l'annuaire officiel — contact manuel :" : ".");
+  $("cada-mairies").innerHTML = sansEmail.slice(0, 30).map(v =>
     "<a class='btn' target='_blank' rel='noopener' href='https://lannuaire.service-public.gouv.fr/recherche?whoWhat=mairie&where=" +
-    encodeURIComponent(v.nom) + "'>" + v.nom + " ↗</a>").join("") +
-    (aFaire.length > 40 ? "<span class='note'>… et " + (aFaire.length - 40) + " autres (réduire via la sélection du bloc communes).</span>" : "");
-  cadaMarquer(aFaire.map(v => v.nom + "|" + v.dep));
-  rendreCada();
+    encodeURIComponent(v.nom) + "'>" + esc(v.nom) + " ↗</a>").join("");
+  /* les communes sans e-mail restent NON marquées : re-proposées tant qu'on n'a pas traité manuellement */
 });
 $("btn-cada-reset").addEventListener("click", () => {
   try { localStorage.removeItem("cada_faites"); } catch (e) {}
   $("cada-bilan").textContent = "Suivi réinitialisé — toutes les communes redeviennent demandables.";
+  $("cada-mairies").innerHTML = "";
   rendreCada();
-});
-$("btn-cada-copier").addEventListener("click", async () => {
-  try { await navigator.clipboard.writeText($("cada-texte").value); $("btn-cada-copier").textContent = "Copié ✓"; }
-  catch (e) { $("cada-texte").select(); document.execCommand("copy"); $("btn-cada-copier").textContent = "Copié ✓"; }
-  setTimeout(() => $("btn-cada-copier").textContent = "Copier le texte", 1800);
 });
 
 /* ===== bailleurs connus (données confidentielles, servies derrière l'auth) ===== */
@@ -1016,10 +1073,15 @@ function rendreBailleurs() {
     const qMaps = encodeURIComponent((b.l || b.p) + " " + (b.d ? "département " + b.d : "France"));
     return "<tr><td>" + esc(b.p || "—") + "</td><td>" + esc(b.l) + "</td><td>" + esc(b.d || "?") +
     "</td><td class='n'>" + (b.t ? "<a href='tel:+33" + b.t.replace(/^0/, "") + "'>" + b.t.replace(/(\d{2})(?=\d)/g, "$1 ").trim() + "</a>" : "") +
-    (b.e ? (b.t ? "<br>" : "") + "<a href='mailto:" + esc(b.e) + "'>" + esc(b.e) + "</a>" : "") +
+    /* e-mail archivé : plus de mailto — bouton Réserver (envoi PAR LE SITE, comme DATAtourisme) */
+    (b.e ? (b.t ? "<br>" : "") + "<a href='#' class='bl-resa' data-email='" + esc(b.e) + "' data-log='" + esc(b.l || b.p || "logement") + "'><b>✉ Réserver</b></a>" : "") +
     "</td><td class='n'><a target='_blank' rel='noopener' title='Retrouver la fiche de l’hôte (téléphone, site) par le nom du meublé' href='https://www.google.com/maps/search/?api=1&query=" + qMaps + "'>Maps</a></td></tr>";
   }).join("");
   $("tbl-bailleurs").innerHTML = s;
+  Array.from($("tbl-bailleurs").querySelectorAll(".bl-resa")).forEach(a => a.addEventListener("click", ev => {
+    ev.preventDefault();
+    contacterBailleur(a.dataset.email, a.dataset.log);
+  }));
   const ou = deps ? " dans les départements du rayon (" + Array.from(deps).sort().join(", ") + ")" : " (toute la France)";
   $("bailleurs-statut").innerHTML = "<span class='compteur'>" + total + "</span> logement(s) connu(s)" + ou +
     (total > 300 ? " — 300 premiers affichés, affiner la recherche." : "") +

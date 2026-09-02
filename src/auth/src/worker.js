@@ -94,18 +94,22 @@ const cookieSession = (token, maxAge) =>
   `session=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAge}`;
 
 /* Envoi INDIVIDUEL par destinataire : un refus (ex. mode test Resend limité au titulaire
- * du compte) ne bloque pas les autres ; chaque échec est journalisé et visible dans /admin. */
-async function envoyerEmail(env, dest, sujet, texte, journalCtx) {
+ * du compte) ne bloque pas les autres ; chaque échec est journalisé et visible dans /admin.
+ * opts.from : expéditeur (défaut env.EMAIL_FROM) — doit appartenir à un domaine vérifié
+ * chez Resend ; opts.replyTo : adresse de réponse (ex. adresse taguée info+u<id>@…). */
+async function envoyerEmail(env, dest, sujet, texte, journalCtx, opts) {
   const dests = Array.isArray(dest) ? dest : [dest];
   const resultats = [];
   for (const d of dests) {
     if (!env.RESEND_API_KEY) { resultats.push({ dest: d, ok: false, status: 0, corps: "RESEND_API_KEY absent" }); continue; }
     try {
+      const charge = { from: (opts && opts.from) || env.EMAIL_FROM || "AB2Pro <onboarding@resend.dev>",
+                       to: [d], subject: sujet, text: texte };
+      if (opts && opts.replyTo) charge.reply_to = opts.replyTo;
       const r = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, "content-type": "application/json" },
-        body: JSON.stringify({ from: env.EMAIL_FROM || "AB2Pro <onboarding@resend.dev>",
-                               to: [d], subject: sujet, text: texte }),
+        body: JSON.stringify(charge),
       });
       const corps = await r.text().catch(() => "");
       resultats.push({ dest: d, ok: r.ok, status: r.status, corps: corps.slice(0, 300) });
@@ -119,6 +123,22 @@ async function envoyerEmail(env, dest, sujet, texte, journalCtx) {
   }
   return resultats;
 }
+
+/* Expéditeur des courriers externes AB Service. NB : Resend n'accepte que des domaines
+ * VÉRIFIÉS — abservice-logement.com ne l'est pas encore, on émet donc depuis le domaine
+ * du portail (vérifié) au NOM d'AB Service, avec l'adresse taguée en Reply-To : la
+ * réponse revient bien sur le circuit AB Service (utilisateur + agences + générique). */
+const FROM_ABSERVICE = "AB Service <logements@ab2pro-simulateur.com>";
+
+/* signature des courriers sortants, complétée depuis le compte (plus de champ à remplir) */
+function signatureDe(u2) {
+  const ags = agencesDe(u2);
+  return (u2.nom || u2.email) + (u2.fonction ? " — " + u2.fonction : "") +
+    "\nAB Service" + (ags.length ? " — agence" + (ags.length > 1 ? "s" : "") + " de " +
+      ags.map(a => a.split("-").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("-")).join(", ") : "") +
+    "\nE-mail : " + adresseReponse(u2);
+}
+const normCle = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
 
 async function journal(env, req, u, type, details = "", page = "") {
   try {
@@ -134,7 +154,7 @@ async function utilisateurDeSession(env, req) {
   const m = (req.headers.get("cookie") || "").match(/(?:^|;\s*)session=([0-9a-f]{64})/);
   if (!m) return null;
   const r = await env.DB.prepare(
-    "SELECT u.id, u.email, u.nom, u.role, u.actif, u.doit_changer_mdp, u.sections, s.token, s.expire_le " +
+    "SELECT u.id, u.email, u.nom, u.role, u.actif, u.doit_changer_mdp, u.sections, u.entite, u.agences, u.fonction, s.token, s.expire_le " +
     "FROM sessions s JOIN utilisateurs u ON u.id = s.user_id WHERE s.token = ?").bind(m[1]).first();
   if (!r || !r.actif || r.expire_le < Date.now()) return null;
   if (r.expire_le < Date.now() + SESSION_MS / 2)   // prolongation glissante
@@ -256,11 +276,88 @@ async function api(req, env, url, u) {
     return json({ ok: rep.ok, statut: rep.status }, rep.ok ? 200 : rep.status);
   }
 
+  /* ===== envoi AUTOMATIQUE des demandes CADA aux mairies (un clic — décision 03/09) =====
+   * L'e-mail de chaque mairie vient de l'Annuaire de l'administration (DILA,
+   * data/mairies.json, 35 264 communes). Un e-mail PAR mairie, expéditeur AB Service,
+   * réponse sur l'adresse taguée de l'utilisateur (circuit utilisateur+agences+générique).
+   * Max 25 communes par appel (limite de sous-requêtes Workers + douceur Resend) —
+   * le portail enchaîne les lots. corps.verifier=true : résolution seule, AUCUN envoi. */
+  if (p === "/api/cada/envoyer" && req.method === "POST") {
+    if (!u) return json({ erreur: "non_connecte" }, 401);
+    if (!sectionsDe(u).includes("logements")) return json({ erreur: "section" }, 403);
+    const communes = (Array.isArray(corps.communes) ? corps.communes : []).slice(0, 25)
+      .map(c => ({ nom: String(c.nom || "").slice(0, 60), dep: String(c.dep || "").slice(0, 3) }))
+      .filter(c => c.nom && /^(\d{2}|2A|2B)$/.test(c.dep));
+    if (!communes.length) return json({ erreur: "communes_requises" }, 400);
+    let annuaire = {};
+    try {
+      const ra = await env.ASSETS.fetch(new Request("https://interne/app/data/mairies.json"));
+      annuaire = (await ra.json()).m || {};
+    } catch (e) { return json({ erreur: "annuaire_indisponible" }, 503); }
+    const auj = new Date().toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" });
+    const reponse = adresseReponse(u);
+    const envoyees = [], sansEmail = [], echecs = [];
+    for (const c of communes) {
+      const email = annuaire[normCle(c.nom) + "|" + c.dep];
+      if (!email) { sansEmail.push(c); continue; }
+      if (corps.verifier) { envoyees.push({ ...c, email }); continue; }
+      const texte =
+        "Madame, Monsieur,\n\n" +
+        "En application de l'article L.311-1 du code des relations entre le public et l'administration, " +
+        "je vous prie de bien vouloir me communiquer la liste des meublés de tourisme déclarés auprès de votre commune " +
+        "(déclarations prévues à l'article L.324-1-1 du code du tourisme), en indiquant pour chaque meublé : " +
+        "l'adresse du bien, le nombre de pièces et de lits, les périodes prévisionnelles de location et, le cas échéant, " +
+        "le niveau de classement et le numéro d'enregistrement.\n\n" +
+        "Conformément à la doctrine de la Commission d'accès aux documents administratifs (avis n° 20131539 du 4 novembre 2013), " +
+        "cette liste est communicable à toute personne qui en fait la demande, sous réserve de l'occultation préalable des " +
+        "mentions relevant de la vie privée des déclarants (identité, coordonnées personnelles), que vous voudrez bien opérer.\n\n" +
+        "La communication peut se faire par simple retour de ce courriel (adresse " + reponse + "), " +
+        "ou selon les modalités prévues à l'article L.311-9 du même code.\n\n" +
+        "Contexte de la demande : notre société, AB Service, recherche des logements pour héberger ses salariés en mission " +
+        "sur des chantiers proches de votre commune, et souhaite adresser ses propositions de location aux adresses des meublés concernés.\n\n" +
+        "Je vous remercie par avance et vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.\n\n" +
+        "Fait le " + auj + "\n" + signatureDe(u);
+      const res = await envoyerEmail(env, email,
+        "Demande de communication de la liste des meublés de tourisme déclarés — commune de " + c.nom,
+        texte, { env, req }, { from: FROM_ABSERVICE, replyTo: reponse });
+      if (res[0] && res[0].ok) envoyees.push({ ...c, email }); else echecs.push({ ...c, email });
+      await new Promise(rr => setTimeout(rr, 150));   /* douceur API Resend */
+    }
+    if (!corps.verifier)
+      await journal(env, req, u, "cada_envoi", envoyees.length + " envoyées, " + sansEmail.length + " sans e-mail, " + echecs.length + " échecs");
+    return json({ ok: true, verifier: !!corps.verifier, envoyees, sans_email: sansEmail, echecs });
+  }
+
+  /* ===== réservation auprès d'un bailleur connu (bouton Réserver, comme DATAtourisme) =====
+   * Anti-abus : l'e-mail destinataire doit exister dans la base bailleurs servie par le
+   * portail — impossible d'utiliser l'endpoint comme relais vers une adresse arbitraire. */
+  if (p === "/api/bailleurs/contact" && req.method === "POST") {
+    if (!u) return json({ erreur: "non_connecte" }, 401);
+    if (!sectionsDe(u).includes("logements")) return json({ erreur: "section" }, 403);
+    const dest = String(corps.email || "").trim().toLowerCase().slice(0, 200);
+    const message = String(corps.message || "").slice(0, 5000);
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(dest)) return json({ erreur: "email_invalide" }, 400);
+    if (message.length < 20) return json({ erreur: "message_trop_court" }, 400);
+    let connu = false;
+    try {
+      const rb = await env.ASSETS.fetch(new Request("https://interne/app/data/bailleurs.json"));
+      const base = await rb.json();
+      connu = (base.bailleurs || []).some(b => (b.e || "").trim().toLowerCase() === dest);
+    } catch (e) { return json({ erreur: "base_indisponible" }, 503); }
+    if (!connu) return json({ erreur: "bailleur_inconnu" }, 400);
+    const res = await envoyerEmail(env, dest,
+      "Demande de location — équipes en mission (AB Service)",
+      message + "\n\n" + signatureDe(u), { env, req },
+      { from: FROM_ABSERVICE, replyTo: adresseReponse(u) });
+    await journal(env, req, u, "bailleur_contact", dest, "statut " + (res[0] ? res[0].status : "?"));
+    return json({ ok: !!(res[0] && res[0].ok) }, res[0] && res[0].ok ? 200 : 502);
+  }
+
   /* -- session -- */
   if (p === "/api/moi")
-    return u ? json({ email: u.email, nom: u.nom, role: u.role, doit_changer_mdp: !!u.doit_changer_mdp, sections: sectionsDe(u),
+    return u ? json({ email: u.email, nom: u.nom, fonction: u.fonction || "", role: u.role, doit_changer_mdp: !!u.doit_changer_mdp, sections: sectionsDe(u),
                       entite: entiteDe(u), agences: agencesDe(u), agences_disponibles: Object.keys(AGENCES_ABSERVICE),
-                      adresse_reponse: adresseReponse(u) })
+                      adresse_reponse: adresseReponse(u), signature: signatureDe(u) })
              : json({ erreur: "non_connecte" }, 401);
 
   /* -- profil : l'utilisateur AB Service change lui-même ses agences de rattachement -- */
@@ -334,6 +431,9 @@ async function api(req, env, url, u) {
     const nom = String(corps.nom || "").trim().slice(0, 120);
     const email = String(corps.email || "").trim().toLowerCase().slice(0, 200);
     const motif = String(corps.motif || "").trim().slice(0, 500);
+    /* fonction (poste) : remplace le motif dans le formulaire — sert la signature
+       automatique des courriers externes (lettres CADA, réservations) */
+    const fonction = String(corps.fonction || "").trim().slice(0, 120);
     /* entité obligatoire ; agences obligatoires (≥1) si AB Service */
     const entite = ENTITES.includes(corps.entite) ? corps.entite : null;
     const agences = entite === "abservice" ? validerAgences(corps.agences) : null;
@@ -344,14 +444,14 @@ async function api(req, env, url, u) {
     if (existant) return json({ erreur: "deja_utilisateur" }, 400);
     const attente = await env.DB.prepare("SELECT id FROM demandes_acces WHERE email = ? AND statut = 'en_attente'").bind(email).first();
     if (attente) return json({ ok: true, deja: true });
-    await env.DB.prepare("INSERT INTO demandes_acces (nom, email, motif, entite, agences) VALUES (?,?,?,?,?)")
-      .bind(nom, email, motif, entite, agences).run();
+    await env.DB.prepare("INSERT INTO demandes_acces (nom, email, motif, entite, agences, fonction) VALUES (?,?,?,?,?,?)")
+      .bind(nom, email, motif, entite, agences, fonction || null).run();
     await journal(env, req, null, "demande_acces", email + " (" + entite + (agences ? " " + agences : "") + ")");
     await envoyerEmail(env, ADMINS, (entite === "abservice" ? "AB Service" : "AB2Pro") + " — demande d'accès de " + nom,
       `Nouvelle demande d'accès au portail :\n\nNom : ${nom}\nE-mail : ${email}\n` +
+      `Fonction : ${fonction || "(non précisée)"}\n` +
       `Entité : ${entite === "abservice" ? "AB SERVICE" : "AB2PRO"}\n` +
       (agences ? `Agences de rattachement : ${JSON.parse(agences).join(", ")}\n` : "") +
-      `Motif : ${motif || "(non précisé)"}\n\n` +
       `Approuver ou refuser : ${url.origin}/admin (onglet Demandes).`, { env, req });
     return json({ ok: true });
   }
@@ -403,7 +503,7 @@ async function api(req, env, url, u) {
 
     if (p === "/api/admin/apercu") {
       const dem = await env.DB.prepare("SELECT * FROM demandes_acces WHERE statut = 'en_attente' ORDER BY id DESC").all();
-      const usr = await env.DB.prepare("SELECT id, email, nom, role, actif, doit_changer_mdp, cree_le, cree_par, sections, entite, agences FROM utilisateurs ORDER BY id").all();
+      const usr = await env.DB.prepare("SELECT id, email, nom, role, actif, doit_changer_mdp, cree_le, cree_par, sections, entite, agences, fonction FROM utilisateurs ORDER BY id").all();
       return json({ demandes: dem.results, utilisateurs: usr.results, sections_apps: SECTIONS_APPS, agences_abservice: Object.keys(AGENCES_ABSERVICE) });
     }
 
@@ -436,11 +536,11 @@ async function api(req, env, url, u) {
       /* sections choisies par l'admin à l'approbation (rôle user seulement ; absence = accès à tout) */
       const secsApprob = (corps.role !== "admin" && Array.isArray(corps.sections))
         ? JSON.stringify(corps.sections.map(String).filter(s => SECTIONS_APPS.includes(s))) : null;
-      /* l'entité et les agences choisies à l'inscription suivent la demande */
+      /* l'entité, les agences et la fonction choisies à l'inscription suivent la demande */
       await env.DB.prepare(
-        "INSERT INTO utilisateurs (email, nom, sel, hash, role, doit_changer_mdp, invite_token, invite_expire, cree_par, sections, entite, agences) VALUES (?,?,?,?,?,1,?,?,?,?,?,?)")
+        "INSERT INTO utilisateurs (email, nom, sel, hash, role, doit_changer_mdp, invite_token, invite_expire, cree_par, sections, entite, agences, fonction) VALUES (?,?,?,?,?,1,?,?,?,?,?,?,?)")
         .bind(d.email, d.nom, sel, hprov, corps.role === "admin" ? "admin" : "user", invite, Date.now() + INVITE_MS, u.email, secsApprob,
-              d.entite || null, d.agences || null).run();
+              d.entite || null, d.agences || null, d.fonction || null).run();
       await env.DB.prepare("UPDATE demandes_acces SET statut = 'approuvee', traite_par = ?, traite_le = datetime('now') WHERE id = ?").bind(u.email, d.id).run();
       const lien = url.origin + "/motdepasse.html?invite=" + invite;
       const marque = d.entite === "abservice" ? "AB Service" : "AB2Pro";

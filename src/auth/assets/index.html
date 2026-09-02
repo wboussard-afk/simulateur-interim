@@ -64,8 +64,8 @@ button.sec { background: none; border: 1px solid var(--line); color: var(--ink);
       <div id="d-agences" style="display:flex; flex-wrap:wrap; gap:6px 12px; font-size:13px; margin:4px 0 6px"></div>
       <div style="font-size:11px; color:var(--muted)">Modifiable ensuite depuis votre profil.</div>
     </div>
-    <label>Motif (poste…)</label>
-    <textarea id="d-motif" rows="2"></textarea>
+    <label>Fonction (poste — figurera dans la signature de vos courriers)</label>
+    <input id="d-fonction" placeholder="ex. Chargé(e) de recrutement" required>
     <button type="submit">Envoyer la demande</button>
     <button type="button" class="sec" id="btn-vers-login">← Retour à la connexion</button>
     <div class="msg" id="d-msg"></div>
@@ -117,7 +117,7 @@ $("f-demande").addEventListener("submit", async e => {
   if (entite === "abservice" && !agences.length) { m.className = "msg err"; m.textContent = "Choisissez au moins une agence de rattachement."; return; }
   m.textContent = "Envoi…";
   const r = await fetch("/api/demande-acces", { method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ nom: $("d-nom").value, email: $("d-email").value, motif: $("d-motif").value, entite, agences }) });
+    body: JSON.stringify({ nom: $("d-nom").value, email: $("d-email").value, fonction: $("d-fonction").value, entite, agences }) });
   const j = await r.json().catch(() => ({}));
   if (r.ok && j.ok) { m.className = "msg ok"; m.textContent = j.deja ? "Demande déjà en attente — les administrateurs ont été prévenus." : "✓ Demande envoyée aux administrateurs — vous recevrez un e-mail après approbation."; }
   else { m.className = "msg err"; m.textContent = j.erreur === "deja_utilisateur" ? "Cet e-mail a déjà un compte — utilisez la connexion." : "Demande invalide — vérifiez les champs."; }
