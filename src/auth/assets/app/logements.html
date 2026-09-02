@@ -87,14 +87,14 @@ a { color: var(--brass-deep); }
     <img id="brand-logo" alt="AB Service" style="height:38px">
     <h1 style="margin:0"><b>AB Service</b> — recherche de logements</h1>
   </div>
-  <span class="sub">Le service logement du groupe. Adresse du chantier → communes à ≤ 35 km, hébergements officiels avec contact direct, bailleurs déjà utilisés (base 2019-2026) et recherches courte durée pré-remplies (Airbnb, Booking, Abritel, Gîtes de France, LVP, Appart'City).</span>
+  <span class="sub">Le service logement du groupe. Adresse du chantier → communes à ≤ 45 min et ≤ 42 km de trajet réel, hébergements officiels avec contact direct, bailleurs déjà utilisés (base 2019-2026), annuaires sans commission et recherches courte durée pré-remplies (Airbnb, Booking, Abritel, Gîtes de France, LVP, Appart'City…).</span>
 </header>
 
 <div class="wrap">
   <div class="maison">
     <span class="t">Conditions d'hébergement 2026 — le service logement est seul décisionnaire (choix, conditions, coûts) ; aucune démarche sans accord préalable du responsable du service ET du responsable d'agence</span>
     Budget <b>180 €/semaine</b> (<b>160 € loyer + 20 € charges</b> eau-électricité-chauffage) soit <b>25,72 €/nuitée</b> ·
-    distance <b>35 km en moyenne</b> (maximum <b>45 min</b>, tolérance ±20 %) ·
+    distance : <b>trajet réel ≤ 45 min et ≤ 42 km</b> (35 km +20 % ; itinéraires routiers calculés — en zone dense ou en montagne c'est le <b>temps</b> qui tranche) ·
     surface mini <b>30 m² pour 2 pers.</b> (+9 m²/pers. suppl.) · <b>1 couchage individuel par intérimaire</b> ·
     équipements obligatoires : <b>plaques de cuisson, réfrigérateur, micro-ondes</b>
     (recommandés : lave-linge, four, grand réfrigérateur, TV, internet) ·
@@ -140,17 +140,18 @@ a { color: var(--brass-deep); }
         <div><label for="in-debut">Arrivée</label><input type="date" id="in-debut"></div>
         <div><label for="in-semaines">Durée (semaines — = durée de mission)</label>
           <input type="number" id="in-semaines" min="1" max="52" step="1" value="1"></div>
-        <div><label for="in-rayon">Rayon (km)</label><input type="number" id="in-rayon" min="5" max="60" step="5" value="35"></div>
+        <div><label>Périmètre (règle 2026, non modifiable)</label>
+          <div style="border:1px solid var(--line); border-radius:8px; padding:9px 11px; font-size:13.5px">≤ <b>45 min</b> et ≤ <b>42 km</b> de trajet <b>réel</b></div></div>
       </div>
       <div class="resume" id="resume"></div>
     </div>
   </section>
 
   <section class="card">
-    <h2>Villes dans le rayon <span class="eyebrow" id="eb-villes">saisir l'adresse du chantier</span></h2>
+    <h2>Communes du périmètre <span class="eyebrow" id="eb-villes">saisir l'adresse du chantier</span></h2>
     <div class="b">
-      <div class="note"><b>Toutes les communes affichées sont incluses dans le périmètre</b> — toutes les recherches ci-dessous (annonces, hébergements officiels, Atout France, mairies, bailleurs) les couvrent. Pour <b>réduire le périmètre</b>, cliquez sur la ou les communes à garder : seules celles-là restent prises en compte (re-cliquer pour retirer, « ✕ tout le périmètre » pour tout rétablir).</div>
-      <div class="villes" id="villes" style="margin-top:6px"><span class="note">Les communes s'affichent triées par distance dès qu'une adresse est saisie.</span></div>
+      <div class="note"><b>Toutes les communes affichées sont incluses dans le périmètre</b> (trajet réel ≤ 45 min et ≤ 42 km depuis le chantier — itinéraires routiers calculés, pas de vol d'oiseau : en zone dense ou en montagne, c'est le temps qui tranche). Toutes les recherches ci-dessous (annonces, hébergements officiels, Atout France, mairies, bailleurs) les couvrent. Pour <b>réduire le périmètre</b>, cliquez sur la ou les communes à garder : seules celles-là restent prises en compte (re-cliquer pour retirer, « ✕ tout le périmètre » pour tout rétablir).</div>
+      <div class="villes" id="villes" style="margin-top:6px"><span class="note">Les communes s'affichent triées par temps de trajet dès qu'une adresse est saisie.</span></div>
       <span class="hint" id="villes-plus" hidden><a href="#" id="lnk-plus">afficher plus de communes…</a></span>
     </div>
   </section>
@@ -160,9 +161,11 @@ a { color: var(--brass-deep); }
     <div class="b">
       <div id="cible-liens" class="note">Cible : <b id="cible-txt">— (saisir l'adresse du chantier)</b></div>
       <div class="liens" id="liens"></div>
-      <div class="note" id="adt-titre" hidden style="margin-top:10px"><b>Portails départementaux officiels (sans commission)</b> — agences de tourisme des départements du rayon :</div>
+      <div class="note" id="ann-titre" hidden style="margin-top:10px"><b>Annuaires nationaux sans commission</b> — contact direct propriétaire, prix affiché = prix payé :</div>
+      <div class="liens" id="liens-annuaires"></div>
+      <div class="note" id="adt-titre" hidden style="margin-top:10px"><b>Portails officiels (sans commission)</b> — offices de tourisme, agences départementales (ADT) et régionales (CRT) du périmètre :</div>
       <div class="liens" id="liens-adt"></div>
-      <span class="hint">Airbnb, Booking et Abritel (= Vrbo France, même inventaire) : recherche PRÉ-REMPLIE (destination, dates, personnes ; prix/nuit et cuisine quand le site le permet) — vérifier les filtres à l'arrivée. Appart'City, Gîtes de France et LVP Direct n'ont pas de moteur à paramètres : le lien ouvre directement la page de la <b>ville</b> (Appart'City, la plus proche du périmètre) ou du <b>département</b> (Gîtes de France, LVP) — saisir les dates sur place. L'intégration directe des annonces (API partenaires) reste une évolution possible, à décider par la direction.</span>
+      <span class="hint">Airbnb, Booking et Abritel (= Vrbo France, même inventaire) : recherche PRÉ-REMPLIE (destination, dates, personnes ; prix/nuit et cuisine quand le site le permet) — vérifier les filtres à l'arrivée. Appart'City, Gîtes de France et LVP Direct n'ont pas de moteur à paramètres : le lien ouvre directement la page de la <b>ville</b> (Appart'City, la plus proche du périmètre) ou du <b>département</b> (Gîtes de France, LVP) — saisir les dates sur place. Annuaires et portails officiels : annuaire vérifié le 02/09/2026, densité d'annonces variable selon les sites — les plus fournis d'abord. L'intégration directe des annonces (API partenaires) reste une évolution possible, à décider par la direction.</span>
     </div>
   </section>
 
@@ -188,7 +191,7 @@ a { color: var(--brass-deep); }
       <div class="note" id="dt-statut">Saisir l'adresse du chantier : la base officielle nationale est interrogée sur le rayon.</div>
       <div style="max-height:460px; overflow-y:auto"><table id="tbl-dt"></table></div>
       <span class="hint">Base nationale <b>DATAtourisme</b> (fiches saisies par les offices de tourisme, ADT et CRT — ~98 000 hébergements locatifs en France, ~70 % avec contact direct), réutilisée sous <b>Licence Ouverte 2.0</b> : le créateur de chaque fiche et sa date de mise à jour sont affichés (attribution obligatoire). Le contact désigné est parfois une centrale de réservation ou l'office — à qualifier au premier appel. Rafraîchissement hebdomadaire depuis le dump national quotidien.
-Les km affichés sont à <b>vol d'oiseau</b> — vérifier la règle des <b>45 min de trajet réel</b> avec le lien « itinéraire » avant toute réservation.</span>
+La colonne <b>Trajet</b> affiche le temps et la distance <b>réels</b> par la route (calcul d'itinéraire OSRM) — seuls les hébergements à <b>≤ 45 min et ≤ 42 km</b> apparaissent ; le lien « itinéraire » ouvre le trajet dans Maps pour contrôle avant réservation.</span>
     </div>
   </section>
 
@@ -201,7 +204,7 @@ Les km affichés sont à <b>vol d'oiseau</b> — vérifier la règle des <b>45 m
       <div class="note" id="af-statut">Saisir l'adresse du chantier : les établissements classés du périmètre s'affichent automatiquement.</div>
       <div style="max-height:460px; overflow-y:auto"><table id="tbl-af"></table></div>
       <span class="hint">Registre national des hébergements <b>classés Atout France</b> (résidences de tourisme, villages vacances, PRL / mobil-homes, auberges collectives) — capacités officielles vérifiées lors du classement. Le registre ne publie ni téléphone ni e-mail : contact via le site de l'établissement ou Google Maps. Complémentaire de DATAtourisme : des adresses sérieuses de grande capacité qui n'y figurent pas toujours.
-Les km affichés sont à <b>vol d'oiseau</b> — vérifier la règle des <b>45 min de trajet réel</b> avec le lien « itinéraire » avant toute réservation.</span>
+La colonne <b>Trajet</b> affiche le temps et la distance <b>réels</b> par la route (calcul d'itinéraire OSRM) — seuls les hébergements à <b>≤ 45 min et ≤ 42 km</b> apparaissent ; le lien « itinéraire » ouvre le trajet dans Maps pour contrôle avant réservation.</span>
     </div>
   </section>
 
@@ -423,17 +426,61 @@ async function chargerCommunes() {
   COMMUNES = (await r.json()).communes;
   return COMMUNES;
 }
+/* ===== périmètre en TRAJET RÉEL (décision direction 02/09) =====
+   Règle 2026 appliquée strictement : ≤ 45 min ET ≤ 42 km (35 km +20 %) d'itinéraire
+   ROUTIER — pas de vol d'oiseau (région parisienne, montagne : c'est le temps qui
+   tranche). Matrice de trajets OSRM (serveur public, durées + distances en une
+   requête pour ~90 destinations). Le vol d'oiseau ne sert plus que de préfiltre,
+   valide car trajet réel ≥ vol d'oiseau. */
+const TRAJET_MAX_MIN = 45, RAYON_MAX_KM = 42, MAX_EVAL = 350;
+let ROUTES_KO = false;               // OSRM injoignable → mode dégradé signalé
+const ROUTES = new Map();            // "origLat,origLon>destLat,destLon" -> {km, min}
+const cleRoute = d => CHANTIER.lat + "," + CHANTIER.lon + ">" + d.lat + "," + d.lon;
+async function routesReelles(dests) {
+  const manquants = dests.filter(d => !ROUTES.has(cleRoute(d)));
+  for (let i = 0; i < manquants.length; i += 90) {
+    const lot = manquants.slice(i, i + 90);
+    const coords = CHANTIER.lon + "," + CHANTIER.lat + ";" + lot.map(d => d.lon + "," + d.lat).join(";");
+    const r = await fetch("https://router.project-osrm.org/table/v1/driving/" + coords +
+      "?sources=0&annotations=duration,distance");
+    if (!r.ok) throw new Error("OSRM " + r.status);
+    const j = await r.json();
+    if (j.code !== "Ok") throw new Error("OSRM " + j.code);
+    lot.forEach((d, k) => {
+      const dur = j.durations[0][k + 1], dist = j.distances[0][k + 1];
+      ROUTES.set(cleRoute(d), (dur == null || dist == null) ? null
+        : { min: Math.round(dur / 60), km: Math.round(dist / 100) / 10 });
+    });
+  }
+  return dests.map(d => ROUTES.get(cleRoute(d)));
+}
 async function majRayon() {
   if (!CHANTIER) return;
-  /* borne 5-60 aussi côté JS (l'attribut max HTML n'arrête pas une saisie clavier) */
-  const rayon = Math.min(60, Math.max(5, parseInt($("in-rayon").value, 10) || 35));
   await chargerCommunes();
-  RAYON_LISTE = [];
+  /* préfiltre vol d'oiseau ≤ 42 km, puis évaluation des MAX_EVAL plus proches en trajet réel */
+  let cand = [];
   for (const c of COMMUNES) {
-    const km = haversineKm(CHANTIER, { lat: c[2], lon: c[3] });
-    if (km <= rayon) RAYON_LISTE.push({ nom: c[0], dep: c[1], lat: c[2], lon: c[3], pop: c[4], km });
+    const vol = haversineKm(CHANTIER, { lat: c[2], lon: c[3] });
+    if (vol <= RAYON_MAX_KM) cand.push({ nom: c[0], dep: c[1], lat: c[2], lon: c[3], pop: c[4], km: vol });
   }
-  RAYON_LISTE.sort((a, b) => a.km - b.km);
+  cand.sort((a, b) => a.km - b.km);
+  const tronque = cand.length > MAX_EVAL;
+  cand = cand.slice(0, MAX_EVAL);
+  $("eb-villes").textContent = "calcul des trajets réels (" + cand.length + " communes candidates)…";
+  ROUTES_KO = false;
+  try {
+    const reelles = await routesReelles(cand);
+    RAYON_LISTE = cand
+      .map((v, i) => reelles[i] ? { ...v, km: reelles[i].km, min: reelles[i].min } : null)
+      .filter(v => v && v.min <= TRAJET_MAX_MIN && v.km <= RAYON_MAX_KM);
+    RAYON_LISTE.sort((a, b) => a.min - b.min || a.km - b.km);
+  } catch (e) {
+    /* mode dégradé : vol d'oiseau ≤ 35 km (conservateur), temps inconnus */
+    ROUTES_KO = true;
+    RAYON_LISTE = cand.filter(v => v.km <= 35).map(v => ({ ...v, min: null }));
+    RAYON_LISTE.sort((a, b) => a.km - b.km);
+  }
+  if (tronque && !ROUTES_KO) RAYON_LISTE.tronque = true;
   NB_AFFICHE = 40;
   SELECTION.clear();
   CADA_EXCLUES.clear(); CADA_REINCLUSES.clear(); NB_CADA = 150;
@@ -441,14 +488,17 @@ async function majRayon() {
 }
 function rendreVilles() {
   $("eb-villes").textContent = (SELECTION.size ? SELECTION.size + " commune(s) sélectionnée(s) sur " : "") +
-    RAYON_LISTE.length + " communes ≤ " + ($("in-rayon").value || 35) + " km";
+    RAYON_LISTE.length + " communes" +
+    (ROUTES_KO ? " ≤ 35 km (vol d'oiseau — calcul d'itinéraires indisponible)" : " ≤ 45 min et ≤ 42 km réels") +
+    (RAYON_LISTE.tronque ? " (zone très dense : les " + MAX_EVAL + " plus proches évaluées)" : "");
   const vis = RAYON_LISTE.slice(0, NB_AFFICHE);
   let s = SELECTION.size
     ? "<span class='ville' id='ville-reset' style='border-color:var(--brass); font-weight:700'>✕ tout le périmètre (" + RAYON_LISTE.length + ")</span>"
     : "";
   s += vis.map((v, i) =>
     "<span class='ville" + (SELECTION.has(v.nom + "|" + v.dep) ? " sel" : "") +
-    "' data-i='" + i + "'>" + v.nom + " <span class='d'>(" + v.dep + ") · " + N1.format(v.km) + " km</span></span>").join("");
+    "' data-i='" + i + "'>" + v.nom + " <span class='d'>(" + v.dep + ") · " +
+    (v.min != null ? v.min + " min · " : "") + N1.format(v.km) + " km</span></span>").join("");
   $("villes").innerHTML = s;
   $("villes-plus").hidden = RAYON_LISTE.length <= NB_AFFICHE;
   const reset = document.getElementById("ville-reset");
@@ -501,6 +551,58 @@ function lvpUrl(dep) {
   const i = DEP_INFO[dep]; if (!i) return null;
   return "https://lvpdirect.fr/" + (dep === "90" ? "belfort" : i[1]) + "/";
 }
+/* ===== portails régionaux CRT + annuaires nationaux sans commission =====
+   Tout vérifié par fetch réel le 02/09/2026 (workflow 25 agents, chaque URL re-testée
+   par un contre-vérificateur). Écartés après vérification : Locatourisme (1 annonce),
+   Visit Paris Region (aucune rubrique hébergements), ADN Tourisme (site institutionnel,
+   sa « carte du réseau » est un embed DATAtourisme déjà intégré ici). */
+const CRT_REGIONS = {
+  "bretagne": ["Tourisme Bretagne", "https://www.tourismebretagne.com/preparer-mon-sejour/ou-dormir/"],
+  "pays-de-la-loire": ["En Pays de la Loire", "https://www.enpaysdelaloire.com/hebergements"],
+  "normandie": ["Normandie Tourisme", "https://www.normandie-tourisme.fr/preparer-son-sejour/hebergements/"],
+  "nouvelle-aquitaine": ["CRT Nouvelle-Aquitaine", "https://en-nouvelle-aquitaine.fr/hebergements/"],
+  "centre-val-de-loire": ["Val de Loire France", "https://www.valdeloire-france.com/organiser/ou-dormir/"],
+  "bourgogne-franche-comte": ["Sortez Chez Vous (BFC)", "https://www.sortezchezvous.fr/locations-de-vacances/"],
+  "grand-est": ["Explore Grand Est", "https://www.explore-grandest.com/offres/hebergements/"],
+  "occitanie": ["Tourisme Occitanie", "https://www.tourisme-occitanie.com/ou-dormir/hebergements"],
+  "provence-alpes-cote-dazur": ["CRT Provence-Alpes-Côte d'Azur", "https://provence-alpes-cotedazur.com/sejourner/hebergements/"],
+  "corse": ["Visit Corsica", "https://www.visit-corsica.com/fr/Preparer-mon-sejour/Hebergements"],
+  /* ile-de-france : Visit Paris Region n'a AUCUNE rubrique hébergements (vérifié) */
+};
+/* Hauts-de-France : vraies pages par département (ou-dormir-<slug>/, vérifié nord + somme) */
+const CRT_HDF = "https://www.tourisme-en-hautsdefrance.com/preparer-mon-sejour/ou-dormir-en-hauts-de-france/";
+/* AURA : filtre département en URL — ids dp[] dans l'ordre des numéros de départements
+   (1-8 vérifiés dont Drôme=5 → 609 résultats ; 9-12 extrapolés du même ordre) */
+const CRT_AURA_DP = { "01": 1, "03": 2, "07": 3, "15": 4, "26": 5, "38": 6, "42": 7, "43": 8, "63": 9, "69": 10, "73": 11, "74": 12 };
+/* Chez l'Habitant : slugs départementaux AVEC apostrophe-tiret (testés : cotes-d-armor 200, cotes-darmor 404) */
+const CLH_EXC = { "21": "cote-d-or", "22": "cotes-d-armor", "95": "val-d-oise" };
+function clhUrl(dep) {
+  const i = DEP_INFO[dep]; if (!i) return null;
+  return "https://www.chez-l-habitant.com/gites/" + (CLH_EXC[dep] || i[1]) + ".php";
+}
+function sdUrl(dep) {
+  const i = DEP_INFO[dep]; if (!i) return null;
+  return "https://sejourdirect.fr/hebergements/" + i[1];
+}
+/* Gites Contact : pages région statiques (gites-<region>.html, vérifié bretagne) — région « paca » chez eux */
+const GC_REGIONS = new Set(["bretagne", "normandie", "hauts-de-france", "ile-de-france", "grand-est", "bourgogne-franche-comte",
+  "centre-val-de-loire", "pays-de-la-loire", "nouvelle-aquitaine", "auvergne-rhone-alpes", "occitanie", "paca", "corse"]);
+function gcUrl(region) {
+  const g = region === "provence-alpes-cote-dazur" ? "paca" : region;
+  return GC_REGIONS.has(g) ? "https://gites-contact.fr/gites-" + g + ".html" : null;
+}
+/* Gitelink (annuaire 1999, contact direct via le site du propriétaire) : pages par grande
+   zone, slugs irréguliers relevés sur /francais/ puis testés (7 fetchs 200) — pas de Corse */
+const GITELINK = {
+  "bretagne": "gites-locations-bretagne", "normandie": "1fr-gites-en-normandie",
+  "pays-de-la-loire": "4fr-loire-aux-landes", "nouvelle-aquitaine": "4-poitou-charentes-aquitaine-gites",
+  "centre-val-de-loire": "2-val-de-loire", "bourgogne-franche-comte": "2-bourgogne",
+  "ile-de-france": "2-bourgogne", "auvergne-rhone-alpes": "5fr-rhone-alpes-jura",
+  "hauts-de-france": "3fr-france-nord-est", "grand-est": "3fr-france-nord-est",
+  "occitanie": "6fr-languedoc-midi-pyrenees", "provence-alpes-cote-dazur": "6fr-paca-provence",
+};
+function glUrl(region) { return GITELINK[region] ? "https://gitelink.com/" + GITELINK[region] : null; }
+let VILLE_CIBLE = null;   /* partagé avec rendreADT (bouton office de tourisme local) */
 function rendreLiens() {
   const n = parseInt($("in-equipe").value, 10) || 2;
   const { d1, d2 } = datesSejour();
@@ -508,6 +610,7 @@ function rendreLiens() {
      complet : les moteurs des plateformes ne le résolvent pas — bug corrigé 02/09) */
   const sel = perimetreVilles();
   const villeCible = SELECTION.size ? sel[0].nom : (CHANTIER ? (CHANTIER.ville || CHANTIER.label.split(" ").slice(-1)[0]) : null);
+  VILLE_CIBLE = villeCible;
   $("cible-txt").textContent = villeCible
     ? villeCible + (SELECTION.size > 1 ? " (+ " + (SELECTION.size - 1) + " commune(s) sélectionnée(s) — les liens visent la 1ʳᵉ)" : "")
     : "— (saisir l'adresse du chantier)";
@@ -547,20 +650,60 @@ function rendreLiens() {
   rendreADT();
 }
 
-/* ===== portails départementaux officiels (ADT/CDT — annuaire vérifié 02/09/2026) ===== */
+/* ===== portails officiels (ADT départementaux + CRT régionaux + OT local) et
+   annuaires nationaux sans commission — annuaire vérifié le 02/09/2026 ===== */
 let ADT = null;
 async function rendreADT() {
   const deps = Array.from(new Set(perimetreVilles().map(v => v.dep)));
-  if (!deps.length) { $("adt-titre").hidden = true; $("liens-adt").innerHTML = ""; return; }
+  if (!deps.length) {
+    $("adt-titre").hidden = true; $("liens-adt").innerHTML = "";
+    $("ann-titre").hidden = true; $("liens-annuaires").innerHTML = "";
+    return;
+  }
   if (!ADT) {
     try { ADT = (await (await fetch("data/adt-fr.json")).json()).adt; } catch (e) { ADT = {}; }
   }
-  const btns = deps.map(dep => ADT[dep] ? { dep, ...ADT[dep] } : null).filter(Boolean);
+  const regions = Array.from(new Set(deps.map(d => (DEP_INFO[d] || [])[0]).filter(Boolean)));
+  const multiDep = deps.length > 1, lim = deps.slice(0, 4);
+  /* --- annuaires nationaux sans commission (contact direct propriétaire) --- */
+  const ann = [];
+  lim.forEach(dep => {
+    const c = clhUrl(dep); if (c) ann.push(["Chez l'Habitant" + (multiDep ? " (" + dep + ")" : ""), c, "1 509 gîtes et chambres d'hôtes, téléphone du propriétaire en clair, 0 % commission"]);
+  });
+  lim.forEach(dep => {
+    const s = sdUrl(dep); if (s) ann.push(["Séjour Direct" + (multiDep ? " (" + dep + ")" : ""), s, "prix affiché = prix payé, aucune centrale de réservation"]);
+  });
+  regions.forEach(reg => {
+    const g = gcUrl(reg); if (g) ann.push(["Gites Contact", g, "annuaire récent : planning, prix net et coordonnées directes (inventaire encore restreint)"]);
+    const gl = glUrl(reg); if (gl) ann.push(["Gitelink", gl, "annuaire depuis 1999 — chaque fiche renvoie au site du propriétaire"]);
+  });
+  $("ann-titre").hidden = !ann.length;
+  $("liens-annuaires").innerHTML = ann.map(([nom, url, t]) =>
+    "<a class='btn' target='_blank' rel='noopener' title='" + esc(t) + "' href='" + esc(url) + "'>" + nom + " ↗</a>").join("");
+  /* --- portails officiels : OT local + ADT départementaux + CRT régionaux --- */
+  const btns = [];
+  if (VILLE_CIBLE) btns.push(["Office de tourisme de " + VILLE_CIBLE,
+    "https://www.google.com/search?q=" + encodeURIComponent("office de tourisme " + VILLE_CIBLE),
+    "recherche du site de l'office de tourisme local — la mine d'or communale (gîtes, meublés, coordonnées des propriétaires)"]);
+  deps.forEach(dep => {
+    if (ADT[dep]) btns.push([ADT[dep].nom.replace(/\s*\(.*\)$/, "") + " (" + dep + ")", ADT[dep].url,
+      ADT[dep].statut === "ok" ? "ADT — page hébergements testée" : "ADT — accueil du site (pas de rubrique hébergements dédiée)"]);
+  });
+  regions.forEach(reg => {
+    if (reg === "auvergne-rhone-alpes") {
+      deps.filter(d => CRT_AURA_DP[d]).forEach(d =>
+        btns.push(["AURA Tourisme (" + d + ")", "https://www.auvergnerhonealpes-tourisme.com/hebergements/?dp%5B%5D=" + CRT_AURA_DP[d],
+          "CRT régional — 6 672 hébergements, filtre département appliqué"]));
+    } else if (reg === "hauts-de-france") {
+      deps.filter(d => (DEP_INFO[d] || [])[0] === reg).forEach(d =>
+        btns.push(["Hauts-de-France Tourisme (" + d + ")", CRT_HDF + "ou-dormir-" + DEP_INFO[d][1] + "/", "CRT régional — page où dormir du département"]));
+    } else if (CRT_REGIONS[reg]) {
+      btns.push([CRT_REGIONS[reg][0], CRT_REGIONS[reg][1], "CRT régional — page hébergements testée"]);
+    }
+  });
   $("adt-titre").hidden = !btns.length;
-  $("liens-adt").innerHTML = btns.map(a =>
-    "<a class='btn' target='_blank' rel='noopener' href='" + esc(a.url) + "' title='" +
-    (a.statut === "ok" ? "page hébergements testée" : "accueil du site (pas de rubrique hébergements dédiée)") +
-    "'>" + esc(a.nom.replace(/\s*\(.*\)$/, "")) + " (" + a.dep + ") ↗</a>").join("");
+  $("liens-adt").innerHTML = btns.map(([nom, url, t]) =>
+    "<a class='btn' target='_blank' rel='noopener' title='" + esc(t) + "' href='" + esc(url) + "'>" + esc(nom) + " ↗</a>").join("");
 }
 
 /* ===== hébergements officiels DATAtourisme (Licence Ouverte 2.0 — attribution par fiche) ===== */
@@ -609,8 +752,6 @@ EURN.format(n * BUDGET_SEM) + " par semaine charges comprises (" + EURN.format(M
 }
 async function rendreDT() {
   if (!CHANTIER || !RAYON_LISTE.length) { $("tbl-dt").innerHTML = ""; return; }
-  /* borne 5-60 aussi côté JS (l'attribut max HTML n'arrête pas une saisie clavier) */
-  const rayon = Math.min(60, Math.max(5, parseInt($("in-rayon").value, 10) || 35));
   const deps = Array.from(new Set(RAYON_LISTE.map(v => v.dep)));
   const n = parseInt($("in-equipe").value, 10) || 2;
   const filtre = $("in-dtfiltre").value;
@@ -624,7 +765,7 @@ async function rendreDT() {
     for (const h of b.h) {
       /* h = [nom, commune, cp, lat, lon, capacite, classement, tel, email, site, createur, maj] */
       const km = haversineKm(CHANTIER, { lat: h[3], lon: h[4] });
-      if (km > rayon) continue;
+      if (km > RAYON_MAX_KM) continue;   /* préfiltre vol d'oiseau (trajet réel ≥ vol d'oiseau) */
       if (selNoms && !selNoms.has(norm(h[1]))) continue;
       const typ = $("in-dttype").value;
       if (typ && (h[12] || "L") !== typ) continue;
@@ -635,29 +776,44 @@ async function rendreDT() {
     }
   }
   liste.sort((a, b) => a.km - b.km);
-  const total = liste.length;
   liste = liste.slice(0, 250);
-  let s = "<tr><th>Hébergement</th><th>Commune</th><th class='n'>Km</th><th class='n'>Pers.</th><th>Contact</th></tr>";
-  s += liste.map(({ h, km }) => {
+  /* règle 2026 : filtre au TRAJET RÉEL ≤ 45 min et ≤ 42 km (cache OSRM — seules les
+     nouvelles coordonnées déclenchent des requêtes ; en échec réseau on garde le vol
+     d'oiseau, signalé dans le statut) */
+  let reelOk = false;
+  if (!ROUTES_KO) {
+    try {
+      const reelles = await routesReelles(liste.map(x => ({ lat: x.h[3], lon: x.h[4] })));
+      liste.forEach((x, i) => { x.reel = reelles[i]; });
+      liste = liste.filter(x => x.reel && x.reel.min <= TRAJET_MAX_MIN && x.reel.km <= RAYON_MAX_KM);
+      liste.sort((a, b) => a.reel.min - b.reel.min || a.reel.km - b.reel.km);
+      reelOk = true;
+    } catch (e) {}
+  }
+  const total = liste.length;
+  let s = "<tr><th>Hébergement</th><th>Commune</th><th class='n'>Trajet</th><th class='n'>Pers.</th><th>Contact</th></tr>";
+  s += liste.map(({ h, km, reel }) => {
     const tel = h[7] ? "<a href='tel:" + esc(h[7]) + "'>" + esc(h[7].replace(/^\+33/, "0").replace(/(\d{2})(?=\d)/g, "$1 ")) + "</a>" : "";
     const mail = h[8] ? "<a href='mailto:" + esc(h[8]) + "'>" + esc(h[8]) + "</a>" : "";
     const site = h[9] ? "<a target='_blank' rel='noopener' href='" + esc(h[9]) + "'>site</a>" : "";
-    /* le critère « 45 min max » ne se vérifie qu'en trajet réel : lien itinéraire chantier → hébergement */
-    const itin = "<a target='_blank' rel='noopener' title='Temps de trajet réel depuis le chantier (règle : 45 min max)' href='https://www.google.com/maps/dir/?api=1&origin=" +
+    const itin = "<a target='_blank' rel='noopener' title='Ouvrir l’itinéraire chantier → hébergement dans Maps' href='https://www.google.com/maps/dir/?api=1&origin=" +
       CHANTIER.lat + "," + CHANTIER.lon + "&destination=" + h[3] + "," + h[4] + "'>itinéraire</a>";
     const badge = { C: "CAMPING", V: "VILLAGE/COLLECTIF" }[h[12]] || "";
+    const trajet = reel ? "<b>" + reel.min + " min</b><br>" + N1.format(reel.km) + " km" : N1.format(km) + " km*";
     return "<tr><td>" + (badge ? "<b style='color:var(--brass-deep); font-size:10px; letter-spacing:.05em'>" + badge + "</b> " : "") +
       esc(h[0]) + (h[6] ? " <span class='d' style='color:var(--muted)'>(" + esc(h[6]) + ")</span>" : "") +
       "<span class='hint'>Source : DATAtourisme / " + esc(h[10] || "office de tourisme") + " · màj " + esc(h[11] || "?") + "</span></td>" +
-      "<td>" + esc(h[1]) + "</td><td class='n'>" + N1.format(km) + "</td><td class='n'>" + esc(h[5] || "?") + "</td>" +
+      "<td>" + esc(h[1]) + "</td><td class='n'>" + trajet + "</td><td class='n'>" + esc(h[5] || "?") + "</td>" +
       "<td class='n'>" + [tel, mail, site, itin].filter(Boolean).join("<br>") +
       (DT_LIVE && h[13] ? "<br><a href='#' class='dt-resa' data-uuid='" + esc(h[13]) + "' data-nom='" + esc(h[0]) + "'><b>✉ Réserver</b></a>" : "") +
       "</td></tr>";
   }).join("");
   $("tbl-dt").innerHTML = s;
   $("dt-statut").innerHTML = "<span class='compteur'>" + total + "</span> hébergement(s) officiel(s) " +
-    (selNoms ? "dans les communes sélectionnées" : "dans le rayon") +
-    (total > 250 ? " — 250 premiers affichés (les plus proches), affiner la recherche." : "") +
+    (selNoms ? "dans les communes sélectionnées" : "dans le périmètre") +
+    (reelOk ? " (trajet réel ≤ 45 min et ≤ 42 km, triés par temps)"
+            : " — <b>trajets réels indisponibles</b> : km à vol d'oiseau (*), vérifier avec « itinéraire ».") +
+    (total >= 250 ? " 250 premiers affichés, affiner la recherche." : "") +
     " · Source : DATAtourisme, Licence Ouverte 2.0.";
   Array.from($("tbl-dt").querySelectorAll(".dt-resa")).forEach(a => a.addEventListener("click", ev => {
     ev.preventDefault();
@@ -672,8 +828,6 @@ $("in-dtcherche").addEventListener("input", () => { clearTimeout(window._dtT); w
    auberges collectives — géocodés BAN, sans contact direct (site web + Maps). */
 async function rendreAF() {
   if (!CHANTIER || !RAYON_LISTE.length) { $("tbl-af").innerHTML = ""; return; }
-  /* borne 5-60 aussi côté JS (l'attribut max HTML n'arrête pas une saisie clavier) */
-  const rayon = Math.min(60, Math.max(5, parseInt($("in-rayon").value, 10) || 35));
   const q = ($("in-afcherche").value || "").trim().toLowerCase();
   const selNoms = SELECTION.size ? new Set(Array.from(SELECTION.values()).map(v => norm(v.nom))) : null;
   if (!AF_DATA) {
@@ -682,30 +836,44 @@ async function rendreAF() {
   let lst = [];
   for (const h of AF_DATA) {
     const km = haversineKm(CHANTIER, { lat: h[3], lon: h[4] });
-    if (km > rayon) continue;
+    if (km > RAYON_MAX_KM) continue;   /* préfiltre vol d'oiseau */
     if (selNoms && !selNoms.has(norm(h[1]))) continue;
     if (q && !(h[0] + " " + h[1]).toLowerCase().includes(q)) continue;
     lst.push({ h, km });
   }
   lst.sort((a, b) => a.km - b.km);
-  const tot = lst.length;
   lst = lst.slice(0, 250);
-  let sa = "<tr><th>Établissement classé</th><th>Commune</th><th class='n'>Km</th><th class='n'>Capacité</th><th>Liens</th></tr>";
-  sa += lst.map(({ h, km }) => {
+  /* règle 2026 : trajet réel ≤ 45 min et ≤ 42 km */
+  let reelOk = false;
+  if (!ROUTES_KO) {
+    try {
+      const reelles = await routesReelles(lst.map(x => ({ lat: x.h[3], lon: x.h[4] })));
+      lst.forEach((x, i) => { x.reel = reelles[i]; });
+      lst = lst.filter(x => x.reel && x.reel.min <= TRAJET_MAX_MIN && x.reel.km <= RAYON_MAX_KM);
+      lst.sort((a, b) => a.reel.min - b.reel.min || a.reel.km - b.reel.km);
+      reelOk = true;
+    } catch (e) {}
+  }
+  const tot = lst.length;
+  let sa = "<tr><th>Établissement classé</th><th>Commune</th><th class='n'>Trajet</th><th class='n'>Capacité</th><th>Liens</th></tr>";
+  sa += lst.map(({ h, km, reel }) => {
     const qm = encodeURIComponent(h[0] + " " + h[1]);
+    const trajet = reel ? "<b>" + reel.min + " min</b><br>" + N1.format(reel.km) + " km" : N1.format(km) + " km*";
     return "<tr><td><b style='color:var(--brass-deep); font-size:10px; letter-spacing:.05em'>" + esc(h[7].toUpperCase()) + "</b> " +
       esc(h[0]) + " <span class='d' style='color:var(--muted)'>(" + esc(h[6]) + ")</span>" +
       "<span class='hint'>Source : Atout France (classement du " + esc(h[9]) + ") · géocodage BAN</span></td>" +
-      "<td>" + esc(h[1]) + "</td><td class='n'>" + N1.format(km) + "</td><td class='n'>" + esc(h[5] || "?") + "</td>" +
+      "<td>" + esc(h[1]) + "</td><td class='n'>" + trajet + "</td><td class='n'>" + esc(h[5] || "?") + "</td>" +
       "<td class='n'>" + (h[8] ? "<a target='_blank' rel='noopener' href='" + esc(h[8]) + "'>site</a><br>" : "") +
       "<a target='_blank' rel='noopener' href='https://www.google.com/maps/search/?api=1&query=" + qm + "'>Maps</a><br>" +
-      "<a target='_blank' rel='noopener' title='Temps de trajet réel depuis le chantier (règle : 45 min max)' href='https://www.google.com/maps/dir/?api=1&origin=" +
+      "<a target='_blank' rel='noopener' title='Ouvrir l’itinéraire chantier → établissement dans Maps' href='https://www.google.com/maps/dir/?api=1&origin=" +
       CHANTIER.lat + "," + CHANTIER.lon + "&destination=" + h[3] + "," + h[4] + "'>itinéraire</a></td></tr>";
   }).join("");
   $("tbl-af").innerHTML = sa;
   $("af-statut").innerHTML = "<span class='compteur'>" + tot + "</span> établissement(s) classé(s) Atout France " +
-    (selNoms ? "dans les communes sélectionnées" : "dans le rayon") +
-    (tot > 250 ? " — 250 premiers affichés." : "") + " · capacités officielles, contact via site/Maps.";
+    (selNoms ? "dans les communes sélectionnées" : "dans le périmètre") +
+    (reelOk ? " (trajet réel ≤ 45 min et ≤ 42 km, triés par temps)"
+            : " — <b>trajets réels indisponibles</b> : km à vol d'oiseau (*), vérifier avec « itinéraire ».") +
+    " · capacités officielles, contact via site/Maps.";
 }
 $("in-afcherche").addEventListener("input", () => { clearTimeout(window._afT); window._afT = setTimeout(rendreAF, 250); });
 
@@ -883,7 +1051,6 @@ $("in-adresse").addEventListener("change", async () => {
   }
 });
 ["in-equipe", "in-debut", "in-semaines"].forEach(id => $(id).addEventListener("change", () => { majResume(); rendreLiens(); }));
-$("in-rayon").addEventListener("change", majRayon);
 $("in-cherche").addEventListener("input", rendreBailleurs);
 $("in-depfiltre").addEventListener("change", rendreBailleurs);
 
