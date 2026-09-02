@@ -57,11 +57,18 @@ function apercuTexte(brut) {
 
 export default {
   async email(message, env, ctx) {
-    /* 1) réponse de logeur adressée à logements+u<id>@… → relais e-mail perso + agences */
+    /* 1) réponse de logeur → relais e-mail perso + agences. L'identifiant du demandeur
+       vient (a) de l'adresse destinataire personnalisée logements|info+u<id>@ (les deux
+       domaines), ou (b) EN FILET DE SÉCURITÉ, du corps du message : un logeur qui écrit
+       à la boîte générique cite presque toujours notre message d'origine, lequel contient
+       l'adresse personnalisée en clair. */
     try {
-      /* les deux domaines : logements+u<id>@ab2pro-simulateur.com (historique)
-         et info+u<id>@abservice-logement.com (domaine dédié AB Service) */
-      const mPlus = /^(?:logements|info)\+u(\d+)@/i.exec(message.to || "");
+      let brut = null;
+      let mPlus = /^(?:logements|info)\+u(\d+)@/i.exec(message.to || "");
+      if (!mPlus && /^(?:logements|info)@/i.test(message.to || "") && env.DB && env.NOTIFY_KEY) {
+        brut = await new Response(message.raw).text();
+        mPlus = /(?:logements|info)\+u(\d+)@/i.exec(brut);
+      }
       if (mPlus && env.DB && env.NOTIFY_KEY) {
         const usr = await env.DB.prepare("SELECT id, email, nom, entite, agences FROM utilisateurs WHERE id = ? AND actif = 1")
           .bind(parseInt(mPlus[1], 10)).first();
@@ -69,7 +76,7 @@ export default {
           let ags = [];
           try { ags = (JSON.parse(usr.agences || "[]") || []).map(a => AGENCES_ABSERVICE[a]).filter(Boolean); } catch (e) {}
           const dest = [usr.email, ...ags];
-          const brut = await new Response(message.raw).text();
+          if (brut === null) brut = await new Response(message.raw).text();
           const texte =
             "Réponse d'un logeur à une demande de réservation AB Service.\n\n" +
             "De : " + (message.from || "?") + "\n" +

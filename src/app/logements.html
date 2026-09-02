@@ -604,6 +604,11 @@ let AF_DATA = null;   // plan B Atout France (national, ~2 400 etablissements cl
    POST /catalog/{uuid}/contact (target booking, réponse sur logements@). */
 let DT_LIVE = false;
 fetch("/api/dt/ping").then(r => r.json()).then(j => { DT_LIVE = !!j.configuree; }).catch(() => {});
+/* adresse de réponse PERSONNALISÉE (info+u<id>@…) : le logeur qui recopie l'adresse
+   du message écrit ainsi à la bonne boîte — sa réponse est routée vers l'utilisateur
+   ET ses agences, pas seulement vers la boîte générique des admins */
+let ADRESSE_REPONSE = EMAIL_EXTERNE;
+fetch("/api/moi").then(r => r.json()).then(j => { if (j && j.adresse_reponse) ADRESSE_REPONSE = j.adresse_reponse; }).catch(() => {});
 async function contacterHote(uuid, nomHeb) {
   const n = parseInt($("in-equipe").value, 10) || 2;
   const { d1, d2 } = datesSejour();
@@ -617,7 +622,7 @@ n + " couchages individuels, environ " + (30 + 9 * Math.max(0, n - 2)) + " m² m
 EURN.format(n * BUDGET_SEM) + " par semaine charges comprises (" + EURN.format(Math.ceil(n * NUITEE * 100) / 100) + "/nuitée pour l'équipe).\n\n" +
 "Votre hébergement « " + nomHeb + " » est-il disponible sur ces dates, et à quelles conditions pour un séjour à la semaine ? " +
 "Un état des lieux d'entrée et de sortie avec photos est réalisé systématiquement.\n\n" +
-"Réponse possible par retour d'e-mail (" + EMAIL_EXTERNE + ") ou par téléphone.\n\n" +
+"Réponse possible par retour d'e-mail (" + ADRESSE_REPONSE + ") ou par téléphone.\n\n" +
 "Cordialement,\nAB Service (hébergement de salariés en mission)";
   if (!window.confirm("Envoyer cette demande de réservation à l'hôte de « " + nomHeb + " » ?\n\n" + message)) return;
   try {
@@ -626,7 +631,7 @@ EURN.format(n * BUDGET_SEM) + " par semaine charges comprises (" + EURN.format(M
       body: JSON.stringify({ message }),
     });
     const j = await r.json().catch(() => ({}));
-    if (r.ok) alert("Demande envoyée ✓ — la réponse arrivera sur " + EMAIL_EXTERNE + ".");
+    if (r.ok) alert("Demande envoyée ✓ — la réponse du logeur arrivera sur votre e-mail, celui de vos agences et la boîte générique (" + ADRESSE_REPONSE + ").");
     else if (r.status === 422) alert("Cette fiche n'a pas d'e-mail de réservation — utiliser le téléphone affiché.");
     else alert("Envoi impossible (" + (j.erreur || r.status) + ").");
   } catch (e) { alert("Envoi impossible : " + e.message); }

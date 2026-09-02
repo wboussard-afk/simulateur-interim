@@ -259,7 +259,8 @@ async function api(req, env, url, u) {
   /* -- session -- */
   if (p === "/api/moi")
     return u ? json({ email: u.email, nom: u.nom, role: u.role, doit_changer_mdp: !!u.doit_changer_mdp, sections: sectionsDe(u),
-                      entite: entiteDe(u), agences: agencesDe(u), agences_disponibles: Object.keys(AGENCES_ABSERVICE) })
+                      entite: entiteDe(u), agences: agencesDe(u), agences_disponibles: Object.keys(AGENCES_ABSERVICE),
+                      adresse_reponse: adresseReponse(u) })
              : json({ erreur: "non_connecte" }, 401);
 
   /* -- profil : l'utilisateur AB Service change lui-même ses agences de rattachement -- */
