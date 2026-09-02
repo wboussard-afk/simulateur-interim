@@ -107,6 +107,11 @@ function sectionsListe(brut) {           // NULL / illisible = accès à tout
   try { const l = JSON.parse(brut); return Array.isArray(l) ? l : SECTIONS_APPS.slice(); }
   catch (e) { return SECTIONS_APPS.slice(); }
 }
+/* agences AB Service (tableau JSON) -> libellé lisible */
+function agListe(brut) {
+  try { const l = JSON.parse(brut || "[]"); return Array.isArray(l) && l.length ? l.join(", ") : "(aucune agence)"; }
+  catch (e) { return "(aucune agence)"; }
+}
 async function charger() {
   const moi = await fetch("/api/moi").then(r => r.ok ? r.json() : null);
   if (!moi) { location.href = "/"; return; }
@@ -117,8 +122,9 @@ async function charger() {
 
   const zd = $("z-demandes");
   if (!a.demandes.length) zd.innerHTML = "<div class='vide'>Aucune demande en attente.</div>";
-  else zd.innerHTML = "<table><tr><th>Date</th><th>Nom</th><th>E-mail</th><th>Motif</th><th>Sections ouvertes</th><th></th></tr>" +
+  else zd.innerHTML = "<table><tr><th>Date</th><th>Nom</th><th>E-mail</th><th>Entité · agences</th><th>Motif</th><th>Sections ouvertes</th><th></th></tr>" +
     a.demandes.map(d => "<tr><td>" + esc(d.cree_le) + "</td><td>" + esc(d.nom) + "</td><td>" + esc(d.email) +
+      "</td><td>" + (d.entite === "abservice" ? "<b>AB SERVICE</b><br>" + esc(agListe(d.agences)) : "AB2PRO") +
       "</td><td>" + esc(d.motif) + "</td><td>" +
       SECTIONS_APPS.map(s => "<label class='cb-lig'><input type='checkbox' class='cb-sec' data-dem='" + d.id +
         "' value='" + s + "' checked> " + esc(secLib(s)) + "</label>").join("") + "</td><td>" +
@@ -131,7 +137,7 @@ async function charger() {
   zd.querySelectorAll("[data-ref]").forEach(b => b.onclick = async () => { await post("/api/admin/refuser", { id: +b.dataset.ref }); charger(); });
 
   const zu = $("z-utilisateurs");
-  zu.innerHTML = "<table><tr><th>E-mail</th><th>Nom</th><th>Rôle</th><th>Sections</th><th>État</th><th>Créé</th><th></th></tr>" +
+  zu.innerHTML = "<table><tr><th>E-mail</th><th>Nom</th><th>Entité · agences</th><th>Rôle</th><th>Sections</th><th>État</th><th>Créé</th><th></th></tr>" +
     a.utilisateurs.map(x => {
       const sup = x.role === "super_admin", adm = x.role === "admin";
       /* colonne Sections : bascules cliquables pour les utilisateurs simples, « toutes » pour les admins */
@@ -156,6 +162,7 @@ async function charger() {
           "<button class='btn' data-inv='" + x.id + "'>Réinviter</button>";
       }
       return "<tr><td>" + esc(x.email) + "</td><td>" + esc(x.nom) + "</td>" +
+        "<td>" + (x.entite === "abservice" ? "<b>AB SERVICE</b><br><span class='note'>" + esc(agListe(x.agences)) + "</span>" : "AB2PRO") + "</td>" +
         "<td>" + (sup ? "<span class='tag a'>★ super admin</span>" : adm ? "<span class='tag a'>admin</span>" : "user") + "</td>" +
         "<td>" + colSecs + "</td>" +
         "<td>" + (x.actif ? (x.doit_changer_mdp ? "<span class='tag'>invitation en cours</span>" : "actif") : "<span class='tag'>désactivé</span>") + "</td>" +

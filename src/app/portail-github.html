@@ -99,6 +99,25 @@ a.appcard:hover, a.appcard:active { border-color: var(--brass); transform: trans
     <span class="go">→</span>
   </a>
 
+  <div class="appcard" id="carte-profil" hidden style="cursor:default; flex-direction:column; align-items:stretch">
+    <div style="display:flex; align-items:center; gap:16px">
+      <span class="ico">👤</span>
+      <span class="tt">
+        <h2>Mon profil</h2>
+        <p id="profil-resume">…</p>
+      </span>
+    </div>
+    <div id="profil-agences" hidden style="margin-top:10px; border-top:1px solid var(--line-soft); padding-top:10px">
+      <p style="margin:0 0 6px; font-size:13px"><b>Agences de rattachement AB Service</b> — une ou plusieurs (les réponses des logeurs
+      à vos demandes de logement sont aussi envoyées aux boîtes de ces agences) :</p>
+      <div id="profil-cases" style="display:flex; flex-wrap:wrap; gap:6px 14px; font-size:13.5px"></div>
+      <div style="margin-top:8px; display:flex; align-items:center; gap:10px">
+        <button id="btn-profil" style="background:var(--brass); color:#fff; border:0; border-radius:8px; padding:8px 16px; font-weight:700; cursor:pointer">Enregistrer</button>
+        <span id="profil-msg" style="font-size:12.5px; color:var(--muted)"></span>
+      </div>
+    </div>
+  </div>
+
   <p class="foot">Mise à jour continue — les grilles et fiches sont surveillées par une veille hebdomadaire.<br>
   Groupe Triangle Solutions RH · AB2Pro. Usage interne.</p>
 </div>
@@ -249,6 +268,43 @@ if (Array.isArray(window.AB_SECTIONS)) {
     if (AB_SECTIONS.indexOf(c.dataset.section) === -1) c.style.display = "none";
   });
 }
+
+/* ===== Mon profil : entité + agences AB Service (modifiables — décision direction 02/09) =====
+ * Visible uniquement derrière le portail connecté (/api/moi) ; les copies hors
+ * portail (Bureau, artefact) n'affichent pas la carte. */
+(function () {
+  const lib = a => a.split("-").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("-");
+  fetch("/api/moi").then(r => r.ok ? r.json() : null).then(function (moi) {
+    if (!moi || !moi.email) return;
+    const carte = document.getElementById("carte-profil");
+    carte.hidden = false;
+    const entLib = moi.entite === "abservice" ? "AB SERVICE" : "AB2PRO";
+    document.getElementById("profil-resume").textContent =
+      (moi.nom || moi.email) + " · " + moi.email + " · entité " + entLib +
+      (moi.entite === "abservice" && moi.agences.length ? " · agence(s) : " + moi.agences.map(lib).join(", ") : "");
+    if (moi.entite !== "abservice") return;
+    document.getElementById("profil-agences").hidden = false;
+    document.getElementById("profil-cases").innerHTML = (moi.agences_disponibles || []).map(a =>
+      "<label style='display:flex; align-items:center; gap:5px; margin:0; font-weight:400'>" +
+      "<input type='checkbox' class='pr-ag' value='" + a + "'" + (moi.agences.indexOf(a) >= 0 ? " checked" : "") + ">" +
+      lib(a) + "</label>").join("");
+    document.getElementById("btn-profil").addEventListener("click", function () {
+      const msg = document.getElementById("profil-msg");
+      const ags = Array.prototype.slice.call(document.querySelectorAll(".pr-ag:checked")).map(c => c.value);
+      if (!ags.length) { msg.textContent = "Choisissez au moins une agence."; return; }
+      msg.textContent = "Enregistrement…";
+      fetch("/api/profil", { method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ agences: ags }) })
+        .then(r => r.json()).then(function (j) {
+          if (j.ok) {
+            msg.textContent = "✓ Agences enregistrées.";
+            document.getElementById("profil-resume").textContent =
+              (moi.nom || moi.email) + " · " + moi.email + " · entité AB SERVICE · agence(s) : " + ags.map(lib).join(", ");
+          } else msg.textContent = "Erreur : " + (j.erreur || "réessayer");
+        }).catch(function () { msg.textContent = "Erreur réseau — réessayer."; });
+    });
+  }).catch(function () {});
+})();
 </script>
 </body>
 </html>

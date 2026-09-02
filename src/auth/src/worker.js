@@ -22,6 +22,42 @@ const SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe", "
  * DATAtourisme, etc.). À basculer sur info@abservice-logement.com dès que le
  * domaine dédié sera enregistré et son Email Routing actif — une seule ligne. */
 const EMAIL_EXTERNE = "logements@ab2pro-simulateur.com";
+
+/* ===== Entités & agences (décision direction 02/09/2026) =====
+ * AB2Pro et AB Service sont deux entités séparées : chaque utilisateur choisit son
+ * entité à l'inscription ; côté AB Service il se rattache à une ou plusieurs agences
+ * (modifiables ensuite via son profil). Les réponses des logeurs sont routées vers
+ * son e-mail perso + les boîtes génériques de ses agences (worker mail-fanout). */
+const ENTITES = ["ab2pro", "abservice"];
+const AGENCES_ABSERVICE = {
+  "rennes": "rennes@abservicefrance.com",
+  "paris": "paris@abservicefrance.com",
+  "bordeaux": "bordeaux@abservicefrance.com",
+  "aix-en-provence": "aix-en-provence@abservicefrance.com",
+  "lyon": "lyon@abservicefrance.com",
+  "strasbourg": "strasbourg@abservicefrance.com",
+  "angers": "angers@abservicefrance.com",
+  "rouen": "rouen@abservicefrance.com",
+  "nantes": "nantes@abservicefrance.com",
+  "toulouse": "toulouse@abservicefrance.com",
+  "lille": "lille@abservicefrance.com",
+};
+const entiteDe = x => (x && x.entite === "abservice") ? "abservice" : "ab2pro";
+function agencesDe(x) {
+  if (!x || !x.agences) return [];
+  try { const l = JSON.parse(x.agences); return Array.isArray(l) ? l.filter(a => AGENCES_ABSERVICE[a]) : []; }
+  catch (e) { return []; }
+}
+const validerAgences = l => Array.isArray(l) ? JSON.stringify(l.map(String).filter(a => AGENCES_ABSERVICE[a]).slice(0, 11)) : null;
+/* Adresse de réponse par utilisateur (sous-adressage logements+u<id>@ → routage des
+ * réponses par le worker mail-fanout). N'ACTIVER qu'une fois la règle CATCH-ALL
+ * d'Email Routing pointée sur ab2pro-mail-fanout, sinon les réponses rebondissent. */
+const SOUS_ADRESSAGE_REPONSES = false;
+function adresseReponse(u2) {
+  if (!SOUS_ADRESSAGE_REPONSES || !u2 || !u2.id) return EMAIL_EXTERNE;
+  const [loc, dom] = EMAIL_EXTERNE.split("@");
+  return loc + "+u" + u2.id + "@" + dom;
+}
 function sectionsDe(x) {
   if (!x) return [];
   if (estAdmin(x)) return SECTIONS_APPS;
@@ -204,7 +240,7 @@ async function api(req, env, url, u) {
        basculera sur info@abservice-logement.com dès que le domaine sera actif. */
     const charge = {
       name: (u.nom || "AB Service").slice(0, 255),
-      email: EMAIL_EXTERNE,
+      email: adresseReponse(u),
       message,
       subject: String(corps.subject || "Demande de location — équipes en mission (AB Service)").slice(0, 255),
       target: "booking",
@@ -221,8 +257,20 @@ async function api(req, env, url, u) {
 
   /* -- session -- */
   if (p === "/api/moi")
-    return u ? json({ email: u.email, nom: u.nom, role: u.role, doit_changer_mdp: !!u.doit_changer_mdp, sections: sectionsDe(u) })
+    return u ? json({ email: u.email, nom: u.nom, role: u.role, doit_changer_mdp: !!u.doit_changer_mdp, sections: sectionsDe(u),
+                      entite: entiteDe(u), agences: agencesDe(u), agences_disponibles: Object.keys(AGENCES_ABSERVICE) })
              : json({ erreur: "non_connecte" }, 401);
+
+  /* -- profil : l'utilisateur AB Service change lui-même ses agences de rattachement -- */
+  if (p === "/api/profil" && req.method === "POST") {
+    if (!u) return json({ erreur: "non_connecte" }, 401);
+    if (entiteDe(u) !== "abservice") return json({ erreur: "reserve_abservice" }, 403);
+    const ag = validerAgences(corps.agences);
+    if (ag === null || JSON.parse(ag).length === 0) return json({ erreur: "agences_invalides" }, 400);
+    await env.DB.prepare("UPDATE utilisateurs SET agences = ? WHERE id = ?").bind(ag, u.id).run();
+    await journal(env, req, u, "profil_agences", ag);
+    return json({ ok: true, agences: JSON.parse(ag) });
+  }
 
   if (p === "/api/login" && req.method === "POST") {
     const email = String(corps.email || "").trim().toLowerCase();
@@ -284,15 +332,24 @@ async function api(req, env, url, u) {
     const nom = String(corps.nom || "").trim().slice(0, 120);
     const email = String(corps.email || "").trim().toLowerCase().slice(0, 200);
     const motif = String(corps.motif || "").trim().slice(0, 500);
+    /* entité obligatoire ; agences obligatoires (≥1) si AB Service */
+    const entite = ENTITES.includes(corps.entite) ? corps.entite : null;
+    const agences = entite === "abservice" ? validerAgences(corps.agences) : null;
     if (!nom || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return json({ erreur: "champs_invalides" }, 400);
+    if (!entite) return json({ erreur: "entite_requise" }, 400);
+    if (entite === "abservice" && (!agences || JSON.parse(agences).length === 0)) return json({ erreur: "agence_requise" }, 400);
     const existant = await env.DB.prepare("SELECT id FROM utilisateurs WHERE email = ?").bind(email).first();
     if (existant) return json({ erreur: "deja_utilisateur" }, 400);
     const attente = await env.DB.prepare("SELECT id FROM demandes_acces WHERE email = ? AND statut = 'en_attente'").bind(email).first();
     if (attente) return json({ ok: true, deja: true });
-    await env.DB.prepare("INSERT INTO demandes_acces (nom, email, motif) VALUES (?,?,?)").bind(nom, email, motif).run();
-    await journal(env, req, null, "demande_acces", email);
-    await envoyerEmail(env, ADMINS, "AB2Pro — demande d'accès de " + nom,
-      `Nouvelle demande d'accès aux outils AB2Pro :\n\nNom : ${nom}\nE-mail : ${email}\nMotif : ${motif || "(non précisé)"}\n\n` +
+    await env.DB.prepare("INSERT INTO demandes_acces (nom, email, motif, entite, agences) VALUES (?,?,?,?,?)")
+      .bind(nom, email, motif, entite, agences).run();
+    await journal(env, req, null, "demande_acces", email + " (" + entite + (agences ? " " + agences : "") + ")");
+    await envoyerEmail(env, ADMINS, (entite === "abservice" ? "AB Service" : "AB2Pro") + " — demande d'accès de " + nom,
+      `Nouvelle demande d'accès au portail :\n\nNom : ${nom}\nE-mail : ${email}\n` +
+      `Entité : ${entite === "abservice" ? "AB SERVICE" : "AB2PRO"}\n` +
+      (agences ? `Agences de rattachement : ${JSON.parse(agences).join(", ")}\n` : "") +
+      `Motif : ${motif || "(non précisé)"}\n\n` +
       `Approuver ou refuser : ${url.origin}/admin (onglet Demandes).`, { env, req });
     return json({ ok: true });
   }
@@ -344,8 +401,8 @@ async function api(req, env, url, u) {
 
     if (p === "/api/admin/apercu") {
       const dem = await env.DB.prepare("SELECT * FROM demandes_acces WHERE statut = 'en_attente' ORDER BY id DESC").all();
-      const usr = await env.DB.prepare("SELECT id, email, nom, role, actif, doit_changer_mdp, cree_le, cree_par, sections FROM utilisateurs ORDER BY id").all();
-      return json({ demandes: dem.results, utilisateurs: usr.results, sections_apps: SECTIONS_APPS });
+      const usr = await env.DB.prepare("SELECT id, email, nom, role, actif, doit_changer_mdp, cree_le, cree_par, sections, entite, agences FROM utilisateurs ORDER BY id").all();
+      return json({ demandes: dem.results, utilisateurs: usr.results, sections_apps: SECTIONS_APPS, agences_abservice: Object.keys(AGENCES_ABSERVICE) });
     }
 
     if (p === "/api/admin/test-email") {
@@ -377,13 +434,16 @@ async function api(req, env, url, u) {
       /* sections choisies par l'admin à l'approbation (rôle user seulement ; absence = accès à tout) */
       const secsApprob = (corps.role !== "admin" && Array.isArray(corps.sections))
         ? JSON.stringify(corps.sections.map(String).filter(s => SECTIONS_APPS.includes(s))) : null;
+      /* l'entité et les agences choisies à l'inscription suivent la demande */
       await env.DB.prepare(
-        "INSERT INTO utilisateurs (email, nom, sel, hash, role, doit_changer_mdp, invite_token, invite_expire, cree_par, sections) VALUES (?,?,?,?,?,1,?,?,?,?)")
-        .bind(d.email, d.nom, sel, hprov, corps.role === "admin" ? "admin" : "user", invite, Date.now() + INVITE_MS, u.email, secsApprob).run();
+        "INSERT INTO utilisateurs (email, nom, sel, hash, role, doit_changer_mdp, invite_token, invite_expire, cree_par, sections, entite, agences) VALUES (?,?,?,?,?,1,?,?,?,?,?,?)")
+        .bind(d.email, d.nom, sel, hprov, corps.role === "admin" ? "admin" : "user", invite, Date.now() + INVITE_MS, u.email, secsApprob,
+              d.entite || null, d.agences || null).run();
       await env.DB.prepare("UPDATE demandes_acces SET statut = 'approuvee', traite_par = ?, traite_le = datetime('now') WHERE id = ?").bind(u.email, d.id).run();
       const lien = url.origin + "/motdepasse.html?invite=" + invite;
-      await envoyerEmail(env, d.email, "AB2Pro — votre accès est ouvert",
-        `Bonjour ${d.nom},\n\nVotre accès aux outils AB2Pro a été approuvé par ${u.email}.\n` +
+      const marque = d.entite === "abservice" ? "AB Service" : "AB2Pro";
+      await envoyerEmail(env, d.email, marque + " — votre accès est ouvert",
+        `Bonjour ${d.nom},\n\nVotre accès au portail ${marque} a été approuvé par ${u.email}.\n` +
         `Définissez votre mot de passe (lien valable 72 h) :\n${lien}\n\nPortail : ${url.origin}/app/`, { env, req });
       await journal(env, req, u, "admin_approbation", d.email);
       return json({ ok: true, lien });

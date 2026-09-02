@@ -22,7 +22,7 @@ h1 { font-family: "Nexa", "Poppins", "Segoe UI", system-ui, sans-serif; font-siz
 h1 b { color: var(--brass); }
 .sous { color: var(--muted); font-size: 12.5px; text-align: center; margin-bottom: 18px; }
 label { display: block; font-size: 11.5px; color: var(--muted); font-weight: 600; margin: 12px 0 3px; }
-input, textarea { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 7px;
+input, textarea, select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 7px;
   background: var(--card2); color: var(--ink); font: inherit; }
 button { width: 100%; margin-top: 16px; padding: 11px; border: none; border-radius: 7px;
   background: var(--brass); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
@@ -53,7 +53,18 @@ button.sec { background: none; border: 1px solid var(--line); color: var(--ink);
     <input id="d-nom" required>
     <label>E-mail professionnel</label>
     <input id="d-email" type="email" required>
-    <label>Motif (poste, agence…)</label>
+    <label>Votre entité</label>
+    <select id="d-entite" required>
+      <option value="" selected disabled>— choisir —</option>
+      <option value="ab2pro">AB2PRO</option>
+      <option value="abservice">AB SERVICE</option>
+    </select>
+    <div id="d-agences-bloc" hidden>
+      <label>Agence(s) de rattachement AB Service — une ou plusieurs</label>
+      <div id="d-agences" style="display:flex; flex-wrap:wrap; gap:6px 12px; font-size:13px; margin:4px 0 6px"></div>
+      <div style="font-size:11px; color:var(--muted)">Modifiable ensuite depuis votre profil.</div>
+    </div>
+    <label>Motif (poste…)</label>
     <textarea id="d-motif" rows="2"></textarea>
     <button type="submit">Envoyer la demande</button>
     <button type="button" class="sec" id="btn-vers-login">← Retour à la connexion</button>
@@ -85,11 +96,28 @@ $("f-login").addEventListener("submit", async e => {
   }
 });
 
+/* AB2Pro et AB Service sont deux entités séparées : l'entité se choisit à
+   l'inscription ; côté AB Service, rattachement à une ou plusieurs agences */
+const AGENCES = ["rennes", "paris", "bordeaux", "aix-en-provence", "lyon", "strasbourg",
+                 "angers", "rouen", "nantes", "toulouse", "lille"];
+const libAgence = a => a.split("-").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("-");
+$("d-agences").innerHTML = AGENCES.map(a =>
+  "<label style='display:flex; align-items:center; gap:5px; font-weight:400; margin:0'>" +
+  "<input type='checkbox' class='ck-ag' value='" + a + "' style='width:auto; margin:0'>" + libAgence(a) + "</label>").join("");
+$("d-entite").addEventListener("change", () => {
+  $("d-agences-bloc").hidden = $("d-entite").value !== "abservice";
+});
+
 $("f-demande").addEventListener("submit", async e => {
   e.preventDefault();
-  const m = $("d-msg"); m.className = "msg"; m.textContent = "Envoi…";
+  const m = $("d-msg"); m.className = "msg";
+  const entite = $("d-entite").value;
+  const agences = Array.from(document.querySelectorAll(".ck-ag:checked")).map(c => c.value);
+  if (!entite) { m.className = "msg err"; m.textContent = "Choisissez votre entité (AB2PRO ou AB SERVICE)."; return; }
+  if (entite === "abservice" && !agences.length) { m.className = "msg err"; m.textContent = "Choisissez au moins une agence de rattachement."; return; }
+  m.textContent = "Envoi…";
   const r = await fetch("/api/demande-acces", { method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ nom: $("d-nom").value, email: $("d-email").value, motif: $("d-motif").value }) });
+    body: JSON.stringify({ nom: $("d-nom").value, email: $("d-email").value, motif: $("d-motif").value, entite, agences }) });
   const j = await r.json().catch(() => ({}));
   if (r.ok && j.ok) { m.className = "msg ok"; m.textContent = j.deja ? "Demande déjà en attente — les administrateurs ont été prévenus." : "✓ Demande envoyée aux administrateurs — vous recevrez un e-mail après approbation."; }
   else { m.className = "msg err"; m.textContent = j.erreur === "deja_utilisateur" ? "Cet e-mail a déjà un compte — utilisez la connexion." : "Demande invalide — vérifiez les champs."; }

@@ -6,3 +6,15 @@ workers_dev = false
 # Email Worker : recoit les e-mails via une regle Email Routing (action « Send to a Worker »)
 # et les re-transfere a tous les super-admins (liste DESTINATAIRES dans worker.js).
 # Les adresses de destination doivent etre VERIFIEES dans Email Routing au prealable.
+#
+# ROUTAGE REPONSES LOGEURS (02/09/2026) : un mail adresse a logements+u<id>@... est la
+# reponse d'un logeur a une demande de reservation envoyee par l'utilisateur <id> —
+# le worker lit l'utilisateur en D1 (meme base que le portail) et notifie EN PLUS
+# son e-mail perso + les boites generiques de ses agences AB Service, via l'endpoint
+# /api/notifier du portail (secret NOTIFY_KEY : `wrangler secret put NOTIFY_KEY`).
+# NECESSITE la regle CATCH-ALL d'Email Routing pointee sur ce worker.
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ab2pro-auth"
+database_id = "5ced4603-9318-4f6a-b372-85da4f2fa910"
