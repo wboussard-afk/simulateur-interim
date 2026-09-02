@@ -203,7 +203,7 @@ export default {
         return new Response(PAGE_SECTION_REFUSEE, { status: 403, headers: { "content-type": "text/html; charset=utf-8" } });
       }
       /* données personnelles bailleurs : réservées aux utilisateurs de la section logements */
-      if (cible === "/app/data/bailleurs.json" && !sectionsDe(u).includes("logements")) {
+      if ((cible === "/app/data/bailleurs.json" || cible === "/app/data/meubles-mairies.json") && !sectionsDe(u).includes("logements")) {
         await journal(env, req, u, "acces_refuse_section", "logements", cible);
         return new Response("{}", { status: 403, headers: { "content-type": "application/json" } });
       }
@@ -335,7 +335,9 @@ async function api(req, env, url, u) {
       /* RÉCAPITULATIF à l'expéditeur + ses agences : trace de ce qui est parti
          (demande direction 03/09 — « j'ai fait un test mais rien reçu ») */
       if (envoyees.length) {
-        const copies = [u.email, ...agencesDe(u).map(a => AGENCES_ABSERVICE[a]).filter(Boolean)];
+        /* CADA : la boîte générique (admins) est AUSSI destinataire — la réponse de la mairie
+           doit être absorbée dans la base (routine quotidienne), contrairement aux réservations */
+        const copies = [u.email, ...agencesDe(u).map(a => AGENCES_ABSERVICE[a]).filter(Boolean), EMAIL_EXTERNE];
         await envoyerEmail(env, copies,
           "Copie — " + envoyees.length + " demande(s) de registre des meublés envoyée(s) aux mairies",
           "Vos demandes CADA (registre des meublés de tourisme) sont parties, une par mairie :\n\n" +

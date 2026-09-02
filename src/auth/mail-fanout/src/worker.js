@@ -47,12 +47,50 @@ function apercuTexte(brut) {
     const idx = corps.indexOf("\r\n\r\n");
     let t = idx >= 0 ? corps.slice(idx + 4) : corps;
     if (/quoted-printable/i.test(corps.slice(0, idx > 0 ? idx : 500))) {
-      t = t.replace(/=\r\n/g, "").replace(/=([0-9A-F]{2})/gi, (_, h) => {
-        try { return decodeURIComponent("%" + h); } catch (e) { return " "; }
-      });
+      t = t.replace(/=\r\n/g, "").replace(/(?:=[0-9A-F]{2})+/gi, m => { try { return decodeURIComponent(m.replace(/=/g, "%")); } catch (e) { return " "; } });
     }
     return t.replace(/<[^>]+>/g, " ").replace(/[ \t]+/g, " ").trim().slice(0, 2500);
   } catch (e) { return "(aperçu indisponible — consulter la boîte générique)"; }
+}
+
+/* ===== Capture des réponses de MAIRIES aux demandes CADA (décision direction 03/09) =====
+ * La réponse (liste des meublés, souvent en pièce jointe PDF/XLSX) est enregistrée en D1
+ * (table cada_reponses) pour la routine quotidienne « cada-absorber » qui l'intègre à la
+ * base du portail. Détection : réponse adressée/citant info+u<id>@ ET sujet/corps évoquant
+ * le registre des meublés, la CADA ou l'article L.311-1. Découpage MIME best-effort. */
+const CADA_MARQUEURS = /meubl[eé]s?\s+de\s+tourisme|registre\s+des\s+meubl|\bcada\b|l\.\s?311-1|commission\s+d.acc[eè]s/i;
+function decouperMime(brut) {
+  const parties = [];
+  const walk = (bloc, prof) => {
+    const sep = bloc.indexOf("\r\n\r\n");
+    const entete = sep >= 0 ? bloc.slice(0, sep) : bloc, corps = sep >= 0 ? bloc.slice(sep + 4) : "";
+    const ct = (/content-type:\s*([^;\r\n]+)/i.exec(entete) || [])[1] || "text/plain";
+    const mb = /boundary="?([^";\r\n]+)"?/i.exec(entete);
+    if (/^multipart\//i.test(ct) && mb && prof < 4) {
+      corps.split("--" + mb[1]).slice(1).forEach(x => { if (!/^--/.test(x.trim())) walk(x.replace(/^\r\n/, ""), prof + 1); });
+      return;
+    }
+    const cte = ((/content-transfer-encoding:\s*([^\r\n]+)/i.exec(entete) || [])[1] || "").trim().toLowerCase();
+    const nom = ((/filename\*?="?([^";\r\n]+)"?/i.exec(entete) || /name="?([^";\r\n]+)"?/i.exec(entete) || [])[1] || "").trim();
+    parties.push({ ct: ct.trim().toLowerCase(), cte, nom, corps: corps.trim() });
+  };
+  walk(brut, 0);
+  return parties;
+}
+function texteDe(parties) {
+  const p = parties.find(x => x.ct.startsWith("text/plain") && !x.nom) || parties.find(x => x.ct.startsWith("text/html") && !x.nom);
+  if (!p) return "";
+  let t = p.corps;
+  if (p.cte === "quoted-printable") t = t.replace(/=\r\n/g, "").replace(/(?:=[0-9A-F]{2})+/gi, m => { try { return decodeURIComponent(m.replace(/=/g, "%")); } catch (e) { return " "; } });
+  else if (p.cte === "base64") { try { t = new TextDecoder().decode(Uint8Array.from(atob(t.replace(/\s+/g, "")), c => c.charCodeAt(0))); } catch (e) {} }
+  return t.replace(/<[^>]+>/g, " ").replace(/[ \t]+/g, " ").trim().slice(0, 20000);
+}
+function piecesDe(parties) {
+  return parties.filter(x => x.nom || (!x.ct.startsWith("text/") && !x.ct.startsWith("multipart/"))).slice(0, 10).map(x => {
+    const b64 = x.cte === "base64" ? x.corps.replace(/\s+/g, "") : btoa(unescape(encodeURIComponent(x.corps)));
+    const taille = Math.floor(b64.length * 3 / 4);
+    return { nom: x.nom || "piece", type: x.ct, taille, b64: taille <= 700 * 1024 ? b64 : "" };
+  });
 }
 
 export default {
@@ -77,6 +115,16 @@ export default {
           try { ags = (JSON.parse(usr.agences || "[]") || []).map(a => AGENCES_ABSERVICE[a]).filter(Boolean); } catch (e) {}
           const dest = [usr.email, ...ags];
           if (brut === null) brut = await new Response(message.raw).text();
+          /* capture CADA : réponse de mairie → D1 pour la routine quotidienne */
+          try {
+            const sujet = message.headers.get("subject") || "";
+            if (CADA_MARQUEURS.test(sujet) || CADA_MARQUEURS.test(brut.slice(0, 20000))) {
+              const parties = decouperMime(brut);
+              await env.DB.prepare("INSERT INTO cada_reponses (user_id, de, sujet, texte, pieces) VALUES (?,?,?,?,?)")
+                .bind(usr.id, String(message.from || "").slice(0, 200), sujet.slice(0, 300),
+                      texteDe(parties), JSON.stringify(piecesDe(parties)).slice(0, 3900000)).run();
+            }
+          } catch (e) { /* la capture ne doit jamais bloquer le relais */ }
           const texte =
             "Réponse d'un logeur à une demande de réservation AB Service.\n\n" +
             "De : " + (message.from || "?") + "\n" +

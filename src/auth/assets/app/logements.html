@@ -222,6 +222,18 @@ La colonne <b>Trajet</b> affiche le temps et la distance <b>réels</b> par la ro
   </section>
 
   <section class="card">
+    <h2>Meublés déclarés en mairie <span class="eyebrow">registres obtenus via CADA · base maison</span></h2>
+    <div class="b">
+      <div class="grid" style="margin-bottom:8px">
+        <div><label for="in-mmcherche">Recherche (adresse, commune)</label><input type="text" id="in-mmcherche" placeholder="ex. rue de la Gare, Ploërmel…"></div>
+      </div>
+      <div class="note" id="mm-statut">Chargement de la base…</div>
+      <div style="max-height:420px; overflow-y:auto"><table id="tbl-mm"></table></div>
+      <span class="hint">Listes officielles communiquées par les mairies en réponse à nos demandes CADA (registre des meublés de tourisme déclarés : adresse du bien, capacité, périodes — identités des propriétaires occultées par la mairie). Intégrées chaque matin par la routine quotidienne à partir des réponses reçues sur la boîte AB Service. Le lien Maps permet de retrouver le propriétaire ou l'annonce à partir de l'adresse. Données confidentielles, servies uniquement aux utilisateurs connectés.</span>
+    </div>
+  </section>
+
+  <section class="card">
     <h2>Demander le registre des meublés aux mairies <span class="eyebrow">droit d'accès · CADA · envoi en un clic</span></h2>
     <div class="b">
       <div class="note">Toute mairie doit communiquer sa <b>liste des meublés de tourisme déclarés</b> à qui en fait la demande (art. L.311-1 CRPA ; avis CADA n° 20131539) : vous obtenez les <b>adresses des biens, capacités et périodes de location</b> — identités et coordonnées personnelles occultées. <b>L'envoi part directement du site</b>, un e-mail par mairie (adresses issues de l'Annuaire officiel de l'administration), signé automatiquement en votre nom — les réponses arrivent sur votre e-mail, celui de vos agences et la boîte générique. Périmètre couvert : toutes les communes, ou votre sélection du bloc « Communes du périmètre » ; les communes <b>déjà demandées sont sautées</b>.</div>
@@ -406,7 +418,7 @@ const norm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ
 function perimetreVilles() { return SELECTION.size ? Array.from(SELECTION.values()) : RAYON_LISTE; }
 /* code postal -> département (Corse : 200xx/201xx = 2A, 202xx/206xx = 2B) — même règle que l'extraction */
 const depDeCp = cp => { const c = String(cp || ""); return c.slice(0, 2) === "20" ? (c.slice(0, 3) <= "201" ? "2A" : "2B") : c.slice(0, 2); };
-function rendreTout() { rendreVilles(); rendreLiens(); rendreDT(); rendreAF(); rendreBailleurs(); rendreCada(); }
+function rendreTout() { rendreVilles(); rendreLiens(); rendreDT(); rendreAF(); rendreBailleurs(); rendreMeubles(); rendreCada(); }
 
 const NUITEE = 25.72, BUDGET_SEM = 180;   /* données MAISON — direction uniquement */
 /* adresse de réponse des courriers EXTERNES (CADA, réservations) — domaine dédié
@@ -1066,6 +1078,46 @@ $("btn-cada-reset").addEventListener("click", () => {
   rendreCada();
 });
 
+/* ===== meublés déclarés en mairie (registres CADA absorbés par la routine quotidienne) =====
+   fichier data/meubles-mairies.json : {maj, n, m:[{c: commune, d: dep, a: adresse, cap: capacité,
+   p: périodes, cl: classement, src: mairie/date}]} — servi derrière l'auth, section logements */
+let MEUBLES = null;
+async function chargerMeubles() {
+  try {
+    const r = await fetch("data/meubles-mairies.json");
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    MEUBLES = await r.json();
+  } catch (e) { MEUBLES = { n: 0, m: [] }; }
+  rendreMeubles();
+}
+function rendreMeubles() {
+  if (!MEUBLES) return;
+  const q = ($("in-mmcherche").value || "").trim().toLowerCase();
+  const villes = perimetreVilles();
+  const noms = villes.length ? new Set(villes.map(v => norm(v.nom))) : null;
+  let liste = (MEUBLES.m || []).filter(x => (!noms || noms.has(norm(x.c))) &&
+    (!q || (x.a + " " + x.c).toLowerCase().includes(q)));
+  const total = liste.length;
+  liste = liste.slice(0, 300);
+  if (!MEUBLES.n) {
+    $("mm-statut").innerHTML = "Aucun registre intégré pour l'instant — les réponses des mairies à vos demandes CADA alimenteront cette base automatiquement.";
+    $("tbl-mm").innerHTML = ""; return;
+  }
+  let s2 = "<tr><th>Commune</th><th>Adresse du meublé</th><th class='n'>Capacité</th><th>Périodes</th><th>Source</th><th></th></tr>";
+  s2 += liste.map(x => {
+    const qm = encodeURIComponent((x.a || "") + " " + (x.c || ""));
+    return "<tr><td>" + esc(x.c) + " <span class='d' style='color:var(--muted)'>(" + esc(x.d || "") + ")</span></td><td>" + esc(x.a) +
+      (x.cl ? " <span class='d' style='color:var(--muted)'>(" + esc(x.cl) + ")</span>" : "") + "</td>" +
+      "<td class='n'>" + esc(x.cap || "?") + "</td><td>" + esc(x.p || "") + "</td><td><span class='hint'>" + esc(x.src || "mairie") + "</span></td>" +
+      "<td class='n'><a target='_blank' rel='noopener' title='Retrouver le propriétaire ou l’annonce à partir de l’adresse' href='https://www.google.com/maps/search/?api=1&query=" + qm + "'>Maps</a></td></tr>";
+  }).join("");
+  $("tbl-mm").innerHTML = s2;
+  $("mm-statut").innerHTML = "<span class='compteur'>" + total + "</span> meublé(s) déclaré(s)" +
+    (noms ? " dans le périmètre" : " (toute la France)") + (total > 300 ? " — 300 premiers affichés, affiner la recherche." : "") +
+    " · base : " + MEUBLES.n + " au total" + (MEUBLES.maj ? ", mise à jour " + esc(MEUBLES.maj) : "") + ".";
+}
+$("in-mmcherche").addEventListener("input", rendreMeubles);
+
 /* ===== bailleurs connus (données confidentielles, servies derrière l'auth) ===== */
 async function chargerBailleurs() {
   try {
@@ -1141,6 +1193,7 @@ $("in-depfiltre").addEventListener("change", rendreBailleurs);
 
 majResume();
 chargerBailleurs();
+chargerMeubles();
 /* arrivée DIRECTE sur le champ de recherche (demande 02/09) — l'attribut autofocus
    est doublé d'un focus explicite (fiable après le chargement des polices/layout) */
 window.addEventListener("load", () => $("in-adresse").focus());
