@@ -42,6 +42,15 @@ const AGENCES_ABSERVICE = {
   "toulouse": "toulouse@abservicefrance.com",
   "lille": "lille@abservicefrance.com",
 };
+/* Centrales de réservation groupes des chaînes de résidences — relevées sur les sites
+ * officiels le 03/09/2026 (recherche en mode dégradé, 1 agent) : seules ces adresses
+ * peuvent recevoir une demande via /api/chaines/contact. */
+const CHAINES_EMAILS = {
+  "goelia": "info@goelia.com",
+  "lagrange": "groupes@groupe-lagrange.com",
+  "vvf": "groupes@vvf.fr",
+  "azureva": "groupes@azureva-vacances.com",
+};
 const entiteDe = x => (x && x.entite === "abservice") ? "abservice" : "ab2pro";
 function agencesDe(x) {
   if (!x || !x.agences) return [];
@@ -288,6 +297,35 @@ async function api(req, env, url, u) {
    * réponse sur l'adresse taguée de l'utilisateur (circuit utilisateur+agences+générique).
    * Max 25 communes par appel (limite de sous-requêtes Workers + douceur Resend) —
    * le portail enchaîne les lots. corps.verifier=true : résolution seule, AUCUN envoi. */
+  /* -- suivi SERVEUR des demandes CADA : communes réellement envoyées (toutes agences) -- */
+  if (p === "/api/cada/faites") {
+    if (!u) return json({ erreur: "non_connecte" }, 401);
+    const r = await env.DB.prepare("SELECT nom, dep, MAX(envoye_le) AS envoye_le FROM cada_envois GROUP BY nom, dep").all();
+    return json({ faites: r.results });
+  }
+
+  /* -- réservation auprès d'une CHAÎNE de résidences (Atout France sans fiche DATAtourisme) :
+   * e-mail de la centrale groupes résolu côté serveur depuis la liste blanche (contacts relevés
+   * sur les sites officiels le 03/09/2026) — jamais d'adresse libre venant du client -- */
+  if (p === "/api/chaines/contact" && req.method === "POST") {
+    if (!u) return json({ erreur: "non_connecte" }, 401);
+    if (!sectionsDe(u).includes("logements")) return json({ erreur: "section" }, 403);
+    const jeton = String(corps.jeton || "").toLowerCase().slice(0, 30);
+    const dest = CHAINES_EMAILS[jeton];
+    if (!dest) return json({ erreur: "chaine_inconnue" }, 400);
+    const nomHeb = String(corps.nom || "l'établissement").slice(0, 120);
+    const message = String(corps.message || "").slice(0, 5000);
+    if (message.length < 20) return json({ erreur: "message_trop_court" }, 400);
+    const res = await envoyerEmail(env, dest, "Demande de location — équipes en mission (AB Service) — " + nomHeb,
+      message, { env, req }, { from: FROM_ABSERVICE, replyTo: adresseReponse(u) });
+    if (res[0] && res[0].ok)
+      await envoyerEmail(env, u.email, "Copie — votre demande de réservation à « " + nomHeb + " »",
+        "Votre demande est partie à la centrale " + jeton + " (" + dest + ") :\n\n" + message,
+        { env, req }, { from: FROM_ABSERVICE, replyTo: adresseReponse(u) });
+    await journal(env, req, u, "chaine_contact", jeton + " " + dest, "statut " + (res[0] ? res[0].status : "?"));
+    return json({ ok: !!(res[0] && res[0].ok) }, res[0] && res[0].ok ? 200 : 502);
+  }
+
   if (p === "/api/cada/envoyer" && req.method === "POST") {
     if (!u) return json({ erreur: "non_connecte" }, 401);
     if (!sectionsDe(u).includes("logements")) return json({ erreur: "section" }, 403);
@@ -327,6 +365,7 @@ async function api(req, env, url, u) {
         "Demande de communication de la liste des meublés de tourisme déclarés — commune de " + c.nom,
         texte, { env, req }, { from: FROM_ABSERVICE, replyTo: reponse });
       if (res[0] && res[0].ok) envoyees.push({ ...c, email }); else echecs.push({ ...c, email });
+      if (res[0] && res[0].ok) await env.DB.prepare("INSERT INTO cada_envois (nom, dep, email, user_id) VALUES (?,?,?,?)").bind(c.nom, c.dep, email, u.id).run();
       await new Promise(rr => setTimeout(rr, 150));   /* douceur API Resend */
     }
     if (!corps.verifier) {

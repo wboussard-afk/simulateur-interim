@@ -240,7 +240,7 @@ La colonne <b>Trajet</b> affiche le temps et la distance <b>réels</b> par la ro
       <div class="note" id="cada-compteur" style="margin-top:8px"></div>
       <div class="liens" style="margin-top:10px">
         <button type="button" class="btn primary" id="btn-cada">✉ Envoyer les demandes aux mairies</button>
-        <button type="button" class="btn" id="btn-cada-reset" title="Oublier quelles communes ont déjà été demandées (dans ce navigateur)">Réinitialiser le suivi</button>
+        <label class="btn" style="display:inline-flex; align-items:center; gap:6px; cursor:pointer" title="Par défaut les communes déjà demandées (par n'importe quel utilisateur, suivi serveur) sont sautées ; cocher pour les relancer."><input type="checkbox" id="in-cada-relance" style="margin:0"> Relancer aussi les communes déjà demandées</label>
       </div>
       <div class="note" id="cada-bilan" style="margin-top:6px"></div>
       <div class="liens" id="cada-mairies" style="margin-top:4px"></div>
@@ -642,6 +642,17 @@ EURN.format(n * BUDGET_SEM) + " par semaine charges comprises (" + EURN.format(M
 "Cordialement,\n" + SIGNATURE;
 }
 const APRES_ENVOI = () => "Demande envoyée ✓ — une copie vous a été adressée ; la réponse du logeur arrivera sur votre e-mail, celui de vos agences et la boîte générique (" + ADRESSE_REPONSE + ").";
+/* réservation auprès de la centrale groupes d'une CHAÎNE (adresse résolue côté serveur) */
+async function contacterChaine(jeton, nomHeb) {
+  const message = messageReservation(nomHeb);
+  if (!window.confirm("Envoyer cette demande à la centrale de réservation de « " + nomHeb + " » ?\n\n" + message)) return;
+  try {
+    const r = await fetch("/api/chaines/contact", { method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ jeton, nom: nomHeb, message }) });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.ok) alert(APRES_ENVOI()); else alert("Envoi impossible (" + (j.erreur || r.status) + ").");
+  } catch (e) { alert("Envoi impossible : " + e.message); }
+}
 /* réservation par e-mail DIRECT (fiche DATAtourisme avec e-mail mais sans canal API,
    ou croisement Atout France) — l'e-mail part du site, copie à l'expéditeur */
 async function contacterHebergement(dep, email, nomHeb) {
@@ -824,6 +835,21 @@ async function rendreAF() {
         .map(hd => ({ j: jetons(hd[0]), uuid: DT_LIVE ? (hd[13] || null) : null, email: hd[8] || null, dep, nom: hd[0] })));
     }
   }
+  /* chaînes de résidences (Atout France sans fiche DATAtourisme) : centrale groupes relevée sur
+     le site officiel le 03/09/2026 — e-mail (envoi depuis le site, adresse résolue côté serveur)
+     ou formulaire (lien). Appart'City reste sur sa page ville (carte Contact direct). */
+  const CHAINES = {
+    goelia: { email: true, nom: "Goélia" }, lagrange: { email: true, nom: "Lagrange" }, vvf: { email: true, nom: "VVF" },
+    azureva: { email: true, nom: "Azureva" },
+    adagio: { url: "https://www.adagio-city.com/fr/aparthotel-herbergement-groupe.shtml", nom: "Adagio" },
+    capwest: { url: "https://www.capwestresidence.fr/solutions#contact", nom: "Cap West" },
+    zenitude: { url: "https://www.zenitude-hotel-residences.com/nous-contacter/?objet=Demande%20de%20devis", nom: "Zenitude" },
+    odalys: { url: "https://www.odalys-evenements-et-groupes.com/contact/", nom: "Odalys" },
+    terresdefrance: { url: "https://www.terresdefrance.com/en/contact-us/", nom: "Terres de France" },
+    pierreetvacances: { url: "https://www.pierreetvacances.com/fr-fr/voyages-groupes_ms", nom: "Pierre & Vacances" },
+    nemea: { url: "https://en.nemea-appart-hotel.com/contact", nom: "Néméa" },
+  };
+  const chaineDe = h => { const n = norm(h[0]); const j = Object.keys(CHAINES).find(k => n.includes(k)); return j ? { jeton: j, ...CHAINES[j] } : null; };
   const chercherDT = h => {
     const cp = String(h[2] || "");
     const dep = cp.slice(0, 2) === "20" ? (cp.slice(0, 3) <= "201" ? "2A" : "2B") : cp.slice(0, 2);
@@ -840,6 +866,7 @@ async function rendreAF() {
     const qm = encodeURIComponent(h[0] + " " + h[1]);
     const trajet = reel ? "<b>" + reel.min + " min</b><br>" + N1.format(reel.km) + " km" : N1.format(km) + " km*";
     const dt = chercherDT(h);
+    const ch = dt ? null : chaineDe(h);
     return "<tr><td><b style='color:var(--brass-deep); font-size:10px; letter-spacing:.05em'>" + esc(h[7].toUpperCase()) + "</b> " +
       esc(h[0]) + " <span class='d' style='color:var(--muted)'>(" + esc(h[6]) + ")</span>" +
       "<span class='hint'>Source : Atout France (classement du " + esc(h[9]) + ") · géocodage BAN</span></td>" +
@@ -849,10 +876,16 @@ async function rendreAF() {
       "<a target='_blank' rel='noopener' title='Ouvrir l’itinéraire chantier → établissement dans Maps' href='https://www.google.com/maps/dir/?api=1&origin=" +
       CHANTIER.lat + "," + CHANTIER.lon + "&destination=" + h[3] + "," + h[4] + "'>itinéraire</a>" +
       (dt ? "<br><a href='#' class='af-resa' data-uuid='" + esc(dt.uuid || "") + "' data-dep='" + esc(dt.dep) +
-            "' data-email='" + esc(dt.email || "") + "' data-nom='" + esc(dt.nom) + "'><b>✉ Réserver</b></a>" : "") +
+            "' data-email='" + esc(dt.email || "") + "' data-nom='" + esc(dt.nom) + "'><b>✉ Réserver</b></a>"
+          : (ch && ch.email ? "<br><a href='#' class='chaine-resa' data-jeton='" + ch.jeton + "' data-nom='" + esc(h[0]) + "' title='Centrale groupes " + esc(ch.nom) + "'><b>✉ Réserver</b></a>"
+          : (ch && ch.url ? "<br><a target='_blank' rel='noopener' href='" + esc(ch.url) + "' title='Formulaire groupes " + esc(ch.nom) + "'><b>Réserver ↗</b></a>" : ""))) +
       "</td></tr>";
   }).join("");
   $("tbl-af").innerHTML = sa;
+  Array.from($("tbl-af").querySelectorAll(".chaine-resa")).forEach(a => a.addEventListener("click", ev => {
+    ev.preventDefault();
+    contacterChaine(a.dataset.jeton, a.dataset.nom);
+  }));
   Array.from($("tbl-af").querySelectorAll(".af-resa")).forEach(a => a.addEventListener("click", ev => {
     ev.preventDefault();
     /* canal API DATAtourisme si uuid, sinon e-mail direct depuis le site */
@@ -873,6 +906,7 @@ $("in-afcherche").addEventListener("input", () => { clearTimeout(window._afT); w
    décision direction 02/09 soir), moins les communes déjà demandées.
    Suivi localStorage propre à ce navigateur (limite assumée). */
 function cadaDestinataires() {
+  if ($("in-cada-relance").checked) return perimetreVilles();
   const faites = cadaFaites();
   return perimetreVilles().filter(v => !faites.has(v.nom + "|" + v.dep));
 }
@@ -885,15 +919,20 @@ function rendreCada() {
     (SELECTION.size ? " (sélection en cours dans le bloc communes)" : " (tout le périmètre)") +
     (nbDeja ? " · " + nbDeja + " déjà demandée(s), sautée(s)" : "") + ".";
 }
-function cadaFaites() {
-  try { return new Set(JSON.parse(localStorage.getItem("cada_faites") || "[]")); } catch (e) { return new Set(); }
-}
-function cadaMarquer(cles) {
+/* suivi SERVEUR (table cada_envois) : seules les demandes RÉELLEMENT envoyées comptent,
+   pour tous les utilisateurs — plus de marques locales (l'ancien suivi navigateur signalait
+   des communes jamais demandées, bug remonté par la direction le 03/09) */
+let CADA_FAITES = new Map();   /* "nom|dep" -> date du dernier envoi */
+async function chargerCadaFaites() {
   try {
-    const s = cadaFaites(); cles.forEach(c => s.add(c));
-    localStorage.setItem("cada_faites", JSON.stringify(Array.from(s)));
+    const r = await fetch("/api/cada/faites");
+    if (r.ok) { const j = await r.json(); CADA_FAITES = new Map((j.faites || []).map(x => [x.nom + "|" + x.dep, x.envoye_le])); }
   } catch (e) {}
+  try { localStorage.removeItem("cada_faites"); } catch (e) {}   /* purge de l'ancien suivi local */
+  rendreCada();
 }
+function cadaFaites() { return new Set(CADA_FAITES.keys()); }
+function cadaMarquer(cles) { const auj = new Date().toISOString().slice(0, 10); cles.forEach(c => CADA_FAITES.set(c, auj)); }
 /* ENVOI EN UN CLIC (décision direction 03/09) : le serveur retrouve l'e-mail de
    chaque mairie (Annuaire officiel de l'administration), compose la lettre signée
    automatiquement et l'envoie — par lots de 25 pour rester doux avec l'API. */
@@ -901,7 +940,7 @@ $("btn-cada").addEventListener("click", async () => {
   if (!perimetreVilles().length) { alert("Saisir d'abord l'adresse du chantier."); return; }
   const aFaire = cadaDestinataires();
   if (!aFaire.length) {
-    $("cada-bilan").innerHTML = "Toutes les communes du périmètre ont déjà été demandées — « Réinitialiser le suivi » pour recommencer, ou modifier la sélection dans le bloc communes.";
+    $("cada-bilan").innerHTML = "Toutes les communes du périmètre ont déjà été demandées (suivi serveur des envois réels) — cocher « Relancer aussi… » pour les redemander, ou modifier la sélection dans le bloc communes.";
     return;
   }
   if (!window.confirm("Envoyer " + aFaire.length + " demande(s) de registre des meublés aux mairies du périmètre ?\n\n" +
@@ -936,12 +975,7 @@ $("btn-cada").addEventListener("click", async () => {
     encodeURIComponent(v.nom) + "'>" + esc(v.nom) + " ↗</a>").join("");
   /* les communes sans e-mail restent NON marquées : re-proposées tant qu'on n'a pas traité manuellement */
 });
-$("btn-cada-reset").addEventListener("click", () => {
-  try { localStorage.removeItem("cada_faites"); } catch (e) {}
-  $("cada-bilan").textContent = "Suivi réinitialisé — toutes les communes redeviennent demandables.";
-  $("cada-mairies").innerHTML = "";
-  rendreCada();
-});
+$("in-cada-relance").addEventListener("change", rendreCada);
 
 /* ===== meublés déclarés en mairie (registres CADA absorbés par la routine quotidienne) =====
    fichier data/meubles-mairies.json : {maj, n, m:[{c: commune, d: dep, a: adresse, cap: capacité,
@@ -1059,6 +1093,7 @@ $("in-depfiltre").addEventListener("change", rendreBailleurs);
 majResume();
 chargerBailleurs();
 chargerMeubles();
+chargerCadaFaites();
 /* arrivée DIRECTE sur le champ de recherche (demande 02/09) — l'attribut autofocus
    est doublé d'un focus explicite (fiable après le chargement des polices/layout) */
 window.addEventListener("load", () => $("in-adresse").focus());
