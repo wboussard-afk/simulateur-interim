@@ -97,6 +97,10 @@ button.sec { background: none; border: 1px solid var(--line); color: var(--ink);
     <button type="button" class="sec" id="btn-vers-login" data-t="retour">← Retour à la connexion</button>
     <div class="msg" id="d-msg"></div>
   </form>
+  <div id="d-fin" hidden>
+    <div class="msg ok" id="d-fin-msg" style="font-size:15px; margin-top:4px"></div>
+    <div class="note" style="text-align:center; margin-top:10px" data-t="retour_auto">Retour automatique à la page de connexion dans une minute.</div>
+  </div>
 
   <div class="pied"><span data-t="pied">Accès sur approbation des administrateurs.</span><br>Groupe Triangle Solutions RH · AB2Pro.</div>
 </div>
@@ -117,7 +121,7 @@ const T = {
     fonction: "Fonction (poste — figurera dans la signature de vos courriers)", fonction_ph: "ex. Chargé(e) de recrutement",
     envoyer: "Envoyer la demande", retour: "← Retour à la connexion", pied: "Accès sur approbation des administrateurs.",
     err_entite: "Choisissez votre entité (AB2PRO, AB SERVICE ou PRESTATAIRE).", err_societe: "Indiquez le nom de votre société.", err_agence: "Choisissez au moins une agence de rattachement.",
-    envoi: "Envoi…", deja_attente: "Demande déjà en attente — les administrateurs ont été prévenus.", envoyee: "✓ Demande envoyée aux administrateurs — vous recevrez un e-mail après approbation.",
+    envoi: "Envoi…", deja_attente: "Demande déjà en attente — les administrateurs ont été prévenus.", envoyee: "✓ Demande envoyée aux administrateurs — vous recevrez un e-mail après approbation.", retour_auto: "Retour automatique à la page de connexion dans une minute.",
     deja_utilisateur: "Cet e-mail a déjà un compte — utilisez la connexion.", invalide: "Demande invalide — vérifiez les champs." },
   en: { titre: "Tools", titre_page: "Sign in", sous: "European temporary staffing that keeps its word.", email: "E-mail", mdp: "Password", connecter: "Sign in", demander: "Request access",
     connexion: "Signing in…", verrouille: "Account locked for {n} min (5 failed attempts).", identifiants_ko: "Incorrect e-mail or password.",
@@ -130,7 +134,7 @@ const T = {
     fonction: "Job title (will appear in the signature of your letters)", fonction_ph: "e.g. Recruitment officer",
     envoyer: "Send the request", retour: "← Back to sign-in", pied: "Access requires approval by an administrator.",
     err_entite: "Choose your organisation (AB2PRO, AB SERVICE or PARTNER).", err_societe: "Enter your company name.", err_agence: "Choose at least one agency.",
-    envoi: "Sending…", deja_attente: "Request already pending — the administrators have been notified.", envoyee: "✓ Request sent to the administrators — you will receive an e-mail once your request is approved.",
+    envoi: "Sending…", deja_attente: "Request already pending — the administrators have been notified.", envoyee: "✓ Request sent to the administrators — you will receive an e-mail once your request is approved.", retour_auto: "You will be taken back to the sign-in page in one minute.",
     deja_utilisateur: "An account already exists for this e-mail address — please go back and sign in.", invalide: "Invalid request — please check the fields." },
   ro: { titre: "Instrumente", titre_page: "Conectare", sous: "Munca temporară europeană care se ține de cuvânt.", email: "E-mail", mdp: "Parolă", connecter: "Conectare", demander: "Solicitați acces",
     connexion: "Conectare…", verrouille: "Cont blocat {n} min (5 încercări eșuate).", identifiants_ko: "E-mail sau parolă incorectă.",
@@ -143,7 +147,7 @@ const T = {
     fonction: "Funcție (va apărea în semnătura corespondenței dvs.)", fonction_ph: "ex. Responsabil recrutare",
     envoyer: "Trimiteți cererea", retour: "← Înapoi la conectare", pied: "Acces după aprobarea administratorilor.",
     err_entite: "Alegeți organizația dvs. (AB2PRO, AB SERVICE sau PARTENER).", err_societe: "Introduceți numele societății dvs.", err_agence: "Alegeți cel puțin o agenție.",
-    envoi: "Se trimite…", deja_attente: "Cerere deja în așteptare — administratorii au fost anunțați.", envoyee: "✓ Cerere trimisă administratorilor — veți primi un e-mail după aprobare.",
+    envoi: "Se trimite…", deja_attente: "Cerere deja în așteptare — administratorii au fost anunțați.", envoyee: "✓ Cerere trimisă administratorilor — veți primi un e-mail după aprobare.", retour_auto: "Veți fi redirecționat(ă) la pagina de conectare într-un minut.",
     deja_utilisateur: "Acest e-mail are deja un cont — conectați-vă.", invalide: "Cerere invalidă — verificați câmpurile." },
   hu: { titre: "Eszközök", titre_page: "Bejelentkezés", sous: "Európai munkaerő-kölcsönzés, amely állja a szavát.", email: "E-mail", mdp: "Jelszó", connecter: "Bejelentkezés", demander: "Hozzáférés kérése",
     connexion: "Bejelentkezés…", verrouille: "A fiók {n} percre zárolva (5 sikertelen kísérlet).", identifiants_ko: "Hibás e-mail-cím vagy jelszó.",
@@ -156,7 +160,7 @@ const T = {
     fonction: "Beosztás (a levelei aláírásában fog szerepelni)", fonction_ph: "pl. Toborzási munkatárs",
     envoyer: "Kérelem elküldése", retour: "← Vissza a bejelentkezéshez", pied: "Hozzáférés az adminisztrátorok jóváhagyásával.",
     err_entite: "Válassza ki a szervezetét (AB2PRO, AB SERVICE vagy PARTNER).", err_societe: "Adja meg a cége nevét.", err_agence: "Válasszon legalább egy irodát.",
-    envoi: "Küldés…", deja_attente: "A kérelem már függőben van — az adminisztrátorok értesítést kaptak.", envoyee: "✓ A kérelmet elküldtük az adminisztrátoroknak — jóváhagyás után e-mailt kap.",
+    envoi: "Küldés…", deja_attente: "A kérelem már függőben van — az adminisztrátorok értesítést kaptak.", envoyee: "✓ A kérelmet elküldtük az adminisztrátoroknak — jóváhagyás után e-mailt kap.", retour_auto: "Egy perc múlva visszakerül a bejelentkezési oldalra.",
     deja_utilisateur: "Ehhez az e-mail-címhez már tartozik fiók — jelentkezzen be.", invalide: "Érvénytelen kérelem — ellenőrizze a mezőket." },
 };
 const LANGUES = ["fr", "en", "ro", "hu"];
@@ -246,9 +250,15 @@ $("f-demande").addEventListener("submit", async e => {
       societe: prest ? $("d-societe").value : "", telephone: prest ? $("d-telephone").value : "", pays, langue: L }) }); }
   catch (err) { btn.disabled = false; m.className = "msg err"; m.textContent = t("reseau"); return; }
   const j = await r.json().catch(() => ({}));
-  if (!(r.ok && j.ok)) btn.disabled = false;   /* succès : le bouton reste inactif (pas de double envoi) */
-  if (r.ok && j.ok) { m.className = "msg ok"; m.textContent = j.deja ? t("deja_attente") : t("envoyee"); }
-  else { m.className = "msg err"; m.textContent = j.erreur === "deja_utilisateur" ? t("deja_utilisateur") : t("invalide"); }
+  if (r.ok && j.ok) {
+    /* envoyé : le formulaire disparaît (aucun renvoi possible), seul le message reste, retour à la connexion après 1 min */
+    $("f-demande").hidden = true;
+    $("d-fin-msg").textContent = j.deja ? t("deja_attente") : t("envoyee"); $("d-fin").hidden = false;
+    setTimeout(() => { $("f-demande").reset(); $("d-fin").hidden = true; $("f-login").hidden = false; }, 60000);
+    return;
+  }
+  btn.disabled = false;
+  m.className = "msg err"; m.textContent = j.erreur === "deja_utilisateur" ? t("deja_utilisateur") : t("invalide");
 });
 </script>
 </body>
