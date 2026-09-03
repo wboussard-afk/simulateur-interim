@@ -172,7 +172,8 @@ function traduire() {
 function choisirLangue(l, memoriser) {
   L = LANGUES.includes(l) ? l : "fr"; traduire();
   /* pays de recrutement : proposé d'après la langue (RO/HU) tant que rien n'a été choisi — jamais un défaut silencieux ailleurs */
-  const pp = $("d-pays"); if (pp && !pp.value && (L === "ro" || L === "hu")) pp.value = L === "ro" ? "Roumanie" : "Hongrie";
+  const pp = $("d-pays");
+  if (pp && (!pp.value || pp.dataset.auto === "1") && (L === "ro" || L === "hu")) { pp.value = L === "ro" ? "Roumanie" : "Hongrie"; pp.dataset.auto = "1"; }
   if (memoriser) { try { localStorage.setItem("ab2pro_langue", L); } catch (e) {} }
 }
 document.querySelectorAll("#lang button").forEach(b => b.addEventListener("click", () => choisirLangue(b.dataset.l, true)));
@@ -224,7 +225,7 @@ $("d-entite").addEventListener("change", () => {
   /* requis seulement quand le bloc est visible (un champ requis masqué bloquerait l'envoi sans message) */
   $("d-societe").required = $("d-pays").required = ent === "prestataire";
 });
-$("d-pays").addEventListener("change", () => { $("d-pays-autre").hidden = $("d-pays").value !== "Autre"; if ($("d-pays").value === "Autre") $("d-pays-autre").focus(); });
+$("d-pays").addEventListener("change", () => { $("d-pays").dataset.auto = ""; $("d-pays-autre").hidden = $("d-pays").value !== "Autre"; if ($("d-pays").value === "Autre") $("d-pays-autre").focus(); });
 
 $("f-demande").addEventListener("submit", async e => {
   e.preventDefault();
