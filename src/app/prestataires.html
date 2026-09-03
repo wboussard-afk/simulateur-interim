@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<title>Prestataires recrutement — AB2Pro</title>
+<style>
+/* ===== Espace PRESTATAIRES (recruteurs partenaires externes) — mobile-first, FR/EN/RO/HU =====
+   Le prestataire ne voit que ses données (droits côté serveur) ; les admins AB2PRO ont les onglets de gestion. */
+:root { --paper:#f4f4f5; --card:#FFFFFF; --card2:#ececef; --ink:#29293b; --muted:#5f5f74; --line:#d9d9e0; --line-soft:#e8e8ee;
+  --brass:#db303f; --brass-deep:#681316; --good:#47713E; --good-soft:rgba(71,113,62,.12); --warn:#93660F; --warn-soft:#F1E6C8;
+  --shadow:0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper:#1b1b25; --card:#232330; --card2:#2c2c3b; --ink:#ececf1; --muted:#a2a2b5;
+  --line:#3b3b4d; --line-soft:#2f2f3e; --brass:#e85160; --brass-deep:#f0929c; --good:#93BD82; --warn:#D9B45E; --warn-soft:#383018;
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3); } }
+:root[data-theme="dark"] { --paper:#1b1b25; --card:#232330; --card2:#2c2c3b; --ink:#ececf1; --muted:#a2a2b5; --line:#3b3b4d; --line-soft:#2f2f3e;
+  --brass:#e85160; --brass-deep:#f0929c; --good:#93BD82; --warn:#D9B45E; --warn-soft:#383018; --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3); }
+* { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font: 16px/1.45 "Segoe UI", system-ui, sans-serif; }
+h1, h2 { font-family: "Nexa", "Poppins", "Segoe UI", system-ui, sans-serif; }
+header { background: var(--card); border-bottom: 1px solid var(--line); padding: 12px 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+header h1 { margin: 0; font-size: 19px; } header h1 b { color: var(--brass); }
+header .qui { color: var(--muted); font-size: 12.5px; flex: 1 1 auto; }
+.lang { display: flex; gap: 4px; }
+.lang button { border: 1px solid var(--line); background: var(--card2); color: var(--ink); border-radius: 8px; padding: 6px 9px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.lang button.on { background: var(--brass); border-color: var(--brass); color: #fff; }
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding: 10px 12px 0; scrollbar-width: none; }
+.tabs button { flex: 0 0 auto; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 10px; padding: 9px 13px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.tabs button.on { background: var(--brass); border-color: var(--brass); color: #fff; }
+.wrap { max-width: 900px; margin: 0 auto; padding: 12px 12px 90px; display: flex; flex-direction: column; gap: 12px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+.card h2 { font-size: 16px; margin: 0; padding: 11px 14px; border-bottom: 1px solid var(--line-soft); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.card .b { padding: 12px 14px 14px; }
+.note { font-size: 13px; color: var(--muted); }
+.cmd { border: 1px solid var(--line-soft); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; background: var(--paper); }
+.cmd b { font-size: 15px; } .cmd .m { color: var(--muted); font-size: 13px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+@media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+label { display: block; font-size: 12px; color: var(--muted); font-weight: 700; margin: 0 0 3px; }
+input, select, textarea { width: 100%; padding: 11px 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--card2); color: var(--ink); font: inherit; font-size: 16px; }
+input[type=checkbox] { width: 22px; height: 22px; padding: 0; }
+.chk { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--ink); margin-top: 22px; }
+.btn { border: 1px solid var(--line); background: var(--card2); color: var(--ink); border-radius: 9px; padding: 10px 14px; font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer; }
+.btn.p { background: var(--brass); border-color: var(--brass); color: #fff; }
+.btn.s { padding: 6px 10px; font-size: 13px; font-weight: 600; }
+.btn:disabled { opacity: .5; cursor: default; }
+.ligne { border: 1px solid var(--line-soft); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; background: var(--paper); }
+.ligne .tit { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-weight: 700; }
+.tbl { width: 100%; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+td, th { padding: 7px 6px; border-bottom: 1px solid var(--line-soft); text-align: left; vertical-align: top; white-space: nowrap; }
+th { color: var(--muted); font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+.tag { display: inline-block; border-radius: 10px; padding: 1px 8px; font-size: 11.5px; font-weight: 700; background: var(--warn-soft); color: var(--warn); }
+.tag.ok { background: var(--good-soft); color: var(--good); } .tag.ko { background: rgba(219,48,63,.12); color: var(--brass-deep); }
+.msg { font-size: 13.5px; margin-top: 8px; min-height: 18px; } .msg.err { color: var(--brass-deep); } .msg.ok { color: var(--good); }
+.doc { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line-soft); border-radius: 10px; margin-bottom: 8px; text-decoration: none; color: var(--ink); background: var(--paper); }
+.doc .ic { font-size: 24px; }
+.total { font-size: 18px; font-weight: 800; color: var(--brass-deep); }
+[hidden] { display: none !important; }
+.tot td { border-top: 2px solid var(--brass-deep); font-weight: 800; }
+</style>
+</head>
+<body>
+<header>
+  <h1><b>AB2Pro</b> — <span data-t="titre">Prestataires recrutement</span></h1>
+  <span class="qui" id="qui"></span>
+  <div class="lang" id="lang">
+    <button data-l="fr">FR</button><button data-l="en">EN</button><button data-l="ro">RO</button><button data-l="hu">HU</button>
+  </div>
+</header>
+
+<div class="tabs" id="tabs"></div>
+
+<div class="wrap" id="wrap">
+  <!-- ===== prestataire : commandes ===== -->
+  <section class="card" data-onglet="commandes">
+    <h2><span data-t="t_commandes">Commandes de la semaine</span> <span class="note" id="cmd-sem"></span></h2>
+    <div class="b">
+      <div class="note" data-t="cmd_intro">Postes à pourvoir cette semaine. Proposez vos candidats dans l'onglet « Proposer une équipe » en indiquant la commande visée.</div>
+      <div id="cmd-liste" style="margin-top:10px"></div>
+    </div>
+  </section>
+
+  <!-- ===== prestataire : proposer une équipe ===== -->
+  <section class="card" data-onglet="proposer">
+    <h2><span data-t="t_proposer">Proposer une équipe</span> <span class="note" id="prop-sem"></span></h2>
+    <div class="b">
+      <div class="note" data-t="prop_intro">Un candidat par ligne. NOM en majuscules et prénom sont mis en forme automatiquement. Ajoutez autant de lignes que nécessaire, puis envoyez : AB2PRO reçoit la proposition immédiatement.</div>
+      <div id="prop-lignes" style="margin-top:10px"></div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px">
+        <button class="btn" id="btn-prop-plus" data-t="ajouter_ligne">+ Ajouter un candidat</button>
+        <button class="btn p" id="btn-prop-envoyer" data-t="envoyer">Envoyer la proposition</button>
+      </div>
+      <div class="msg" id="prop-msg"></div>
+      <h2 style="margin:14px -14px 8px; border-top:1px solid var(--line-soft)"><span data-t="mes_propositions">Mes propositions</span></h2>
+      <div class="tbl"><table id="tbl-prop"></table></div>
+    </div>
+  </section>
+
+  <!-- ===== prestataire : déclaration du mois ===== -->
+  <section class="card" data-onglet="declarer">
+    <h2><span data-t="t_declarer">Candidats placés du mois</span>
+      <select id="decl-mois" style="width:auto; padding:6px 8px; font-size:14px; margin-left:auto"></select></h2>
+    <div class="b">
+      <div class="note" data-t="decl_intro">Déclarez ici, avant le 15 du mois suivant, chaque candidat que vous avez présenté et qui a travaillé dans le mois. AB2PRO renseigne ensuite les heures travaillées et facturées (avant le 12) : le tableau validé sert de base à votre facture.</div>
+      <div id="decl-lignes" style="margin-top:10px"></div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px">
+        <button class="btn" id="btn-decl-plus" data-t="ajouter_ligne">+ Ajouter un candidat</button>
+        <button class="btn p" id="btn-decl-envoyer" data-t="declarer_btn">Déclarer</button>
+      </div>
+      <div class="msg" id="decl-msg"></div>
+      <h2 style="margin:14px -14px 8px; border-top:1px solid var(--line-soft)"><span data-t="mes_declarations">Mes déclarations</span></h2>
+      <div class="tbl"><table id="tbl-decl"></table></div>
+    </div>
+  </section>
+
+  <!-- ===== prestataire : facturation ===== -->
+  <section class="card" data-onglet="facture">
+    <h2><span data-t="t_facture">Ma facturation</span>
+      <select id="fac-mois" style="width:auto; padding:6px 8px; font-size:14px; margin-left:auto"></select></h2>
+    <div class="b">
+      <div class="note" id="fac-regle"></div>
+      <div class="tbl" style="margin-top:8px"><table id="tbl-fac"></table></div>
+      <div class="note" style="margin-top:8px" data-t="fac_note">Seules les lignes validées par AB2PRO avec des heures comptent. Adressez votre facture à compta@ab2pro.com une fois le tableau validé (adv@ab2pro.com pour toute question sur les heures).</div>
+    </div>
+  </section>
+
+  <!-- ===== prestataire : documents ===== -->
+  <section class="card" data-onglet="documents">
+    <h2><span data-t="t_documents">Mes documents</span></h2>
+    <div class="b">
+      <div class="note" data-t="doc_intro">Votre contrat de partenariat et les consignes de fonctionnement AB2PRO (conditions d'hébergement des intérimaires, etc.).</div>
+      <div id="doc-liste" style="margin-top:10px"></div>
+    </div>
+  </section>
+
+  <!-- ===== admin : commandes ===== -->
+  <section class="card" data-onglet="adm-commandes" data-admin>
+    <h2>Commandes ouvertes (admin)</h2>
+    <div class="b">
+      <div class="note">Collez les lignes du CRM (onglet « Toutes les commandes ») : une commande par ligne, colonnes séparées par des tabulations — numéro, date de début, nombre de postes, titre, agence, lieu. Les commandes ouvertes absentes de la liste seront fermées si la case est cochée.</div>
+      <textarea id="adm-cmd-texte" rows="6" style="margin-top:8px; font-size:13px" placeholder="3600	07/09/2026	1	1 SOUDEUR BTP	PALMA BRETAGNE	VEZIN LE COQUET"></textarea>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:8px">
+        <label class="chk" style="margin:0"><input type="checkbox" id="adm-cmd-fermer" checked> Fermer les commandes absentes</label>
+        <button class="btn p" id="btn-adm-cmd">Mettre à jour les commandes</button>
+        <span class="msg" id="adm-cmd-msg" style="margin:0"></span>
+      </div>
+      <div class="tbl" style="margin-top:10px"><table id="tbl-adm-cmd"></table></div>
+    </div>
+  </section>
+
+  <!-- ===== admin : propositions ===== -->
+  <section class="card" data-onglet="adm-propositions" data-admin>
+    <h2>Propositions reçues (admin) <input id="adm-prop-sem" placeholder="2026-W37" style="width:130px; padding:6px 8px; font-size:14px; margin-left:auto"> <button class="btn s" id="btn-adm-prop">Afficher</button></h2>
+    <div class="b"><div class="tbl"><table id="tbl-adm-prop"></table></div></div>
+  </section>
+
+  <!-- ===== admin : déclarations & heures ===== -->
+  <section class="card" data-onglet="adm-declarations" data-admin>
+    <h2>Déclarations &amp; heures (admin) <input id="adm-decl-mois" placeholder="2026-08" style="width:110px; padding:6px 8px; font-size:14px; margin-left:auto"> <button class="btn s" id="btn-adm-decl">Afficher</button> <button class="btn s" id="btn-adm-export">Export CSV facturation</button></h2>
+    <div class="b">
+      <div class="note">Renseignez les heures <b>travaillées ET facturées</b> (annexe 1 : hors intempéries, fériés, trajets, visites médicales), ajustez Q/NQ, puis <b>Valider</b>. Le montant se calcule avec le tarif contractuel du prestataire. Export CSV = tableau récapitulatif du mois pour adv@ / compta@.</div>
+      <div class="tbl" style="margin-top:10px"><table id="tbl-adm-decl"></table></div>
+      <div class="msg" id="adm-decl-msg"></div>
+    </div>
+  </section>
+
+  <!-- ===== admin : prestataires ===== -->
+  <section class="card" data-onglet="adm-prestataires" data-admin>
+    <h2>Prestataires (admin)</h2>
+    <div class="b">
+      <div class="note">Tarifs contractuels (€ HT / heure travaillée et facturée) : qualifié / autre profil — ou paliers JSON par nombre de TT du mois, ex. <code>[{"jusqua":50,"taux":0.5},{"jusqua":100,"taux":0.6},{"taux":0.7}]</code>. Le code recruteur est aussi le dossier de ses documents.</div>
+      <div class="tbl" style="margin-top:10px"><table id="tbl-adm-prest"></table></div>
+      <div class="msg" id="adm-prest-msg"></div>
+    </div>
+  </section>
+
+  <!-- ===== admin : documents ===== -->
+  <section class="card" data-onglet="adm-documents" data-admin>
+    <h2>Documents (admin)</h2>
+    <div class="b">
+      <div class="note">Les fichiers sont déposés dans <code>data/prestataires/commun/</code> (tous) ou <code>data/prestataires/&lt;CODE&gt;/</code> (un prestataire) puis déployés ; référencez-les ici pour qu'ils apparaissent dans l'espace du prestataire.</div>
+      <div class="grid" style="margin-top:8px">
+        <div><label>Fichier (chemin relatif)</label><input id="adm-doc-fichier" placeholder="commun/conditions-hebergement-2026.pdf"></div>
+        <div><label>Titre affiché</label><input id="adm-doc-titre" placeholder="Conditions d'hébergement 2026"></div>
+        <div><label>Prestataire (vide = commun à tous)</label><select id="adm-doc-prest"><option value="">— commun —</option></select></div>
+        <div><label>Langue</label><select id="adm-doc-langue"><option value="fr">FR</option><option value="en">EN</option><option value="ro">RO</option><option value="hu">HU</option></select></div>
+      </div>
+      <div style="margin-top:8px"><button class="btn p" id="btn-adm-doc">Référencer le document</button> <span class="msg" id="adm-doc-msg" style="display:inline"></span></div>
+      <div id="adm-doc-liste" style="margin-top:10px"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const post = (u, o) => fetch(u, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(o || {}) }).then(r => r.json());
+const get = u => fetch(u).then(r => r.ok ? r.json() : r.json().then(j => Promise.reject(j)));
+
+/* ===== textes FR / EN / RO / HU ===== */
+const T = {
+  fr: { titre: "Prestataires recrutement", t_commandes: "Commandes de la semaine", cmd_intro: "Postes à pourvoir cette semaine. Proposez vos candidats dans l'onglet « Proposer une équipe » en indiquant la commande visée.",
+    t_proposer: "Proposer une équipe", prop_intro: "Un candidat par ligne. NOM en majuscules et prénom sont mis en forme automatiquement. Ajoutez autant de lignes que nécessaire, puis envoyez : AB2PRO reçoit la proposition immédiatement.",
+    ajouter_ligne: "+ Ajouter un candidat", envoyer: "Envoyer la proposition", mes_propositions: "Mes propositions", t_declarer: "Candidats placés du mois",
+    decl_intro: "Déclarez ici, avant le 15 du mois suivant, chaque candidat que vous avez présenté et qui a travaillé dans le mois. AB2PRO renseigne ensuite les heures travaillées et facturées (avant le 12) : le tableau validé sert de base à votre facture.",
+    declarer_btn: "Déclarer", mes_declarations: "Mes déclarations", t_facture: "Ma facturation", fac_note: "Seules les lignes validées par AB2PRO avec des heures comptent. Adressez votre facture à compta@ab2pro.com une fois le tableau validé (adv@ab2pro.com pour toute question sur les heures).",
+    t_documents: "Mes documents", doc_intro: "Votre contrat de partenariat et les consignes de fonctionnement AB2PRO (conditions d'hébergement des intérimaires, etc.).",
+    commande: "Commande", libre: "— sans commande précise —", equipe: "Équipe n°", nom: "NOM", prenom: "Prénom", metier: "Métier", vehicule: "Véhicule", salaire: "Salaire net souhaité (€/h)", tel: "Téléphone", remarques: "Remarques",
+    agence: "Agence", qualifie: "Profil qualifié", commentaire: "Commentaire", supprimer: "Supprimer", semaine: "Semaine", mois: "Mois", statut: "Statut", heures: "Heures", taux: "Taux", montant: "Montant HT", total: "Total HT",
+    postes: "poste(s)", debut: "début", aucune_commande: "Aucune commande ouverte pour le moment.", envoye: "✓ Envoyé — AB2PRO a été prévenu.", erreur: "Erreur — réessayer.", rien: "Aucune ligne à envoyer (nom, prénom et métier obligatoires).",
+    st_proposee: "proposée", st_retenue: "retenue", st_refusee: "refusée", st_declaree: "déclarée", st_validee: "validée", st_rejetee: "rejetée", a_valider: "en attente d'AB2PRO",
+    regle_taux: "Tarif contractuel : {q} €/h profil qualifié · {nq} €/h autre profil — sur les heures travaillées et facturées.", regle_paliers: "Tarif contractuel par paliers (nombre de TT du mois) — sur les heures travaillées et facturées.",
+    aucun: "Aucune ligne.", oui: "oui", non: "non", doc_commun: "consigne AB2PRO", doc_perso: "votre document" },
+  en: { titre: "Recruitment partners", t_commandes: "This week's job orders", cmd_intro: "Positions to fill this week. Propose your candidates in the “Propose a team” tab, indicating the targeted order.",
+    t_proposer: "Propose a team", prop_intro: "One candidate per line. SURNAME (capitals) and first name are formatted automatically. Add as many lines as needed, then send: AB2PRO receives the proposal immediately.",
+    ajouter_ligne: "+ Add a candidate", envoyer: "Send the proposal", mes_propositions: "My proposals", t_declarer: "Candidates placed this month",
+    decl_intro: "Declare here, before the 15th of the following month, each candidate you presented who worked during the month. AB2PRO then fills in the hours worked and invoiced (before the 12th): the validated table is the basis of your invoice.",
+    declarer_btn: "Declare", mes_declarations: "My declarations", t_facture: "My invoicing", fac_note: "Only lines validated by AB2PRO with hours count. Send your invoice to compta@ab2pro.com once the table is validated (adv@ab2pro.com for any question about hours).",
+    t_documents: "My documents", doc_intro: "Your partnership contract and AB2PRO operating instructions (housing conditions for temporary workers, etc.).",
+    commande: "Job order", libre: "— no specific order —", equipe: "Team no.", nom: "SURNAME", prenom: "First name", metier: "Trade", vehicule: "Vehicle", salaire: "Expected net wage (€/h)", tel: "Phone", remarques: "Remarks",
+    agence: "Agency", qualifie: "Qualified profile", commentaire: "Comment", supprimer: "Delete", semaine: "Week", mois: "Month", statut: "Status", heures: "Hours", taux: "Rate", montant: "Amount excl. VAT", total: "Total excl. VAT",
+    postes: "position(s)", debut: "start", aucune_commande: "No open job order at the moment.", envoye: "✓ Sent — AB2PRO has been notified.", erreur: "Error — please retry.", rien: "Nothing to send (surname, first name and trade are required).",
+    st_proposee: "proposed", st_retenue: "selected", st_refusee: "declined", st_declaree: "declared", st_validee: "validated", st_rejetee: "rejected", a_valider: "awaiting AB2PRO",
+    regle_taux: "Contract rate: {q} €/h qualified profile · {nq} €/h other profile — on hours worked and invoiced.", regle_paliers: "Contract rate by tiers (number of workers in the month) — on hours worked and invoiced.",
+    aucun: "No lines.", oui: "yes", non: "no", doc_commun: "AB2PRO instruction", doc_perso: "your document" },
+  ro: { titre: "Parteneri recrutare", t_commandes: "Comenzile săptămânii", cmd_intro: "Posturi de ocupat săptămâna aceasta. Propuneți candidații în fila „Propune o echipă”, indicând comanda vizată.",
+    t_proposer: "Propune o echipă", prop_intro: "Un candidat pe linie. NUMELE (majuscule) și prenumele se formatează automat. Adăugați câte linii este nevoie, apoi trimiteți: AB2PRO primește propunerea imediat.",
+    ajouter_ligne: "+ Adaugă un candidat", envoyer: "Trimite propunerea", mes_propositions: "Propunerile mele", t_declarer: "Candidați plasați în luna",
+    decl_intro: "Declarați aici, înainte de 15 ale lunii următoare, fiecare candidat prezentat de dvs. care a lucrat în cursul lunii. AB2PRO completează apoi orele lucrate și facturate (înainte de 12): tabelul validat este baza facturii dvs.",
+    declarer_btn: "Declară", mes_declarations: "Declarațiile mele", t_facture: "Facturarea mea", fac_note: "Numai liniile validate de AB2PRO cu ore contează. Trimiteți factura la compta@ab2pro.com după validarea tabelului (adv@ab2pro.com pentru orice întrebare despre ore).",
+    t_documents: "Documentele mele", doc_intro: "Contractul dvs. de parteneriat și instrucțiunile de funcționare AB2PRO (condiții de cazare a lucrătorilor temporari etc.).",
+    commande: "Comandă", libre: "— fără comandă precisă —", equipe: "Echipa nr.", nom: "NUME", prenom: "Prenume", metier: "Meserie", vehicule: "Vehicul", salaire: "Salariu net dorit (€/h)", tel: "Telefon", remarques: "Observații",
+    agence: "Agenție", qualifie: "Profil calificat", commentaire: "Comentariu", supprimer: "Șterge", semaine: "Săptămâna", mois: "Luna", statut: "Stare", heures: "Ore", taux: "Tarif", montant: "Sumă fără TVA", total: "Total fără TVA",
+    postes: "post(uri)", debut: "început", aucune_commande: "Nicio comandă deschisă momentan.", envoye: "✓ Trimis — AB2PRO a fost anunțat.", erreur: "Eroare — reîncercați.", rien: "Nimic de trimis (nume, prenume și meserie obligatorii).",
+    st_proposee: "propus", st_retenue: "reținut", st_refusee: "refuzat", st_declaree: "declarat", st_validee: "validat", st_rejetee: "respins", a_valider: "în așteptarea AB2PRO",
+    regle_taux: "Tarif contractual: {q} €/h profil calificat · {nq} €/h alt profil — pe orele lucrate și facturate.", regle_paliers: "Tarif contractual pe tranșe (număr de lucrători în lună) — pe orele lucrate și facturate.",
+    aucun: "Nicio linie.", oui: "da", non: "nu", doc_commun: "instrucțiune AB2PRO", doc_perso: "documentul dvs." },
+  hu: { titre: "Toborzó partnerek", t_commandes: "A hét megrendelései", cmd_intro: "Ezen a héten betöltendő állások. Jelöltjeit a „Csapat javaslása” fülön ajánlja, megjelölve a célzott megrendelést.",
+    t_proposer: "Csapat javaslása", prop_intro: "Soronként egy jelölt. A VEZETÉKNÉV (nagybetűvel) és a keresztnév automatikusan formázódik. Adjon hozzá annyi sort, amennyi szükséges, majd küldje el: az AB2PRO azonnal megkapja a javaslatot.",
+    ajouter_ligne: "+ Jelölt hozzáadása", envoyer: "Javaslat küldése", mes_propositions: "Javaslataim", t_declarer: "A hónapban elhelyezett jelöltek",
+    decl_intro: "Itt jelentse be a következő hónap 15-e előtt minden jelöltjét, aki a hónapban dolgozott. Az AB2PRO ezután kitölti a ledolgozott és kiszámlázott órákat (12-e előtt): a jóváhagyott táblázat a számlája alapja.",
+    declarer_btn: "Bejelentés", mes_declarations: "Bejelentéseim", t_facture: "Számlázásom", fac_note: "Csak az AB2PRO által jóváhagyott, órákkal rendelkező sorok számítanak. Számláját a táblázat jóváhagyása után küldje a compta@ab2pro.com címre (órákkal kapcsolatos kérdések: adv@ab2pro.com).",
+    t_documents: "Dokumentumaim", doc_intro: "Partnerségi szerződése és az AB2PRO működési utasításai (ideiglenes munkavállalók szállásfeltételei stb.).",
+    commande: "Megrendelés", libre: "— nincs konkrét megrendelés —", equipe: "Csapat sz.", nom: "VEZETÉKNÉV", prenom: "Keresztnév", metier: "Szakma", vehicule: "Jármű", salaire: "Kívánt nettó bér (€/óra)", tel: "Telefon", remarques: "Megjegyzések",
+    agence: "Iroda", qualifie: "Szakképzett profil", commentaire: "Megjegyzés", supprimer: "Törlés", semaine: "Hét", mois: "Hónap", statut: "Állapot", heures: "Órák", taux: "Díj", montant: "Összeg (nettó)", total: "Összesen (nettó)",
+    postes: "állás", debut: "kezdés", aucune_commande: "Jelenleg nincs nyitott megrendelés.", envoye: "✓ Elküldve — az AB2PRO értesítést kapott.", erreur: "Hiba — próbálja újra.", rien: "Nincs küldendő sor (vezetéknév, keresztnév és szakma kötelező).",
+    st_proposee: "javasolt", st_retenue: "kiválasztott", st_refusee: "elutasított", st_declaree: "bejelentett", st_validee: "jóváhagyott", st_rejetee: "elutasított", a_valider: "AB2PRO-ra vár",
+    regle_taux: "Szerződéses díj: {q} €/óra szakképzett · {nq} €/óra egyéb profil — a ledolgozott és kiszámlázott órákra.", regle_paliers: "Sávos szerződéses díj (a hónap munkavállalóinak száma szerint) — a ledolgozott és kiszámlázott órákra.",
+    aucun: "Nincs sor.", oui: "igen", non: "nem", doc_commun: "AB2PRO utasítás", doc_perso: "az Ön dokumentuma" },
+};
+let L = "fr";
+const t = (k, v) => { let s = (T[L] && T[L][k]) || T.fr[k] || k; if (v) for (const x in v) s = s.replace("{" + x + "}", v[x]); return s; };
+function traduire() {
+  document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t(el.dataset.t); });
+  document.querySelectorAll("#lang button").forEach(b => b.classList.toggle("on", b.dataset.l === L));
+  document.documentElement.lang = L;
+}
+
+const METIERS = ["BARDEUR", "PLAQUISTE", "ITE", "ELECTRICIEN", "MENUISIER", "MACON", "CARRELEUR", "PLOMBIER", "CHAUFFAGISTE", "SOUDEUR", "PEINTRE", "COUVREUR", "CHARPENTIER", "FERRAILLEUR", "COFFREUR", "MANOEUVRE", "OUVRIER DE PRODUCTION", "CARISTE", "AUTRE"];
+const AGENCES = ["PALMA ATLANTIQUE", "PALMA ANJOU", "PALMA BRETAGNE", "PALMA NORMANDIE", "PALMA OCCITANIE", "PALMA AQUITAINE", "PALMA HAUTS-DE-FRANCE", "PALMA RHÔNE-ALPES", "PALMA ALSACE", "PALMA PACA", "PALMA ILE-DE-FRANCE"];
+const opts = (liste, val) => liste.map(x => "<option" + (x === val ? " selected" : "") + ">" + esc(x) + "</option>").join("");
+const moisListe = () => { const out = []; const d = new Date(); for (let k = 0; k < 6; k++) { const x = new Date(d.getFullYear(), d.getMonth() - k, 1); out.push(x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0")); } return out; };
+const tagStatut = s => "<span class='tag" + (s === "retenue" || s === "validee" ? " ok" : s === "refusee" || s === "rejetee" ? " ko" : "") + "'>" + esc(t("st_" + s)) + "</span>";
+
+let MOI = null, COMMANDES = [];
+async function init() {
+  try { MOI = await get("/api/prest/moi"); }
+  catch (e) { $("wrap").innerHTML = "<section class='card'><div class='b'>Accès réservé aux prestataires partenaires et aux administrateurs.<br>Access reserved to partner recruiters and administrators.</div></section>"; return; }
+  L = ["fr", "en", "ro", "hu"].includes(MOI.langue) ? MOI.langue : "fr";
+  $("qui").textContent = MOI.prestataire ? MOI.prestataire.societe + " · " + MOI.prestataire.code : "Administration AB2PRO";
+  const ongl = MOI.admin
+    ? [["adm-commandes", "Commandes"], ["adm-propositions", "Propositions"], ["adm-declarations", "Déclarations & heures"], ["adm-prestataires", "Prestataires"], ["adm-documents", "Documents"]]
+    : [["commandes", "t_commandes"], ["proposer", "t_proposer"], ["declarer", "t_declarer"], ["facture", "t_facture"], ["documents", "t_documents"]];
+  $("tabs").innerHTML = ongl.map(([id, lib], i) => "<button data-o='" + id + "'" + (i === 0 ? " class='on'" : "") + (MOI.admin ? "" : " data-t='" + lib + "'") + ">" + esc(MOI.admin ? lib : t(lib)) + "</button>").join("");
+  document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => montrer(b.dataset.o)));
+  document.querySelectorAll("#lang button").forEach(b => b.addEventListener("click", async () => { L = b.dataset.l; traduire(); rendreTout(); await post("/api/profil", { langue: L }).catch(() => {}); }));
+  $("cmd-sem").textContent = $("prop-sem").textContent = t("semaine") + " " + MOI.semaine;
+  $("decl-mois").innerHTML = $("fac-mois").innerHTML = moisListe().map(m => "<option>" + m + "</option>").join("");
+  $("adm-decl-mois").value = MOI.mois; $("adm-prop-sem").value = MOI.semaine;
+  traduire();
+  montrer(ongl[0][0]);
+  COMMANDES = (await get("/api/prest/commandes").catch(() => ({ commandes: [] }))).commandes;
+  rendreTout();
+}
+function montrer(id) {
+  document.querySelectorAll("[data-onglet]").forEach(s => { s.hidden = s.dataset.onglet !== id; });
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.o === id));
+  if (id === "declarer") chargerDecl(); if (id === "facture") chargerFacture(); if (id === "proposer") chargerProps();
+  if (id === "adm-commandes") admCommandes(); if (id === "adm-propositions") admProps(); if (id === "adm-declarations") admDecl();
+  if (id === "adm-prestataires") admPrest(); if (id === "adm-documents") admDocs();
+}
+function rendreTout() {
+  if (!MOI) return;
+  /* commandes ouvertes (prestataire) */
+  $("cmd-liste").innerHTML = COMMANDES.length ? COMMANDES.map(c =>
+    "<div class='cmd'><b>" + esc(c.titre) + "</b> — " + esc(c.nb_postes) + " " + t("postes") + "<br><span class='m'>" + esc(c.agence) + " · " + esc(c.lieu) + " · " + t("debut") + " " + esc(c.date_debut) + " · n° " + esc(c.numero) + "</span></div>").join("")
+    : "<div class='note'>" + t("aucune_commande") + "</div>";
+  if (!$("prop-lignes").children.length) { ajouterLigneProp(); }
+  if (!$("decl-lignes").children.length) { ajouterLigneDecl(); }
+  /* documents */
+  $("doc-liste").innerHTML = (MOI.documents || []).map(d =>
+    "<a class='doc' target='_blank' rel='noopener' href='" + esc(d.url) + "'><span class='ic'>📄</span><span><b>" + esc(d.titre) + "</b><br><span class='note'>" + (d.commun ? t("doc_commun") : t("doc_perso")) + " · " + esc(d.langue.toUpperCase()) + "</span></span></a>").join("") || "<div class='note'>" + t("aucun") + "</div>";
+  traduire();
+}
+/* ---- proposition : lignes de saisie ---- */
+function ajouterLigneProp() {
+  const n = $("prop-lignes").children.length + 1;
+  const d = document.createElement("div"); d.className = "ligne";
+  d.innerHTML = "<div class='tit'><span>#" + n + "</span><button class='btn s' data-x>" + t("supprimer") + "</button></div>" +
+    "<div class='grid'>" +
+    "<div><label>" + t("commande") + "</label><select data-k='commande_id'><option value=''>" + t("libre") + "</option>" +
+      COMMANDES.map(c => "<option value='" + c.id + "'>" + esc(c.numero + " · " + c.titre + " · " + c.lieu) + "</option>").join("") + "</select></div>" +
+    "<div><label>" + t("equipe") + "</label><input data-k='equipe' type='number' min='1' value='1'></div>" +
+    "<div><label>" + t("nom") + "</label><input data-k='nom' style='text-transform:uppercase' autocapitalize='characters'></div>" +
+    "<div><label>" + t("prenom") + "</label><input data-k='prenom' autocapitalize='words'></div>" +
+    "<div><label>" + t("metier") + "</label><select data-k='metier'>" + opts(METIERS) + "</select></div>" +
+    "<div><label>" + t("salaire") + "</label><input data-k='salaire_net' inputmode='decimal' placeholder='11,50'></div>" +
+    "<div><label>" + t("tel") + "</label><input data-k='telephone' inputmode='tel'></div>" +
+    "<div><label class='chk' style='margin:22px 0 0'><input data-k='vehicule' type='checkbox'> " + t("vehicule") + "</label></div>" +
+    "<div style='grid-column:1/-1'><label>" + t("remarques") + "</label><input data-k='remarques'></div></div>";
+  d.querySelector("[data-x]").addEventListener("click", () => d.remove());
+  $("prop-lignes").appendChild(d);
+}
+function lireLignes(cont) {
+  return Array.from(cont.children).map(l => { const o = {}; l.querySelectorAll("[data-k]").forEach(e => { o[e.dataset.k] = e.type === "checkbox" ? e.checked : e.value.trim(); }); return o; });
+}
+$("btn-prop-plus").addEventListener("click", ajouterLigneProp);
+$("btn-prop-envoyer").addEventListener("click", async () => {
+  const lignes = lireLignes($("prop-lignes")).filter(l => l.nom && l.prenom && l.metier);
+  const m = $("prop-msg"); if (!lignes.length) { m.className = "msg err"; m.textContent = t("rien"); return; }
+  $("btn-prop-envoyer").disabled = true; m.className = "msg"; m.textContent = "…";
+  const j = await post("/api/prest/propositions", { semaine: MOI.semaine, lignes }).catch(() => ({}));
+  $("btn-prop-envoyer").disabled = false;
+  if (j.ok) { m.className = "msg ok"; m.textContent = t("envoye") + " (" + j.n + ")"; $("prop-lignes").innerHTML = ""; ajouterLigneProp(); chargerProps(); }
+  else { m.className = "msg err"; m.textContent = t("erreur") + " " + (j.erreur || ""); }
+});
+async function chargerProps() {
+  const j = await get("/api/prest/propositions").catch(() => ({ propositions: [] }));
+  const l = j.propositions || [];
+  $("tbl-prop").innerHTML = l.length ? "<tr><th>" + t("semaine") + "</th><th>" + t("equipe") + "</th><th>" + t("nom") + "</th><th>" + t("metier") + "</th><th>" + t("commande") + "</th><th>" + t("statut") + "</th></tr>" +
+    l.map(p => "<tr><td>" + esc(p.semaine) + "</td><td>" + esc(p.equipe) + "</td><td>" + esc(p.nom + " " + p.prenom) + "</td><td>" + esc(p.metier) + (p.vehicule ? " 🚗" : "") + "</td><td>" + esc(p.numero ? p.numero + " · " + p.commande_lieu : "—") + "</td><td>" + tagStatut(p.statut) + "</td></tr>").join("")
+    : "<tr><td class='note'>" + t("aucun") + "</td></tr>";
+}
+/* ---- déclaration mensuelle ---- */
+function ajouterLigneDecl() {
+  const d = document.createElement("div"); d.className = "ligne";
+  d.innerHTML = "<div class='tit'><span>#" + ($("decl-lignes").children.length + 1) + "</span><button class='btn s' data-x>" + t("supprimer") + "</button></div><div class='grid'>" +
+    "<div><label>" + t("nom") + "</label><input data-k='nom' style='text-transform:uppercase' autocapitalize='characters'></div>" +
+    "<div><label>" + t("prenom") + "</label><input data-k='prenom' autocapitalize='words'></div>" +
+    "<div><label>" + t("metier") + "</label><select data-k='metier'>" + opts(METIERS) + "</select></div>" +
+    "<div><label>" + t("agence") + "</label><select data-k='agence'>" + opts(AGENCES) + "</select></div>" +
+    "<div><label class='chk' style='margin:22px 0 0'><input data-k='qualifie' type='checkbox'> " + t("qualifie") + "</label></div>" +
+    "<div><label>" + t("commentaire") + "</label><input data-k='commentaire'></div></div>";
+  d.querySelector("[data-x]").addEventListener("click", () => d.remove());
+  $("decl-lignes").appendChild(d);
+}
+$("btn-decl-plus").addEventListener("click", ajouterLigneDecl);
+$("btn-decl-envoyer").addEventListener("click", async () => {
+  const lignes = lireLignes($("decl-lignes")).filter(l => l.nom && l.prenom && l.metier);
+  const m = $("decl-msg"); if (!lignes.length) { m.className = "msg err"; m.textContent = t("rien"); return; }
+  $("btn-decl-envoyer").disabled = true; m.className = "msg"; m.textContent = "…";
+  const j = await post("/api/prest/declarations", { mois: $("decl-mois").value, lignes }).catch(() => ({}));
+  $("btn-decl-envoyer").disabled = false;
+  if (j.ok) { m.className = "msg ok"; m.textContent = t("envoye") + " (" + j.n + ")"; $("decl-lignes").innerHTML = ""; ajouterLigneDecl(); chargerDecl(); }
+  else { m.className = "msg err"; m.textContent = t("erreur") + " " + (j.erreur || ""); }
+});
+$("decl-mois").addEventListener("change", chargerDecl);
+async function chargerDecl() {
+  const j = await get("/api/prest/declarations?mois=" + encodeURIComponent($("decl-mois").value)).catch(() => ({ declarations: [] }));
+  const l = j.declarations || [];
+  $("tbl-decl").innerHTML = l.length ? "<tr><th>" + t("nom") + "</th><th>" + t("metier") + "</th><th>" + t("agence") + "</th><th>Q</th><th class='n'>" + t("heures") + "</th><th>" + t("statut") + "</th><th></th></tr>" +
+    l.map(d => "<tr><td>" + esc(d.nom + " " + d.prenom) + "</td><td>" + esc(d.metier) + "</td><td>" + esc(d.agence) + "</td><td>" + (d.qualifie ? "Q" : "NQ") + "</td><td class='n'>" + (d.heures == null ? "<span class='note'>" + t("a_valider") + "</span>" : esc(d.heures)) + "</td><td>" + tagStatut(d.statut) + "</td><td>" +
+      (d.statut === "declaree" ? "<button class='btn s' data-del='" + d.id + "'>" + t("supprimer") + "</button>" : "") + "</td></tr>").join("")
+    : "<tr><td class='note'>" + t("aucun") + "</td></tr>";
+  $("tbl-decl").querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => { await post("/api/prest/declaration", { id: +b.dataset.del }); chargerDecl(); }));
+}
+/* ---- facturation ---- */
+$("fac-mois").addEventListener("change", chargerFacture);
+async function chargerFacture() {
+  const j = await get("/api/prest/facture?mois=" + encodeURIComponent($("fac-mois").value)).catch(() => null);
+  if (!j || !j.lignes) { $("tbl-fac").innerHTML = ""; $("fac-regle").textContent = ""; return; }
+  $("fac-regle").textContent = j.regle === "paliers" ? t("regle_paliers") : t("regle_taux", { q: MOI.prestataire ? MOI.prestataire.tarif_q : "", nq: MOI.prestataire ? MOI.prestataire.tarif_nq : "" });
+  const N2 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  $("tbl-fac").innerHTML = "<tr><th>" + t("nom") + "</th><th>" + t("metier") + "</th><th>Q</th><th class='n'>" + t("heures") + "</th><th class='n'>" + t("taux") + "</th><th class='n'>" + t("montant") + "</th><th>" + t("statut") + "</th></tr>" +
+    (j.lignes.length ? j.lignes.map(l => "<tr><td>" + esc(l.nom + " " + l.prenom) + "</td><td>" + esc(l.metier) + "</td><td>" + (l.qualifie ? "Q" : "NQ") + "</td><td class='n'>" + (l.heures == null ? "—" : N2.format(l.heures)) + "</td><td class='n'>" + N2.format(l.taux) + " €</td><td class='n'>" + N2.format(l.montant) + " €</td><td>" + tagStatut(l.statut) + "</td></tr>").join("") : "<tr><td class='note' colspan='7'>" + t("aucun") + "</td></tr>") +
+    "<tr class='tot'><td colspan='5'>" + t("total") + " · " + esc(j.mois) + "</td><td class='n total'>" + N2.format(j.total) + " €</td><td></td></tr>";
+}
+/* ===== ADMIN ===== */
+async function admCommandes() {
+  const j = await get("/api/prest/commandes").catch(() => ({ commandes: [] }));
+  $("tbl-adm-cmd").innerHTML = "<tr><th>N°</th><th>Début</th><th>Postes</th><th>Titre</th><th>Agence</th><th>Lieu</th><th></th></tr>" +
+    (j.commandes || []).map(c => "<tr><td>" + esc(c.numero) + "</td><td>" + esc(c.date_debut) + "</td><td>" + esc(c.nb_postes) + "</td><td>" + esc(c.titre) + "</td><td>" + esc(c.agence) + "</td><td>" + esc(c.lieu) + "</td><td><button class='btn s' data-cl='" + c.id + "'>Fermer</button></td></tr>").join("");
+  $("tbl-adm-cmd").querySelectorAll("[data-cl]").forEach(b => b.addEventListener("click", async () => { await post("/api/prest/admin/commande", { id: +b.dataset.cl, statut: "fermee" }); admCommandes(); }));
+}
+$("btn-adm-cmd").addEventListener("click", async () => {
+  /* colle du CRM : colonnes tabulées ; secours : espaces multiples. Date jj/mm/aaaa -> ISO */
+  const lignes = $("adm-cmd-texte").value.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => {
+    let c = l.includes("\t") ? l.split("\t").map(x => x.trim()) : l.split(/\s{2,}/).map(x => x.trim());
+    if (c.length < 5) return null;
+    const dm = c[1].match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    return { numero: c[0], date_debut: dm ? dm[3] + "-" + dm[2] + "-" + dm[1] : c[1], nb_postes: parseInt(c[2], 10) || 1, titre: c[3], agence: c[4] || "", lieu: c[5] || "" };
+  }).filter(Boolean);
+  const j = await post("/api/prest/admin/commandes", { lignes, fermer_absentes: $("adm-cmd-fermer").checked });
+  $("adm-cmd-msg").textContent = j.ok ? "✓ " + j.n + " commande(s) à jour." : "Erreur : " + (j.erreur || "?");
+  admCommandes();
+});
+async function admProps() {
+  const j = await get("/api/prest/propositions?semaine=" + encodeURIComponent($("adm-prop-sem").value)).catch(() => ({ propositions: [] }));
+  $("tbl-adm-prop").innerHTML = "<tr><th>Prestataire</th><th>Éq.</th><th>Candidat</th><th>Métier</th><th>Véh.</th><th>Net</th><th>Tél.</th><th>Commande</th><th>Remarques</th><th>Statut</th><th></th></tr>" +
+    ((j.propositions || []).map(p => "<tr><td>" + esc(p.societe) + "</td><td>" + esc(p.equipe) + "</td><td><b>" + esc(p.nom) + "</b> " + esc(p.prenom) + "</td><td>" + esc(p.metier) + "</td><td>" + (p.vehicule ? "oui" : "—") + "</td><td>" + esc(p.salaire_net) + "</td><td>" + esc(p.telephone) + "</td><td>" + esc(p.numero ? p.numero + " · " + p.commande_titre + " · " + p.commande_lieu : "—") + "</td><td>" + esc(p.remarques) + "</td><td>" + tagStatut(p.statut) + "</td><td><button class='btn s' data-st='retenue' data-id='" + p.id + "'>Retenir</button> <button class='btn s' data-st='refusee' data-id='" + p.id + "'>Refuser</button></td></tr>").join("") || "<tr><td class='note'>Aucune proposition.</td></tr>");
+  $("tbl-adm-prop").querySelectorAll("[data-st]").forEach(b => b.addEventListener("click", async () => { await post("/api/prest/admin/proposition", { id: +b.dataset.id, statut: b.dataset.st }); admProps(); }));
+}
+$("btn-adm-prop").addEventListener("click", admProps);
+async function admDecl() {
+  const mois = $("adm-decl-mois").value;
+  const j = await get("/api/prest/declarations?mois=" + encodeURIComponent(mois)).catch(() => ({ declarations: [] }));
+  $("tbl-adm-decl").innerHTML = "<tr><th>Prestataire</th><th>Candidat</th><th>Métier</th><th>Agence</th><th>Q</th><th>Heures</th><th>Commentaire</th><th>Statut</th><th></th></tr>" +
+    ((j.declarations || []).map(d => "<tr data-id='" + d.id + "'><td>" + esc(d.societe) + "<br><span class='note'>" + esc(d.code) + "</span></td><td><b>" + esc(d.nom) + "</b> " + esc(d.prenom) + "</td><td>" + esc(d.metier) + "</td><td>" + esc(d.agence) + "</td>" +
+      "<td><input type='checkbox' data-q" + (d.qualifie ? " checked" : "") + "></td><td><input data-h inputmode='decimal' value='" + (d.heures == null ? "" : esc(d.heures)) + "' style='width:90px; padding:6px'></td><td><input data-c value='" + esc(d.commentaire) + "' style='width:160px; padding:6px'></td><td>" + tagStatut(d.statut) + "</td>" +
+      "<td><button class='btn s p' data-val='validee'>Valider</button> <button class='btn s' data-val='rejetee'>Rejeter</button></td></tr>").join("") || "<tr><td class='note'>Aucune déclaration pour " + esc(mois) + ".</td></tr>");
+  $("tbl-adm-decl").querySelectorAll("[data-val]").forEach(b => b.addEventListener("click", async () => {
+    const tr = b.closest("tr");
+    const j2 = await post("/api/prest/admin/declaration", { id: +tr.dataset.id, heures: tr.querySelector("[data-h]").value, qualifie: tr.querySelector("[data-q]").checked, commentaire: tr.querySelector("[data-c]").value, statut: b.dataset.val });
+    $("adm-decl-msg").textContent = j2.ok ? "✓ Enregistré." : "Erreur : " + (j2.erreur || "?"); admDecl();
+  }));
+}
+$("btn-adm-decl").addEventListener("click", admDecl);
+$("btn-adm-export").addEventListener("click", () => { location.href = "/api/prest/admin/export?mois=" + encodeURIComponent($("adm-decl-mois").value); });
+async function admPrest() {
+  const j = await get("/api/prest/admin/liste").catch(() => ({ prestataires: [] }));
+  $("tbl-adm-prest").innerHTML = "<tr><th>Société</th><th>Code</th><th>Contact</th><th>Pays</th><th>Langue</th><th>€/h Q</th><th>€/h NQ</th><th>Paliers JSON</th><th>Actif</th><th></th></tr>" +
+    ((j.prestataires || []).map(p => "<tr data-id='" + p.id + "'><td>" + esc(p.societe) + "</td><td>" + esc(p.code) + "</td><td>" + esc(p.contact) + "<br><span class='note'>" + esc(p.email) + " · " + esc(p.telephone) + "</span></td><td>" + esc(p.pays) + "</td>" +
+      "<td><select data-l style='padding:5px'>" + ["fr", "en", "ro", "hu"].map(l => "<option" + (p.langue === l ? " selected" : "") + ">" + l + "</option>").join("") + "</select></td>" +
+      "<td><input data-q value='" + esc(p.tarif_q) + "' style='width:70px; padding:5px'></td><td><input data-nq value='" + esc(p.tarif_nq) + "' style='width:70px; padding:5px'></td><td><input data-p value='" + esc(p.paliers || "") + "' style='width:200px; padding:5px'></td>" +
+      "<td><input type='checkbox' data-a" + (p.actif ? " checked" : "") + "></td><td><button class='btn s p' data-sv>Enregistrer</button></td></tr>").join("") || "<tr><td class='note'>Aucun prestataire — ils apparaissent après approbation d'une demande d'accès PRESTATAIRE.</td></tr>");
+  $("tbl-adm-prest").querySelectorAll("[data-sv]").forEach(b => b.addEventListener("click", async () => {
+    const tr = b.closest("tr"); let paliers = null; const pv = tr.querySelector("[data-p]").value.trim();
+    if (pv) { try { paliers = JSON.parse(pv); } catch (e) { $("adm-prest-msg").textContent = "Paliers : JSON invalide."; return; } }
+    const j2 = await post("/api/prest/admin/prestataire", { id: +tr.dataset.id, tarif_q: tr.querySelector("[data-q]").value.replace(",", "."), tarif_nq: tr.querySelector("[data-nq]").value.replace(",", "."), paliers, langue: tr.querySelector("[data-l]").value, actif: tr.querySelector("[data-a]").checked });
+    $("adm-prest-msg").textContent = j2.ok ? "✓ Enregistré." : "Erreur : " + (j2.erreur || "?");
+  }));
+  $("adm-doc-prest").innerHTML = "<option value=''>— commun —</option>" + (j.prestataires || []).map(p => "<option value='" + p.id + "'>" + esc(p.societe + " (" + p.code + ")") + "</option>").join("");
+}
+async function admDocs() {
+  if (!$("adm-doc-prest").options.length || $("adm-doc-prest").options.length < 2) await admPrest();
+  const j = await get("/api/prest/moi").catch(() => ({ documents: [] }));
+  $("adm-doc-liste").innerHTML = (j.documents || []).map(d => "<div class='doc'><span class='ic'>📄</span><span style='flex:1'><b>" + esc(d.titre) + "</b><br><span class='note'>" + esc(d.url) + " · " + (d.commun ? "commun" : "prestataire") + " · " + esc(d.langue) + "</span></span><button class='btn s' data-del='" + d.id + "'>Retirer</button></div>").join("") || "<div class='note'>Aucun document référencé.</div>";
+  $("adm-doc-liste").querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => { await post("/api/prest/admin/document", { id: +b.dataset.del, supprimer: true }); admDocs(); }));
+}
+$("btn-adm-doc").addEventListener("click", async () => {
+  const j = await post("/api/prest/admin/document", { fichier: $("adm-doc-fichier").value.trim(), titre: $("adm-doc-titre").value.trim(), prestataire_id: $("adm-doc-prest").value || null, langue: $("adm-doc-langue").value });
+  $("adm-doc-msg").textContent = j.ok ? "✓ Référencé." : "Erreur : " + (j.erreur || "?"); if (j.ok) { $("adm-doc-fichier").value = ""; $("adm-doc-titre").value = ""; admDocs(); }
+});
+init();
+</script>
+</body>
+</html>

@@ -58,7 +58,19 @@ button.sec { background: none; border: 1px solid var(--line); color: var(--ink);
       <option value="" selected disabled>— choisir —</option>
       <option value="ab2pro">AB2PRO</option>
       <option value="abservice">AB SERVICE</option>
+      <option value="prestataire">PRESTATAIRE — recruteur partenaire externe / Partener extern / Külső partner</option>
     </select>
+    <div id="d-prest-bloc" hidden>
+      <label>Société / Societate / Cég</label>
+      <input id="d-societe" placeholder="ex. AKTERIA CONSULTING">
+      <label>Téléphone / Telefon</label>
+      <input id="d-telephone" placeholder="+40 …">
+      <label>Pays de sourcing / Țara / Ország</label>
+      <select id="d-pays"><option>Roumanie</option><option>Hongrie</option><option>Bulgarie</option><option>Moldavie</option><option>Autre</option></select>
+      <div style="font-size:11px; color:var(--muted); margin-top:4px">Accès après validation par AB2PRO · Access after validation · Acces după validare · Hozzáférés jóváhagyás után.</div>
+    </div>
+    <label>Langue par défaut / Default language / Limba / Nyelv <span style="font-weight:400">(modifiable dans votre profil)</span></label>
+    <select id="d-langue"><option value="fr">Français</option><option value="en">English</option><option value="ro">Română</option><option value="hu">Magyar</option></select>
     <div id="d-agences-bloc" hidden>
       <label>Agence(s) de rattachement AB Service — une ou plusieurs</label>
       <div id="d-agences" style="display:flex; flex-wrap:wrap; gap:6px 12px; font-size:13px; margin:4px 0 6px"></div>
@@ -106,6 +118,9 @@ $("d-agences").innerHTML = AGENCES.map(a =>
   "<input type='checkbox' class='ck-ag' value='" + a + "' style='width:auto; margin:0'>" + libAgence(a) + "</label>").join("");
 $("d-entite").addEventListener("change", () => {
   $("d-agences-bloc").hidden = $("d-entite").value !== "abservice";
+  $("d-prest-bloc").hidden = $("d-entite").value !== "prestataire";
+  /* prestataire : la fonction n'a pas de sens (c'est une société) */
+  $("d-fonction").required = $("d-entite").value !== "prestataire";
 });
 
 $("f-demande").addEventListener("submit", async e => {
@@ -113,11 +128,13 @@ $("f-demande").addEventListener("submit", async e => {
   const m = $("d-msg"); m.className = "msg";
   const entite = $("d-entite").value;
   const agences = Array.from(document.querySelectorAll(".ck-ag:checked")).map(c => c.value);
-  if (!entite) { m.className = "msg err"; m.textContent = "Choisissez votre entité (AB2PRO ou AB SERVICE)."; return; }
+  if (!entite) { m.className = "msg err"; m.textContent = "Choisissez votre entité (AB2PRO, AB SERVICE ou PRESTATAIRE)."; return; }
+  if (entite === "prestataire" && !$("d-societe").value.trim()) { m.className = "msg err"; m.textContent = "Indiquez le nom de votre société / Numele societății / Cégnév."; return; }
   if (entite === "abservice" && !agences.length) { m.className = "msg err"; m.textContent = "Choisissez au moins une agence de rattachement."; return; }
   m.textContent = "Envoi…";
   const r = await fetch("/api/demande-acces", { method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ nom: $("d-nom").value, email: $("d-email").value, fonction: $("d-fonction").value, entite, agences }) });
+    body: JSON.stringify({ nom: $("d-nom").value, email: $("d-email").value, fonction: $("d-fonction").value, entite, agences,
+      societe: $("d-societe").value, telephone: $("d-telephone").value, pays: $("d-pays").value, langue: $("d-langue").value }) });
   const j = await r.json().catch(() => ({}));
   if (r.ok && j.ok) { m.className = "msg ok"; m.textContent = j.deja ? "Demande déjà en attente — les administrateurs ont été prévenus." : "✓ Demande envoyée aux administrateurs — vous recevrez un e-mail après approbation."; }
   else { m.className = "msg err"; m.textContent = j.erreur === "deja_utilisateur" ? "Cet e-mail a déjà un compte — utilisez la connexion." : "Demande invalide — vérifiez les champs."; }

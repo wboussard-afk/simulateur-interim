@@ -99,6 +99,15 @@ a.appcard:hover, a.appcard:active { border-color: var(--brass); transform: trans
     <span class="go">→</span>
   </a>
 
+  <a class="appcard" data-section="prestataires" href="prestataires.html">
+    <span class="ico">🤝</span>
+    <span class="tt">
+      <h2>Prestataires recrutement</h2>
+      <p>Espace des recruteurs partenaires (Roumanie, Hongrie, Bulgarie…) : commandes de la semaine, proposition d'équipes, déclaration mensuelle des candidats placés, facturation contractuelle et documents (contrat, conditions d'hébergement). Côté AB2PRO : validation des heures et export du tableau de facturation.</p>
+    </span>
+    <span class="go">→</span>
+  </a>
+
   <div class="appcard" id="carte-profil" hidden style="cursor:default; flex-direction:column; align-items:stretch">
     <div style="display:flex; align-items:center; gap:16px">
       <span class="ico">👤</span>
@@ -106,6 +115,19 @@ a.appcard:hover, a.appcard:active { border-color: var(--brass); transform: trans
         <h2>Mon profil</h2>
         <p id="profil-resume">…</p>
       </span>
+    </div>
+    <div style="margin-top:10px; border-top:1px solid var(--line-soft); padding-top:10px; display:flex; flex-wrap:wrap; gap:10px 16px; align-items:flex-end; font-size:13.5px">
+      <label style="display:flex; flex-direction:column; gap:3px; font-weight:400; flex:1 1 180px">Nom
+        <input id="profil-nom" style="padding:6px 8px; border:1px solid var(--line); border-radius:7px; background:var(--card2); color:var(--ink); font:inherit"></label>
+      <label style="display:flex; flex-direction:column; gap:3px; font-weight:400; flex:1 1 220px">E-mail de connexion
+        <input id="profil-email" type="email" autocomplete="email" style="padding:6px 8px; border:1px solid var(--line); border-radius:7px; background:var(--card2); color:var(--ink); font:inherit"></label>
+      <label style="display:flex; flex-direction:column; gap:3px; font-weight:400">Langue par défaut / Default language
+        <select id="profil-langue" style="padding:6px 8px; border:1px solid var(--line); border-radius:7px; background:var(--card2); color:var(--ink); font:inherit">
+          <option value="fr">Français</option><option value="en">English</option><option value="ro">Română</option><option value="hu">Magyar</option></select></label>
+      <label style="display:flex; flex-direction:column; gap:3px; font-weight:400; flex:1 1 220px">Fonction (signature des courriers)
+        <input id="profil-fonction" placeholder="ex. Chargé(e) de recrutement" style="padding:6px 8px; border:1px solid var(--line); border-radius:7px; background:var(--card2); color:var(--ink); font:inherit"></label>
+      <button id="btn-profil-base" style="background:var(--brass); color:#fff; border:0; border-radius:8px; padding:8px 16px; font-weight:700; cursor:pointer">Enregistrer</button>
+      <span id="profil-msg-base" style="font-size:12.5px; color:var(--muted)"></span>
     </div>
     <div id="profil-agences" hidden style="margin-top:10px; border-top:1px solid var(--line-soft); padding-top:10px">
       <p style="margin:0 0 6px; font-size:13px"><b>Agences de rattachement AB Service</b> — une ou plusieurs (les réponses des logeurs
@@ -118,8 +140,7 @@ a.appcard:hover, a.appcard:active { border-color: var(--brass); transform: trans
     </div>
   </div>
 
-  <p class="foot">Mise à jour continue — les grilles et fiches sont surveillées par une veille hebdomadaire.<br>
-  Groupe Triangle Solutions RH · AB2Pro. Usage interne.</p>
+  <p class="foot">Groupe Triangle Solutions RH · AB2Pro. Usage interne.</p>
 </div>
 
 <script>
@@ -282,6 +303,24 @@ if (Array.isArray(window.AB_SECTIONS)) {
     document.getElementById("profil-resume").textContent =
       (moi.nom || moi.email) + " · " + moi.email + " · entité " + entLib +
       (moi.entite === "abservice" && moi.agences.length ? " · agence(s) : " + moi.agences.map(lib).join(", ") : "");
+    /* langue + fonction : modifiables par tous */
+    document.getElementById("profil-langue").value = moi.langue || "fr";
+    document.getElementById("profil-fonction").value = moi.fonction || "";
+    document.getElementById("profil-nom").value = moi.nom || "";
+    document.getElementById("profil-email").value = moi.email || "";
+    document.getElementById("btn-profil-base").addEventListener("click", function () {
+      const msg = document.getElementById("profil-msg-base"); msg.textContent = "Enregistrement…";
+      fetch("/api/profil", { method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ langue: document.getElementById("profil-langue").value, fonction: document.getElementById("profil-fonction").value,
+                               nom: document.getElementById("profil-nom").value, email: document.getElementById("profil-email").value }) })
+        .then(r => r.json()).then(function (j) {
+          const LIB = { nom_requis: "le nom est obligatoire", email_invalide: "adresse e-mail invalide", email_deja_utilise: "cette adresse est déjà utilisée par un autre compte" };
+          if (!j.ok) { msg.textContent = "Erreur : " + (LIB[j.erreur] || j.erreur || "réessayer"); return; }
+          msg.textContent = j.email && j.email !== moi.email ? "✓ Enregistré — connectez-vous désormais avec " + j.email + " (un avis a été envoyé aux deux adresses)." : "✓ Enregistré.";
+          if (j.email) moi.email = j.email;
+        })
+        .catch(function () { msg.textContent = "Erreur réseau — réessayer."; });
+    });
     if (moi.entite !== "abservice") return;
     document.getElementById("profil-agences").hidden = false;
     document.getElementById("profil-cases").innerHTML = (moi.agences_disponibles || []).map(a =>

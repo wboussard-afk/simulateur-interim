@@ -99,13 +99,15 @@ const post = (u, o) => fetch(u, { method: "POST", headers: { "content-type": "ap
 
 let SUIS_SUPER = false;
 /* accès par section : slugs + libellés courts (la liste de référence vient de /api/admin/apercu) */
-let SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe", "logements"];
-const SEC_LIBELLES = { "simulateur": "Simulateur", "paie": "Veille Paie", "conventions": "Conventions", "salaires-europe": "Salaires E&M", "logements": "Logements" };
+let SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe", "logements", "prestataires"];
+const SEC_LIBELLES = { "simulateur": "Simulateur", "paie": "Veille Paie", "conventions": "Conventions", "salaires-europe": "Salaires E&M", "logements": "Logements", "prestataires": "Prestataires" };
 const secLib = s => SEC_LIBELLES[s] || s;
-function sectionsListe(brut) {           // NULL / illisible = accès à tout
-  if (brut == null || brut === "") return SECTIONS_APPS.slice();
-  try { const l = JSON.parse(brut); return Array.isArray(l) ? l : SECTIONS_APPS.slice(); }
-  catch (e) { return SECTIONS_APPS.slice(); }
+/* sections ouvertes PAR DÉFAUT selon l'entité (décision direction 04/09) — l'admin peut en cocher d'autres */
+const secDefaut = e => e === "prestataire" ? ["prestataires"] : e === "abservice" ? ["logements"] : ["simulateur", "paie", "conventions", "salaires-europe"];
+function sectionsListe(brut, entite) {   // NULL / illisible = défaut de l'entité (même règle que le serveur)
+  if (brut == null || brut === "") return secDefaut(entite);
+  try { const l = JSON.parse(brut); return Array.isArray(l) ? l : secDefaut(entite); }
+  catch (e) { return secDefaut(entite); }
 }
 /* agences AB Service (tableau JSON) -> libellé lisible */
 function agListe(brut) {
@@ -124,14 +126,16 @@ async function charger() {
   if (!a.demandes.length) zd.innerHTML = "<div class='vide'>Aucune demande en attente.</div>";
   else zd.innerHTML = "<table><tr><th>Date</th><th>Nom</th><th>E-mail</th><th>Entité · agences</th><th>Fonction</th><th>Sections ouvertes</th><th></th></tr>" +
     a.demandes.map(d => "<tr><td>" + esc(d.cree_le) + "</td><td>" + esc(d.nom) + "</td><td>" + esc(d.email) +
-      "</td><td>" + (d.entite === "abservice" ? "<b>AB SERVICE</b><br>" + esc(agListe(d.agences)) : "AB2PRO") +
+      "</td><td>" + (d.entite === "abservice" ? "<b>AB SERVICE</b><br>" + esc(agListe(d.agences))
+        : d.entite === "prestataire" ? "<b>PRESTATAIRE</b><br>" + esc(d.societe || "") + " · " + esc(d.pays || "") + " · " + esc(d.telephone || "") + " · langue " + esc(d.langue || "fr")
+        : "AB2PRO") +
       "</td><td>" + esc(d.fonction || d.motif || "") + "</td><td>" +
       SECTIONS_APPS.map(s => "<label class='cb-lig'><input type='checkbox' class='cb-sec' data-dem='" + d.id +
-        "' value='" + s + "' checked> " + esc(secLib(s)) + "</label>").join("") + "</td><td>" +
+        "' value='" + s + "'" + (secDefaut(d.entite).includes(s) ? " checked" : "") + "> " + esc(secLib(s)) + "</label>").join("") + "</td><td>" +
       "<button class='btn p' data-app='" + d.id + "'>Approuver</button>" +
       (SUIS_SUPER ? "<button class='btn' data-appadm='" + d.id + "'>Approuver admin</button>" : "") +
       "<button class='btn' data-ref='" + d.id + "'>Refuser</button></td></tr>").join("") + "</table>" +
-    "<p class='note'>Décochez les sections à fermer AVANT d'approuver (un admin approuvé a toujours accès à tout) ; modifiable ensuite dans la colonne Sections.</p>";
+    "<p class='note'>Sections pré-cochées = défaut de l'entité (AB2PRO : outils internes · AB Service : logements · Prestataire : son espace). Cochez-en d'autres AVANT d'approuver si besoin (un admin approuvé a toujours accès à tout) ; modifiable ensuite dans la colonne Sections.</p>";
   zd.querySelectorAll("[data-app]").forEach(b => b.onclick = () => approuver(b.dataset.app, "user"));
   zd.querySelectorAll("[data-appadm]").forEach(b => b.onclick = () => approuver(b.dataset.appadm, "admin"));
   zd.querySelectorAll("[data-ref]").forEach(b => b.onclick = async () => { await post("/api/admin/refuser", { id: +b.dataset.ref }); charger(); });
@@ -141,7 +145,7 @@ async function charger() {
     a.utilisateurs.map(x => {
       const sup = x.role === "super_admin", adm = x.role === "admin";
       /* colonne Sections : bascules cliquables pour les utilisateurs simples, « toutes » pour les admins */
-      const secs = sectionsListe(x.sections);
+      const secs = sectionsListe(x.sections, x.entite);
       const colSecs = (sup || adm) ? "<span class='note'>toutes</span>" :
         SECTIONS_APPS.map(s => "<span class='secchip" + (secs.includes(s) ? " on" : "") + "' data-uid='" + x.id +
           "' data-sec='" + s + "' title='Cliquer pour ouvrir/fermer'>" + esc(secLib(s)) + "</span>").join("");

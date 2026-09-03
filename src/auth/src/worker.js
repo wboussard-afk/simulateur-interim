@@ -16,7 +16,7 @@ const estSuper = x => !!x && x.role === "super_admin";
 /* Accès par section : l'admin choisit les applications visibles par chaque utilisateur.
  * utilisateurs.sections = NULL → accès à tout (héritage) ; sinon tableau JSON de slugs.
  * Les admins et super admins voient toujours tout. */
-const SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe", "logements"];
+const SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe", "logements", "prestataires"];
 
 /* Adresse de réponse des communications EXTERNES d'AB Service (réservations
  * DATAtourisme, etc.) — domaine dédié actif depuis le 03/09/2026 (Email Routing
@@ -28,7 +28,10 @@ const EMAIL_EXTERNE = "info@abservice-logement.com";
  * entité à l'inscription ; côté AB Service il se rattache à une ou plusieurs agences
  * (modifiables ensuite via son profil). Les réponses des logeurs sont routées vers
  * son e-mail perso + les boîtes génériques de ses agences (worker mail-fanout). */
-const ENTITES = ["ab2pro", "abservice"];
+const ENTITES = ["ab2pro", "abservice", "prestataire"];   /* prestataire = recruteur partenaire externe */
+const LANGUES = ["fr", "en", "ro", "hu"];                 /* langue de l'espace (choisie à l'inscription, modifiable dans le profil) */
+/* sections ouvertes PAR DÉFAUT selon l'entité (décision direction 04/09) — un admin peut en ajouter ensuite */
+const SECTIONS_DEFAUT = { ab2pro: ["simulateur", "paie", "conventions", "salaires-europe"], abservice: ["logements"], prestataire: ["prestataires"] };
 const AGENCES_ABSERVICE = {
   "rennes": "rennes@abservicefrance.com",
   "paris": "paris@abservicefrance.com",
@@ -51,7 +54,7 @@ const CHAINES_EMAILS = {
   "vvf": "groupes@vvf.fr",
   "azureva": "groupes@azureva-vacances.com",
 };
-const entiteDe = x => (x && x.entite === "abservice") ? "abservice" : "ab2pro";
+const entiteDe = x => (x && ENTITES.includes(x.entite)) ? x.entite : "ab2pro";
 function agencesDe(x) {
   if (!x || !x.agences) return [];
   try { const l = JSON.parse(x.agences); return Array.isArray(l) ? l.filter(a => AGENCES_ABSERVICE[a]) : []; }
@@ -71,7 +74,8 @@ function adresseReponse(u2) {
 function sectionsDe(x) {
   if (!x) return [];
   if (estAdmin(x)) return SECTIONS_APPS;
-  if (x.sections == null || x.sections === "") return SECTIONS_APPS;
+  /* pas de liste explicite : défaut de l'entité (comptes historiques AB2PRO sans entité = outils internes) */
+  if (x.sections == null || x.sections === "") return SECTIONS_DEFAUT[entiteDe(x)] || SECTIONS_DEFAUT.ab2pro;
   try {
     const l = JSON.parse(x.sections);
     return Array.isArray(l) ? l.filter(s => SECTIONS_APPS.includes(s)) : SECTIONS_APPS;
@@ -163,7 +167,7 @@ async function utilisateurDeSession(env, req) {
   const m = (req.headers.get("cookie") || "").match(/(?:^|;\s*)session=([0-9a-f]{64})/);
   if (!m) return null;
   const r = await env.DB.prepare(
-    "SELECT u.id, u.email, u.nom, u.role, u.actif, u.doit_changer_mdp, u.sections, u.entite, u.agences, u.fonction, s.token, s.expire_le " +
+    "SELECT u.id, u.email, u.nom, u.role, u.actif, u.doit_changer_mdp, u.sections, u.entite, u.agences, u.fonction, u.prestataire_id, u.langue, s.token, s.expire_le " +
     "FROM sessions s JOIN utilisateurs u ON u.id = s.user_id WHERE s.token = ?").bind(m[1]).first();
   if (!r || !r.actif || r.expire_le < Date.now()) return null;
   if (r.expire_le < Date.now() + SESSION_MS / 2)   // prolongation glissante
@@ -205,7 +209,19 @@ export default {
     if (p === "/app" || p.startsWith("/app/")) {
       if (!u) return Response.redirect(url.origin + "/?suite=" + encodeURIComponent(p), 302);
       if (u.doit_changer_mdp) return Response.redirect(url.origin + "/motdepasse.html", 302);
+      /* prestataire : l'espace dédié est sa page d'accueil (pas le portail des outils internes) */
+      if (u.entite === "prestataire" && (p === "/app" || p === "/app/" || p === "/app/index.html") && sectionsDe(u).length === 1)
+        return Response.redirect(url.origin + "/app/prestataires.html", 302);
       const cible = (p === "/app" || p === "/app/") ? "/app/index.html" : p;
+      /* documents des prestataires : commun/ pour tous les prestataires + admins, <code>/ pour le seul intéressé */
+      if (cible.startsWith("/app/data/prestataires/")) {
+        let ok = estAdmin(u);
+        if (!ok && u.entite === "prestataire" && u.prestataire_id) {
+          const pr = await env.DB.prepare("SELECT code FROM prestataires WHERE id = ?").bind(u.prestataire_id).first();
+          ok = cible.startsWith("/app/data/prestataires/commun/") || (pr && cible.startsWith("/app/data/prestataires/" + pr.code + "/"));
+        }
+        if (!ok) { await journal(env, req, u, "acces_refuse_section", "prestataires", cible); return new Response("Accès refusé.", { status: 403 }); }
+      }
       const mSec = cible.match(/^\/app\/([a-z][a-z-]*)\.html$/);
       if (mSec && SECTIONS_APPS.includes(mSec[1]) && !sectionsDe(u).includes(mSec[1])) {
         await journal(env, req, u, "acces_refuse_section", mSec[1], cible);
@@ -456,6 +472,7 @@ async function api(req, env, url, u) {
   /* -- session -- */
   if (p === "/api/moi")
     return u ? json({ email: u.email, nom: u.nom, fonction: u.fonction || "", role: u.role, doit_changer_mdp: !!u.doit_changer_mdp, sections: sectionsDe(u),
+                      prestataire_id: u.prestataire_id || null, langue: LANGUES.includes(u.langue) ? u.langue : "fr", langues: LANGUES,
                       entite: entiteDe(u), agences: agencesDe(u), agences_disponibles: Object.keys(AGENCES_ABSERVICE),
                       adresse_reponse: adresseReponse(u), signature: signatureDe(u) })
              : json({ erreur: "non_connecte" }, 401);
@@ -463,12 +480,50 @@ async function api(req, env, url, u) {
   /* -- profil : l'utilisateur AB Service change lui-même ses agences de rattachement -- */
   if (p === "/api/profil" && req.method === "POST") {
     if (!u) return json({ erreur: "non_connecte" }, 401);
-    if (entiteDe(u) !== "abservice") return json({ erreur: "reserve_abservice" }, 403);
-    const ag = validerAgences(corps.agences);
-    if (ag === null || JSON.parse(ag).length === 0) return json({ erreur: "agences_invalides" }, 400);
-    await env.DB.prepare("UPDATE utilisateurs SET agences = ? WHERE id = ?").bind(ag, u.id).run();
-    await journal(env, req, u, "profil_agences", ag);
-    return json({ ok: true, agences: JSON.parse(ag) });
+    const maj = [], vals = [];
+    /* langue de l'espace (FR/EN/RO/HU) et fonction : modifiables par tout utilisateur */
+    if (corps.langue !== undefined) { if (!LANGUES.includes(corps.langue)) return json({ erreur: "langue_invalide" }, 400); maj.push("langue = ?"); vals.push(corps.langue); }
+    if (corps.fonction !== undefined) { maj.push("fonction = ?"); vals.push(String(corps.fonction || "").trim().slice(0, 120) || null); }
+    /* nom affiché (signatures, en-têtes) */
+    if (corps.nom !== undefined) { const nom = String(corps.nom || "").trim().slice(0, 120); if (!nom) return json({ erreur: "nom_requis" }, 400); maj.push("nom = ?"); vals.push(nom); }
+    /* e-mail de connexion : format, unicité (insensible à la casse) ; les deux adresses sont prévenues du changement */
+    let nouvelEmail = null;
+    if (corps.email !== undefined) {
+      const em = String(corps.email || "").trim().toLowerCase().slice(0, 160);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) return json({ erreur: "email_invalide" }, 400);
+      if (em !== String(u.email).toLowerCase()) {
+        const deja = await env.DB.prepare("SELECT id FROM utilisateurs WHERE email = ? COLLATE NOCASE AND id <> ?").bind(em, u.id).first();
+        if (deja) return json({ erreur: "email_deja_utilise" }, 409);
+        maj.push("email = ?"); vals.push(em); nouvelEmail = em;
+      }
+    }
+    /* agences de rattachement : AB Service seulement, au moins une */
+    if (corps.agences !== undefined) {
+      if (entiteDe(u) !== "abservice") return json({ erreur: "reserve_abservice" }, 403);
+      const ag = validerAgences(corps.agences);
+      if (ag === null || JSON.parse(ag).length === 0) return json({ erreur: "agences_invalides" }, 400);
+      maj.push("agences = ?"); vals.push(ag);
+    }
+    if (!maj.length) return json({ erreur: "rien_a_modifier" }, 400);
+    await env.DB.prepare("UPDATE utilisateurs SET " + maj.join(", ") + " WHERE id = ?").bind(...vals, u.id).run();
+    await journal(env, req, u, "profil_maj", maj.join(", ") + (nouvelEmail ? " (" + u.email + " -> " + nouvelEmail + ")" : ""));
+    if (nouvelEmail) {
+      /* fiche prestataire liée : même adresse de contact */
+      if (u.prestataire_id) await env.DB.prepare("UPDATE prestataires SET email = ? WHERE id = ? AND lower(email) = lower(?)").bind(nouvelEmail, u.prestataire_id, u.email).run();
+      const txt = `Bonjour ${u.nom || ""},
+
+L'adresse e-mail de connexion de votre compte AB2Pro vient d'être modifiée :
+  ancienne : ${u.email}
+  nouvelle : ${nouvelEmail}
+
+Connectez-vous désormais avec la nouvelle adresse (mot de passe inchangé). Les réponses des logeurs et les notifications arrivent maintenant sur cette adresse.
+
+Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à ce message.
+
+— AB2Pro · ${url.origin}`;
+      await envoyerEmail(env, [u.email, nouvelEmail], "AB2Pro — adresse de connexion modifiée", txt, { req, u, action: "profil_email" });
+    }
+    return json({ ok: true, email: nouvelEmail || u.email });
   }
 
   if (p === "/api/login" && req.method === "POST") {
@@ -544,13 +599,19 @@ async function api(req, env, url, u) {
     if (existant) return json({ erreur: "deja_utilisateur" }, 400);
     const attente = await env.DB.prepare("SELECT id FROM demandes_acces WHERE email = ? AND statut = 'en_attente'").bind(email).first();
     if (attente) return json({ ok: true, deja: true });
-    await env.DB.prepare("INSERT INTO demandes_acces (nom, email, motif, entite, agences, fonction) VALUES (?,?,?,?,?,?)")
-      .bind(nom, email, motif, entite, agences, fonction || null).run();
+    /* langue de l'espace (tous) ; prestataire externe : société obligatoire, téléphone, pays de sourcing */
+    const langue = LANGUES.includes(corps.langue) ? corps.langue : "fr";
+    const societe = String(corps.societe || "").trim().slice(0, 120);
+    const telephone = String(corps.telephone || "").trim().slice(0, 40);
+    const pays = String(corps.pays || "").trim().slice(0, 40);
+    if (entite === "prestataire" && !societe) return json({ erreur: "societe_requise" }, 400);
+    await env.DB.prepare("INSERT INTO demandes_acces (nom, email, motif, entite, agences, fonction, societe, telephone, langue, pays) VALUES (?,?,?,?,?,?,?,?,?,?)")
+      .bind(nom, email, motif, entite, agences, fonction || null, societe || null, telephone || null, langue, pays || null).run();
     await journal(env, req, null, "demande_acces", email + " (" + entite + (agences ? " " + agences : "") + ")");
     await envoyerEmail(env, ADMINS, (entite === "abservice" ? "AB Service" : "AB2Pro") + " — demande d'accès de " + nom,
       `Nouvelle demande d'accès au portail :\n\nNom : ${nom}\nE-mail : ${email}\n` +
       `Fonction : ${fonction || "(non précisée)"}\n` +
-      `Entité : ${entite === "abservice" ? "AB SERVICE" : "AB2PRO"}\n` +
+      `Entité : ${entite === "abservice" ? "AB SERVICE" : entite === "prestataire" ? "PRESTATAIRE (recruteur externe) — " + societe + " · " + pays + " · " + telephone : "AB2PRO"} · langue ${langue}\n` +
       (agences ? `Agences de rattachement : ${JSON.parse(agences).join(", ")}\n` : "") +
       `Approuver ou refuser : ${url.origin}/admin (onglet Demandes).`, { env, req });
     return json({ ok: true });
@@ -587,6 +648,199 @@ async function api(req, env, url, u) {
     const res = await envoyerEmail(env, dests, sujet, texte, { env, req });
     await journal(env, req, null, "notifier", sujet.slice(0, 120) + " → " + dests.join(","));
     return json({ resultats: res.map(r => ({ destinataire: r.dest, ok: r.ok, status: r.status })) });
+  }
+
+
+  /* ===== ESPACE PRESTATAIRES (recruteurs partenaires externes — décision direction 04/09/2026) =====
+   * Un prestataire ne voit que ses données ; les admins voient tout. Règles contractuelles (annexe 1) :
+   * commission uniquement sur les heures travaillées ET facturées, 0,70 €/h qualifié · 0,50 €/h autre
+   * (ou paliers par prestataire), tableau du mois validé avec les heures avant le 12. */
+  if (p.startsWith("/api/prest/")) {
+    if (!u) return json({ erreur: "non_connecte" }, 401);
+    const admin = estAdmin(u);
+    const estPrest = u.entite === "prestataire" && !!u.prestataire_id;
+    if (!admin && !estPrest) return json({ erreur: "reserve_prestataires" }, 403);
+    const moi = estPrest ? await env.DB.prepare("SELECT * FROM prestataires WHERE id = ? AND actif = 1").bind(u.prestataire_id).first() : null;
+    if (estPrest && !moi) return json({ erreur: "prestataire_inactif" }, 403);
+    const pid = estPrest ? moi.id : (parseInt(url.searchParams.get("prestataire_id") || corps.prestataire_id || "0", 10) || null);
+    const semaineISO = d => { const x = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const j = x.getUTCDay() || 7; x.setUTCDate(x.getUTCDate() + 4 - j); const a = new Date(Date.UTC(x.getUTCFullYear(), 0, 1)); return x.getUTCFullYear() + "-W" + String(Math.ceil(((x - a) / 86400000 + 1) / 7)).padStart(2, "0"); };
+    const majNom = x => String(x || "").trim().toUpperCase().slice(0, 60);
+    const majPrenom = x => String(x || "").trim().toLowerCase().replace(/(^|[\s-])(\p{L})/gu, (m, a, b) => a + b.toUpperCase()).slice(0, 60);
+    const tauxDe = (pr, qualifie, nbTT) => {
+      try { const pal = pr.paliers ? JSON.parse(pr.paliers) : null;
+        if (Array.isArray(pal) && pal.length) { for (const s of pal) if (s.jusqua == null || nbTT <= s.jusqua) return +s.taux; return +pal[pal.length - 1].taux; }
+      } catch (e) {}
+      return qualifie ? +pr.tarif_q : +pr.tarif_nq;
+    };
+    /* --- profil + documents --- */
+    if (p === "/api/prest/moi") {
+      const docs = (await env.DB.prepare("SELECT id, prestataire_id, titre, fichier, langue FROM documents WHERE prestataire_id IS NULL" + (pid ? " OR prestataire_id = ?" : "") + " ORDER BY prestataire_id IS NULL DESC, id").bind(...(pid ? [pid] : [])).all()).results;
+      return json({ admin, prestataire: moi ? { id: moi.id, societe: moi.societe, code: moi.code, contact: moi.contact, langue: moi.langue, tarif_q: moi.tarif_q, tarif_nq: moi.tarif_nq, paliers: moi.paliers } : null,
+                    langue: u.langue || (moi && moi.langue) || "fr", semaine: semaineISO(new Date()), mois: new Date().toISOString().slice(0, 7),
+                    documents: docs.map(d => ({ id: d.id, titre: d.titre, langue: d.langue, url: "/app/data/prestataires/" + d.fichier, commun: d.prestataire_id == null })) });
+    }
+    /* --- commandes ouvertes (lecture prestataires, gestion admins) --- */
+    if (p === "/api/prest/commandes") {
+      const r = await env.DB.prepare("SELECT id, numero, date_debut, nb_postes, titre, agence, lieu, statut FROM commandes WHERE statut = 'ouverte' ORDER BY date_debut, agence").all();
+      return json({ commandes: r.results });
+    }
+    if (p === "/api/prest/admin/commandes" && req.method === "POST") {
+      if (!admin) return json({ erreur: "reserve_admin" }, 403);
+      const lignes = Array.isArray(corps.lignes) ? corps.lignes.slice(0, 200) : [];
+      const numeros = [];
+      for (const l of lignes) {
+        const num = String(l.numero || "").trim().slice(0, 20); if (!num) continue;
+        numeros.push(num);
+        const ex = await env.DB.prepare("SELECT id FROM commandes WHERE numero = ? AND statut = 'ouverte'").bind(num).first();
+        const v = [String(l.date_debut || "").slice(0, 10), parseInt(l.nb_postes, 10) || 1, String(l.titre || "").slice(0, 120), String(l.agence || "").slice(0, 60), String(l.lieu || "").slice(0, 80)];
+        if (ex) await env.DB.prepare("UPDATE commandes SET date_debut = ?, nb_postes = ?, titre = ?, agence = ?, lieu = ? WHERE id = ?").bind(...v, ex.id).run();
+        else await env.DB.prepare("INSERT INTO commandes (numero, date_debut, nb_postes, titre, agence, lieu) VALUES (?,?,?,?,?,?)").bind(num, ...v).run();
+      }
+      if (corps.fermer_absentes && numeros.length)
+        await env.DB.prepare("UPDATE commandes SET statut = 'fermee' WHERE statut = 'ouverte' AND numero NOT IN (" + numeros.map(() => "?").join(",") + ")").bind(...numeros).run();
+      await journal(env, req, u, "prest_commandes", numeros.length + " commande(s)");
+      return json({ ok: true, n: numeros.length });
+    }
+    if (p === "/api/prest/admin/commande" && req.method === "POST") {
+      if (!admin) return json({ erreur: "reserve_admin" }, 403);
+      const st = ["ouverte", "pourvue", "fermee"].includes(corps.statut) ? corps.statut : "fermee";
+      await env.DB.prepare("UPDATE commandes SET statut = ? WHERE id = ?").bind(st, corps.id | 0).run();
+      return json({ ok: true });
+    }
+    /* --- propositions d'équipes (hebdo) --- */
+    if (p === "/api/prest/propositions" && req.method === "GET") {
+      const sem = url.searchParams.get("semaine") || "";
+      const q = "SELECT p.*, c.numero, c.titre AS commande_titre, c.lieu AS commande_lieu, c.agence AS commande_agence, pr.societe FROM propositions p LEFT JOIN commandes c ON c.id = p.commande_id JOIN prestataires pr ON pr.id = p.prestataire_id WHERE " +
+        (pid ? "p.prestataire_id = ? AND " : "") + (sem ? "p.semaine = ? " : "1=1 ") + "ORDER BY p.semaine DESC, p.prestataire_id, p.equipe, p.id LIMIT 500";
+      const args = []; if (pid) args.push(pid); if (sem) args.push(sem);
+      return json({ propositions: (await env.DB.prepare(q).bind(...args).all()).results });
+    }
+    if (p === "/api/prest/propositions" && req.method === "POST") {
+      if (!estPrest) return json({ erreur: "reserve_prestataires" }, 403);
+      const sem = /^\d{4}-W\d{2}$/.test(corps.semaine || "") ? corps.semaine : semaineISO(new Date());
+      const lignes = Array.isArray(corps.lignes) ? corps.lignes.slice(0, 60) : [];
+      let n = 0;
+      for (const l of lignes) {
+        const nom = majNom(l.nom), prenom = majPrenom(l.prenom), metier = String(l.metier || "").toUpperCase().slice(0, 40);
+        if (!nom || !prenom || !metier) continue;
+        await env.DB.prepare("INSERT INTO propositions (prestataire_id, user_id, commande_id, semaine, equipe, nom, prenom, metier, vehicule, salaire_net, telephone, remarques) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
+          .bind(moi.id, u.id, parseInt(l.commande_id, 10) || null, sem, parseInt(l.equipe, 10) || 1, nom, prenom, metier, l.vehicule ? 1 : 0,
+                String(l.salaire_net || "").slice(0, 20), String(l.telephone || "").slice(0, 30), String(l.remarques || "").slice(0, 300)).run();
+        n++;
+      }
+      await journal(env, req, u, "prest_proposition", moi.code + " " + sem + " : " + n + " candidat(s)");
+      if (n) await envoyerEmail(env, ADMINS, "Prestataire " + moi.societe + " — proposition d'équipe " + sem + " (" + n + " candidat(s))",
+        "Nouvelle proposition d'équipe déposée sur le portail par " + moi.societe + " (" + moi.code + "), semaine " + sem + " : " + n + " candidat(s).\n\n" +
+        lignes.filter(l => l.nom && l.prenom).map(l => "  • " + majNom(l.nom) + " " + majPrenom(l.prenom) + " — " + String(l.metier || "").toUpperCase() + (l.commande_id ? " (commande #" + l.commande_id + ")" : "") + (l.vehicule ? " · véhicule" : "") + (l.salaire_net ? " · net " + l.salaire_net : "")).join("\n") +
+        "\n\nDétail et suivi : " + url.origin + "/app/prestataires.html", { env, req });
+      return json({ ok: true, n, semaine: sem });
+    }
+    if (p === "/api/prest/admin/proposition" && req.method === "POST") {
+      if (!admin) return json({ erreur: "reserve_admin" }, 403);
+      const st = ["proposee", "retenue", "refusee"].includes(corps.statut) ? corps.statut : "proposee";
+      await env.DB.prepare("UPDATE propositions SET statut = ? WHERE id = ?").bind(st, corps.id | 0).run();
+      return json({ ok: true });
+    }
+    /* --- déclaration mensuelle des candidats placés + heures (admin) --- */
+    if (p === "/api/prest/declarations" && req.method === "GET") {
+      const mois = url.searchParams.get("mois") || "";
+      const q = "SELECT d.*, pr.societe, pr.code FROM declarations d JOIN prestataires pr ON pr.id = d.prestataire_id WHERE " +
+        (pid ? "d.prestataire_id = ? AND " : "") + (mois ? "d.mois = ? " : "1=1 ") + "ORDER BY d.mois DESC, d.prestataire_id, d.nom, d.prenom LIMIT 800";
+      const args = []; if (pid) args.push(pid); if (mois) args.push(mois);
+      return json({ declarations: (await env.DB.prepare(q).bind(...args).all()).results });
+    }
+    if (p === "/api/prest/declarations" && req.method === "POST") {
+      if (!estPrest) return json({ erreur: "reserve_prestataires" }, 403);
+      const mois = /^\d{4}-\d{2}$/.test(corps.mois || "") ? corps.mois : new Date().toISOString().slice(0, 7);
+      const lignes = Array.isArray(corps.lignes) ? corps.lignes.slice(0, 200) : [];
+      let n = 0;
+      for (const l of lignes) {
+        const nom = majNom(l.nom), prenom = majPrenom(l.prenom), metier = String(l.metier || "").toUpperCase().slice(0, 40);
+        if (!nom || !prenom || !metier) continue;
+        const doublon = await env.DB.prepare("SELECT id FROM declarations WHERE prestataire_id = ? AND mois = ? AND nom = ? AND prenom = ?").bind(moi.id, mois, nom, prenom).first();
+        if (doublon) continue;
+        await env.DB.prepare("INSERT INTO declarations (prestataire_id, user_id, mois, nom, prenom, metier, agence, qualifie, commentaire) VALUES (?,?,?,?,?,?,?,?,?)")
+          .bind(moi.id, u.id, mois, nom, prenom, metier, String(l.agence || "").toUpperCase().slice(0, 60), l.qualifie ? 1 : 0, String(l.commentaire || "").slice(0, 200)).run();
+        n++;
+      }
+      await journal(env, req, u, "prest_declaration", moi.code + " " + mois + " : " + n + " ligne(s)");
+      if (n) await envoyerEmail(env, ADMINS, "Prestataire " + moi.societe + " — déclaration " + mois + " (" + n + " candidat(s))",
+        moi.societe + " (" + moi.code + ") a déclaré " + n + " candidat(s) placé(s) pour " + mois + ". Heures à renseigner et à valider avant le 12 : " + url.origin + "/app/prestataires.html", { env, req });
+      return json({ ok: true, n, mois });
+    }
+    if (p === "/api/prest/declaration" && req.method === "POST") {   /* suppression par le prestataire (tant que non validée) */
+      if (!estPrest) return json({ erreur: "reserve_prestataires" }, 403);
+      await env.DB.prepare("DELETE FROM declarations WHERE id = ? AND prestataire_id = ? AND statut = 'declaree'").bind(corps.id | 0, moi.id).run();
+      return json({ ok: true });
+    }
+    if (p === "/api/prest/admin/declaration" && req.method === "POST") {
+      if (!admin) return json({ erreur: "reserve_admin" }, 403);
+      const st = ["declaree", "validee", "rejetee"].includes(corps.statut) ? corps.statut : null;
+      const h = corps.heures == null || corps.heures === "" ? null : Math.max(0, parseFloat(String(corps.heures).replace(",", ".")) || 0);
+      await env.DB.prepare("UPDATE declarations SET heures = ?, qualifie = COALESCE(?, qualifie), statut = COALESCE(?, statut), valide_le = CASE WHEN ? = 'validee' THEN datetime('now') ELSE valide_le END, commentaire = COALESCE(?, commentaire) WHERE id = ?")
+        .bind(h, corps.qualifie == null ? null : (corps.qualifie ? 1 : 0), st, st, corps.commentaire == null ? null : String(corps.commentaire).slice(0, 200), corps.id | 0).run();
+      return json({ ok: true });
+    }
+    /* --- facturation du mois (calcul contractuel) --- */
+    if (p === "/api/prest/facture") {
+      const mois = url.searchParams.get("mois") || new Date().toISOString().slice(0, 7);
+      if (!pid) return json({ erreur: "prestataire_id_requis" }, 400);
+      const pr = moi || await env.DB.prepare("SELECT * FROM prestataires WHERE id = ?").bind(pid).first();
+      if (!pr) return json({ erreur: "prestataire_introuvable" }, 404);
+      const lignes = (await env.DB.prepare("SELECT * FROM declarations WHERE prestataire_id = ? AND mois = ? ORDER BY nom, prenom").bind(pid, mois).all()).results;
+      const nbTT = new Set(lignes.filter(l => l.statut === "validee" && l.heures > 0).map(l => l.nom + "|" + l.prenom)).size;
+      let total = 0;
+      const out = lignes.map(l => {
+        const taux = tauxDe(pr, l.qualifie, nbTT);
+        const montant = (l.statut === "validee" && l.heures > 0) ? Math.round(l.heures * taux * 100) / 100 : 0;
+        total += montant;
+        return { id: l.id, nom: l.nom, prenom: l.prenom, metier: l.metier, agence: l.agence, qualifie: l.qualifie, heures: l.heures, statut: l.statut, taux, montant, commentaire: l.commentaire };
+      });
+      return json({ mois, prestataire: { societe: pr.societe, code: pr.code }, nb_tt: nbTT, lignes: out, total: Math.round(total * 100) / 100,
+                    regle: pr.paliers ? "paliers" : pr.tarif_q + "/" + pr.tarif_nq });
+    }
+    /* --- administration des prestataires --- */
+    if (p === "/api/prest/admin/liste") {
+      if (!admin) return json({ erreur: "reserve_admin" }, 403);
+      return json({ prestataires: (await env.DB.prepare("SELECT * FROM prestataires ORDER BY societe").all()).results });
+    }
+    if (p === "/api/prest/admin/prestataire" && req.method === "POST") {
+      if (!admin) return json({ erreur: "reserve_admin" }, 403);
+      const id = corps.id | 0;
+      const champs = [], vals = [];
+      if (corps.tarif_q != null) { champs.push("tarif_q = ?"); vals.push(parseFloat(corps.tarif_q) || 0); }
+      if (corps.tarif_nq != null) { champs.push("tarif_nq = ?"); vals.push(parseFloat(corps.tarif_nq) || 0); }
+      if (corps.paliers !== undefined) { champs.push("paliers = ?"); vals.push(corps.paliers ? JSON.stringify(corps.paliers) : null); }
+      if (corps.langue) { champs.push("langue = ?"); vals.push(LANGUES.includes(corps.langue) ? corps.langue : "fr"); }
+      if (corps.actif != null) { champs.push("actif = ?"); vals.push(corps.actif ? 1 : 0); }
+      for (const k of ["societe", "contact", "telephone", "pays", "code"]) if (corps[k] != null) { champs.push(k + " = ?"); vals.push(String(corps[k]).slice(0, 120)); }
+      if (!champs.length) return json({ erreur: "rien_a_modifier" }, 400);
+      await env.DB.prepare("UPDATE prestataires SET " + champs.join(", ") + " WHERE id = ?").bind(...vals, id).run();
+      await journal(env, req, u, "prest_admin_maj", "prestataire " + id + " : " + champs.join(", "));
+      return json({ ok: true });
+    }
+    if (p === "/api/prest/admin/document" && req.method === "POST") {
+      if (!admin) return json({ erreur: "reserve_admin" }, 403);
+      if (corps.supprimer) { await env.DB.prepare("DELETE FROM documents WHERE id = ?").bind(corps.id | 0).run(); return json({ ok: true }); }
+      const fichier = String(corps.fichier || "").replace(/^\/+/, "").slice(0, 200);
+      if (!/^(commun|[A-Z0-9]+)\/[^\/]+\.(pdf|png|jpg|jpeg|docx?|xlsx?)$/i.test(fichier)) return json({ erreur: "fichier_invalide" }, 400);
+      await env.DB.prepare("INSERT INTO documents (prestataire_id, titre, fichier, langue) VALUES (?,?,?,?)")
+        .bind(corps.prestataire_id ? (corps.prestataire_id | 0) : null, String(corps.titre || fichier).slice(0, 120), fichier, LANGUES.includes(corps.langue) ? corps.langue : "fr").run();
+      return json({ ok: true });
+    }
+    if (p === "/api/prest/admin/export") {
+      if (!admin) return json({ erreur: "reserve_admin" }, 403);
+      const mois = url.searchParams.get("mois") || new Date().toISOString().slice(0, 7);
+      const rows = (await env.DB.prepare("SELECT d.*, pr.societe, pr.code, pr.tarif_q, pr.tarif_nq, pr.paliers FROM declarations d JOIN prestataires pr ON pr.id = d.prestataire_id WHERE d.mois = ?" + (pid ? " AND d.prestataire_id = ?" : "") + " ORDER BY pr.societe, d.nom, d.prenom").bind(...(pid ? [mois, pid] : [mois])).all()).results;
+      const parPrest = {}; rows.forEach(r => { if (r.statut === "validee" && r.heures > 0) (parPrest[r.prestataire_id] = parPrest[r.prestataire_id] || new Set()).add(r.nom + "|" + r.prenom); });
+      const csv = v => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
+      const lignes = ["PRESTATAIRE;CODE;NOM;PRENOM;METIER;AGENCE;QUALIFIE;HEURES;TAUX;MONTANT HT;STATUT;COMMENTAIRE"];
+      rows.forEach(r => { const taux = tauxDe(r, r.qualifie, (parPrest[r.prestataire_id] || new Set()).size);
+        const montant = (r.statut === "validee" && r.heures > 0) ? Math.round(r.heures * taux * 100) / 100 : 0;
+        lignes.push([r.societe, r.code, r.nom, r.prenom, r.metier, r.agence, r.qualifie ? "Q" : "NQ", r.heures == null ? "" : String(r.heures).replace(".", ","), String(taux).replace(".", ","), String(montant).replace(".", ","), r.statut, r.commentaire].map(csv).join(";")); });
+      return new Response("﻿" + lignes.join("\r\n"), { headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": "attachment; filename=facturation-prestataires-" + mois + ".csv" } });
+    }
+    return json({ erreur: "inconnu" }, 404);
   }
 
   /* -- journal d'activité (balise des apps) -- */
@@ -634,13 +888,41 @@ async function api(req, env, url, u) {
       const invite = alea(24);
       const sel = alea(16), hprov = await pbkdf2(alea(16), sel); // mot de passe provisoire inutilisable : passage obligé par le lien
       /* sections choisies par l'admin à l'approbation (rôle user seulement ; absence = accès à tout) */
-      const secsApprob = (corps.role !== "admin" && Array.isArray(corps.sections))
-        ? JSON.stringify(corps.sections.map(String).filter(s => SECTIONS_APPS.includes(s))) : null;
+      const secsApprob = (corps.role !== "admin")
+        ? JSON.stringify(Array.isArray(corps.sections)
+            ? corps.sections.map(String).filter(s => SECTIONS_APPS.includes(s))
+            : (SECTIONS_DEFAUT[d.entite] || SECTIONS_DEFAUT.ab2pro))
+        : null;
       /* l'entité, les agences et la fonction choisies à l'inscription suivent la demande */
       await env.DB.prepare(
         "INSERT INTO utilisateurs (email, nom, sel, hash, role, doit_changer_mdp, invite_token, invite_expire, cree_par, sections, entite, agences, fonction) VALUES (?,?,?,?,?,1,?,?,?,?,?,?,?)")
         .bind(d.email, d.nom, sel, hprov, corps.role === "admin" ? "admin" : "user", invite, Date.now() + INVITE_MS, u.email, secsApprob,
               d.entite || null, d.agences || null, d.fonction || null).run();
+      await env.DB.prepare("UPDATE utilisateurs SET langue = ? WHERE email = ?").bind(LANGUES.includes(d.langue) ? d.langue : "fr", d.email).run();
+      if (d.entite === "prestataire") {
+        /* fiche prestataire : code recruteur = pays (2 lettres) + TPE + 2 lettres de la société + n° (ex. ROTPEAK01),
+           tarifs contractuels par défaut (annexe 1 : 0,70 € qualifié / 0,50 € autre) */
+        /* fiche déjà créée par un admin (contrat signé avant l'ouverture du compte) : on la réutilise si l'e-mail
+           ou la raison sociale correspondent — sinon nouvelle fiche */
+        const soc0 = String(d.societe || d.nom).trim();
+        const exist = await env.DB.prepare("SELECT id FROM prestataires WHERE (email <> '' AND lower(email) = lower(?)) OR upper(trim(societe)) = upper(?) ORDER BY id LIMIT 1")
+          .bind(d.email, soc0).first();
+        let pid = exist && exist.id;
+        if (pid) {
+          await env.DB.prepare("UPDATE prestataires SET email = CASE WHEN email = '' THEN ? ELSE email END, telephone = CASE WHEN telephone = '' THEN ? ELSE telephone END, langue = ? WHERE id = ?")
+            .bind(d.email, d.telephone || "", LANGUES.includes(d.langue) ? d.langue : "fr", pid).run();
+        } else {
+          const pays2 = ({ "Roumanie": "RO", "Hongrie": "HU", "Bulgarie": "BU", "Moldavie": "MD" })[d.pays] || "XX";
+          const soc = soc0.toUpperCase().replace(/[^A-Z]/g, "");
+          const racine = pays2 + "TPE" + (soc.slice(0, 2) || "XX");
+          const deja = (await env.DB.prepare("SELECT COUNT(*) AS n FROM prestataires WHERE code LIKE ?").bind(racine + "%").first()).n;
+          const code = racine + String(deja + 1).padStart(2, "0");
+          const ins = await env.DB.prepare("INSERT INTO prestataires (societe, code, contact, email, telephone, pays, langue) VALUES (?,?,?,?,?,?,?)")
+            .bind(soc0, code, d.nom, d.email, d.telephone || "", d.pays || "", LANGUES.includes(d.langue) ? d.langue : "fr").run();
+          pid = ins.meta && ins.meta.last_row_id;
+        }
+        await env.DB.prepare("UPDATE utilisateurs SET prestataire_id = ? WHERE email = ?").bind(pid, d.email).run();
+      }
       await env.DB.prepare("UPDATE demandes_acces SET statut = 'approuvee', traite_par = ?, traite_le = datetime('now') WHERE id = ?").bind(u.email, d.id).run();
       const lien = url.origin + "/motdepasse.html?invite=" + invite;
       const marque = d.entite === "abservice" ? "AB Service" : "AB2Pro";
