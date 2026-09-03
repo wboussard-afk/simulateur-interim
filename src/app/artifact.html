@@ -338,26 +338,27 @@ table.grille td.neg { color: var(--bad); }
   body.print-etude header.top, body.print-etude #mbar, body.print-etude .alerts,
   body.print-etude .wrap { display: none !important; }
   body.print-etude #etude-print { display: block !important; }
-  #etude-print { font: 11pt/1.45 "Segoe UI", system-ui, sans-serif; color: #1a1a1a; }
-  #etude-print h1 { font: 700 17pt "Nexa", "Poppins", "Segoe UI", system-ui, sans-serif; margin: 0 0 2pt; }
-  #etude-print h2 { font: 700 11.5pt "Nexa", "Poppins", "Segoe UI", system-ui, sans-serif; margin: 11pt 0 3pt; border-bottom: 1.5px solid #681316; padding-bottom: 2pt; }
-  #etude-print table { width: 100%; border-collapse: collapse; font-size: 10pt; }
-  #etude-print td { padding: 2.5pt 4pt; border-bottom: 0.5pt solid #ddd; vertical-align: top; }
+  /* UNE PAGE A4 : typographie et espacements compactés (demande direction 03/09 — la synthèse débordait de 3 lignes) */
+  #etude-print { font: 10pt/1.35 "Segoe UI", system-ui, sans-serif; color: #1a1a1a; }
+  #etude-print h1 { font: 700 15pt "Nexa", "Poppins", "Segoe UI", system-ui, sans-serif; margin: 0 0 1pt; }
+  #etude-print h2 { font: 700 10.5pt "Nexa", "Poppins", "Segoe UI", system-ui, sans-serif; margin: 6pt 0 2pt; border-bottom: 1.5px solid #681316; padding-bottom: 1pt; }
+  #etude-print table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+  #etude-print td { padding: 1.6pt 4pt; border-bottom: 0.5pt solid #ddd; vertical-align: top; }
   #etude-print td.n { text-align: right; white-space: nowrap; font-weight: 600; }
-  #etude-print .meta { color: #555; font-size: 9pt; }
+  #etude-print .meta { color: #555; font-size: 8pt; margin: 3pt 0; }
   #etude-print .entete { text-align: center; margin-bottom: 6pt; }
   #etude-print .entete h1 { margin: 0; }
-  #etude-print .logo-etude { display: block; height: 36pt; margin: 0 auto 4pt; }
+  #etude-print .logo-etude { display: block; height: 30pt; margin: 0 auto 2pt; }
   #etude-print .synthbox { border: 1.5pt solid #681316; background: #FBEFF1; border-radius: 6pt;
-    padding: 2pt 12pt 8pt; margin: 4pt 0 8pt; page-break-inside: avoid; }
+    padding: 1pt 10pt 5pt; margin: 3pt 0 5pt; page-break-inside: avoid; }
   #etude-print .synthbox h2 { border-bottom: 0; color: #681316; margin: 6pt 0 2pt; }
   #etude-print .valbox { display: inline-block; border: 1.2pt solid #681316; border-radius: 4pt;
     padding: 1.5pt 8pt; color: #681316; font-weight: 700; }
   /* mises en valeur : coefficient (élément n°1 de l'offre), base horaire, coefs par ligne */
-  #etude-print .kv-big td { font-size: 12.5pt; padding: 5pt 4pt; }
+  #etude-print .kv-big td { font-size: 11.5pt; padding: 3pt 4pt; }
   #etude-print .kv-big td.n { font-weight: 700; }
   #etude-print .coefv { font-size: 12pt; font-weight: 700; color: #681316; }
-  #etude-print .sublet { display: block; color: #666; font-size: 9pt; font-weight: 400; }
+  #etude-print .sublet { display: block; color: #666; font-size: 8.5pt; font-weight: 400; }
 #etude-print .qual-s { color: #681316; font-weight: 800; }
 #etude-print .qual-ns { color: #29293b; font-weight: 800; }
 #etude-print .agence { color: #db303f; font-weight: 800; font-size: 11pt; letter-spacing: .02em; }
@@ -369,8 +370,8 @@ table.grille td.neg { color: var(--bad); }
   /* marges gérées par la page elle-même : supprime l'URL/date ajoutées par le
    * navigateur dans les marges d'impression (mention wboussard inutile) */
   @page { margin: 0; }
-  body.print-etude #etude-print { padding: 13mm 12mm 12mm; }
-  #etude-print .foot { margin-top: 12pt; padding-top: 4pt; border-top: 0.5pt solid #bbb; color: #666; font-size: 8.5pt; }
+  body.print-etude #etude-print { padding: 9mm 11mm 8mm; }
+  #etude-print .foot { margin-top: 6pt; padding-top: 3pt; border-top: 0.5pt solid #bbb; color: #666; font-size: 8pt; }
 }
 @media print {
   /* palette claire forcée quel que soit le thème actif */
