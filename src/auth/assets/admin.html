@@ -45,6 +45,12 @@ input, select { padding: 6px 8px; border: 1px solid var(--line); border-radius: 
   color: var(--muted); background: var(--card2); text-decoration: line-through; }
 .secchip.on { color: var(--good); background: rgba(71,113,62,.12); border-color: var(--good); text-decoration: none; }
 .cb-lig { font-size: 11.5px; white-space: nowrap; margin-right: 6px; }
+.ed td { background: var(--card2); }
+.edg { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: flex-end; font-size: 12.5px; }
+.edg label { display: flex; flex-direction: column; gap: 2px; font-weight: 600; color: var(--muted); }
+.edg input, .edg select { padding: 5px 7px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--ink); font: inherit; min-width: 150px; }
+.edg .ed-ags { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+.edg .ed-act { flex-basis: 100%; }
 </style>
 </head>
 <body>
@@ -104,6 +110,10 @@ const SEC_LIBELLES = { "simulateur": "Simulateur", "paie": "Veille Paie", "conve
 const secLib = s => SEC_LIBELLES[s] || s;
 /* sections ouvertes PAR DÉFAUT selon l'entité (décision direction 04/09) — l'admin peut en cocher d'autres */
 const secDefaut = e => e === "prestataire" ? ["prestataires"] : e === "abservice" ? ["logements"] : ["simulateur", "paie", "conventions", "salaires-europe"];
+const nomComplet = x => [x.prenom, x.nom].map(v => String(v || "").trim()).filter(Boolean).join(" ");
+const escA = v => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const agArr = j => { try { const l = JSON.parse(j || "[]"); return Array.isArray(l) ? l : []; } catch (e) { return []; } };
+const libAg = a => a.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join("-");
 function sectionsListe(brut, entite) {   // NULL / illisible = défaut de l'entité (même règle que le serveur)
   if (brut == null || brut === "") return secDefaut(entite);
   try { const l = JSON.parse(brut); return Array.isArray(l) ? l : secDefaut(entite); }
@@ -125,7 +135,7 @@ async function charger() {
   const zd = $("z-demandes");
   if (!a.demandes.length) zd.innerHTML = "<div class='vide'>Aucune demande en attente.</div>";
   else zd.innerHTML = "<table><tr><th>Date</th><th>Nom</th><th>E-mail</th><th>Entité · agences</th><th>Fonction</th><th>Sections ouvertes</th><th></th></tr>" +
-    a.demandes.map(d => "<tr><td>" + esc(d.cree_le) + "</td><td>" + esc(d.nom) + "</td><td>" + esc(d.email) +
+    a.demandes.map(d => "<tr><td>" + esc(d.cree_le) + "</td><td>" + esc(nomComplet(d)) + "</td><td>" + esc(d.email) +
       "</td><td>" + (d.entite === "abservice" ? "<b>AB SERVICE</b><br>" + esc(agListe(d.agences))
         : d.entite === "prestataire" ? "<b>PRESTATAIRE</b><br>" + esc(d.societe || "") + " · " + esc(d.pays || "") + " · " + esc(d.telephone || "") + " · langue " + esc(d.langue || "fr")
         : "AB2PRO") +
@@ -165,17 +175,46 @@ async function charger() {
           "<button class='btn' data-actif='" + x.id + "' data-vers='" + (x.actif ? 0 : 1) + "'>" + (x.actif ? "Désactiver" : "Réactiver") + "</button>" +
           "<button class='btn' data-inv='" + x.id + "'>Réinviter</button>";
       }
-      return "<tr><td>" + esc(x.email) + "</td><td>" + esc(x.nom) + "</td>" +
-        "<td>" + (x.entite === "abservice" ? "<b>AB SERVICE</b><br><span class='note'>" + esc(agListe(x.agences)) + "</span>" : "AB2PRO") + "</td>" +
+      /* fiche : toutes les infos modifiables par un admin (cibles admin/super admin : super admins seulement, soi-même toujours) */
+      const peutEditer = (!sup && !adm) || SUIS_SUPER || x.email === moi.email;
+      if (peutEditer) boutons += "<button class='btn' data-edit='" + x.id + "'>Modifier</button>";
+      const agOpts = (a.agences_abservice || []).map(ag => "<label class='cb-lig'><input type='checkbox' class='ed-ag' value='" + escA(ag) + "'" +
+        (agArr(x.agences).includes(ag) ? " checked" : "") + "> " + escA(libAg(ag)) + "</label>").join("");
+      const editeur = !peutEditer ? "" : "<tr class='ed' data-ed='" + x.id + "' hidden><td colspan='8'><div class='edg'>" +
+        "<label>Prénom<input data-k='prenom' value=\"" + escA(x.prenom || "") + "\"></label>" +
+        "<label>Nom<input data-k='nom' value=\"" + escA(x.nom || "") + "\"></label>" +
+        "<label>E-mail de connexion<input data-k='email' type='email' value=\"" + escA(x.email) + "\"></label>" +
+        "<label>Fonction<input data-k='fonction' value=\"" + escA(x.fonction || "") + "\"></label>" +
+        "<label>Entité<select data-k='entite'>" + ["ab2pro", "abservice", "prestataire"].map(e => "<option value='" + e + "'" + ((x.entite || "ab2pro") === e ? " selected" : "") + ">" + e.toUpperCase() + "</option>").join("") + "</select></label>" +
+        "<label>Langue<select data-k='langue'>" + ["fr", "en", "ro", "hu"].map(l => "<option" + ((x.langue || "fr") === l ? " selected" : "") + ">" + l + "</option>").join("") + "</select></label>" +
+        "<div class='ed-ags'" + (x.entite === "abservice" ? "" : " hidden") + "><span class='note'>Agences AB Service (au moins une) :</span> " + agOpts + "</div>" +
+        "<div class='ed-act'><button class='btn p' data-save='" + x.id + "'>Enregistrer</button> <button class='btn' data-cancel='" + x.id + "'>Annuler</button> <span class='note' data-edmsg='" + x.id + "'></span></div>" +
+        "</div></td></tr>";
+      return "<tr><td>" + esc(x.email) + "</td><td>" + esc(nomComplet(x)) + (x.langue && x.langue !== "fr" ? " <span class='note'>(" + esc(x.langue) + ")</span>" : "") + "</td>" +
+        "<td>" + (x.entite === "abservice" ? "<b>AB SERVICE</b><br><span class='note'>" + esc(agListe(x.agences)) + "</span>" : x.entite === "prestataire" ? "<b>PRESTATAIRE</b>" : "AB2PRO") + "</td>" +
         "<td>" + (sup ? "<span class='tag a'>★ super admin</span>" : adm ? "<span class='tag a'>admin</span>" : "user") + "</td>" +
         "<td>" + colSecs + "</td>" +
         "<td>" + (x.actif ? (x.doit_changer_mdp ? "<span class='tag'>invitation en cours</span>" : "actif") : "<span class='tag'>désactivé</span>") + "</td>" +
         "<td>" + esc((x.cree_le || "").slice(0, 10)) + " <span class='note'>par " + esc(x.cree_par) + "</span></td><td>" +
-        boutons + "</td></tr>";
+        boutons + "</td></tr>" + editeur;
     }).join("") + "</table>";
   const messages = { pas_soi_meme: "On ne modifie pas son propre compte.",
     intouchable: "Les super admins sont intouchables : ni rétrogradation, ni désactivation, jamais.",
-    reserve_super_admin: "Action réservée aux super admins." };
+    reserve_super_admin: "Action réservée aux super admins.",
+    nom_requis: "le nom est obligatoire", email_invalide: "adresse e-mail invalide", email_deja_utilise: "cette adresse est déjà utilisée par un autre compte",
+    entite_invalide: "entité invalide", agences_invalides: "AB Service : choisir au moins une agence", langue_invalide: "langue invalide" };
+  /* éditeur de fiche : ouvrir/fermer, agences visibles si AB Service, enregistrement → /api/admin/utilisateur */
+  zu.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => { const tr = zu.querySelector("tr.ed[data-ed='" + b.dataset.edit + "']"); tr.hidden = !tr.hidden; });
+  zu.querySelectorAll("[data-cancel]").forEach(b => b.onclick = () => { zu.querySelector("tr.ed[data-ed='" + b.dataset.cancel + "']").hidden = true; });
+  zu.querySelectorAll("tr.ed select[data-k='entite']").forEach(sel => sel.onchange = () => { sel.closest("tr.ed").querySelector(".ed-ags").hidden = sel.value !== "abservice"; });
+  zu.querySelectorAll("[data-save]").forEach(b => b.onclick = async () => {
+    const tr = b.closest("tr.ed"); const o = { id: +b.dataset.save };
+    tr.querySelectorAll("[data-k]").forEach(e => { o[e.dataset.k] = e.value; });
+    o.agences = [...tr.querySelectorAll(".ed-ag:checked")].map(c => c.value);
+    const msg = tr.querySelector("[data-edmsg]"); msg.textContent = "Enregistrement…";
+    const j = await post("/api/admin/utilisateur", o);
+    if (j.ok) charger(); else msg.textContent = "Erreur : " + (messages[j.erreur] || j.erreur || "inconnue");
+  });
   zu.querySelectorAll("[data-role]").forEach(b => b.onclick = async () => {
     const j = await post("/api/admin/role", { id: +b.dataset.role, role: b.dataset.vers });
     if (messages[j.erreur]) alert(messages[j.erreur]); charger(); });

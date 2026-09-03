@@ -32,39 +32,61 @@ button { width: 100%; margin-top: 16px; padding: 11px; border: none; border-radi
 </head>
 <body>
 <div class="boite">
-  <h1><b>AB2Pro</b> — Définir le mot de passe</h1>
+  <h1><b>AB2Pro</b> — <span data-t="titre">Définir le mot de passe</span></h1>
   <form id="f">
     <div id="bloc-ancien">
-      <label>Mot de passe actuel (ou temporaire)</label>
+      <label data-t="ancien">Mot de passe actuel (ou temporaire)</label>
       <input id="ancien" type="password" autocomplete="current-password">
     </div>
-    <label>Nouveau mot de passe (10 caractères minimum)</label>
+    <label data-t="nouveau">Nouveau mot de passe (10 caractères minimum)</label>
     <input id="n1" type="password" autocomplete="new-password" required minlength="10">
-    <label>Confirmez</label>
+    <label data-t="confirmer">Confirmez</label>
     <input id="n2" type="password" autocomplete="new-password" required>
-    <button type="submit">Enregistrer et entrer</button>
+    <button type="submit" data-t="valider">Enregistrer et entrer</button>
     <div class="msg" id="msg"></div>
-    <div class="note">Conseil : une phrase de passe (3-4 mots) est plus sûre et plus simple à retenir.</div>
+    <div class="note" data-t="conseil">Conseil : une phrase de passe (3-4 mots) est plus sûre et plus simple à retenir.</div>
   </form>
 </div>
 <script>
 const $ = id => document.getElementById(id);
-const invite = new URLSearchParams(location.search).get("invite");
+/* page traduite FR/EN/RO/HU : langue = ?l= du lien d'invitation, sinon choix mémorisé sur la page de connexion, sinon navigateur */
+const T = {
+  fr: { titre: "Définir le mot de passe", ancien: "Mot de passe actuel (ou temporaire)", nouveau: "Nouveau mot de passe (10 caractères minimum)", confirmer: "Confirmez", valider: "Enregistrer et entrer",
+    conseil: "Conseil : une phrase de passe (3-4 mots) est plus sûre et plus simple à retenir.", differe: "Les deux saisies diffèrent.", enreg: "Enregistrement…",
+    invitation_invalide: "Lien d'invitation expiré — demandez une réinvitation à un administrateur.", ancien_incorrect: "Mot de passe actuel incorrect.", mot_de_passe_trop_court: "10 caractères minimum.", erreur: "Erreur — réessayez.", reseau: "Connexion au serveur impossible — vérifiez votre réseau et réessayez." },
+  en: { titre: "Set your password", ancien: "Current (or temporary) password", nouveau: "New password (at least 10 characters)", confirmer: "Confirm", valider: "Save and enter",
+    conseil: "Tip: a passphrase of 3-4 words is safer and easier to remember.", differe: "The two entries differ.", enreg: "Saving…",
+    invitation_invalide: "Invitation link expired — ask an administrator to send a new one.", ancien_incorrect: "Current password is incorrect.", mot_de_passe_trop_court: "At least 10 characters.", erreur: "Error — please try again.", reseau: "Cannot reach the server — check your connection and try again." },
+  ro: { titre: "Setați parola", ancien: "Parola actuală (sau temporară)", nouveau: "Parolă nouă (minimum 10 caractere)", confirmer: "Confirmați", valider: "Salvați și intrați",
+    conseil: "Sfat: o frază de 3-4 cuvinte este mai sigură și mai ușor de reținut.", differe: "Cele două parole diferă.", enreg: "Se salvează…",
+    invitation_invalide: "Linkul de invitație a expirat — cereți unui administrator o nouă invitație.", ancien_incorrect: "Parola actuală este incorectă.", mot_de_passe_trop_court: "Minimum 10 caractere.", erreur: "Eroare — reîncercați.", reseau: "Nu se poate contacta serverul — verificați conexiunea și reîncercați." },
+  hu: { titre: "Jelszó beállítása", ancien: "Jelenlegi (vagy ideiglenes) jelszó", nouveau: "Új jelszó (legalább 10 karakter)", confirmer: "Megerősítés", valider: "Mentés és belépés",
+    conseil: "Tipp: egy 3-4 szóból álló jelmondat biztonságosabb és könnyebben megjegyezhető.", differe: "A két jelszó nem egyezik.", enreg: "Mentés…",
+    invitation_invalide: "A meghívó link lejárt — kérjen új meghívót egy adminisztrátortól.", ancien_incorrect: "A jelenlegi jelszó hibás.", mot_de_passe_trop_court: "Legalább 10 karakter.", erreur: "Hiba — próbálja újra.", reseau: "A szerver nem érhető el — ellenőrizze a kapcsolatot, és próbálja újra." },
+};
+const LANGUES = ["fr", "en", "ro", "hu"];
+const params = new URLSearchParams(location.search);
+let L = params.get("l"); if (!LANGUES.includes(L)) { try { L = localStorage.getItem("ab2pro_langue"); } catch (e) { L = null; } }
+if (!LANGUES.includes(L)) { const nav = String(navigator.language || "").slice(0, 2).toLowerCase(); L = LANGUES.includes(nav) ? nav : "fr"; }
+try { localStorage.setItem("ab2pro_langue", L); } catch (e) {}
+const t = k => (T[L] && T[L][k]) || T.fr[k] || k;
+document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t(el.dataset.t); });
+document.documentElement.lang = L; document.title = "AB2Pro — " + t("titre");
+const invite = params.get("invite");
 if (invite) $("bloc-ancien").hidden = true;
 $("f").addEventListener("submit", async e => {
   e.preventDefault();
   const m = $("msg"); m.className = "msg";
-  if ($("n1").value !== $("n2").value) { m.className = "msg err"; m.textContent = "Les deux saisies diffèrent."; return; }
-  m.textContent = "Enregistrement…";
+  if ($("n1").value !== $("n2").value) { m.className = "msg err"; m.textContent = t("differe"); return; }
+  m.textContent = t("enreg");
   const corps = { nouveau: $("n1").value };
   if (invite) corps.invite = invite; else corps.ancien = $("ancien").value;
-  const r = await fetch("/api/motdepasse", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(corps) });
+  let r;
+  try { r = await fetch("/api/motdepasse", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(corps) }); }
+  catch (err) { m.className = "msg err"; m.textContent = t("reseau"); return; }
   const j = await r.json().catch(() => ({}));
   if (r.ok && j.ok) location.href = "/app/";
-  else { m.className = "msg err";
-    m.textContent = j.erreur === "invitation_invalide" ? "Lien d'invitation expiré — demandez une réinvitation à un administrateur." :
-                    j.erreur === "ancien_incorrect" ? "Mot de passe actuel incorrect." :
-                    j.erreur === "mot_de_passe_trop_court" ? "10 caractères minimum." : "Erreur — réessayez."; }
+  else { m.className = "msg err"; m.textContent = t(T.fr[j.erreur] ? j.erreur : "erreur"); }
 });
 </script>
 </body>

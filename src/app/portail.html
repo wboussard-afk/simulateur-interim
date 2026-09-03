@@ -117,6 +117,8 @@ a.appcard:hover, a.appcard:active { border-color: var(--brass); transform: trans
       </span>
     </div>
     <div style="margin-top:10px; border-top:1px solid var(--line-soft); padding-top:10px; display:flex; flex-wrap:wrap; gap:10px 16px; align-items:flex-end; font-size:13.5px">
+      <label style="display:flex; flex-direction:column; gap:3px; font-weight:400; flex:1 1 160px">Prénom
+        <input id="profil-prenom" style="padding:6px 8px; border:1px solid var(--line); border-radius:7px; background:var(--card2); color:var(--ink); font:inherit"></label>
       <label style="display:flex; flex-direction:column; gap:3px; font-weight:400; flex:1 1 180px">Nom
         <input id="profil-nom" style="padding:6px 8px; border:1px solid var(--line); border-radius:7px; background:var(--card2); color:var(--ink); font:inherit"></label>
       <label style="display:flex; flex-direction:column; gap:3px; font-weight:400; flex:1 1 220px">E-mail de connexion
@@ -164,20 +166,21 @@ if (Array.isArray(window.AB_SECTIONS)) {
     if (!moi || !moi.email) return;
     const carte = document.getElementById("carte-profil");
     carte.hidden = false;
-    const entLib = moi.entite === "abservice" ? "AB SERVICE" : "AB2PRO";
+    const entLib = moi.entite === "abservice" ? "AB SERVICE" : moi.entite === "prestataire" ? "PRESTATAIRE" : "AB2PRO";
     document.getElementById("profil-resume").textContent =
-      (moi.nom || moi.email) + " · " + moi.email + " · entité " + entLib +
+      (moi.nom_complet || moi.nom || moi.email) + " · " + moi.email + " · entité " + entLib +
       (moi.entite === "abservice" && moi.agences.length ? " · agence(s) : " + moi.agences.map(lib).join(", ") : "");
     /* langue + fonction : modifiables par tous */
     document.getElementById("profil-langue").value = moi.langue || "fr";
     document.getElementById("profil-fonction").value = moi.fonction || "";
     document.getElementById("profil-nom").value = moi.nom || "";
+    document.getElementById("profil-prenom").value = moi.prenom || "";
     document.getElementById("profil-email").value = moi.email || "";
     document.getElementById("btn-profil-base").addEventListener("click", function () {
       const msg = document.getElementById("profil-msg-base"); msg.textContent = "Enregistrement…";
       fetch("/api/profil", { method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ langue: document.getElementById("profil-langue").value, fonction: document.getElementById("profil-fonction").value,
-                               nom: document.getElementById("profil-nom").value, email: document.getElementById("profil-email").value }) })
+                               nom: document.getElementById("profil-nom").value, prenom: document.getElementById("profil-prenom").value, email: document.getElementById("profil-email").value }) })
         .then(r => r.json()).then(function (j) {
           const LIB = { nom_requis: "le nom est obligatoire", email_invalide: "adresse e-mail invalide", email_deja_utilise: "cette adresse est déjà utilisée par un autre compte" };
           if (!j.ok) { msg.textContent = "Erreur : " + (LIB[j.erreur] || j.erreur || "réessayer"); return; }

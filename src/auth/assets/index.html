@@ -14,14 +14,14 @@
   --line:#3b3b4d; --brass:#e85160; --brass-deep:#f0929c;
   --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3); } }
 * { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
-body { background: var(--paper); color: var(--ink); font: 15px/1.5 "Segoe UI", system-ui, sans-serif;
+body { background: var(--paper); color: var(--ink); font: 16px/1.5 "Segoe UI", system-ui, sans-serif;
   min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 18px; }
 .boite { width: 100%; max-width: 400px; background: var(--card); border: 1px solid var(--line);
   border-radius: 12px; box-shadow: var(--shadow); padding: 26px 24px; }
 h1 { font-family: "Nexa", "Poppins", "Segoe UI", system-ui, sans-serif; font-size: 23px; margin: 0 0 2px; text-align: center; }
 h1 b { color: var(--brass); }
 .sous { color: var(--muted); font-size: 12.5px; text-align: center; margin-bottom: 18px; }
-label { display: block; font-size: 11.5px; color: var(--muted); font-weight: 600; margin: 12px 0 3px; }
+label { display: block; font-size: 13px; color: var(--muted); font-weight: 600; margin: 12px 0 3px; }
 input, textarea, select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 7px;
   background: var(--card2); color: var(--ink); font: inherit; }
 button { width: 100%; margin-top: 16px; padding: 11px; border: none; border-radius: 7px;
@@ -31,71 +31,170 @@ button.sec { background: none; border: 1px solid var(--line); color: var(--ink);
 .msg.err { color: var(--brass-deep); } .msg.ok { color: #47713E; }
 .pied { margin-top: 16px; font-size: 11px; color: var(--muted); text-align: center; }
 [hidden] { display: none !important; }
+.lang { display: flex; gap: 6px; margin: 0 0 14px; }
+.lang button { flex: 1; width: auto; margin: 0; min-height: 40px; padding: 8px 0; font-size: 14px; font-weight: 700; border: 1px solid var(--line); border-radius: 7px; background: var(--card2, #f1f1f4); color: var(--ink, #29293b); cursor: pointer; }
+.lang button.on { background: var(--brass, #db303f); border-color: var(--brass, #db303f); color: #fff; }
+.note { font-size: 12.5px; color: var(--muted, #5f5f74); margin: 4px 0 6px; }
 </style>
 </head>
 <body>
 <div class="boite">
-  <h1><b>AB2Pro</b> — Outils</h1>
-  <div class="sous">L'intérim européen qui tient parole.</div>
+  <div class="lang" id="lang" role="group" aria-label="Langue / Language / Limba / Nyelv">
+    <button type="button" data-l="fr">FR</button><button type="button" data-l="en">EN</button><button type="button" data-l="ro">RO</button><button type="button" data-l="hu">HU</button>
+  </div>
+  <h1><b>AB2Pro</b> — <span data-t="titre">Outils</span></h1>
+  <div class="sous" data-t="sous">L'intérim européen qui tient parole.</div>
 
   <form id="f-login">
-    <label>E-mail</label>
+    <label data-t="email">E-mail</label>
     <input id="l-email" type="email" autocomplete="username" required>
-    <label>Mot de passe</label>
+    <label data-t="mdp">Mot de passe</label>
     <input id="l-mdp" type="password" autocomplete="current-password" required>
-    <button type="submit">Se connecter</button>
-    <button type="button" class="sec" id="btn-vers-demande">Demander un accès</button>
+    <button type="submit" data-t="connecter">Se connecter</button>
+    <button type="button" class="sec" id="btn-vers-demande" data-t="demander">Demander un accès</button>
     <div class="msg" id="l-msg"></div>
   </form>
 
   <form id="f-demande" hidden>
-    <label>Nom et prénom</label>
-    <input id="d-nom" required>
-    <label>E-mail professionnel</label>
-    <input id="d-email" type="email" required>
-    <label>Votre entité</label>
+    <div class="note" data-t="langue_note">Formulaire affiché dans la langue choisie ci-dessus ; elle devient votre langue par défaut (modifiable ensuite dans votre profil).</div>
+    <label data-t="prenom">Prénom</label>
+    <input id="d-prenom" required autocomplete="given-name">
+    <label data-t="nom">Nom</label>
+    <input id="d-nom" required autocomplete="family-name">
+    <label data-t="email_pro">E-mail professionnel</label>
+    <input id="d-email" type="email" required autocomplete="email">
+    <label data-t="entite">Votre entité</label>
     <select id="d-entite" required>
-      <option value="" selected disabled>— choisir —</option>
-      <option value="ab2pro">AB2PRO</option>
-      <option value="abservice">AB SERVICE</option>
-      <option value="prestataire">PRESTATAIRE — recruteur partenaire externe / Partener extern / Külső partner</option>
+      <option value="" selected disabled data-t="choisir">— choisir —</option>
+      <option value="ab2pro" data-t="ent_ab2pro">AB2PRO — collaborateur interne</option>
+      <option value="abservice" data-t="ent_abservice">AB SERVICE — collaborateur interne</option>
+      <option value="prestataire" data-t="ent_prestataire">PRESTATAIRE — recruteur partenaire externe</option>
     </select>
     <div id="d-prest-bloc" hidden>
-      <label>Société / Societate / Cég</label>
-      <input id="d-societe" placeholder="ex. AKTERIA CONSULTING">
-      <label>Téléphone / Telefon</label>
-      <input id="d-telephone" placeholder="+40 …">
-      <label>Pays de sourcing / Țara / Ország</label>
-      <select id="d-pays"><option>Roumanie</option><option>Hongrie</option><option>Bulgarie</option><option>Moldavie</option><option>Autre</option></select>
-      <div style="font-size:11px; color:var(--muted); margin-top:4px">Accès après validation par AB2PRO · Access after validation · Acces după validare · Hozzáférés jóváhagyás után.</div>
+      <label data-t="societe">Société</label>
+      <input id="d-societe" data-ph="societe_ph" placeholder="ex. AKTERIA CONSULTING" autocomplete="organization">
+      <label data-t="telephone">Téléphone</label>
+      <input id="d-telephone" data-ph="telephone_ph" placeholder="+40 …" inputmode="tel" autocomplete="tel">
+      <label data-t="pays">Pays de sourcing des candidats</label>
+      <select id="d-pays">
+        <option value="" selected disabled data-t="choisir">— choisir —</option>
+        <option value="Roumanie" data-t="pays_ro">Roumanie</option><option value="Hongrie" data-t="pays_hu">Hongrie</option>
+        <option value="Bulgarie" data-t="pays_bg">Bulgarie</option><option value="Moldavie" data-t="pays_md">Moldavie</option><option value="Autre" data-t="pays_autre">Autre</option>
+      </select>
+      <input id="d-pays-autre" data-ph="pays_autre_ph" placeholder="ex. Serbie" hidden>
+      <div class="note" data-t="acces_validation">Accès ouvert après validation par AB2PRO.</div>
     </div>
-    <label>Langue par défaut / Default language / Limba / Nyelv <span style="font-weight:400">(modifiable dans votre profil)</span></label>
-    <select id="d-langue"><option value="fr">Français</option><option value="en">English</option><option value="ro">Română</option><option value="hu">Magyar</option></select>
     <div id="d-agences-bloc" hidden>
-      <label>Agence(s) de rattachement AB Service — une ou plusieurs</label>
+      <label data-t="agences">Agence(s) de rattachement AB Service — une ou plusieurs</label>
       <div id="d-agences" style="display:flex; flex-wrap:wrap; gap:6px 12px; font-size:13px; margin:4px 0 6px"></div>
-      <div style="font-size:11px; color:var(--muted)">Modifiable ensuite depuis votre profil.</div>
+      <div class="note" data-t="agences_note">Modifiable ensuite depuis votre profil.</div>
     </div>
-    <label>Fonction (poste — figurera dans la signature de vos courriers)</label>
-    <input id="d-fonction" placeholder="ex. Chargé(e) de recrutement" required>
-    <button type="submit">Envoyer la demande</button>
-    <button type="button" class="sec" id="btn-vers-login">← Retour à la connexion</button>
+    <div id="d-fonction-bloc">
+      <label data-t="fonction">Fonction (poste — figurera dans la signature de vos courriers)</label>
+      <input id="d-fonction" data-ph="fonction_ph" placeholder="ex. Chargé(e) de recrutement" required autocomplete="organization-title">
+    </div>
+    <button type="submit" data-t="envoyer">Envoyer la demande</button>
+    <button type="button" class="sec" id="btn-vers-login" data-t="retour">← Retour à la connexion</button>
     <div class="msg" id="d-msg"></div>
   </form>
 
-  <div class="pied">Accès sur approbation des administrateurs.<br>Groupe Triangle Solutions RH · AB2Pro.</div>
+  <div class="pied"><span data-t="pied">Accès sur approbation des administrateurs.</span><br>Groupe Triangle Solutions RH · AB2Pro.</div>
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
+
+/* ===== textes FR / EN / RO / HU — la page entière suit la langue choisie en tête ===== */
+const T = {
+  fr: { titre: "Outils", titre_page: "Connexion", sous: "L'intérim européen qui tient parole.", email: "E-mail", mdp: "Mot de passe", connecter: "Se connecter", demander: "Demander un accès",
+    connexion: "Connexion…", verrouille: "Compte verrouillé {n} min (5 échecs).", identifiants_ko: "E-mail ou mot de passe incorrect.",
+    langue_note: "Formulaire affiché dans la langue choisie ci-dessus ; elle devient votre langue par défaut (modifiable ensuite dans votre profil).",
+    prenom: "Prénom", nom: "Nom", email_pro: "E-mail professionnel", entite: "Votre entité", choisir: "— choisir —",
+    ent_ab2pro: "AB2PRO — collaborateur interne", ent_abservice: "AB SERVICE — collaborateur interne", ent_prestataire: "PRESTATAIRE — recruteur partenaire externe",
+    societe: "Société", societe_ph: "ex. AKTERIA CONSULTING", telephone: "Téléphone", telephone_ph: "+40 …", pays: "Pays de sourcing des candidats",
+    pays_ro: "Roumanie", pays_hu: "Hongrie", pays_bg: "Bulgarie", pays_md: "Moldavie", pays_autre: "Autre", pays_autre_ph: "ex. Serbie", err_pays: "Indiquez le pays de recrutement des candidats.", reseau: "Connexion au serveur impossible — vérifiez votre réseau et réessayez.", acces_validation: "Accès ouvert après validation par AB2PRO.",
+    agences: "Agence(s) de rattachement AB Service — une ou plusieurs", agences_note: "Modifiable ensuite depuis votre profil.",
+    fonction: "Fonction (poste — figurera dans la signature de vos courriers)", fonction_ph: "ex. Chargé(e) de recrutement",
+    envoyer: "Envoyer la demande", retour: "← Retour à la connexion", pied: "Accès sur approbation des administrateurs.",
+    err_entite: "Choisissez votre entité (AB2PRO, AB SERVICE ou PRESTATAIRE).", err_societe: "Indiquez le nom de votre société.", err_agence: "Choisissez au moins une agence de rattachement.",
+    envoi: "Envoi…", deja_attente: "Demande déjà en attente — les administrateurs ont été prévenus.", envoyee: "✓ Demande envoyée aux administrateurs — vous recevrez un e-mail après approbation.",
+    deja_utilisateur: "Cet e-mail a déjà un compte — utilisez la connexion.", invalide: "Demande invalide — vérifiez les champs." },
+  en: { titre: "Tools", titre_page: "Sign in", sous: "European temporary staffing that keeps its word.", email: "E-mail", mdp: "Password", connecter: "Sign in", demander: "Request access",
+    connexion: "Signing in…", verrouille: "Account locked for {n} min (5 failed attempts).", identifiants_ko: "Incorrect e-mail or password.",
+    langue_note: "The form is shown in the language selected above; it becomes your default language (you can change it later in your profile).",
+    prenom: "First name", nom: "Surname", email_pro: "Work e-mail", entite: "Your organisation", choisir: "— choose —",
+    ent_ab2pro: "AB2PRO — internal staff", ent_abservice: "AB SERVICE — internal staff", ent_prestataire: "PARTNER — external recruitment partner",
+    societe: "Company", societe_ph: "e.g. AKTERIA CONSULTING", telephone: "Phone", telephone_ph: "+40 …", pays: "Country where you source candidates",
+    pays_ro: "Romania", pays_hu: "Hungary", pays_bg: "Bulgaria", pays_md: "Moldova", pays_autre: "Other", pays_autre_ph: "e.g. Serbia", err_pays: "Select the country where you recruit candidates.", reseau: "Cannot reach the server — check your connection and try again.", acces_validation: "Access is granted after approval by AB2PRO.",
+    agences: "AB Service agency/agencies you belong to — one or more", agences_note: "Can be changed later in your profile.",
+    fonction: "Job title (will appear in the signature of your letters)", fonction_ph: "e.g. Recruitment officer",
+    envoyer: "Send the request", retour: "← Back to sign-in", pied: "Access requires approval by an administrator.",
+    err_entite: "Choose your organisation (AB2PRO, AB SERVICE or PARTNER).", err_societe: "Enter your company name.", err_agence: "Choose at least one agency.",
+    envoi: "Sending…", deja_attente: "Request already pending — the administrators have been notified.", envoyee: "✓ Request sent to the administrators — you will receive an e-mail once your request is approved.",
+    deja_utilisateur: "An account already exists for this e-mail address — please go back and sign in.", invalide: "Invalid request — please check the fields." },
+  ro: { titre: "Instrumente", titre_page: "Conectare", sous: "Munca temporară europeană care se ține de cuvânt.", email: "E-mail", mdp: "Parolă", connecter: "Conectare", demander: "Solicitați acces",
+    connexion: "Conectare…", verrouille: "Cont blocat {n} min (5 încercări eșuate).", identifiants_ko: "E-mail sau parolă incorectă.",
+    langue_note: "Formularul este afișat în limba aleasă mai sus; aceasta devine limba dvs. implicită (o puteți schimba ulterior în profil).",
+    prenom: "Prenume", nom: "Nume de familie", email_pro: "E-mail profesional", entite: "Organizația dvs.", choisir: "— alegeți —",
+    ent_ab2pro: "AB2PRO — angajat intern", ent_abservice: "AB SERVICE — angajat intern", ent_prestataire: "PARTENER — recrutor partener extern",
+    societe: "Societate", societe_ph: "ex. AKTERIA CONSULTING", telephone: "Telefon", telephone_ph: "+40 …", pays: "Țara din care recrutați candidații",
+    pays_ro: "România", pays_hu: "Ungaria", pays_bg: "Bulgaria", pays_md: "Moldova", pays_autre: "Altă țară", pays_autre_ph: "ex. Serbia", err_pays: "Alegeți țara din care recrutați candidații.", reseau: "Nu se poate contacta serverul — verificați conexiunea și reîncercați.", acces_validation: "Accesul se deschide după validarea de către AB2PRO.",
+    agences: "Agenția/agențiile AB Service de care aparțineți — una sau mai multe", agences_note: "Se poate modifica ulterior din profil.",
+    fonction: "Funcție (va apărea în semnătura corespondenței dvs.)", fonction_ph: "ex. Responsabil recrutare",
+    envoyer: "Trimiteți cererea", retour: "← Înapoi la conectare", pied: "Acces după aprobarea administratorilor.",
+    err_entite: "Alegeți organizația dvs. (AB2PRO, AB SERVICE sau PARTENER).", err_societe: "Introduceți numele societății dvs.", err_agence: "Alegeți cel puțin o agenție.",
+    envoi: "Se trimite…", deja_attente: "Cerere deja în așteptare — administratorii au fost anunțați.", envoyee: "✓ Cerere trimisă administratorilor — veți primi un e-mail după aprobare.",
+    deja_utilisateur: "Acest e-mail are deja un cont — conectați-vă.", invalide: "Cerere invalidă — verificați câmpurile." },
+  hu: { titre: "Eszközök", titre_page: "Bejelentkezés", sous: "Európai munkaerő-kölcsönzés, amely állja a szavát.", email: "E-mail", mdp: "Jelszó", connecter: "Bejelentkezés", demander: "Hozzáférés kérése",
+    connexion: "Bejelentkezés…", verrouille: "A fiók {n} percre zárolva (5 sikertelen kísérlet).", identifiants_ko: "Hibás e-mail-cím vagy jelszó.",
+    langue_note: "Az űrlap a fent kiválasztott nyelven jelenik meg; ez lesz az Ön alapértelmezett nyelve (később a profiljában módosítható).",
+    prenom: "Keresztnév", nom: "Vezetéknév", email_pro: "Munkahelyi e-mail-cím", entite: "Az Ön szervezete", choisir: "— válasszon —",
+    ent_ab2pro: "AB2PRO — belső munkatárs", ent_abservice: "AB SERVICE — belső munkatárs", ent_prestataire: "PARTNER — külső toborzó partner",
+    societe: "Cég", societe_ph: "pl. AKTERIA CONSULTING", telephone: "Telefon", telephone_ph: "+36 …", pays: "A jelöltek toborzásának országa",
+    pays_ro: "Románia", pays_hu: "Magyarország", pays_bg: "Bulgária", pays_md: "Moldova", pays_autre: "Egyéb", pays_autre_ph: "pl. Szerbia", err_pays: "Válassza ki a toborzás országát.", reseau: "A szerver nem érhető el — ellenőrizze a kapcsolatot, és próbálja újra.", acces_validation: "A hozzáférés az AB2PRO jóváhagyása után nyílik meg.",
+    agences: "AB Service iroda/irodák, amelyekhez tartozik — egy vagy több", agences_note: "Később a profiljában módosítható.",
+    fonction: "Beosztás (a levelei aláírásában fog szerepelni)", fonction_ph: "pl. Toborzási munkatárs",
+    envoyer: "Kérelem elküldése", retour: "← Vissza a bejelentkezéshez", pied: "Hozzáférés az adminisztrátorok jóváhagyásával.",
+    err_entite: "Válassza ki a szervezetét (AB2PRO, AB SERVICE vagy PARTNER).", err_societe: "Adja meg a cége nevét.", err_agence: "Válasszon legalább egy irodát.",
+    envoi: "Küldés…", deja_attente: "A kérelem már függőben van — az adminisztrátorok értesítést kaptak.", envoyee: "✓ A kérelmet elküldtük az adminisztrátoroknak — jóváhagyás után e-mailt kap.",
+    deja_utilisateur: "Ehhez az e-mail-címhez már tartozik fiók — jelentkezzen be.", invalide: "Érvénytelen kérelem — ellenőrizze a mezőket." },
+};
+const LANGUES = ["fr", "en", "ro", "hu"];
+let L = "fr";
+const t = (k, v) => { let x = (T[L] && T[L][k]) || T.fr[k] || k; if (v) for (const n in v) x = x.replace("{" + n + "}", v[n]); return x; };
+function traduire() {
+  document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t(el.dataset.t); });
+  document.querySelectorAll("[data-ph]").forEach(el => { el.placeholder = t(el.dataset.ph); });
+  document.querySelectorAll("#lang button").forEach(b => b.classList.toggle("on", b.dataset.l === L));
+  document.documentElement.lang = L;
+  document.title = "AB2Pro — " + t("titre_page");
+}
+function choisirLangue(l, memoriser) {
+  L = LANGUES.includes(l) ? l : "fr"; traduire();
+  /* pays de recrutement : proposé d'après la langue (RO/HU) tant que rien n'a été choisi — jamais un défaut silencieux ailleurs */
+  const pp = $("d-pays"); if (pp && !pp.value && (L === "ro" || L === "hu")) pp.value = L === "ro" ? "Roumanie" : "Hongrie";
+  if (memoriser) { try { localStorage.setItem("ab2pro_langue", L); } catch (e) {} }
+}
+document.querySelectorAll("#lang button").forEach(b => b.addEventListener("click", () => choisirLangue(b.dataset.l, true)));
+/* langue initiale : choix mémorisé, sinon langue du navigateur (ro/hu/en), sinon français */
+(function () {
+  let l = null; try { l = localStorage.getItem("ab2pro_langue"); } catch (e) {}
+  if (!l) { const nav = String(navigator.language || "").slice(0, 2).toLowerCase(); l = LANGUES.includes(nav) ? nav : "fr"; }
+  choisirLangue(l, false);
+})();
+
 $("btn-vers-demande").onclick = () => { $("f-login").hidden = true; $("f-demande").hidden = false; };
 $("btn-vers-login").onclick = () => { $("f-demande").hidden = true; $("f-login").hidden = false; };
 
 $("f-login").addEventListener("submit", async e => {
   e.preventDefault();
-  const m = $("l-msg"); m.className = "msg"; m.textContent = "Connexion…";
-  const r = await fetch("/api/login", { method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ email: $("l-email").value, motdepasse: $("l-mdp").value }) });
+  const m = $("l-msg"); m.className = "msg"; m.textContent = t("connexion");
+  const btn = e.target.querySelector("button[type=submit]"); btn.disabled = true;
+  let r;
+  try { r = await fetch("/api/login", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: $("l-email").value, motdepasse: $("l-mdp").value }) }); }
+  catch (err) { btn.disabled = false; m.className = "msg err"; m.textContent = t("reseau"); return; }
+  btn.disabled = false;
   const j = await r.json().catch(() => ({}));
   if (r.ok && j.ok) {
     if (j.doit_changer_mdp) { location.href = "/motdepasse.html"; return; }
@@ -103,8 +202,7 @@ $("f-login").addEventListener("submit", async e => {
     location.href = suite && suite.startsWith("/app") ? suite : "/app/";
   } else {
     m.className = "msg err";
-    m.textContent = j.erreur === "verrouille" ? "Compte verrouillé " + j.minutes + " min (5 échecs)." :
-                    "E-mail ou mot de passe incorrect.";
+    m.textContent = j.erreur === "verrouille" ? t("verrouille", { n: j.minutes }) : t("identifiants_ko");
   }
 });
 
@@ -117,27 +215,39 @@ $("d-agences").innerHTML = AGENCES.map(a =>
   "<label style='display:flex; align-items:center; gap:5px; font-weight:400; margin:0'>" +
   "<input type='checkbox' class='ck-ag' value='" + a + "' style='width:auto; margin:0'>" + libAgence(a) + "</label>").join("");
 $("d-entite").addEventListener("change", () => {
-  $("d-agences-bloc").hidden = $("d-entite").value !== "abservice";
-  $("d-prest-bloc").hidden = $("d-entite").value !== "prestataire";
-  /* prestataire : la fonction n'a pas de sens (c'est une société) */
-  $("d-fonction").required = $("d-entite").value !== "prestataire";
+  const ent = $("d-entite").value;
+  $("d-agences-bloc").hidden = ent !== "abservice";
+  $("d-prest-bloc").hidden = ent !== "prestataire";
+  /* prestataire : la fonction n'a pas de sens (c'est une société) — champ masqué et non requis */
+  $("d-fonction-bloc").hidden = ent === "prestataire";
+  $("d-fonction").required = ent !== "prestataire";
+  /* requis seulement quand le bloc est visible (un champ requis masqué bloquerait l'envoi sans message) */
+  $("d-societe").required = $("d-pays").required = ent === "prestataire";
 });
+$("d-pays").addEventListener("change", () => { $("d-pays-autre").hidden = $("d-pays").value !== "Autre"; if ($("d-pays").value === "Autre") $("d-pays-autre").focus(); });
 
 $("f-demande").addEventListener("submit", async e => {
   e.preventDefault();
   const m = $("d-msg"); m.className = "msg";
   const entite = $("d-entite").value;
   const agences = Array.from(document.querySelectorAll(".ck-ag:checked")).map(c => c.value);
-  if (!entite) { m.className = "msg err"; m.textContent = "Choisissez votre entité (AB2PRO, AB SERVICE ou PRESTATAIRE)."; return; }
-  if (entite === "prestataire" && !$("d-societe").value.trim()) { m.className = "msg err"; m.textContent = "Indiquez le nom de votre société / Numele societății / Cégnév."; return; }
-  if (entite === "abservice" && !agences.length) { m.className = "msg err"; m.textContent = "Choisissez au moins une agence de rattachement."; return; }
-  m.textContent = "Envoi…";
-  const r = await fetch("/api/demande-acces", { method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ nom: $("d-nom").value, email: $("d-email").value, fonction: $("d-fonction").value, entite, agences,
-      societe: $("d-societe").value, telephone: $("d-telephone").value, pays: $("d-pays").value, langue: $("d-langue").value }) });
+  if (!entite) { m.className = "msg err"; m.textContent = t("err_entite"); return; }
+  if (entite === "prestataire" && !$("d-societe").value.trim()) { m.className = "msg err"; m.textContent = t("err_societe"); return; }
+  if (entite === "abservice" && !agences.length) { m.className = "msg err"; m.textContent = t("err_agence"); return; }
+  const prest = entite === "prestataire";
+  const pays = !prest ? "" : $("d-pays").value === "Autre" && $("d-pays-autre").value.trim() ? $("d-pays-autre").value.trim() : $("d-pays").value;
+  if (prest && !pays) { m.className = "msg err"; m.textContent = t("err_pays"); return; }
+  m.textContent = t("envoi");
+  const btn = e.target.querySelector("button[type=submit]"); btn.disabled = true;
+  let r;
+  try { r = await fetch("/api/demande-acces", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ prenom: $("d-prenom").value, nom: $("d-nom").value, email: $("d-email").value, fonction: prest ? "" : $("d-fonction").value, entite, agences,
+      societe: prest ? $("d-societe").value : "", telephone: prest ? $("d-telephone").value : "", pays, langue: L }) }); }
+  catch (err) { btn.disabled = false; m.className = "msg err"; m.textContent = t("reseau"); return; }
   const j = await r.json().catch(() => ({}));
-  if (r.ok && j.ok) { m.className = "msg ok"; m.textContent = j.deja ? "Demande déjà en attente — les administrateurs ont été prévenus." : "✓ Demande envoyée aux administrateurs — vous recevrez un e-mail après approbation."; }
-  else { m.className = "msg err"; m.textContent = j.erreur === "deja_utilisateur" ? "Cet e-mail a déjà un compte — utilisez la connexion." : "Demande invalide — vérifiez les champs."; }
+  if (!(r.ok && j.ok)) btn.disabled = false;   /* succès : le bouton reste inactif (pas de double envoi) */
+  if (r.ok && j.ok) { m.className = "msg ok"; m.textContent = j.deja ? t("deja_attente") : t("envoyee"); }
+  else { m.className = "msg err"; m.textContent = j.erreur === "deja_utilisateur" ? t("deja_utilisateur") : t("invalide"); }
 });
 </script>
 </body>

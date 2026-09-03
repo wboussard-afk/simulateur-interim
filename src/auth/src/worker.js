@@ -144,9 +144,11 @@ async function envoyerEmail(env, dest, sujet, texte, journalCtx, opts) {
 const FROM_ABSERVICE = "AB Service <logements@ab2pro-simulateur.com>";
 
 /* signature des courriers sortants, complétée depuis le compte (plus de champ à remplir) */
+/* nom complet « Prénom Nom » ; les comptes antérieurs au 04/09/2026 ont le nom complet dans nom (prenom NULL) */
+const nomComplet = x => [x && x.prenom, x && x.nom].map(v => String(v || "").trim()).filter(Boolean).join(" ");
 function signatureDe(u2) {
   const ags = agencesDe(u2);
-  return (u2.nom || u2.email) + (u2.fonction ? " — " + u2.fonction : "") +
+  return (nomComplet(u2) || u2.email) + (u2.fonction ? " — " + u2.fonction : "") +
     "\nAB Service" + (ags.length ? " — agence" + (ags.length > 1 ? "s" : "") + " de " +
       ags.map(a => a.split("-").map(x => x.charAt(0).toUpperCase() + x.slice(1)).join("-")).join(", ") : "") +
     "\nE-mail : " + adresseReponse(u2);
@@ -167,7 +169,7 @@ async function utilisateurDeSession(env, req) {
   const m = (req.headers.get("cookie") || "").match(/(?:^|;\s*)session=([0-9a-f]{64})/);
   if (!m) return null;
   const r = await env.DB.prepare(
-    "SELECT u.id, u.email, u.nom, u.role, u.actif, u.doit_changer_mdp, u.sections, u.entite, u.agences, u.fonction, u.prestataire_id, u.langue, s.token, s.expire_le " +
+    "SELECT u.id, u.email, u.nom, u.prenom, u.role, u.actif, u.doit_changer_mdp, u.sections, u.entite, u.agences, u.fonction, u.prestataire_id, u.langue, s.token, s.expire_le " +
     "FROM sessions s JOIN utilisateurs u ON u.id = s.user_id WHERE s.token = ?").bind(m[1]).first();
   if (!r || !r.actif || r.expire_le < Date.now()) return null;
   if (r.expire_le < Date.now() + SESSION_MS / 2)   // prolongation glissante
@@ -221,6 +223,18 @@ export default {
           ok = cible.startsWith("/app/data/prestataires/commun/") || (pr && cible.startsWith("/app/data/prestataires/" + pr.code + "/"));
         }
         if (!ok) { await journal(env, req, u, "acces_refuse_section", "prestataires", cible); return new Response("Accès refusé.", { status: 403 }); }
+        /* fichier téléversé par un admin (table fichiers, blocs de 512 Ko) : servi depuis la base ;
+           sinon on retombe sur les fichiers statiques déployés avec le worker */
+        const cheminFi = decodeURIComponent(cible.slice("/app/data/prestataires/".length));
+        const fi = await env.DB.prepare("SELECT id, type, taille FROM fichiers WHERE chemin = ?").bind(cheminFi).first();
+        if (fi) {
+          const blocs = (await env.DB.prepare("SELECT data FROM fichiers_blocs WHERE fichier_id = ? ORDER BY seq").bind(fi.id).all()).results;
+          const out = new Uint8Array(fi.taille); let o = 0;
+          for (const b of blocs) { const a = new Uint8Array(b.data); out.set(a, o); o += a.length; }
+          await journal(env, req, u, "prest_document_lu", cheminFi);
+          return new Response(out.subarray(0, o), { headers: { "content-type": fi.type, "content-length": String(o),
+            "content-disposition": "inline; filename=\"" + cheminFi.split("/").pop().replace(/[^\w.\-]/g, "_") + "\"", "cache-control": "private, no-store" } });
+        }
       }
       const mSec = cible.match(/^\/app\/([a-z][a-z-]*)\.html$/);
       if (mSec && SECTIONS_APPS.includes(mSec[1]) && !sectionsDe(u).includes(mSec[1])) {
@@ -471,7 +485,7 @@ async function api(req, env, url, u) {
 
   /* -- session -- */
   if (p === "/api/moi")
-    return u ? json({ email: u.email, nom: u.nom, fonction: u.fonction || "", role: u.role, doit_changer_mdp: !!u.doit_changer_mdp, sections: sectionsDe(u),
+    return u ? json({ email: u.email, nom: u.nom, prenom: u.prenom || "", nom_complet: nomComplet(u), fonction: u.fonction || "", role: u.role, doit_changer_mdp: !!u.doit_changer_mdp, sections: sectionsDe(u),
                       prestataire_id: u.prestataire_id || null, langue: LANGUES.includes(u.langue) ? u.langue : "fr", langues: LANGUES,
                       entite: entiteDe(u), agences: agencesDe(u), agences_disponibles: Object.keys(AGENCES_ABSERVICE),
                       adresse_reponse: adresseReponse(u), signature: signatureDe(u) })
@@ -486,6 +500,7 @@ async function api(req, env, url, u) {
     if (corps.fonction !== undefined) { maj.push("fonction = ?"); vals.push(String(corps.fonction || "").trim().slice(0, 120) || null); }
     /* nom affiché (signatures, en-têtes) */
     if (corps.nom !== undefined) { const nom = String(corps.nom || "").trim().slice(0, 120); if (!nom) return json({ erreur: "nom_requis" }, 400); maj.push("nom = ?"); vals.push(nom); }
+    if (corps.prenom !== undefined) { maj.push("prenom = ?"); vals.push(String(corps.prenom || "").trim().slice(0, 80) || null); }
     /* e-mail de connexion : format, unicité (insensible à la casse) ; les deux adresses sont prévenues du changement */
     let nouvelEmail = null;
     if (corps.email !== undefined) {
@@ -510,7 +525,7 @@ async function api(req, env, url, u) {
     if (nouvelEmail) {
       /* fiche prestataire liée : même adresse de contact */
       if (u.prestataire_id) await env.DB.prepare("UPDATE prestataires SET email = ? WHERE id = ? AND lower(email) = lower(?)").bind(nouvelEmail, u.prestataire_id, u.email).run();
-      const txt = `Bonjour ${u.nom || ""},
+      const txt = `Bonjour ${nomComplet(u)},
 
 L'adresse e-mail de connexion de votre compte AB2Pro vient d'être modifiée :
   ancienne : ${u.email}
@@ -521,7 +536,7 @@ Connectez-vous désormais avec la nouvelle adresse (mot de passe inchangé). Les
 Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à ce message.
 
 — AB2Pro · ${url.origin}`;
-      await envoyerEmail(env, [u.email, nouvelEmail], "AB2Pro — adresse de connexion modifiée", txt, { req, u, action: "profil_email" });
+      await envoyerEmail(env, [u.email, nouvelEmail], "AB2Pro — adresse de connexion modifiée", txt, { env, req });
     }
     return json({ ok: true, email: nouvelEmail || u.email });
   }
@@ -584,6 +599,7 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
   /* -- demande d'accès (publique) → e-mail immédiat aux 2 admins -- */
   if (p === "/api/demande-acces" && req.method === "POST") {
     const nom = String(corps.nom || "").trim().slice(0, 120);
+    const prenom = String(corps.prenom || "").trim().slice(0, 80);      /* ligne séparée depuis le 04/09 */
     const email = String(corps.email || "").trim().toLowerCase().slice(0, 200);
     const motif = String(corps.motif || "").trim().slice(0, 500);
     /* fonction (poste) : remplace le motif dans le formulaire — sert la signature
@@ -605,11 +621,11 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     const telephone = String(corps.telephone || "").trim().slice(0, 40);
     const pays = String(corps.pays || "").trim().slice(0, 40);
     if (entite === "prestataire" && !societe) return json({ erreur: "societe_requise" }, 400);
-    await env.DB.prepare("INSERT INTO demandes_acces (nom, email, motif, entite, agences, fonction, societe, telephone, langue, pays) VALUES (?,?,?,?,?,?,?,?,?,?)")
-      .bind(nom, email, motif, entite, agences, fonction || null, societe || null, telephone || null, langue, pays || null).run();
+    await env.DB.prepare("INSERT INTO demandes_acces (nom, prenom, email, motif, entite, agences, fonction, societe, telephone, langue, pays) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
+      .bind(nom, prenom || null, email, motif, entite, agences, fonction || null, societe || null, telephone || null, langue, pays || null).run();
     await journal(env, req, null, "demande_acces", email + " (" + entite + (agences ? " " + agences : "") + ")");
-    await envoyerEmail(env, ADMINS, (entite === "abservice" ? "AB Service" : "AB2Pro") + " — demande d'accès de " + nom,
-      `Nouvelle demande d'accès au portail :\n\nNom : ${nom}\nE-mail : ${email}\n` +
+    await envoyerEmail(env, ADMINS, (entite === "abservice" ? "AB Service" : "AB2Pro") + " — demande d'accès de " + (prenom ? prenom + " " : "") + nom,
+      `Nouvelle demande d'accès au portail :\n\nNom : ${prenom ? prenom + " " : ""}${nom}\nE-mail : ${email}\n` +
       `Fonction : ${fonction || "(non précisée)"}\n` +
       `Entité : ${entite === "abservice" ? "AB SERVICE" : entite === "prestataire" ? "PRESTATAIRE (recruteur externe) — " + societe + " · " + pays + " · " + telephone : "AB2PRO"} · langue ${langue}\n` +
       (agences ? `Agences de rattachement : ${JSON.parse(agences).join(", ")}\n` : "") +
@@ -625,10 +641,10 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     const attente = await env.DB.prepare("SELECT id FROM demandes_fiches WHERE idcc = ? AND statut = 'en_attente'").bind(idcc).first();
     if (attente) return json({ ok: true, deja: true });
     await env.DB.prepare("INSERT INTO demandes_fiches (idcc, demandeur_email, demandeur_nom) VALUES (?,?,?)")
-      .bind(idcc, u.email, u.nom || "").run();
+      .bind(idcc, u.email, nomComplet(u)).run();
     await journal(env, req, u, "demande_fiche", idcc);
     await envoyerEmail(env, ADMINS, "AB2Pro — demande de fiche IDCC " + idcc,
-      `${u.nom || u.email} (${u.email}) demande l'ajout de la fiche de la convention IDCC ${idcc} dans Veille Conventions.\n\n` +
+      `${nomComplet(u) || u.email} (${u.email}) demande l'ajout de la fiche de la convention IDCC ${idcc} dans Veille Conventions.\n\n` +
       `Traitement automatique : sous ~30 minutes, la fiche est constituée sur sources officielles, déployée, et le demandeur est prévenu par e-mail.\n` +
       `Pour la créer immédiatement : demandez-le à Claude.`, { env, req });
     return json({ ok: true });
@@ -819,9 +835,53 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       await journal(env, req, u, "prest_admin_maj", "prestataire " + id + " : " + champs.join(", "));
       return json({ ok: true });
     }
+    /* téléversement depuis l'ordinateur de l'admin (multipart/form-data : fichier, titre, prestataire_id, langue).
+       Stockage en base par blocs de 512 Ko (pas de dépendance R2), 20 Mo max, types bureautiques/PDF/images. */
+    if (p === "/api/prest/admin/upload" && req.method === "POST") {
+      if (!admin) return json({ erreur: "reserve_admin" }, 403);
+      let fd; try { fd = await req.formData(); } catch (e) { return json({ erreur: "formulaire_invalide" }, 400); }
+      const f = fd.get("fichier");
+      if (!f || typeof f === "string" || !f.size) return json({ erreur: "fichier_manquant" }, 400);
+      if (f.size > 20 * 1024 * 1024) return json({ erreur: "fichier_trop_gros" }, 413);
+      const TYPES = { pdf: "application/pdf", doc: "application/msword", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                      xls: "application/vnd.ms-excel", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg" };
+      const ext = ((f.name || "").match(/\.([a-z0-9]{2,5})$/i) || [0, ""])[1].toLowerCase();
+      if (!TYPES[ext]) return json({ erreur: "type_non_autorise" }, 400);
+      const sansExt = (f.name || "document").replace(/\.[^.]+$/, "");
+      const titre = String(fd.get("titre") || "").trim().slice(0, 160) || sansExt;
+      const langue = LANGUES.includes(fd.get("langue")) ? fd.get("langue") : "fr";
+      const pidDoc = parseInt(fd.get("prestataire_id") || "0", 10) || null;
+      let dossier = "commun";
+      if (pidDoc) { const pr = await env.DB.prepare("SELECT code FROM prestataires WHERE id = ?").bind(pidDoc).first(); if (!pr) return json({ erreur: "prestataire_introuvable" }, 404); dossier = pr.code; }
+      const base = sansExt.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "document";
+      let chemin = dossier + "/" + base + "." + ext, k = 1;
+      while (await env.DB.prepare("SELECT id FROM fichiers WHERE chemin = ?").bind(chemin).first()) chemin = dossier + "/" + base + "-" + (++k) + "." + ext;
+      const buf = new Uint8Array(await f.arrayBuffer());
+      const insF = await env.DB.prepare("INSERT INTO fichiers (chemin, type, taille, cree_par) VALUES (?,?,?,?)").bind(chemin, TYPES[ext], buf.length, u.email).run();
+      const fid = insF.meta && insF.meta.last_row_id;
+      const BLOC = 512 * 1024;
+      for (let i = 0, seq = 0; i < buf.length; i += BLOC, seq++)
+        await env.DB.prepare("INSERT INTO fichiers_blocs (fichier_id, seq, data) VALUES (?,?,?)").bind(fid, seq, buf.slice(i, i + BLOC).buffer).run();
+      const insD = await env.DB.prepare("INSERT INTO documents (prestataire_id, titre, fichier, langue) VALUES (?,?,?,?)").bind(pidDoc, titre, chemin, langue).run();
+      await journal(env, req, u, "prest_document_upload", chemin + " (" + buf.length + " o, " + (pidDoc ? dossier : "commun") + ")");
+      return json({ ok: true, id: insD.meta && insD.meta.last_row_id, chemin, taille: buf.length });
+    }
     if (p === "/api/prest/admin/document" && req.method === "POST") {
       if (!admin) return json({ erreur: "reserve_admin" }, 403);
-      if (corps.supprimer) { await env.DB.prepare("DELETE FROM documents WHERE id = ?").bind(corps.id | 0).run(); return json({ ok: true }); }
+      if (corps.supprimer) {
+        /* retrait de la liste + suppression du fichier stocké en base s'il n'est plus référencé (les fichiers statiques restent) */
+        const doc = await env.DB.prepare("SELECT fichier FROM documents WHERE id = ?").bind(corps.id | 0).first();
+        await env.DB.prepare("DELETE FROM documents WHERE id = ?").bind(corps.id | 0).run();
+        if (doc) {
+          const encore = await env.DB.prepare("SELECT id FROM documents WHERE fichier = ?").bind(doc.fichier).first();
+          if (!encore) {
+            const fi = await env.DB.prepare("SELECT id FROM fichiers WHERE chemin = ?").bind(doc.fichier).first();
+            if (fi) { await env.DB.prepare("DELETE FROM fichiers_blocs WHERE fichier_id = ?").bind(fi.id).run(); await env.DB.prepare("DELETE FROM fichiers WHERE id = ?").bind(fi.id).run(); }
+          }
+          await journal(env, req, u, "prest_document_retire", doc.fichier);
+        }
+        return json({ ok: true });
+      }
       const fichier = String(corps.fichier || "").replace(/^\/+/, "").slice(0, 200);
       if (!/^(commun|[A-Z0-9]+)\/[^\/]+\.(pdf|png|jpg|jpeg|docx?|xlsx?)$/i.test(fichier)) return json({ erreur: "fichier_invalide" }, 400);
       await env.DB.prepare("INSERT INTO documents (prestataire_id, titre, fichier, langue) VALUES (?,?,?,?)")
@@ -857,7 +917,7 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
 
     if (p === "/api/admin/apercu") {
       const dem = await env.DB.prepare("SELECT * FROM demandes_acces WHERE statut = 'en_attente' ORDER BY id DESC").all();
-      const usr = await env.DB.prepare("SELECT id, email, nom, role, actif, doit_changer_mdp, cree_le, cree_par, sections, entite, agences, fonction FROM utilisateurs ORDER BY id").all();
+      const usr = await env.DB.prepare("SELECT id, email, nom, prenom, role, actif, doit_changer_mdp, cree_le, cree_par, sections, entite, agences, fonction, langue, prestataire_id FROM utilisateurs ORDER BY id").all();
       return json({ demandes: dem.results, utilisateurs: usr.results, sections_apps: SECTIONS_APPS, agences_abservice: Object.keys(AGENCES_ABSERVICE) });
     }
 
@@ -895,8 +955,8 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
         : null;
       /* l'entité, les agences et la fonction choisies à l'inscription suivent la demande */
       await env.DB.prepare(
-        "INSERT INTO utilisateurs (email, nom, sel, hash, role, doit_changer_mdp, invite_token, invite_expire, cree_par, sections, entite, agences, fonction) VALUES (?,?,?,?,?,1,?,?,?,?,?,?,?)")
-        .bind(d.email, d.nom, sel, hprov, corps.role === "admin" ? "admin" : "user", invite, Date.now() + INVITE_MS, u.email, secsApprob,
+        "INSERT INTO utilisateurs (email, nom, prenom, sel, hash, role, doit_changer_mdp, invite_token, invite_expire, cree_par, sections, entite, agences, fonction) VALUES (?,?,?,?,?,?,1,?,?,?,?,?,?,?)")
+        .bind(d.email, d.nom, d.prenom || null, sel, hprov, corps.role === "admin" ? "admin" : "user", invite, Date.now() + INVITE_MS, u.email, secsApprob,
               d.entite || null, d.agences || null, d.fonction || null).run();
       await env.DB.prepare("UPDATE utilisateurs SET langue = ? WHERE email = ?").bind(LANGUES.includes(d.langue) ? d.langue : "fr", d.email).run();
       if (d.entite === "prestataire") {
@@ -904,7 +964,7 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
            tarifs contractuels par défaut (annexe 1 : 0,70 € qualifié / 0,50 € autre) */
         /* fiche déjà créée par un admin (contrat signé avant l'ouverture du compte) : on la réutilise si l'e-mail
            ou la raison sociale correspondent — sinon nouvelle fiche */
-        const soc0 = String(d.societe || d.nom).trim();
+        const soc0 = String(d.societe || nomComplet(d)).trim();
         const exist = await env.DB.prepare("SELECT id FROM prestataires WHERE (email <> '' AND lower(email) = lower(?)) OR upper(trim(societe)) = upper(?) ORDER BY id LIMIT 1")
           .bind(d.email, soc0).first();
         let pid = exist && exist.id;
@@ -918,17 +978,23 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
           const deja = (await env.DB.prepare("SELECT COUNT(*) AS n FROM prestataires WHERE code LIKE ?").bind(racine + "%").first()).n;
           const code = racine + String(deja + 1).padStart(2, "0");
           const ins = await env.DB.prepare("INSERT INTO prestataires (societe, code, contact, email, telephone, pays, langue) VALUES (?,?,?,?,?,?,?)")
-            .bind(soc0, code, d.nom, d.email, d.telephone || "", d.pays || "", LANGUES.includes(d.langue) ? d.langue : "fr").run();
+            .bind(soc0, code, nomComplet(d), d.email, d.telephone || "", d.pays || "", LANGUES.includes(d.langue) ? d.langue : "fr").run();
           pid = ins.meta && ins.meta.last_row_id;
         }
         await env.DB.prepare("UPDATE utilisateurs SET prestataire_id = ? WHERE email = ?").bind(pid, d.email).run();
       }
       await env.DB.prepare("UPDATE demandes_acces SET statut = 'approuvee', traite_par = ?, traite_le = datetime('now') WHERE id = ?").bind(u.email, d.id).run();
-      const lien = url.origin + "/motdepasse.html?invite=" + invite;
+      const lg = LANGUES.includes(d.langue) ? d.langue : "fr";
+      const lien = url.origin + "/motdepasse.html?invite=" + invite + (lg !== "fr" ? "&l=" + lg : "");
       const marque = d.entite === "abservice" ? "AB Service" : "AB2Pro";
-      await envoyerEmail(env, d.email, marque + " — votre accès est ouvert",
-        `Bonjour ${d.nom},\n\nVotre accès au portail ${marque} a été approuvé par ${u.email}.\n` +
-        `Définissez votre mot de passe (lien valable 72 h) :\n${lien}\n\nPortail : ${url.origin}/app/`, { env, req });
+      /* le demandeur reçoit l'approbation dans SA langue (recruteurs RO/HU) — la page mot de passe suit via ?l= */
+      const APPROB = {
+        fr: { s: "votre accès est ouvert", b: `Bonjour ${nomComplet(d)},\n\nVotre accès au portail ${marque} a été approuvé.\nDéfinissez votre mot de passe (lien valable 72 h) :\n${lien}\n\nPortail : ${url.origin}/app/` },
+        en: { s: "your access is open", b: `Hello ${nomComplet(d)},\n\nYour access to the ${marque} portal has been approved.\nSet your password (link valid 72 h):\n${lien}\n\nPortal: ${url.origin}/app/` },
+        ro: { s: "accesul dvs. este deschis", b: `Bună ziua ${nomComplet(d)},\n\nAccesul dvs. la portalul ${marque} a fost aprobat.\nSetați parola (link valabil 72 h):\n${lien}\n\nPortal: ${url.origin}/app/` },
+        hu: { s: "hozzáférése megnyílt", b: `Tisztelt ${nomComplet(d)}!\n\nAz Ön hozzáférését a(z) ${marque} portálhoz jóváhagytuk.\nÁllítsa be jelszavát (a link 72 óráig érvényes):\n${lien}\n\nPortál: ${url.origin}/app/` },
+      }[lg];
+      await envoyerEmail(env, d.email, marque + " — " + APPROB.s, APPROB.b, { env, req });
       await journal(env, req, u, "admin_approbation", d.email);
       return json({ ok: true, lien });
     }
@@ -938,6 +1004,46 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
         .bind(u.email, corps.id | 0).run();
       await journal(env, req, u, "admin_refus", String(corps.id));
       return json({ ok: true });
+    }
+
+    /* fiche utilisateur : TOUTES les informations sont modifiables par un admin (décision 04/09) ;
+       cibles admin / super admin réservées aux super admins (même échelle que rôle/actif), soi-même toujours */
+    if (p === "/api/admin/utilisateur" && req.method === "POST") {
+      const cible = await env.DB.prepare("SELECT * FROM utilisateurs WHERE id = ?").bind(corps.id | 0).first();
+      if (!cible) return json({ erreur: "utilisateur_introuvable" }, 404);
+      if ((cible.role === "super_admin" || cible.role === "admin") && !estSuper(u) && cible.id !== u.id) return json({ erreur: "reserve_super_admin" }, 403);
+      const nom = String(corps.nom !== undefined ? corps.nom : cible.nom || "").trim().slice(0, 120);
+      const prenom = String(corps.prenom !== undefined ? corps.prenom : cible.prenom || "").trim().slice(0, 80) || null;
+      const email = String(corps.email !== undefined ? corps.email : cible.email).trim().toLowerCase().slice(0, 160);
+      const fonction = String(corps.fonction !== undefined ? corps.fonction : cible.fonction || "").trim().slice(0, 120) || null;
+      const entite = corps.entite === undefined ? entiteDe(cible) : (ENTITES.includes(corps.entite) ? corps.entite : null);
+      const langue = corps.langue === undefined ? (LANGUES.includes(cible.langue) ? cible.langue : "fr") : (LANGUES.includes(corps.langue) ? corps.langue : null);
+      if (!nom) return json({ erreur: "nom_requis" }, 400);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return json({ erreur: "email_invalide" }, 400);
+      if (!entite) return json({ erreur: "entite_invalide" }, 400);
+      if (!langue) return json({ erreur: "langue_invalide" }, 400);
+      let agences = null;
+      if (entite === "abservice") {
+        agences = validerAgences(corps.agences === undefined ? agencesDe(cible) : corps.agences);
+        if (agences === null || JSON.parse(agences).length === 0) return json({ erreur: "agences_invalides" }, 400);
+      }
+      const emailChange = email !== String(cible.email).toLowerCase();
+      if (emailChange) {
+        const deja = await env.DB.prepare("SELECT id FROM utilisateurs WHERE email = ? COLLATE NOCASE AND id <> ?").bind(email, cible.id).first();
+        if (deja) return json({ erreur: "email_deja_utilise" }, 409);
+      }
+      await env.DB.prepare("UPDATE utilisateurs SET nom = ?, prenom = ?, email = ?, fonction = ?, entite = ?, agences = ?, langue = ? WHERE id = ?")
+        .bind(nom, prenom, email, fonction, entite, agences, langue, cible.id).run();
+      if (cible.prestataire_id && emailChange)
+        await env.DB.prepare("UPDATE prestataires SET email = ? WHERE id = ? AND lower(email) = lower(?)").bind(email, cible.prestataire_id, cible.email).run();
+      const diff = [["nom", cible.nom, nom], ["prénom", cible.prenom, prenom], ["e-mail", cible.email, email], ["fonction", cible.fonction, fonction],
+                    ["entité", cible.entite, entite], ["agences", cible.agences, agences], ["langue", cible.langue, langue]]
+        .filter(([, a, b]) => String(a || "") !== String(b || "")).map(([k, a, b]) => k + " : " + (a || "—") + " → " + (b || "—"));
+      await journal(env, req, u, "admin_utilisateur", cible.email + (diff.length ? " — " + diff.join(" ; ") : " — aucun changement"));
+      if (emailChange)
+        await envoyerEmail(env, [cible.email, email], "AB2Pro — adresse de connexion modifiée",
+          `Bonjour ${nomComplet({ prenom, nom })},\n\nUn administrateur (${u.email}) a modifié l'adresse e-mail de connexion de votre compte AB2Pro :\n  ancienne : ${cible.email}\n  nouvelle : ${email}\n\nConnectez-vous désormais avec la nouvelle adresse (mot de passe inchangé).\n\n— AB2Pro · ${url.origin}`, { env, req });
+      return json({ ok: true, modifications: diff });
     }
 
     if (p === "/api/admin/role" && req.method === "POST") {
