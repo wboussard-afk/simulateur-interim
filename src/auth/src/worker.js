@@ -706,6 +706,9 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     if (estPrest && !moi) return json({ erreur: "prestataire_inactif" }, 403);
     const pid = estPrest ? moi.id : (parseInt(url.searchParams.get("prestataire_id") || corps.prestataire_id || "0", 10) || null);
     const semaineISO = d => { const x = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const j = x.getUTCDay() || 7; x.setUTCDate(x.getUTCDate() + 4 - j); const a = new Date(Date.UTC(x.getUTCFullYear(), 0, 1)); return x.getUTCFullYear() + "-W" + String(Math.ceil(((x - a) / 86400000 + 1) / 7)).padStart(2, "0"); };
+    /* horloge Paris : la « semaine courante » est la même pour toutes les routes (moi, propositions, commandes) */
+    const parisNow = () => new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Paris" }));
+    const semaineCourante = () => semaineISO(parisNow());
     const majNom = x => String(x || "").trim().toUpperCase().slice(0, 60);
     const majPrenom = x => String(x || "").trim().toLowerCase().replace(/(^|[\s-])(\p{L})/gu, (m, a, b) => a + b.toUpperCase()).slice(0, 60);
     const tauxDe = (pr, qualifie, nbTT) => {
@@ -718,25 +721,31 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     if (p === "/api/prest/moi") {
       const docs = (await env.DB.prepare("SELECT id, prestataire_id, titre, fichier, langue FROM documents WHERE prestataire_id IS NULL" + (pid ? " OR prestataire_id = ?" : "") + " ORDER BY prestataire_id IS NULL DESC, id").bind(...(pid ? [pid] : [])).all()).results;
       return json({ admin, prestataire: moi ? { id: moi.id, societe: moi.societe, code: moi.code, contact: moi.contact, langue: moi.langue, tarif_q: moi.tarif_q, tarif_nq: moi.tarif_nq, paliers: moi.paliers } : null,
-                    langue: u.langue || (moi && moi.langue) || "fr", semaine: semaineISO(new Date()), mois: new Date().toISOString().slice(0, 7),
+                    langue: u.langue || (moi && moi.langue) || "fr", semaine: semaineCourante(), mois: parisNow().toISOString().slice(0, 7),
                     documents: docs.map(d => ({ id: d.id, titre: d.titre, langue: d.langue, url: "/app/data/prestataires/" + d.fichier, commun: d.prestataire_id == null })) });
     }
-    /* --- commandes classées par semaine : brouillon (import) → publication (visible des prestataires) → archive après le vendredi --- */
+    /* --- commandes classées par semaine : import (brouillon) → publication (visible des prestataires) → archive après le vendredi.
+       UNE LIGNE PAR (numéro, semaine) : une commande reconduite est recopiée dans la nouvelle semaine, l'archive de la précédente reste intacte. --- */
     const semaineDe = str => /^\d{4}-W(0[1-9]|[1-4]\d|5[0-3])$/.test(str || "") ? str : null;
-    const parisNow = () => new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Paris" }));
-    const semaineCourante = () => semaineISO(parisNow());
     /* archivée = semaine passée, ou semaine courante à partir du samedi (modifiable « jusqu'au vendredi ») */
     const estArchivee = sem => { const now = semaineCourante(); return sem < now || (sem === now && [0, 6].includes(parisNow().getDay())); };
     const lundiDe = sem => { const [y, w] = sem.split("-W").map(Number); const j4 = new Date(Date.UTC(y, 0, 4)); const lundi = new Date(j4); lundi.setUTCDate(j4.getUTCDate() - ((j4.getUTCDay() || 7) - 1) + (w - 1) * 7); return lundi; };
+    const semaineSuivante = sem => semaineISO(new Date(lundiDe(sem).getTime() + 7 * 86400000));
     const dateFR = iso => /^\d{4}-\d{2}-\d{2}$/.test(iso || "") ? iso.slice(8, 10) + "/" + iso.slice(5, 7) + "/" + iso.slice(0, 4) : (iso || "");
+    const periodeDe = sem => { const lu = lundiDe(sem), ve = new Date(lu.getTime() + 4 * 86400000); return dateFR(lu.toISOString().slice(0, 10)) + " – " + dateFR(ve.toISOString().slice(0, 10)); };
+    const libSemaine = sem => "semaine " + String(parseInt(sem.slice(6), 10)) + " (" + periodeDe(sem) + ")";
+    const libCmd = c => c.titre + (c.lieu && !String(c.titre).toUpperCase().endsWith(String(c.lieu).toUpperCase()) ? " · " + c.lieu : "") + " · " + c.agence + " · n° " + c.numero + (c.date_debut ? " · début " + dateFR(c.date_debut) : "");
+    /* nombre de postes : colonne dédiée, sinon le nombre en tête du titre (« 2/3 POSEURS » → 3, « 2 x 2 CHARPENTIERS » → 4) */
+    const nbPostesDe = (titre, nb) => { if (nb > 0) return nb; const m = String(titre).match(/^(\d{1,2})(?:\s*([\/x×])\s*(\d{1,2}))?\s/i); if (!m) return 1; const a = +m[1], b = +(m[3] || 0); return m[2] && /[x×]/i.test(m[2]) ? a * b : Math.max(a, b); };
     if (p === "/api/prest/commandes") {
       if (admin) {
-        const sem = semaineDe(url.searchParams.get("semaine")) || semaineCourante();
+        const cour = semaineCourante();
+        const sem = semaineDe(url.searchParams.get("semaine")) || (estArchivee(cour) ? semaineSuivante(cour) : cour);
         const rows = (await env.DB.prepare("SELECT * FROM commandes WHERE semaine = ? ORDER BY statut = 'ouverte' DESC, agence, numero").bind(sem).all()).results;
-        const semaines = (await env.DB.prepare("SELECT semaine, COUNT(*) AS n, SUM(publiee) AS publiees, SUM(statut = 'ouverte') AS ouvertes FROM commandes WHERE semaine IS NOT NULL GROUP BY semaine ORDER BY semaine DESC LIMIT 80").all()).results;
-        return json({ semaine: sem, semaine_courante: semaineCourante(), archivee: estArchivee(sem), commandes: rows, semaines });
+        const semaines = (await env.DB.prepare("SELECT semaine, COUNT(*) AS n, SUM(publiee = 1 AND statut = 'ouverte') AS publiees, SUM(statut = 'ouverte') AS ouvertes FROM commandes WHERE semaine IS NOT NULL GROUP BY semaine ORDER BY semaine DESC LIMIT 80").all()).results;
+        return json({ semaine: sem, periode: periodeDe(sem), semaine_courante: cour, archivee: estArchivee(sem), commandes: rows, semaines });
       }
-      /* prestataire : uniquement les commandes publiées, ouvertes, de la semaine courante et des suivantes */
+      /* prestataire : uniquement les commandes publiées, ouvertes, de la semaine courante et des suivantes (le chargé reste interne) */
       const r = await env.DB.prepare("SELECT id, numero, date_debut, nb_postes, titre, agence, lieu, statut, semaine FROM commandes WHERE publiee = 1 AND statut = 'ouverte' AND semaine >= ? ORDER BY semaine, agence, numero").bind(semaineCourante()).all();
       return json({ semaine_courante: semaineCourante(), commandes: r.results });
     }
@@ -749,24 +758,22 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       for (const l of lignes) {
         const num = String(l.numero || "").trim().slice(0, 20); if (!num || numeros.includes(num)) continue;
         numeros.push(num);
-        const titre = String(l.titre || "").trim().slice(0, 120);
-        /* nombre de postes : colonne dédiée, sinon le nombre en tête du titre (« 2/3 POSEURS ITE » → 3) */
-        const mT = titre.match(/^(\d{1,2})(?:\s*\/\s*(\d{1,2}))?\s/);
-        const nb = parseInt(l.nb_postes, 10) || (mT ? Math.max(parseInt(mT[1], 10), parseInt(mT[2] || "0", 10)) : 1);
-        const dIso = String(l.date_debut || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})$/) ? String(l.date_debut).trim() : "";
-        const v = [dIso, nb, titre, String(l.agence || "").trim().toUpperCase().slice(0, 60), String(l.lieu || "").trim().toUpperCase().slice(0, 80), String(l.charge || "").trim().slice(0, 80), sem];
-        const ex = await env.DB.prepare("SELECT id FROM commandes WHERE numero = ? ORDER BY id DESC LIMIT 1").bind(num).first();
-        /* import = brouillon : la semaine redevient visible des prestataires à la publication */
-        if (ex) { await env.DB.prepare("UPDATE commandes SET date_debut = ?, nb_postes = ?, titre = ?, agence = ?, lieu = ?, charge = ?, semaine = ?, statut = 'ouverte', publiee = 0, maj_le = datetime('now') WHERE id = ?").bind(...v, ex.id).run(); modifiees++; }
-        else { await env.DB.prepare("INSERT INTO commandes (numero, date_debut, nb_postes, titre, agence, lieu, charge, semaine, publiee, maj_le) VALUES (?,?,?,?,?,?,?,?,0,datetime('now'))").bind(num, ...v).run(); nouvelles++; }
+        const titre = String(l.titre || "").trim().slice(0, 120); if (!titre) continue;
+        const nb = nbPostesDe(titre, parseInt(l.nb_postes, 10) || 0);
+        const dIso = /^\d{4}-\d{2}-\d{2}$/.test(String(l.date_debut || "").trim()) ? String(l.date_debut).trim() : "";
+        const v = [dIso, nb, titre, String(l.agence || "").trim().toUpperCase().slice(0, 60), String(l.lieu || "").trim().toUpperCase().slice(0, 80), String(l.charge || "").trim().slice(0, 80)];
+        const ex = await env.DB.prepare("SELECT id FROM commandes WHERE numero = ? AND semaine = ? ORDER BY id DESC LIMIT 1").bind(num, sem).first();
+        /* même semaine : mise à jour (une commande déjà publiée reste visible avec ses nouvelles valeurs) ; sinon nouvelle ligne en brouillon */
+        if (ex) { await env.DB.prepare("UPDATE commandes SET date_debut = ?, nb_postes = ?, titre = ?, agence = ?, lieu = ?, charge = ?, statut = 'ouverte', maj_le = datetime('now') WHERE id = ?").bind(...v, ex.id).run(); modifiees++; }
+        else { await env.DB.prepare("INSERT INTO commandes (numero, date_debut, nb_postes, titre, agence, lieu, charge, semaine, publiee, maj_le) VALUES (?,?,?,?,?,?,?,?,0,datetime('now'))").bind(num, ...v, sem).run(); nouvelles++; }
       }
       let fermees = 0;
       if (corps.fermer_absentes && numeros.length) {
-        const r = await env.DB.prepare("UPDATE commandes SET statut = 'fermee', maj_le = datetime('now') WHERE semaine = ? AND statut = 'ouverte' AND numero NOT IN (" + numeros.map(() => "?").join(",") + ")").bind(sem, ...numeros).run();
+        const r = await env.DB.prepare("UPDATE commandes SET statut = 'fermee', maj_le = datetime('now') WHERE semaine = ? AND statut = 'ouverte' AND numero NOT IN (SELECT value FROM json_each(?))").bind(sem, JSON.stringify(numeros)).run();
         fermees = (r.meta && r.meta.changes) || 0;
       }
       await journal(env, req, u, "prest_commandes_import", sem + " : " + nouvelles + " nouvelle(s), " + modifiees + " mise(s) à jour, " + fermees + " fermée(s)");
-      return json({ ok: true, n: numeros.length, nouvelles, modifiees, fermees, semaine: sem });
+      return json({ ok: true, n: nouvelles + modifiees, nouvelles, modifiees, fermees, semaine: sem });
     }
     if (p === "/api/prest/admin/commande" && req.method === "POST") {
       if (!admin) return json({ erreur: "reserve_admin" }, 403);
@@ -785,7 +792,8 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       if (corps.semaine != null) { const sm = semaineDe(corps.semaine); if (!sm || estArchivee(sm)) return json({ erreur: "semaine_invalide" }, 400); champs.push("semaine = ?"); vals.push(sm); }
       if (!champs.length) return json({ erreur: "rien_a_modifier" }, 400);
       champs.push("maj_le = datetime('now')");
-      await env.DB.prepare("UPDATE commandes SET " + champs.join(", ") + " WHERE id = ?").bind(...vals, c.id).run();
+      try { await env.DB.prepare("UPDATE commandes SET " + champs.join(", ") + " WHERE id = ?").bind(...vals, c.id).run(); }
+      catch (e) { return json({ erreur: /UNIQUE/i.test(String(e)) ? "numero_deja_dans_semaine" : "serveur" }, 409); }
       await journal(env, req, u, "prest_commande_maj", c.numero + " : " + champs.map(x => x.split(" =")[0]).join(", "));
       return json({ ok: true });
     }
@@ -794,23 +802,23 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       if (!admin) return json({ erreur: "reserve_admin" }, 403);
       const sem = semaineDe(corps.semaine); if (!sem) return json({ erreur: "semaine_invalide" }, 400);
       if (estArchivee(sem)) return json({ erreur: "semaine_archivee" }, 409);
-      await env.DB.prepare("UPDATE commandes SET publiee = 1, publiee_le = datetime('now') WHERE semaine = ? AND statut = 'ouverte'").bind(sem).run();
+      await env.DB.prepare("UPDATE commandes SET publiee = 1, publiee_le = CASE WHEN publiee = 0 THEN datetime('now') ELSE publiee_le END WHERE semaine = ? AND statut = 'ouverte'").bind(sem).run();
       const rows = (await env.DB.prepare("SELECT numero, date_debut, nb_postes, titre, agence, lieu FROM commandes WHERE semaine = ? AND statut = 'ouverte' ORDER BY agence, numero").bind(sem).all()).results;
-      let prevenus = 0;
+      let prevenus = 0, echecs = 0;
       if (corps.prevenir && rows.length) {
-        const lignes = rows.map(c => "• n° " + c.numero + " · " + c.titre + " · " + c.agence + (c.lieu ? " · " + c.lieu : "") + (c.date_debut ? " · " + dateFR(c.date_debut) : "")).join("\n");
-        const lien = url.origin + "/app/prestataires.html";
+        const lignes = rows.map(c => "• " + libCmd(c)).join("\n");
+        const lien = url.origin + "/app/prestataires.html", per = periodeDe(sem), no = String(parseInt(sem.slice(6), 10));
         const M = {
-          fr: { s: "AB2PRO — commandes de la semaine " + sem + " (" + rows.length + ")", b: "Bonjour,\n\nAB2PRO vient de publier les commandes de la semaine " + sem + " sur le portail :\n\n" + lignes + "\n\nProposez vos candidats dans l'onglet « Proposer une équipe » : " + lien + "\n\n— AB2PRO" },
-          en: { s: "AB2PRO — job orders for week " + sem + " (" + rows.length + ")", b: "Hello,\n\nAB2PRO has just published the job orders for week " + sem + " on the portal:\n\n" + lignes + "\n\nPropose your candidates in the “Propose a team” tab: " + lien + "\n\n— AB2PRO" },
-          ro: { s: "AB2PRO — comenzile săptămânii " + sem + " (" + rows.length + ")", b: "Bună ziua,\n\nAB2PRO a publicat comenzile săptămânii " + sem + " pe portal:\n\n" + lignes + "\n\nPropuneți candidații în fila „Propuneți o echipă”: " + lien + "\n\n— AB2PRO" },
-          hu: { s: "AB2PRO — a(z) " + sem + " hét megrendelései (" + rows.length + ")", b: "Tisztelt Partnerünk!\n\nAz AB2PRO közzétette a(z) " + sem + " hét megrendeléseit a portálon:\n\n" + lignes + "\n\nJelöltjeit a „Csapat javaslása” fülön ajánlhatja: " + lien + "\n\n— AB2PRO" },
+          fr: { s: "AB2PRO — commandes de la semaine " + no + " (" + per + ") : " + rows.length, b: "Bonjour,\n\nAB2PRO vient de publier les commandes de la semaine " + no + " (" + per + ") sur le portail :\n\n" + lignes + "\n\nProposez vos candidats dans l'onglet « Proposer une équipe » : " + lien + "\n\n— AB2PRO" },
+          en: { s: "AB2PRO — job orders for week " + no + " (" + per + "): " + rows.length, b: "Hello,\n\nAB2PRO has just published the job orders for week " + no + " (" + per + ") on the portal:\n\n" + lignes + "\n\nPropose your candidates in the “Propose a team” tab: " + lien + "\n\n— AB2PRO" },
+          ro: { s: "AB2PRO — comenzile săptămânii " + no + " (" + per + "): " + rows.length, b: "Bună ziua,\n\nAB2PRO a publicat comenzile săptămânii " + no + " (" + per + ") pe portal:\n\n" + lignes + "\n\nPropuneți candidații în fila „Propuneți o echipă”: " + lien + "\n\n— AB2PRO" },
+          hu: { s: "AB2PRO — a " + no + ". hét megrendelései (" + per + "): " + rows.length, b: "Tisztelt Partnerünk!\n\nAz AB2PRO közzétette a " + no + ". hét (" + per + ") megrendeléseit a portálon:\n\n" + lignes + "\n\nJelöltjeit a „Csapat javaslása” fülön ajánlhatja: " + lien + "\n\n— AB2PRO" },
         };
         const prs = (await env.DB.prepare("SELECT email, langue FROM prestataires WHERE actif = 1 AND email <> ''").all()).results;
-        for (const pr of prs) { const m = M[LANGUES.includes(pr.langue) ? pr.langue : "fr"]; await envoyerEmail(env, pr.email, m.s, m.b, { env, req }); prevenus++; }
+        for (const pr of prs) { const m = M[LANGUES.includes(pr.langue) ? pr.langue : "fr"]; const res = await envoyerEmail(env, pr.email, m.s, m.b, { env, req }); if (res.some(x => x.ok)) prevenus++; else echecs++; }
       }
-      await journal(env, req, u, "prest_commandes_publiees", sem + " : " + rows.length + " commande(s)" + (prevenus ? ", " + prevenus + " prestataire(s) prévenu(s)" : ""));
-      return json({ ok: true, n: rows.length, prevenus, semaine: sem });
+      await journal(env, req, u, "prest_commandes_publiees", sem + " : " + rows.length + " commande(s)" + (prevenus ? ", " + prevenus + " prestataire(s) prévenu(s)" : "") + (echecs ? ", " + echecs + " e-mail(s) en échec" : ""));
+      return json({ ok: true, n: rows.length, prevenus, echecs, semaine: sem, periode: periodeDe(sem) });
     }
     /* --- propositions d'équipes (hebdo) --- */
     if (p === "/api/prest/propositions" && req.method === "GET") {
@@ -822,14 +830,16 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     }
     if (p === "/api/prest/propositions" && req.method === "POST") {
       if (!estPrest) return json({ erreur: "reserve_prestataires" }, 403);
-      const sem = /^\d{4}-W\d{2}$/.test(corps.semaine || "") ? corps.semaine : semaineISO(new Date());
+      const sem = /^\d{4}-W\d{2}$/.test(corps.semaine || "") ? corps.semaine : semaineCourante();
       const lignes = Array.isArray(corps.lignes) ? corps.lignes.slice(0, 60) : [];
       let n = 0;
+      /* une proposition faite le week-end pour une commande de la semaine suivante est classée dans CETTE semaine-là */
+      const semDeCmd = async id => { if (!id) return null; const c = await env.DB.prepare("SELECT semaine FROM commandes WHERE id = ?").bind(id).first(); return c && c.semaine ? c.semaine : null; };
       for (const l of lignes) {
         const nom = majNom(l.nom), prenom = majPrenom(l.prenom), metier = String(l.metier || "").toUpperCase().slice(0, 40);
         if (!nom || !prenom || !metier) continue;
         await env.DB.prepare("INSERT INTO propositions (prestataire_id, user_id, commande_id, semaine, equipe, nom, prenom, metier, vehicule, salaire_net, telephone, remarques, agence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
-          .bind(moi.id, u.id, parseInt(l.commande_id, 10) || null, sem, parseInt(l.equipe, 10) || 1, nom, prenom, metier, l.vehicule ? 1 : 0,
+          .bind(moi.id, u.id, parseInt(l.commande_id, 10) || null, (await semDeCmd(parseInt(l.commande_id, 10) || null)) || sem, parseInt(l.equipe, 10) || 1, nom, prenom, metier, l.vehicule ? 1 : 0,
                 String(l.salaire_net || "").slice(0, 20), String(l.telephone || "").slice(0, 30), String(l.remarques || "").slice(0, 300), String(l.agence || "").toUpperCase().trim().slice(0, 60)).run();
         n++;
       }

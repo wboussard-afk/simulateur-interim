@@ -175,10 +175,13 @@ table.saisie .btn.s { padding: 6px 9px; }
 
   <!-- ===== admin : commandes par semaine ===== -->
   <section class="card" data-onglet="adm-commandes" data-admin>
-    <h2>Commandes de la semaine (admin)
-      <select id="adm-cmd-sem" style="width:auto; padding:6px 8px; font-size:16px; margin-left:auto"></select>
-      <span class="tag" id="adm-cmd-etat"></span></h2>
+    <h2>Commandes de la semaine (admin) <span class="tag" id="adm-cmd-etat" style="margin-left:auto"></span></h2>
     <div class="b">
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+        <label style="margin:0">Semaine</label>
+        <select id="adm-cmd-sem" style="width:auto; min-width:260px; padding:8px; font-size:16px"></select>
+        <span class="note" id="adm-cmd-periode"></span>
+      </div>
       <div class="note"><b>1.</b> Importez l'export du CRM — fichier Excel « exportJobOrders » (ou CSV), ou copier-coller des lignes : les colonnes sont reconnues automatiquement quel que soit leur ordre (n° de commande, titre, agence, chargé, date de début, postes, lieu ; le nombre de postes et la ville sont lus dans le titre s'il n'y a pas de colonne).
         <b>2.</b> Corrigez directement dans le tableau (Enregistrer par ligne). <b>3.</b> Publiez : les prestataires voient alors la semaine. Modifiable jusqu'au vendredi ; à partir du samedi la semaine est archivée (lecture seule).</div>
       <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px">
@@ -194,6 +197,10 @@ table.saisie .btn.s { padding: 6px 9px; }
         <span class="msg" id="adm-cmd-msg" style="margin:0"></span>
       </div>
       <div class="tbl" style="margin-top:12px"><table id="tbl-adm-cmd"></table></div>
+      <div style="margin-top:8px; display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+        <button class="btn p" id="btn-adm-cmd-save" disabled>Enregistrer les modifications</button>
+        <span class="msg" id="adm-cmd-save-msg" style="margin:0"></span>
+      </div>
       <div style="margin-top:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; border-top:1px solid var(--line-soft); padding-top:10px">
         <button class="btn p" id="btn-adm-publier">📣 Publier la semaine</button>
         <label class="chk" style="margin:0"><input type="checkbox" id="adm-cmd-prevenir" checked> Prévenir les prestataires par e-mail (dans leur langue)</label>
@@ -204,7 +211,7 @@ table.saisie .btn.s { padding: 6px 9px; }
 
   <!-- ===== admin : propositions ===== -->
   <section class="card" data-onglet="adm-propositions" data-admin>
-    <h2>Propositions reçues (admin) <input id="adm-prop-sem" placeholder="2026-W37" style="width:130px; padding:6px 8px; font-size:14px; margin-left:auto"> <button class="btn s" id="btn-adm-prop">Afficher</button></h2>
+    <h2>Propositions reçues (admin) <select id="adm-prop-sem" style="width:auto; min-width:220px; padding:6px 8px; font-size:16px; margin-left:auto"></select> <button class="btn s" id="btn-adm-prop">Afficher</button></h2>
     <div class="b"><div class="tbl"><table id="tbl-adm-prop"></table></div></div>
   </section>
 
@@ -280,7 +287,7 @@ const T = {
     numero_facture: "N° de facture", montant_facture: "Montant HT (€)", fichier: "Fichier", choisir_fichier: "📎 Choisir le fichier…", envoyer_facture: "Envoyer ma facture", aucune_facture: "Aucune facture déposée.",
     depose_le: "Déposée le", fac_envoyee: "✓ Facture envoyée à AB2PRO.", fac_choisir_dabord: "Choisissez d'abord le fichier de la facture.", fac_trop_gros: "Fichier trop volumineux (10 Mo max).", st_recue: "reçue", st_payee: "payée",
     incompletes: "{n} ligne(s) incomplète(s) (en rouge) — nom, prénom et métier obligatoires.", defiler: "↔ Faites glisser le tableau vers la gauche : métier, agence… sont à droite.",
-    deja_declares: "{n} déjà déclaré(s) ce mois, ignoré(s)", en_cours: "{n} ligne(s) saisie(s), pas encore déclarée(s)", fac_type: "Format non accepté : PDF, JPG ou PNG uniquement.", trop_de_factures: "5 factures maximum par mois.", montant_invalide: "Montant invalide." },
+    proposer_sur: "Proposer un candidat →", deja_declares: "{n} déjà déclaré(s) ce mois, ignoré(s)", en_cours: "{n} ligne(s) saisie(s), pas encore déclarée(s)", fac_type: "Format non accepté : PDF, JPG ou PNG uniquement.", trop_de_factures: "5 factures maximum par mois.", montant_invalide: "Montant invalide." },
   en: { titre: "Recruitment partners", t_commandes: "This week's job orders", cmd_intro: "Positions to fill this week. Propose your candidates in the “Propose a team” tab, indicating the targeted order.",
     t_proposer: "Propose a team", prop_intro: "One candidate per line. SURNAME (capitals) and first name are formatted automatically. Add as many lines as needed, then send: AB2PRO receives the proposal immediately.",
     ajouter_ligne: "+ Add a candidate", envoyer: "Send the proposal", mes_propositions: "My proposals", t_declarer: "Candidates placed this month",
@@ -300,7 +307,7 @@ const T = {
     numero_facture: "Invoice no.", montant_facture: "Amount excl. VAT (€)", fichier: "File", choisir_fichier: "📎 Choose the file…", envoyer_facture: "Send my invoice", aucune_facture: "No invoice uploaded.",
     depose_le: "Uploaded on", fac_envoyee: "✓ Invoice sent to AB2PRO.", fac_choisir_dabord: "Choose the invoice file first.", fac_trop_gros: "File too large (10 MB max).", st_recue: "received", st_payee: "paid",
     incompletes: "{n} incomplete line(s) (in red) — surname, first name and trade are required.", defiler: "↔ Swipe the table left: trade, agency… are on the right.",
-    deja_declares: "{n} already declared this month, skipped", en_cours: "{n} line(s) typed, not declared yet", fac_type: "Format not accepted: PDF, JPG or PNG only.", trop_de_factures: "5 invoices maximum per month.", montant_invalide: "Invalid amount." },
+    proposer_sur: "Propose a candidate →", deja_declares: "{n} already declared this month, skipped", en_cours: "{n} line(s) typed, not declared yet", fac_type: "Format not accepted: PDF, JPG or PNG only.", trop_de_factures: "5 invoices maximum per month.", montant_invalide: "Invalid amount." },
   ro: { titre: "Parteneri recrutare", t_commandes: "Comenzile săptămânii", cmd_intro: "Posturi de ocupat săptămâna aceasta. Propuneți candidații în fila „Propuneți o echipă”, indicând comanda vizată.",
     t_proposer: "Propuneți o echipă", prop_intro: "Un candidat pe linie. NUMELE (majuscule) și prenumele se formatează automat. Adăugați câte linii este nevoie, apoi trimiteți: AB2PRO primește propunerea imediat.",
     ajouter_ligne: "+ Adăugați un candidat", envoyer: "Trimiteți propunerea", mes_propositions: "Propunerile mele", t_declarer: "Candidați plasați în luna",
@@ -320,7 +327,7 @@ const T = {
     numero_facture: "Nr. factură", montant_facture: "Sumă fără TVA (€)", fichier: "Fișier", choisir_fichier: "📎 Alegeți fișierul…", envoyer_facture: "Trimiteți factura", aucune_facture: "Nicio factură depusă.",
     depose_le: "Depusă la", fac_envoyee: "✓ Factura a fost trimisă la AB2PRO.", fac_choisir_dabord: "Alegeți mai întâi fișierul facturii.", fac_trop_gros: "Fișier prea mare (max. 10 MB).", st_recue: "primită", st_payee: "plătită",
     incompletes: "Linii incomplete (cu roșu): {n} — nume, prenume și meserie obligatorii.", defiler: "↔ Glisați tabelul spre stânga: meseria, agenția… sunt în dreapta.",
-    deja_declares: "deja declarați luna aceasta, ignorați: {n}", en_cours: "Linii introduse, nedeclarate încă: {n}", fac_type: "Format neacceptat: doar PDF, JPG sau PNG.", trop_de_factures: "Maximum 5 facturi pe lună.", montant_invalide: "Sumă invalidă." },
+    proposer_sur: "Propuneți un candidat →", deja_declares: "deja declarați luna aceasta, ignorați: {n}", en_cours: "Linii introduse, nedeclarate încă: {n}", fac_type: "Format neacceptat: doar PDF, JPG sau PNG.", trop_de_factures: "Maximum 5 facturi pe lună.", montant_invalide: "Sumă invalidă." },
   hu: { titre: "Toborzó partnerek", t_commandes: "A hét megrendelései", cmd_intro: "Ezen a héten betöltendő állások. Jelöltjeit a „Csapat javaslása” fülön ajánlja, megjelölve a célzott megrendelést.",
     t_proposer: "Csapat javaslása", prop_intro: "Soronként egy jelölt. A VEZETÉKNÉV (nagybetűvel) és a keresztnév automatikusan formázódik. Adjon hozzá annyi sort, amennyi szükséges, majd küldje el: az AB2PRO azonnal megkapja a javaslatot.",
     ajouter_ligne: "+ Jelölt hozzáadása", envoyer: "Javaslat küldése", mes_propositions: "Javaslataim", t_declarer: "A hónapban elhelyezett jelöltek",
@@ -340,7 +347,7 @@ const T = {
     numero_facture: "Számlaszám", montant_facture: "Összeg (nettó, €)", fichier: "Fájl", choisir_fichier: "📎 Fájl kiválasztása…", envoyer_facture: "Számla küldése", aucune_facture: "Nincs feltöltött számla.",
     depose_le: "Feltöltve", fac_envoyee: "✓ A számlát elküldtük az AB2PRO-nak.", fac_choisir_dabord: "Először válassza ki a számla fájlját.", fac_trop_gros: "A fájl túl nagy (max. 10 MB).", st_recue: "beérkezett", st_payee: "kifizetett",
     incompletes: "{n} hiányos sor (pirossal) — vezetéknév, keresztnév és szakma kötelező.", defiler: "↔ Húzza balra a táblázatot: a szakma, iroda… jobbra található.",
-    deja_declares: "{n} már bejelentve ebben a hónapban, kihagyva", en_cours: "{n} beírt sor, még nincs bejelentve", fac_type: "Nem elfogadott formátum: csak PDF, JPG vagy PNG.", trop_de_factures: "Havonta legfeljebb 5 számla.", montant_invalide: "Érvénytelen összeg." },
+    proposer_sur: "Jelölt ajánlása →", deja_declares: "{n} már bejelentve ebben a hónapban, kihagyva", en_cours: "{n} beírt sor, még nincs bejelentve", fac_type: "Nem elfogadott formátum: csak PDF, JPG vagy PNG.", trop_de_factures: "Havonta legfeljebb 5 számla.", montant_invalide: "Érvénytelen összeg." },
 };
 let L = "fr";
 const t = (k, v) => { let s = (T[L] && T[L][k]) || T.fr[k] || k; if (v) for (const x in v) s = s.replace("{" + x + "}", v[x]); return s; };
@@ -351,7 +358,7 @@ function traduire() {
 }
 
 const METIERS = ["BARDEUR", "PLAQUISTE", "ITE", "ELECTRICIEN", "MENUISIER", "MACON", "CARRELEUR", "PLOMBIER", "CHAUFFAGISTE", "SOUDEUR", "PEINTRE", "COUVREUR", "CHARPENTIER", "FERRAILLEUR", "COFFREUR", "MANOEUVRE", "OUVRIER DE PRODUCTION", "CARISTE"];
-const AGENCES = ["PALMA ATLANTIQUE", "PALMA ANJOU", "PALMA BRETAGNE", "PALMA NORMANDIE", "PALMA OCCITANIE", "PALMA AQUITAINE", "PALMA HAUTS-DE-FRANCE", "PALMA RHÔNE-ALPES", "PALMA ALSACE", "PALMA PACA", "PALMA ILE-DE-FRANCE"];
+const AGENCES = ["PALMA ATLANTIQUE", "PALMA ANJOU", "PALMA BRETAGNE", "PALMA NORMANDIE", "PALMA OCCITANIE", "PALMA AQUITAINE", "PALMA HAUTS-DE-FRANCE", "PALMA RHÔNE-ALPES", "PALMA ALSACE", "PALMA PACA", "PALMA PROVENCE", "PALMA ILE-DE-FRANCE"];
 const opts = (liste, val) => liste.map(x => "<option" + (x === val ? " selected" : "") + ">" + esc(x) + "</option>").join("");
 const moisListe = () => { const out = []; const d = new Date(); for (let k = 0; k < 6; k++) { const x = new Date(d.getFullYear(), d.getMonth() - k, 1); out.push(x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0")); } return out; };
 /* déclaration et facture concernent le mois PRÉCÉDENT jusqu'au 15 ; libellés de mois dans la langue de l'espace */
@@ -361,6 +368,10 @@ function remplirMois() {
   [$("decl-mois"), $("fac-mois"), $("fac-dep-mois")].forEach(sel => { const v = sel.value || moisDefaut();
     sel.innerHTML = moisListe().map(m => "<option value='" + m + "'>" + esc(libelleMois(m)) + "</option>").join(""); sel.value = v; });
 }
+/* semaine ISO → « 37 · 07/09 – 11/09/2026 » ; libellé court d'une commande (titre d'abord, n° à la fin, sans doubler le lieu) */
+const periodeSemaine = sm => { const [y, w] = sm.split("-W").map(Number); const j4 = new Date(Date.UTC(y, 0, 4)); const lu = new Date(j4); lu.setUTCDate(j4.getUTCDate() - ((j4.getUTCDay() || 7) - 1) + (w - 1) * 7); const ve = new Date(lu); ve.setUTCDate(lu.getUTCDate() + 4); const f = d => String(d.getUTCDate()).padStart(2, "0") + "/" + String(d.getUTCMonth() + 1).padStart(2, "0"); return f(lu) + " – " + f(ve) + "/" + y; };
+const libSemaine = sm => String(parseInt(sm.slice(6), 10)) + " · " + periodeSemaine(sm);
+const libCmd = c => c.titre + (c.lieu && !String(c.titre).toUpperCase().endsWith(String(c.lieu).toUpperCase()) ? " · " + c.lieu : "") + " · " + c.agence + " · n° " + c.numero;
 const cleNP = (n, p) => String(n || "").trim().toUpperCase() + "|" + String(p || "").trim().toUpperCase();
 const tagStatut = s => "<span class='tag" + (s === "retenue" || s === "validee" || s === "payee" ? " ok" : s === "refusee" || s === "rejetee" ? " ko" : "") + "'>" + esc(t("st_" + s)) + "</span>";
 
@@ -377,10 +388,10 @@ async function init() {
   $("adm-note").hidden = !MOI.admin;
   document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => montrer(b.dataset.o)));
   document.querySelectorAll("#lang button").forEach(b => b.addEventListener("click", async () => { L = b.dataset.l; traduire(); rendreTout(); await post("/api/profil", { langue: L }).catch(() => {}); }));
-  $("cmd-sem").textContent = $("prop-sem").textContent = t("semaine") + " " + MOI.semaine;
+  $("cmd-sem").textContent = $("prop-sem").textContent = t("semaine") + " " + libSemaine(MOI.semaine);
   remplirMois();
   document.body.classList.toggle("admin", !!MOI.admin);
-  $("adm-decl-mois").value = MOI.mois; $("adm-prop-sem").value = MOI.semaine;
+  $("adm-decl-mois").value = MOI.mois;
   traduire();
   montrer(ongl[0][0]);
   COMMANDES = (await get("/api/prest/commandes").catch(() => ({ commandes: [] }))).commandes;
@@ -397,9 +408,20 @@ function rendreTout() {
   if (!MOI) return;
   /* commandes ouvertes (prestataire) */
   const parSem = {}; COMMANDES.forEach(c => { (parSem[c.semaine || ""] = parSem[c.semaine || ""] || []).push(c); });
-  $("cmd-liste").innerHTML = COMMANDES.length ? Object.keys(parSem).sort().map(sm => "<div class='semaine-titre'>" + t("semaine") + " " + esc(sm) + "</div>" + parSem[sm].map(c =>
-    "<div class='cmd'><b>" + esc(c.titre) + "</b> — " + esc(c.nb_postes) + " " + t("postes") + "<br><span class='m'>" + esc(c.agence) + (c.lieu ? " · " + esc(c.lieu) : "") + (c.date_debut ? " · " + t("debut") + " " + esc(c.date_debut) : "") + " · n° " + esc(c.numero) + "</span></div>").join("")).join("")
+  $("cmd-liste").innerHTML = COMMANDES.length ? Object.keys(parSem).sort().map(sm => "<div class='semaine-titre'>" + t("semaine") + " " + esc(sm ? libSemaine(sm) : "") + "</div>" + parSem[sm].map(c =>
+    "<div class='cmd'><b>" + esc(c.titre) + "</b> — " + esc(c.nb_postes) + " " + t("postes") + "<br><span class='m'>" + esc(c.agence) + (c.lieu && !String(c.titre).toUpperCase().endsWith(String(c.lieu).toUpperCase()) ? " · " + esc(c.lieu) : "") + (c.date_debut ? " · " + t("debut") + " " + esc(c.date_debut) : "") + " · n° " + esc(c.numero) + "</span>" +
+    "<div style='margin-top:6px'><button class='btn s p' data-prop='" + c.id + "'>" + esc(t("proposer_sur")) + "</button></div></div>").join("")).join("")
     : "<div class='note'>" + t("aucune_commande") + "</div>";
+  /* depuis une commande : ouvre l'onglet Proposer avec la commande (et son agence) déjà choisies */
+  $("cmd-liste").querySelectorAll("[data-prop]").forEach(b => b.addEventListener("click", () => {
+    montrer("proposer");
+    const cmd = COMMANDES.find(c => String(c.id) === b.dataset.prop) || {};
+    const vide = Array.from($("prop-lignes").children).find(tr => !tr.querySelector("[data-k='nom']").value);
+    if (vide) { vide.querySelector("[data-k='commande_id']").value = b.dataset.prop; if (cmd.agence) vide.querySelector("[data-k='agence']").value = cmd.agence; }
+    else ajouterLigneProp({ commande_id: b.dataset.prop, agence: cmd.agence });
+    (vide || $("prop-lignes").lastElementChild).querySelector("[data-k='nom']").focus();
+  }));
+  $("cmd-sem").textContent = Object.keys(parSem).filter(Boolean).length ? "" : t("semaine") + " " + libSemaine(MOI.semaine);
   enteteProp(); enteteDecl(); remplirMois();
   if (!$("prop-lignes").children.length) { ajouterLigneProp(); }
   if (!$("decl-lignes").children.length) { ajouterLigneDecl(); }
@@ -410,7 +432,7 @@ function rendreTout() {
     const oc = tr.querySelector("[data-k='commande_id'] option[value='']"); if (oc) oc.textContent = t("libre");
     const bx = tr.querySelector("[data-x]"); if (bx) bx.title = t("supprimer");
   });
-  $("cmd-sem").textContent = $("prop-sem").textContent = t("semaine") + " " + MOI.semaine;
+  $("prop-sem").textContent = t("semaine") + " " + libSemaine(MOI.semaine);
   const on = document.querySelector("#tabs button.on"); if (on && on.dataset.o !== "commandes") montrer(on.dataset.o);
   /* documents */
   $("doc-liste").innerHTML = (MOI.documents || []).map(d =>
@@ -445,8 +467,8 @@ function ajouterLigneProp(v) {
     cellule("<input data-k='nom' value=\"" + esc(v.nom || "") + "\" style='text-transform:uppercase; min-width:140px' autocapitalize='characters' enterkeyhint='next'>") +
     cellule("<input data-k='prenom' value=\"" + esc(v.prenom || "") + "\" style='min-width:120px' autocapitalize='words'>") +
     cellule(selMetier(v.metier)) +
-    cellule("<select data-k='agence'><option value=''>—</option>" + opts(AGENCES, v.agence) + "</select>") +
-    cellule("<select data-k='commande_id'><option value=''>" + esc(t("libre")) + "</option>" + COMMANDES.map(c => "<option value='" + c.id + "'>" + esc(c.numero + " · " + c.titre + (c.lieu ? " · " + c.lieu : "") + " · " + c.agence) + "</option>").join("") + "</select>") +
+    cellule("<select data-k='agence'><option value=''>—</option>" + opts([...new Set([...AGENCES, ...COMMANDES.map(c => c.agence).filter(Boolean)])].sort(), v.agence || "") + "</select>") +
+    cellule("<select data-k='commande_id'><option value=''>" + esc(t("libre")) + "</option>" + COMMANDES.map(c => "<option value='" + c.id + "'" + (String(v.commande_id || "") === String(c.id) ? " selected" : "") + ">" + esc(libCmd(c)) + "</option>").join("") + "</select>") +
     cellule("<label class='cell-chk'><input data-k='vehicule' type='checkbox'" + (v.vehicule ? " checked" : "") + "></label>") +
     cellule("<input data-k='salaire_net' inputmode='decimal' placeholder='11,50' style='min-width:80px; width:90px'>") +
     cellule("<input data-k='telephone' inputmode='tel' style='min-width:120px'>") +
@@ -579,27 +601,38 @@ async function chargerFactures() {
     : "<tr><td class='note'>" + t("aucune_facture") + "</td></tr>";
 }
 /* ===== ADMIN ===== */
-/* ---- commandes par semaine : import reconnu, édition en ligne, publication ---- */
-let CMD_ETAT = { semaine: null, archivee: false, semaines: [] };
+/* ---- commandes par semaine : import reconnu, édition groupée, archives, publication ---- */
+let CMD_ETAT = { semaine: null, courante: null, archivee: false, semaines: [] };
 const semaineISOde = d => { const x = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const j = x.getUTCDay() || 7; x.setUTCDate(x.getUTCDate() + 4 - j); const a = new Date(Date.UTC(x.getUTCFullYear(), 0, 1)); return x.getUTCFullYear() + "-W" + String(Math.ceil(((x - a) / 86400000 + 1) / 7)).padStart(2, "0"); };
 const semainePlus = (sem, k) => { const [y, w] = sem.split("-W").map(Number); const j4 = new Date(Date.UTC(y, 0, 4)); const lundi = new Date(j4); lundi.setUTCDate(j4.getUTCDate() - ((j4.getUTCDay() || 7) - 1) + (w - 1 + k) * 7); return semaineISOde(new Date(lundi.getUTCFullYear(), lundi.getUTCMonth(), lundi.getUTCDate())); };
-function remplirSemaines(sel, courante, semaines) {
+const libSemAdmin = (sm, courante, semaines, archiveeCourante) => {
+  const x = (semaines || []).find(z => z.semaine === sm); const arch = sm < courante || (sm === courante && archiveeCourante);
+  return "S" + libSemaine(sm) + (sm === courante && !arch ? " (en cours)" : sm === semainePlus(courante, 1) ? " (prochaine)" : "") +
+    (x ? " · " + x.ouvertes + " ouverte(s)" + (x.ouvertes && x.publiees < x.ouvertes ? " · " + (x.ouvertes - x.publiees) + " à publier" : x.ouvertes ? " · publiée" : "") : "") + (arch ? " · archivée" : "");
+};
+function remplirSemaines(sel, courante, semaines, archiveeCourante) {
   const vues = new Set(); const opts = [];
-  const lib = sm => { const x = (semaines || []).find(z => z.semaine === sm); return sm + (sm === courante ? " (en cours)" : sm === semainePlus(courante, 1) ? " (prochaine)" : "") + (x ? " · " + x.ouvertes + " ouverte(s)" + (!x.ouvertes ? "" : x.publiees >= x.ouvertes ? ", publiée" : ", brouillon") : "") + (sm < courante ? " · archivée" : ""); };
   [semainePlus(courante, 1), courante, ...(semaines || []).map(z => z.semaine)].forEach(sm => { if (!vues.has(sm)) { vues.add(sm); opts.push(sm); } });
   opts.sort().reverse();
-  const v = sel.value; sel.innerHTML = opts.map(sm => "<option value='" + sm + "'>" + esc(lib(sm)) + "</option>").join(""); sel.value = opts.includes(v) ? v : courante;
+  const v = sel.value; sel.innerHTML = opts.map(sm => "<option value='" + sm + "'>" + esc(libSemAdmin(sm, courante, semaines, archiveeCourante)) + "</option>").join(""); sel.value = opts.includes(v) ? v : courante;
 }
+const LIB_CMD = { semaine_archivee: "semaine archivée (modifiable jusqu'au vendredi seulement)", numero_requis: "n° de commande obligatoire", titre_requis: "titre obligatoire", date_invalide: "date invalide", statut_invalide: "statut invalide", semaine_invalide: "semaine invalide",
+  numero_deja_dans_semaine: "ce n° existe déjà dans cette semaine", commande_introuvable: "commande introuvable (rechargez la page)", rien_a_modifier: "rien à modifier", reserve_admin: "réservé aux administrateurs", non_connecte: "session expirée, reconnectez-vous", serveur: "serveur injoignable" };
+const lignesSales = () => document.querySelectorAll("#tbl-adm-cmd tr[data-dirty]").length;
 async function admCommandes() {
   const sel = $("adm-cmd-sem"); const q = sel.value ? "?semaine=" + encodeURIComponent(sel.value) : "";
   const j = await get("/api/prest/commandes" + q).catch(() => null); if (!j) return;
-  CMD_ETAT = { semaine: j.semaine, archivee: j.archivee, semaines: j.semaines || [] };
-  remplirSemaines(sel, j.semaine_courante, j.semaines); sel.value = j.semaine;
+  const archCour = j.semaine === j.semaine_courante ? j.archivee : (j.semaine_courante < j.semaine ? false : CMD_ETAT.archiveeCourante);
+  CMD_ETAT = { semaine: j.semaine, courante: j.semaine_courante, archivee: j.archivee, semaines: j.semaines || [], archiveeCourante: !!archCour };
+  remplirSemaines(sel, j.semaine_courante, j.semaines, CMD_ETAT.archiveeCourante); sel.value = j.semaine;
+  const lib = "S" + libSemaine(j.semaine) + (j.semaine === j.semaine_courante && !j.archivee ? " (en cours)" : j.semaine === semainePlus(j.semaine_courante, 1) ? " (prochaine)" : "");
+  $("adm-cmd-periode").textContent = j.archivee ? "Semaine archivée : lecture seule. Pour saisir, choisissez la semaine en cours ou la prochaine." : "Modifiable jusqu'au vendredi " + periodeSemaine(j.semaine).split(" – ")[1] + ".";
+  $("btn-adm-cmd").textContent = "Importer dans la " + lib; $("btn-adm-publier").textContent = "📣 Publier la " + lib;
   const l = j.commandes || []; const pub = l.filter(c => c.publiee && c.statut === "ouverte").length, ouv = l.filter(c => c.statut === "ouverte").length;
-  $("adm-cmd-etat").className = "tag " + (j.archivee ? "arch" : pub && pub === ouv ? "ok" : "brouillon");
-  $("adm-cmd-etat").textContent = j.archivee ? "archivée (lecture seule)" : !l.length ? "vide" : pub === ouv ? "publiée · " + ouv + " visible(s)" : (ouv - pub) + " brouillon(s) à publier";
+  $("adm-cmd-etat").className = "tag " + (j.archivee ? "arch" : !ouv ? "arch" : pub === ouv ? "ok" : "brouillon");
+  $("adm-cmd-etat").textContent = j.archivee ? "archivée (lecture seule)" : !l.length ? "vide" : !ouv ? "aucune commande ouverte" : pub === ouv ? "publiée · " + ouv + " visible(s)" : (ouv - pub) + " brouillon(s) à publier";
   const ro = j.archivee ? " disabled" : "";
-  $("tbl-adm-cmd").innerHTML = "<tr><th>N°</th><th>Début</th><th>Postes</th><th>Titre</th><th>Agence</th><th>Lieu</th><th>Chargé</th><th>Statut</th><th>Publiée</th><th></th></tr>" +
+  $("tbl-adm-cmd").innerHTML = "<tr><th>N°</th><th>Début</th><th>Postes</th><th>Titre</th><th>Agence</th><th>Lieu</th><th>Chargé</th><th>Statut</th><th>Publiée</th></tr>" +
     (l.map(c => "<tr data-id='" + c.id + "'>" +
       "<td><input class='court' data-k='numero' value=\"" + esc(c.numero) + "\"" + ro + "></td>" +
       "<td><input class='moyen' data-k='date_debut' type='date' value=\"" + esc(c.date_debut || "") + "\"" + ro + "></td>" +
@@ -609,56 +642,71 @@ async function admCommandes() {
       "<td><input class='moyen' data-k='lieu' value=\"" + esc(c.lieu || "") + "\"" + ro + "></td>" +
       "<td><input class='moyen' data-k='charge' value=\"" + esc(c.charge || "") + "\"" + ro + "></td>" +
       "<td><select data-k='statut'" + ro + ">" + ["ouverte", "pourvue", "fermee"].map(x => "<option" + (c.statut === x ? " selected" : "") + ">" + x + "</option>").join("") + "</select></td>" +
-      "<td>" + (c.statut !== "ouverte" ? "—" : c.publiee ? "<span class='tag ok'>✓ publiée</span>" : "<span class='tag brouillon'>brouillon</span>") + "</td>" +
-      "<td>" + (j.archivee ? "" : "<button class='btn s p' data-sv>Enregistrer</button>") + "</td></tr>").join("") || "<tr><td class='note' colspan='10'>Aucune commande pour " + esc(j.semaine) + " — importez l'export du CRM ci-dessus.</td></tr>") +
+      "<td>" + (c.statut !== "ouverte" ? "—" : c.publiee ? "<span class='tag ok'>✓ publiée</span>" : "<span class='tag brouillon'>brouillon</span>") + "</td></tr>").join("")
+      || "<tr><td class='note' colspan='9'>" + (j.archivee ? "Semaine archivée (lecture seule). Pour saisir des commandes, choisissez la semaine en cours ou la prochaine dans le sélecteur ci-dessus." : "Aucune commande pour cette semaine — importez l'export du CRM ci-dessus.") + "</td></tr>") +
     "<datalist id='liste-agences'>" + AGENCES.map(a => "<option value=\"" + esc(a) + "\">").join("") + "</datalist>";
-  $("tbl-adm-cmd").querySelectorAll("[data-sv]").forEach(b => b.addEventListener("click", async () => {
-    const tr = b.closest("tr"); const o = { id: +tr.dataset.id }; tr.querySelectorAll("[data-k]").forEach(e => { o[e.dataset.k] = e.value; });
-    const r = await post("/api/prest/admin/commande", o).catch(() => ({ erreur: "serveur" }));
-    if (!r.ok) { alert("Erreur : " + (LIB_CMD[r.erreur] || r.erreur || "?")); return; }
-    tr.style.background = "var(--good-soft)"; setTimeout(() => admCommandes(), 500);
-  }));
-  $("btn-adm-cmd").disabled = $("btn-adm-publier").disabled = !!j.archivee;
+  /* modifications suivies ligne par ligne : rien n'est ré-affiché tant que tout n'est pas enregistré */
+  $("tbl-adm-cmd").querySelectorAll("tr[data-id] [data-k]").forEach(e => e.addEventListener("input", () => { e.closest("tr").dataset.dirty = "1"; $("btn-adm-cmd-save").disabled = false; }));
+  $("btn-adm-cmd-save").disabled = true; $("adm-cmd-save-msg").textContent = "";
+  ["btn-adm-cmd", "btn-adm-publier", "btn-adm-cmd-fichier", "adm-cmd-texte", "adm-cmd-fermer"].forEach(id => { $(id).disabled = !!j.archivee; });
 }
-const LIB_CMD = { semaine_archivee: "semaine archivée (modifiable jusqu'au vendredi seulement)", numero_requis: "n° de commande obligatoire", titre_requis: "titre obligatoire", date_invalide: "date invalide", statut_invalide: "statut invalide", semaine_invalide: "semaine invalide", serveur: "serveur injoignable" };
-$("adm-cmd-sem").addEventListener("change", admCommandes);
+$("adm-cmd-sem").addEventListener("change", () => { if (lignesSales() && !confirm("Des modifications ne sont pas enregistrées : changer de semaine les perd. Continuer ?")) { $("adm-cmd-sem").value = CMD_ETAT.semaine; return; } admCommandes(); });
+window.addEventListener("beforeunload", e => { if (lignesSales()) { e.preventDefault(); e.returnValue = ""; } });
+$("btn-adm-cmd-save").addEventListener("click", async () => {
+  const trs = Array.from(document.querySelectorAll("#tbl-adm-cmd tr[data-dirty]")); const m = $("adm-cmd-save-msg"); let ok = 0; const erreurs = [];
+  $("btn-adm-cmd-save").disabled = true; m.className = "msg"; m.textContent = "Enregistrement…";
+  for (const tr of trs) {
+    const o = { id: +tr.dataset.id }; tr.querySelectorAll("[data-k]").forEach(e => { o[e.dataset.k] = e.value; });
+    const r = await post("/api/prest/admin/commande", o).catch(() => ({ erreur: "serveur" }));
+    if (r.ok) { ok++; delete tr.dataset.dirty; tr.style.background = "var(--good-soft)"; } else erreurs.push("n° " + o.numero + " : " + (LIB_CMD[r.erreur] || r.erreur || "?"));
+  }
+  m.className = "msg " + (erreurs.length ? "err" : "ok"); m.textContent = "✓ " + ok + " ligne(s) enregistrée(s)" + (erreurs.length ? " — " + erreurs.join(" ; ") : "");
+  if (!erreurs.length) admCommandes(); else $("btn-adm-cmd-save").disabled = false;
+});
 
-/* --- reconnaissance des colonnes : en-têtes (CRM : Job no. / Job title / Office / Owner ; FR : n°, titre, agence, chargé, date, postes, lieu) sinon contenu --- */
+/* --- reconnaissance des colonnes : en-têtes (CRM : Job no. / Job title / Office / Owner ; FR : n°, titre, agence, chargé, date de début, postes, lieu) sinon contenu --- */
 const ENTETES = [
-  ["numero", /job\s*no|^n[°o]|num[ée]ro|commande|^id$|^ref/i], ["date_debut", /date|d[ée]but|start/i], ["nb_postes", /^postes?$|nb\s*postes?|nombre|qty|quantit/i],
-  ["titre", /title|titre|intitul|libell|poste\b|job\b/i], ["agence", /office|agence|branch/i], ["lieu", /lieu|ville|city|location|site|chantier/i], ["charge", /owner|charg|recrut|responsable|consultant/i],
+  ["numero", /job\s*no|^n[°º]\s*(?:de\s+)?(?:cde|commande)?$|^no\.?$|^num|commande|^id$|^r[ée]f/i],
+  ["date_debut", /d[ée]but|start|d[ée]marrage/i], ["date_debut", /^date$/i],
+  ["nb_postes", /^(?:nb|nombre|qt[ée]|quantit|effectif)|^postes$|postes?\s+[àa]\s+pourvoir/i],
+  ["titre", /title|titre|intitul|libell|^poste$|job\b|mission|m[ée]tier|profil|qualif/i],
+  ["agence", /office|agence|branch/i], ["lieu", /lieu|ville|city|location|site|chantier|commune|localit/i],
+  ["charge", /owner|charg|recrut|responsable|consultant|propri[ée]t|commercial|gestionnaire/i],
 ];
-const estDate = v => /^\d{2}\/\d{2}\/\d{4}$|^\d{4}-\d{2}-\d{2}$/.test(String(v || "").trim());
-const versISO = v => { const x = String(v || "").trim(); const m = x.match(/^(\d{2})\/(\d{2})\/(\d{4})$/); return m ? m[3] + "-" + m[2] + "-" + m[1] : /^\d{4}-\d{2}-\d{2}$/.test(x) ? x : ""; };
+const versISO = v => { const x = String(v || "").trim(); let m;
+  if ((m = x.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ]|$)/))) return m[1] + "-" + m[2] + "-" + m[3];
+  if ((m = x.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2}|\d{4})$/))) { let d = +m[1], mo = +m[2]; if (mo > 12 && d <= 12) [d, mo] = [mo, d]; if (mo < 1 || mo > 12 || d < 1 || d > 31) return ""; return (m[3].length === 2 ? "20" + m[3] : m[3]) + "-" + String(mo).padStart(2, "0") + "-" + String(d).padStart(2, "0"); }
+  return ""; };
+const estDate = v => !!versISO(v);
 function detecterColonnes(rows) {
   const n = Math.max(...rows.map(r => r.length)); const map = {};
   const tete = rows[0] || []; const enTete = tete.filter(c => /[a-z]/i.test(String(c))).length >= 2 && !tete.some(c => /^\d{3,6}$/.test(String(c).trim()));
-  if (enTete) { tete.forEach((c, i) => { for (const [k, re] of ENTETES) if (!(k in map) && !Object.values(map).includes(i) && re.test(String(c))) { map[k] = i; break; } }); }
+  if (enTete) { tete.forEach((c, i) => { for (const [k, re] of ENTETES) if (!(k in map) && !Object.values(map).includes(i) && re.test(String(c).trim())) { map[k] = i; break; } }); }
   const corps = enTete ? rows.slice(1) : rows;
   const col = i => corps.map(r => String(r[i] == null ? "" : r[i]).trim()).filter(Boolean);
   const pris = new Set(Object.values(map));
-  const score = (i, f) => { const c = col(i); return c.length ? c.filter(f).length / c.length : 0; };
+  const score = (i, f) => { const c = col(i); return c.length ? c.filter(v => f(v, i)).length / c.length : 0; };
   const meilleur = (k, f, seuil) => { if (k in map) return; let best = -1, bs = seuil; for (let i = 0; i < n; i++) { if (pris.has(i)) continue; const sc = score(i, f); if (sc > bs) { bs = sc; best = i; } } if (best >= 0) { map[k] = best; pris.add(best); } };
-  meilleur("numero", v => /^\d{3,7}$/.test(v), 0.7);
+  meilleur("numero", v => /^\d{3,7}(?:\.0)?$/.test(v), 0.7);
   meilleur("date_debut", estDate, 0.7);
   meilleur("agence", v => /PALMA|AB2PRO|AB SERVICE/i.test(v) || AGENCES.includes(v.toUpperCase()), 0.5);
-  meilleur("charge", v => /^[A-ZÀ-Ý][a-zà-ÿ'-]+(?:\s[A-ZÀ-Ý][a-zà-ÿ'-]+)?\s[A-ZÀ-Ý' -]{2,}$/.test(v), 0.6);
+  /* chargé : « Prénom NOM », ou nom tout en majuscules dans la colonne qui suit l'agence (ordre de l'export CRM) */
+  meilleur("charge", (v, i) => /^[A-ZÀ-Ý][a-zà-ÿ'-]+(?:\s[A-ZÀ-Ý][a-zà-ÿ'-]+)?\s[A-ZÀ-Ý' -]{2,}$/.test(v) || (map.agence != null && i === map.agence + 1 && /^[A-ZÀ-Ý][A-ZÀ-Ý'-]+(?:\s[A-ZÀ-Ý][A-ZÀ-Ý'-]+){1,2}$/.test(v)), 0.6);
   meilleur("nb_postes", v => /^\d{1,2}$/.test(v), 0.8);
   meilleur("titre", v => /[a-z]{3}/i.test(v) && /\d/.test(v) || /[a-z]{4}/i.test(v), 0.6);
   meilleur("lieu", v => /^[A-ZÀ-Ý][A-ZÀ-Ý' -]{2,}$/.test(v), 0.5);
   return { map, corps };
 }
+const nbPostesDe = (titre, nb) => { if (nb > 0) return nb; const m = String(titre).match(/^(\d{1,2})(?:\s*([\/x×])\s*(\d{1,2}))?\s/i); if (!m) return 1; const a = +m[1], b = +(m[3] || 0); return m[2] && /[x×]/i.test(m[2]) ? a * b : Math.max(a, b); };
 function lignesDepuisTableau(rows) {
   const { map, corps } = detecterColonnes(rows.filter(r => r.some(c => String(c == null ? "" : c).trim())));
   const val = (r, k) => (k in map) ? String(r[map[k]] == null ? "" : r[map[k]]).trim() : "";
   const out = [];
   corps.forEach(r => {
     const numero = val(r, "numero").replace(/\.0$/, ""); if (!/^\d{3,7}$/.test(numero)) return;
-    let titre = val(r, "titre"), lieu = val(r, "lieu"), nb = parseInt(val(r, "nb_postes"), 10) || 0;
-    const mT = titre.match(/^(\d{1,2})(?:\s*\/\s*(\d{1,2}))?\s+(.*)$/);
-    if (!nb && mT) nb = Math.max(parseInt(mT[1], 10), parseInt(mT[2] || "0", 10));
-    if (!lieu) { const mL = titre.match(/\s[-–—]\s([A-ZÀ-Ý][A-ZÀ-Ý' -]{2,})$/); if (mL) lieu = mL[1].trim(); }
-    out.push({ numero, date_debut: versISO(val(r, "date_debut")), nb_postes: nb || 1, titre: titre.toUpperCase(), agence: val(r, "agence").toUpperCase(), lieu: lieu.toUpperCase(), charge: val(r, "charge") });
+    const titre = val(r, "titre"); let lieu = val(r, "lieu"), lieu_deduit = false;
+    if (!lieu) { const mL = titre.match(/\s[-–—]\s([A-ZÀ-Ýa-zà-ÿ][A-ZÀ-Ýa-zà-ÿ' -]{2,})$/); if (mL) { lieu = mL[1].trim(); lieu_deduit = true; } }
+    out.push({ numero, date_debut: versISO(val(r, "date_debut")), nb_postes: nbPostesDe(titre, parseInt(val(r, "nb_postes"), 10) || 0), titre: titre.toUpperCase(), agence: val(r, "agence").toUpperCase(), lieu: lieu.toUpperCase(), lieu_deduit, charge: val(r, "charge") });
   });
   return { lignes: out, map };
 }
@@ -666,23 +714,35 @@ let CMD_APERCU = [];
 function montrerApercu(res, source) {
   CMD_APERCU = res.lignes;
   const cols = Object.keys(res.map).map(k => ({ numero: "n°", date_debut: "début", nb_postes: "postes", titre: "titre", agence: "agence", lieu: "lieu", charge: "chargé" }[k] + " ← col. " + (res.map[k] + 1))).join(" · ");
+  const dest = "S" + libSemaine($("adm-cmd-sem").value || CMD_ETAT.semaine || "");
+  const inp = (i, k, v, cls, dev) => "<input data-i='" + i + "' data-k='" + k + "' value=\"" + esc(v) + "\" class='" + cls + "' style='padding:5px 6px; font-size:14px" + (dev ? "; border-color:var(--warn); background:var(--warn-soft)" : "") + "'" + (dev ? " title='déduit du titre — à vérifier'" : "") + ">";
   $("adm-cmd-apercu").innerHTML = res.lignes.length
-    ? "<div class='note'>" + esc(source) + " : <b>" + res.lignes.length + " commande(s) reconnue(s)</b> — colonnes : " + esc(cols) + ". Vérifiez puis cliquez « Importer dans la semaine ».</div>" +
+    ? "<div class='note'>" + esc(source) + " : <b>" + res.lignes.length + " commande(s) reconnue(s)</b> — colonnes : " + esc(cols) + ". Destination : <b>" + esc(dest) + "</b>. " +
+      (CMD_ETAT.archivee ? "<b>Semaine archivée</b> : choisissez une autre semaine dans le sélecteur, puis cliquez « Importer »." : "Corrigez si besoin (lieu en orange = déduit du titre : un nom de personne après le tiret n'est pas une ville), puis cliquez « Importer ».") + "</div>" +
       "<div class='tbl'><table><tr><th>N°</th><th>Début</th><th>Postes</th><th>Titre</th><th>Agence</th><th>Lieu</th><th>Chargé</th></tr>" +
-      res.lignes.map(c => "<tr><td>" + esc(c.numero) + "</td><td>" + esc(c.date_debut || "—") + "</td><td>" + esc(c.nb_postes) + "</td><td>" + esc(c.titre) + "</td><td>" + esc(c.agence) + "</td><td>" + esc(c.lieu || "—") + "</td><td>" + esc(c.charge || "—") + "</td></tr>").join("") + "</table></div>"
-    : "<div class='msg err'>" + esc(source) + " : aucune commande reconnue (il faut au moins un n° de commande à 3-7 chiffres par ligne).</div>";
+      res.lignes.map((c, i) => "<tr><td>" + esc(c.numero) + "</td><td>" + inp(i, "date_debut", c.date_debut, "moyen") + "</td><td>" + inp(i, "nb_postes", c.nb_postes, "court") + "</td><td>" + esc(c.titre) + "</td><td>" + esc(c.agence) + "</td><td>" + inp(i, "lieu", c.lieu, "moyen", c.lieu_deduit) + "</td><td>" + esc(c.charge || "—") + "</td></tr>").join("") + "</table></div>"
+    : "<div class='msg err'>" + esc(source) + " : aucune commande reconnue (il faut au moins un n° de commande à 3-7 chiffres et un titre par ligne).</div>";
+  $("adm-cmd-apercu").querySelectorAll("input[data-i]").forEach(e => e.addEventListener("input", () => { const c = CMD_APERCU[+e.dataset.i]; if (!c) return; c[e.dataset.k] = e.dataset.k === "nb_postes" ? (parseInt(e.value, 10) || 1) : e.dataset.k === "date_debut" ? versISO(e.value) : e.value.trim().toUpperCase(); if (e.dataset.k === "lieu") { c.lieu_deduit = false; e.style.borderColor = ""; e.style.background = ""; } }));
 }
 $("adm-cmd-texte").addEventListener("input", () => {
   const rows = $("adm-cmd-texte").value.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => l.includes("\t") ? l.split("\t") : l.includes(";") ? l.split(";") : l.split(/\s{2,}/));
+  $("adm-cmd-fermer").checked = false;   /* un copier-coller partiel ne doit jamais fermer le reste de la semaine */
   if (rows.length) montrerApercu(lignesDepuisTableau(rows), "Texte collé"); else { $("adm-cmd-apercu").innerHTML = ""; CMD_APERCU = []; }
 });
 $("btn-adm-cmd-fichier").addEventListener("click", () => $("adm-cmd-file").click());
 $("adm-cmd-file").addEventListener("change", async () => {
   const f = $("adm-cmd-file").files[0]; if (!f) return; $("adm-cmd-nomfichier").textContent = f.name;
   try {
-    let rows;
-    if (/\.(csv|txt)$/i.test(f.name)) { const txt = await f.text(); rows = txt.split(/\r?\n/).filter(Boolean).map(l => l.includes("\t") ? l.split("\t") : l.split(";")); }
-    else { await chargerSheetJS(); const wb = XLSX.read(await f.arrayBuffer(), { type: "array" }); const ws = wb.Sheets[wb.SheetNames[0]]; rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: "" }); }
+    await chargerSheetJS();
+    let wb;
+    if (/\.(csv|txt)$/i.test(f.name)) {
+      /* CSV : UTF-8 sinon Windows-1252 (export Excel « CSV séparateur point-virgule »), guillemets gérés par SheetJS */
+      const b = new Uint8Array(await f.arrayBuffer()); let txt;
+      try { txt = new TextDecoder("utf-8", { fatal: true }).decode(b); } catch (_) { txt = new TextDecoder("windows-1252").decode(b); }
+      wb = XLSX.read(txt, { type: "string" });
+    } else wb = XLSX.read(await f.arrayBuffer(), { type: "array", cellDates: true, cellText: false });
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, defval: "", dateNF: "yyyy-mm-dd" });
+    $("adm-cmd-fermer").checked = true;   /* un export complet du CRM peut fermer les absentes (après confirmation) */
     montrerApercu(lignesDepuisTableau(rows), f.name);
   } catch (e) { $("adm-cmd-apercu").innerHTML = "<div class='msg err'>Fichier illisible : " + esc(e.message || e) + "</div>"; }
   $("adm-cmd-file").value = "";
@@ -692,26 +752,42 @@ function chargerSheetJS() {
   return new Promise((ok, ko) => { const sc = document.createElement("script"); sc.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"; sc.onload = ok; sc.onerror = () => ko(new Error("bibliothèque Excel non chargée (réseau)")); document.head.appendChild(sc); });
 }
 $("btn-adm-cmd").addEventListener("click", async () => {
-  const m = $("adm-cmd-msg");
+  const m = $("adm-cmd-msg"); const sem = $("adm-cmd-sem").value;
   if (!CMD_APERCU.length) { m.className = "msg err"; m.textContent = "Rien à importer : choisissez un fichier ou collez des lignes."; return; }
+  /* fermeture des absentes : impact calculé avant l'envoi, confirmation explicite */
+  const ouverts = Array.from(document.querySelectorAll("#tbl-adm-cmd tr[data-id]")).filter(tr => tr.querySelector("[data-k='statut']").value === "ouverte").map(tr => tr.querySelector("[data-k='numero']").value.trim());
+  const absents = ouverts.filter(nu => !CMD_APERCU.some(c => c.numero === nu));
+  const fermer = $("adm-cmd-fermer").checked && absents.length > 0;
+  if (!confirm("Importer " + CMD_APERCU.length + " commande(s) dans la S" + libSemaine(sem) + " ?" + (fermer ? "\n\nATTENTION : " + absents.length + " commande(s) ouverte(s) absentes de l'import seront FERMÉES : " + absents.join(", ") + "\n(annulez et décochez la case pour les garder)" : ""))) return;
   $("btn-adm-cmd").disabled = true; m.className = "msg"; m.textContent = "Import…";
-  const j = await post("/api/prest/admin/commandes", { semaine: $("adm-cmd-sem").value, lignes: CMD_APERCU, fermer_absentes: $("adm-cmd-fermer").checked }).catch(() => ({ erreur: "serveur" }));
+  const j = await post("/api/prest/admin/commandes", { semaine: sem, lignes: CMD_APERCU.map(c => ({ numero: c.numero, date_debut: c.date_debut, nb_postes: c.nb_postes, titre: c.titre, agence: c.agence, lieu: c.lieu, charge: c.charge })), fermer_absentes: $("adm-cmd-fermer").checked }).catch(() => ({ erreur: "serveur" }));
   $("btn-adm-cmd").disabled = false;
   m.className = "msg " + (j.ok ? "ok" : "err");
-  m.textContent = j.ok ? "✓ " + j.nouvelles + " nouvelle(s), " + j.modifiees + " mise(s) à jour, " + j.fermees + " fermée(s) — semaine " + j.semaine + " en brouillon : publiez-la quand le tableau est prêt." : "Erreur : " + (LIB_CMD[j.erreur] || j.erreur || "?");
+  m.textContent = j.ok ? "✓ " + j.nouvelles + " nouvelle(s), " + j.modifiees + " mise(s) à jour, " + j.fermees + " fermée(s). Les nouvelles sont en brouillon : publiez la semaine quand le tableau est prêt." : "Erreur : " + (LIB_CMD[j.erreur] || j.erreur || "?");
   if (j.ok) { $("adm-cmd-texte").value = ""; $("adm-cmd-apercu").innerHTML = ""; CMD_APERCU = []; $("adm-cmd-nomfichier").textContent = ""; admCommandes(); }
 });
 $("btn-adm-publier").addEventListener("click", async () => {
   const m = $("adm-pub-msg"); const sem = $("adm-cmd-sem").value; const prevenir = $("adm-cmd-prevenir").checked;
-  if (!confirm("Publier la semaine " + sem + " ?\nLes commandes ouvertes deviennent visibles des prestataires" + (prevenir ? " et ils reçoivent un e-mail." : "."))) return;
+  if (lignesSales()) { m.className = "msg err"; m.textContent = "Enregistrez d'abord les modifications du tableau."; return; }
+  if (!confirm("Publier la S" + libSemaine(sem) + " ?\nLes commandes ouvertes deviennent visibles des prestataires" + (prevenir ? " et ils reçoivent un e-mail dans leur langue." : "."))) return;
   $("btn-adm-publier").disabled = true; m.className = "msg"; m.textContent = "Publication…";
   const j = await post("/api/prest/admin/publier", { semaine: sem, prevenir }).catch(() => ({ erreur: "serveur" }));
   $("btn-adm-publier").disabled = false;
   m.className = "msg " + (j.ok ? "ok" : "err");
-  m.textContent = j.ok ? "✓ Semaine " + j.semaine + " publiée : " + j.n + " commande(s) visible(s)" + (j.prevenus ? ", " + j.prevenus + " prestataire(s) prévenu(s) par e-mail." : ".") : "Erreur : " + (LIB_CMD[j.erreur] || j.erreur || "?");
+  m.textContent = j.ok ? "✓ S" + libSemaine(j.semaine) + " publiée : " + j.n + " commande(s) visible(s)" + (prevenir ? ", " + j.prevenus + " prestataire(s) prévenu(s) par e-mail" + (j.echecs ? " (" + j.echecs + " échec(s))" : "") : "") + "." : "Erreur : " + (LIB_CMD[j.erreur] || j.erreur || "?");
   admCommandes();
 });
+/* propositions (admin) : semaines proposées dans un sélecteur (plus de code à taper) */
+async function remplirSemainesProps() {
+  const sel = $("adm-prop-sem"); if (sel.options.length) return;
+  const j = await get("/api/prest/commandes").catch(() => null); const cour = (j && j.semaine_courante) || semaineISOde(new Date());
+  const vues = new Set(); const opts = [];
+  [semainePlus(cour, 1), cour, semainePlus(cour, -1), semainePlus(cour, -2), semainePlus(cour, -3), ...((j && j.semaines) || []).map(z => z.semaine)].forEach(sm => { if (!vues.has(sm)) { vues.add(sm); opts.push(sm); } });
+  opts.sort().reverse();
+  sel.innerHTML = opts.map(sm => "<option value='" + sm + "'>S" + esc(libSemaine(sm)) + (sm === cour ? " (en cours)" : "") + "</option>").join(""); sel.value = cour;
+}
 async function admProps() {
+  await remplirSemainesProps();
   const j = await get("/api/prest/propositions?semaine=" + encodeURIComponent($("adm-prop-sem").value)).catch(() => ({ propositions: [] }));
   $("tbl-adm-prop").innerHTML = "<tr><th>Prestataire</th><th>Candidat</th><th>Métier</th><th>Véh.</th><th>Net</th><th>Tél.</th><th>Commande</th><th>Remarques</th><th>Statut</th><th></th></tr>" +
     ((j.propositions || []).map(p => "<tr><td>" + esc(p.societe) + "</td><td><b>" + esc(p.nom) + "</b> " + esc(p.prenom) + "</td><td>" + esc(p.metier) + "</td><td>" + (p.vehicule ? "oui" : "—") + "</td><td>" + esc(p.salaire_net) + "</td><td>" + esc(p.telephone) + "</td><td>" + esc(p.numero ? p.numero + " · " + p.commande_titre + " · " + p.commande_lieu : "—") + "</td><td>" + esc(p.remarques) + "</td><td>" + tagStatut(p.statut) + "</td><td><button class='btn s' data-st='retenue' data-id='" + p.id + "'>Retenir</button> <button class='btn s' data-st='refusee' data-id='" + p.id + "'>Refuser</button></td></tr>").join("") || "<tr><td class='note'>Aucune proposition.</td></tr>");
