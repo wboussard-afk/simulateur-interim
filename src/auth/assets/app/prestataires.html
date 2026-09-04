@@ -182,7 +182,7 @@ table.saisie .btn.s { padding: 6px 9px; }
         <select id="adm-cmd-sem" style="width:auto; min-width:260px; padding:8px; font-size:16px"></select>
         <span class="note" id="adm-cmd-periode"></span>
       </div>
-      <div class="note"><b>1.</b> Importez l'export du CRM — fichier Excel « exportJobOrders » (ou CSV), ou copier-coller des lignes : les colonnes sont reconnues automatiquement quel que soit leur ordre (n° de commande, titre, agence, chargé, date de début, postes, lieu ; le nombre de postes et la ville sont lus dans le titre s'il n'y a pas de colonne).
+      <div class="note"><b>1.</b> Importez l'export du CRM (fichier Excel ou CSV, ou copier-coller) : colonnes <b>Numéro · Date de début · Nombre de postes · Fonction · Agence · Lieu de travail, ville</b>, reconnues automatiquement quel que soit leur ordre. Aucun nom de client n'est repris : les prestataires ne voient que la fonction, l'agence et la ville.
         <b>2.</b> Corrigez directement dans le tableau (Enregistrer par ligne). <b>3.</b> Publiez : les prestataires voient alors la semaine. Modifiable jusqu'au vendredi ; à partir du samedi la semaine est archivée (lecture seule).</div>
       <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px">
         <input type="file" id="adm-cmd-file" accept=".xlsx,.xls,.xltx,.xlsm,.csv,.txt" hidden>
@@ -632,7 +632,7 @@ async function admCommandes() {
   $("adm-cmd-etat").className = "tag " + (j.archivee ? "arch" : !ouv ? "arch" : pub === ouv ? "ok" : "brouillon");
   $("adm-cmd-etat").textContent = j.archivee ? "archivée (lecture seule)" : !l.length ? "vide" : !ouv ? "aucune commande ouverte" : pub === ouv ? "publiée · " + ouv + " visible(s)" : (ouv - pub) + " brouillon(s) à publier";
   const ro = j.archivee ? " disabled" : "";
-  $("tbl-adm-cmd").innerHTML = "<tr><th>N°</th><th>Début</th><th>Postes</th><th>Titre</th><th>Agence</th><th>Lieu</th><th>Chargé</th><th>Statut</th><th>Publiée</th></tr>" +
+  $("tbl-adm-cmd").innerHTML = "<tr><th>N°</th><th>Date de début</th><th>Postes</th><th>Fonction</th><th>Agence</th><th>Lieu de travail, ville</th><th>Statut</th><th>Publiée</th></tr>" +
     (l.map(c => "<tr data-id='" + c.id + "'>" +
       "<td><input class='court' data-k='numero' value=\"" + esc(c.numero) + "\"" + ro + "></td>" +
       "<td><input class='moyen' data-k='date_debut' type='date' value=\"" + esc(c.date_debut || "") + "\"" + ro + "></td>" +
@@ -640,10 +640,9 @@ async function admCommandes() {
       "<td><input data-k='titre' value=\"" + esc(c.titre) + "\" style='min-width:220px'" + ro + "></td>" +
       "<td><input data-k='agence' list='liste-agences' value=\"" + esc(c.agence) + "\" style='min-width:150px'" + ro + "></td>" +
       "<td><input class='moyen' data-k='lieu' value=\"" + esc(c.lieu || "") + "\"" + ro + "></td>" +
-      "<td><input class='moyen' data-k='charge' value=\"" + esc(c.charge || "") + "\"" + ro + "></td>" +
       "<td><select data-k='statut'" + ro + ">" + ["ouverte", "pourvue", "fermee"].map(x => "<option" + (c.statut === x ? " selected" : "") + ">" + x + "</option>").join("") + "</select></td>" +
       "<td>" + (c.statut !== "ouverte" ? "—" : c.publiee ? "<span class='tag ok'>✓ publiée</span>" : "<span class='tag brouillon'>brouillon</span>") + "</td></tr>").join("")
-      || "<tr><td class='note' colspan='9'>" + (j.archivee ? "Semaine archivée (lecture seule). Pour saisir des commandes, choisissez la semaine en cours ou la prochaine dans le sélecteur ci-dessus." : "Aucune commande pour cette semaine — importez l'export du CRM ci-dessus.") + "</td></tr>") +
+      || "<tr><td class='note' colspan='8'>" + (j.archivee ? "Semaine archivée (lecture seule). Pour saisir des commandes, choisissez la semaine en cours ou la prochaine dans le sélecteur ci-dessus." : "Aucune commande pour cette semaine — importez l'export du CRM ci-dessus.") + "</td></tr>") +
     "<datalist id='liste-agences'>" + AGENCES.map(a => "<option value=\"" + esc(a) + "\">").join("") + "</datalist>";
   /* modifications suivies ligne par ligne : rien n'est ré-affiché tant que tout n'est pas enregistré */
   $("tbl-adm-cmd").querySelectorAll("tr[data-id] [data-k]").forEach(e => e.addEventListener("input", () => { e.closest("tr").dataset.dirty = "1"; $("btn-adm-cmd-save").disabled = false; }));
@@ -669,7 +668,7 @@ const ENTETES = [
   ["numero", /job\s*no|^n[°º]\s*(?:de\s+)?(?:cde|commande)?$|^no\.?$|^num|commande|^id$|^r[ée]f/i],
   ["date_debut", /d[ée]but|start|d[ée]marrage/i], ["date_debut", /^date$/i],
   ["nb_postes", /^(?:nb|nombre|qt[ée]|quantit|effectif)|^postes$|postes?\s+[àa]\s+pourvoir/i],
-  ["titre", /title|titre|intitul|libell|^poste$|job\b|mission|m[ée]tier|profil|qualif/i],
+  ["titre", /fonction|title|titre|intitul|libell|^poste$|job\b|mission|m[ée]tier|profil|qualif/i],
   ["agence", /office|agence|branch/i], ["lieu", /lieu|ville|city|location|site|chantier|commune|localit/i],
   ["charge", /owner|charg|recrut|responsable|consultant|propri[ée]t|commercial|gestionnaire/i],
 ];
@@ -713,15 +712,15 @@ function lignesDepuisTableau(rows) {
 let CMD_APERCU = [];
 function montrerApercu(res, source) {
   CMD_APERCU = res.lignes;
-  const cols = Object.keys(res.map).map(k => ({ numero: "n°", date_debut: "début", nb_postes: "postes", titre: "titre", agence: "agence", lieu: "lieu", charge: "chargé" }[k] + " ← col. " + (res.map[k] + 1))).join(" · ");
+  const cols = Object.keys(res.map).filter(k => k !== "charge").map(k => ({ numero: "n°", date_debut: "date de début", nb_postes: "postes", titre: "fonction", agence: "agence", lieu: "lieu de travail" }[k] + " ← col. " + (res.map[k] + 1))).join(" · ");
   const dest = "S" + libSemaine($("adm-cmd-sem").value || CMD_ETAT.semaine || "");
   const inp = (i, k, v, cls, dev) => "<input data-i='" + i + "' data-k='" + k + "' value=\"" + esc(v) + "\" class='" + cls + "' style='padding:5px 6px; font-size:14px" + (dev ? "; border-color:var(--warn); background:var(--warn-soft)" : "") + "'" + (dev ? " title='déduit du titre — à vérifier'" : "") + ">";
   $("adm-cmd-apercu").innerHTML = res.lignes.length
     ? "<div class='note'>" + esc(source) + " : <b>" + res.lignes.length + " commande(s) reconnue(s)</b> — colonnes : " + esc(cols) + ". Destination : <b>" + esc(dest) + "</b>. " +
       (CMD_ETAT.archivee ? "<b>Semaine archivée</b> : choisissez une autre semaine dans le sélecteur, puis cliquez « Importer »." : "Corrigez si besoin (lieu en orange = déduit du titre : un nom de personne après le tiret n'est pas une ville), puis cliquez « Importer ».") + "</div>" +
-      "<div class='tbl'><table><tr><th>N°</th><th>Début</th><th>Postes</th><th>Titre</th><th>Agence</th><th>Lieu</th><th>Chargé</th></tr>" +
-      res.lignes.map((c, i) => "<tr><td>" + esc(c.numero) + "</td><td>" + inp(i, "date_debut", c.date_debut, "moyen") + "</td><td>" + inp(i, "nb_postes", c.nb_postes, "court") + "</td><td>" + esc(c.titre) + "</td><td>" + esc(c.agence) + "</td><td>" + inp(i, "lieu", c.lieu, "moyen", c.lieu_deduit) + "</td><td>" + esc(c.charge || "—") + "</td></tr>").join("") + "</table></div>"
-    : "<div class='msg err'>" + esc(source) + " : aucune commande reconnue (il faut au moins un n° de commande à 3-7 chiffres et un titre par ligne).</div>";
+      "<div class='tbl'><table><tr><th>N°</th><th>Date de début</th><th>Postes</th><th>Fonction</th><th>Agence</th><th>Lieu de travail, ville</th></tr>" +
+      res.lignes.map((c, i) => "<tr><td>" + esc(c.numero) + "</td><td>" + inp(i, "date_debut", c.date_debut, "moyen") + "</td><td>" + inp(i, "nb_postes", c.nb_postes, "court") + "</td><td>" + esc(c.titre) + "</td><td>" + esc(c.agence) + "</td><td>" + inp(i, "lieu", c.lieu, "moyen", c.lieu_deduit) + "</td></tr>").join("") + "</table></div>"
+    : "<div class='msg err'>" + esc(source) + " : aucune commande reconnue (il faut au moins un numéro à 3-7 chiffres et une fonction par ligne).</div>";
   $("adm-cmd-apercu").querySelectorAll("input[data-i]").forEach(e => e.addEventListener("input", () => { const c = CMD_APERCU[+e.dataset.i]; if (!c) return; c[e.dataset.k] = e.dataset.k === "nb_postes" ? (parseInt(e.value, 10) || 1) : e.dataset.k === "date_debut" ? versISO(e.value) : e.value.trim().toUpperCase(); if (e.dataset.k === "lieu") { c.lieu_deduit = false; e.style.borderColor = ""; e.style.background = ""; } }));
 }
 $("adm-cmd-texte").addEventListener("input", () => {
@@ -760,7 +759,7 @@ $("btn-adm-cmd").addEventListener("click", async () => {
   const fermer = $("adm-cmd-fermer").checked && absents.length > 0;
   if (!confirm("Importer " + CMD_APERCU.length + " commande(s) dans la S" + libSemaine(sem) + " ?" + (fermer ? "\n\nATTENTION : " + absents.length + " commande(s) ouverte(s) absentes de l'import seront FERMÉES : " + absents.join(", ") + "\n(annulez et décochez la case pour les garder)" : ""))) return;
   $("btn-adm-cmd").disabled = true; m.className = "msg"; m.textContent = "Import…";
-  const j = await post("/api/prest/admin/commandes", { semaine: sem, lignes: CMD_APERCU.map(c => ({ numero: c.numero, date_debut: c.date_debut, nb_postes: c.nb_postes, titre: c.titre, agence: c.agence, lieu: c.lieu, charge: c.charge })), fermer_absentes: $("adm-cmd-fermer").checked }).catch(() => ({ erreur: "serveur" }));
+  const j = await post("/api/prest/admin/commandes", { semaine: sem, lignes: CMD_APERCU.map(c => ({ numero: c.numero, date_debut: c.date_debut, nb_postes: c.nb_postes, titre: c.titre, agence: c.agence, lieu: c.lieu })), fermer_absentes: $("adm-cmd-fermer").checked }).catch(() => ({ erreur: "serveur" }));
   $("btn-adm-cmd").disabled = false;
   m.className = "msg " + (j.ok ? "ok" : "err");
   m.textContent = j.ok ? "✓ " + j.nouvelles + " nouvelle(s), " + j.modifiees + " mise(s) à jour, " + j.fermees + " fermée(s). Les nouvelles sont en brouillon : publiez la semaine quand le tableau est prêt." : "Erreur : " + (LIB_CMD[j.erreur] || j.erreur || "?");
