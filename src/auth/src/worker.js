@@ -144,6 +144,29 @@ async function envoyerEmail(env, dest, sujet, texte, journalCtx, opts) {
 const FROM_ABSERVICE = "AB Service <logements@ab2pro-simulateur.com>";
 
 /* signature des courriers sortants, complétée depuis le compte (plus de champ à remplir) */
+/* stockage d'un fichier téléversé (multipart) en base : table fichiers + blocs de 512 Ko (pas de R2).
+   dossier = commun | CODE | CODE/factures — le contrôle d'accès se fait sur le préfixe du chemin.
+   Retourne { chemin, taille, type, sansExt } ou { erreur }. */
+const TYPES_FICHIERS = { pdf: "application/pdf", doc: "application/msword", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  xls: "application/vnd.ms-excel", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg" };
+async function enregistrerFichier(env, u, dossier, f, extAutorisees, maxOctets, prefixe) {
+  if (!f || typeof f === "string" || !f.size) return { erreur: "fichier_manquant" };
+  if (f.size > maxOctets) return { erreur: "fichier_trop_gros" };
+  const ext = ((f.name || "").match(/\.([a-z0-9]{2,5})$/i) || [0, ""])[1].toLowerCase();
+  if (!extAutorisees.includes(ext) || !TYPES_FICHIERS[ext]) return { erreur: "type_non_autorise" };
+  const sansExt = (f.name || "document").replace(/\.[^.]+$/, "");
+  const base = ((prefixe || "") + sansExt).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 70) || "document";
+  let chemin = dossier + "/" + base + "." + ext, k = 1;
+  while (await env.DB.prepare("SELECT id FROM fichiers WHERE chemin = ?").bind(chemin).first()) chemin = dossier + "/" + base + "-" + (++k) + "." + ext;
+  const buf = new Uint8Array(await f.arrayBuffer());
+  const ins = await env.DB.prepare("INSERT INTO fichiers (chemin, type, taille, cree_par) VALUES (?,?,?,?)").bind(chemin, TYPES_FICHIERS[ext], buf.length, u.email).run();
+  const fid = ins.meta && ins.meta.last_row_id;
+  const BLOC = 512 * 1024;
+  for (let i = 0, seq = 0; i < buf.length; i += BLOC, seq++)
+    await env.DB.prepare("INSERT INTO fichiers_blocs (fichier_id, seq, data) VALUES (?,?,?)").bind(fid, seq, buf.slice(i, i + BLOC).buffer).run();
+  return { chemin, taille: buf.length, type: TYPES_FICHIERS[ext], sansExt };
+}
+
 /* nom complet « Prénom Nom » ; les comptes antérieurs au 04/09/2026 ont le nom complet dans nom (prenom NULL) */
 const nomComplet = x => [x && x.prenom, x && x.nom].map(v => String(v || "").trim()).filter(Boolean).join(" ");
 function signatureDe(u2) {
@@ -739,9 +762,9 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       for (const l of lignes) {
         const nom = majNom(l.nom), prenom = majPrenom(l.prenom), metier = String(l.metier || "").toUpperCase().slice(0, 40);
         if (!nom || !prenom || !metier) continue;
-        await env.DB.prepare("INSERT INTO propositions (prestataire_id, user_id, commande_id, semaine, equipe, nom, prenom, metier, vehicule, salaire_net, telephone, remarques) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
+        await env.DB.prepare("INSERT INTO propositions (prestataire_id, user_id, commande_id, semaine, equipe, nom, prenom, metier, vehicule, salaire_net, telephone, remarques, agence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
           .bind(moi.id, u.id, parseInt(l.commande_id, 10) || null, sem, parseInt(l.equipe, 10) || 1, nom, prenom, metier, l.vehicule ? 1 : 0,
-                String(l.salaire_net || "").slice(0, 20), String(l.telephone || "").slice(0, 30), String(l.remarques || "").slice(0, 300)).run();
+                String(l.salaire_net || "").slice(0, 20), String(l.telephone || "").slice(0, 30), String(l.remarques || "").slice(0, 300), String(l.agence || "").toUpperCase().trim().slice(0, 60)).run();
         n++;
       }
       await journal(env, req, u, "prest_proposition", moi.code + " " + sem + " : " + n + " candidat(s)");
@@ -775,8 +798,9 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
         if (!nom || !prenom || !metier) continue;
         const doublon = await env.DB.prepare("SELECT id FROM declarations WHERE prestataire_id = ? AND mois = ? AND nom = ? AND prenom = ?").bind(moi.id, mois, nom, prenom).first();
         if (doublon) continue;
-        await env.DB.prepare("INSERT INTO declarations (prestataire_id, user_id, mois, nom, prenom, metier, agence, qualifie, commentaire) VALUES (?,?,?,?,?,?,?,?,?)")
-          .bind(moi.id, u.id, mois, nom, prenom, metier, String(l.agence || "").toUpperCase().slice(0, 60), l.qualifie ? 1 : 0, String(l.commentaire || "").slice(0, 200)).run();
+        await env.DB.prepare("INSERT INTO declarations (prestataire_id, user_id, mois, nom, prenom, metier, agence, qualifie, commentaire, matricule) VALUES (?,?,?,?,?,?,?,?,?,?)")
+          .bind(moi.id, u.id, mois, nom, prenom, metier, String(l.agence || "").toUpperCase().trim().slice(0, 60), l.qualifie ? 1 : 0, String(l.commentaire || "").slice(0, 200),
+                String(l.matricule || "").toUpperCase().trim().slice(0, 30) || null).run();
         n++;
       }
       await journal(env, req, u, "prest_declaration", moi.code + " " + mois + " : " + n + " ligne(s)");
@@ -793,8 +817,9 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       if (!admin) return json({ erreur: "reserve_admin" }, 403);
       const st = ["declaree", "validee", "rejetee"].includes(corps.statut) ? corps.statut : null;
       const h = corps.heures == null || corps.heures === "" ? null : Math.max(0, parseFloat(String(corps.heures).replace(",", ".")) || 0);
-      await env.DB.prepare("UPDATE declarations SET heures = ?, qualifie = COALESCE(?, qualifie), statut = COALESCE(?, statut), valide_le = CASE WHEN ? = 'validee' THEN datetime('now') ELSE valide_le END, commentaire = COALESCE(?, commentaire) WHERE id = ?")
-        .bind(h, corps.qualifie == null ? null : (corps.qualifie ? 1 : 0), st, st, corps.commentaire == null ? null : String(corps.commentaire).slice(0, 200), corps.id | 0).run();
+      await env.DB.prepare("UPDATE declarations SET heures = ?, qualifie = COALESCE(?, qualifie), statut = COALESCE(?, statut), valide_le = CASE WHEN ? = 'validee' THEN datetime('now') ELSE valide_le END, commentaire = COALESCE(?, commentaire), matricule = COALESCE(?, matricule) WHERE id = ?")
+        .bind(h, corps.qualifie == null ? null : (corps.qualifie ? 1 : 0), st, st, corps.commentaire == null ? null : String(corps.commentaire).slice(0, 200),
+              corps.matricule == null ? null : (String(corps.matricule).toUpperCase().trim().slice(0, 30) || null), corps.id | 0).run();
       return json({ ok: true });
     }
     /* --- facturation du mois (calcul contractuel) --- */
@@ -810,10 +835,45 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
         const taux = tauxDe(pr, l.qualifie, nbTT);
         const montant = (l.statut === "validee" && l.heures > 0) ? Math.round(l.heures * taux * 100) / 100 : 0;
         total += montant;
-        return { id: l.id, nom: l.nom, prenom: l.prenom, metier: l.metier, agence: l.agence, qualifie: l.qualifie, heures: l.heures, statut: l.statut, taux, montant, commentaire: l.commentaire };
+        return { id: l.id, matricule: l.matricule, nom: l.nom, prenom: l.prenom, metier: l.metier, agence: l.agence, qualifie: l.qualifie, heures: l.heures, statut: l.statut, taux, montant, commentaire: l.commentaire };
       });
       return json({ mois, prestataire: { societe: pr.societe, code: pr.code }, nb_tt: nbTT, lignes: out, total: Math.round(total * 100) / 100,
                     regle: pr.paliers ? "paliers" : pr.tarif_q + "/" + pr.tarif_nq });
+    }
+    /* --- factures déposées par le recruteur : fichier sous CODE/factures/ (visible par lui et les admins seulement) --- */
+    if (p === "/api/prest/factures") {
+      const mois = url.searchParams.get("mois") || "";
+      const q = "SELECT f.*, pr.societe, pr.code FROM factures_prest f JOIN prestataires pr ON pr.id = f.prestataire_id WHERE " +
+        (pid ? "f.prestataire_id = ? AND " : "") + (mois ? "f.mois = ? " : "1=1 ") + "ORDER BY f.mois DESC, f.id DESC LIMIT 300";
+      const args = []; if (pid) args.push(pid); if (mois) args.push(mois);
+      const rows = (await env.DB.prepare(q).bind(...args).all()).results;
+      return json({ factures: rows.map(r => ({ id: r.id, mois: r.mois, numero: r.numero, montant: r.montant, statut: r.statut, commentaire: r.commentaire, cree_le: r.cree_le,
+                                              societe: r.societe, code: r.code, url: "/app/data/prestataires/" + r.fichier })) });
+    }
+    if (p === "/api/prest/facture/upload" && req.method === "POST") {
+      if (!estPrest) return json({ erreur: "reserve_prestataires" }, 403);
+      let fd; try { fd = await req.formData(); } catch (e) { return json({ erreur: "formulaire_invalide" }, 400); }
+      const mois = /^\d{4}-\d{2}$/.test(fd.get("mois") || "") ? fd.get("mois") : new Date().toISOString().slice(0, 7);
+      const st = await enregistrerFichier(env, u, moi.code + "/factures", fd.get("fichier"), ["pdf", "png", "jpg", "jpeg"], 10 * 1024 * 1024, mois + "-facture-");
+      if (st.erreur) return json({ erreur: st.erreur }, st.erreur === "fichier_trop_gros" ? 413 : 400);
+      const numero = String(fd.get("numero") || "").trim().slice(0, 40);
+      const montantS = String(fd.get("montant") || "").replace(/\s/g, "").replace(",", ".");
+      const montant = montantS ? Math.round((parseFloat(montantS) || 0) * 100) / 100 : null;
+      const ins = await env.DB.prepare("INSERT INTO factures_prest (prestataire_id, mois, numero, montant, fichier, cree_par) VALUES (?,?,?,?,?,?)").bind(moi.id, mois, numero, montant, st.chemin, u.email).run();
+      await journal(env, req, u, "prest_facture_depot", moi.code + " " + mois + " " + numero + (montant == null ? "" : " " + montant + " €"));
+      await envoyerEmail(env, ADMINS, "Prestataire " + moi.societe + " — facture " + mois + (numero ? " n° " + numero : "") + (montant == null ? "" : " (" + montant + " € HT)"),
+        "Une facture a été déposée sur le portail par " + moi.societe + " (" + moi.code + ") pour " + mois + ".\n" + (numero ? "N° " + numero + "\n" : "") + (montant == null ? "" : "Montant HT : " + montant + " €\n") +
+        "\nÀ rapprocher du tableau validé du mois (onglet Déclarations & heures, bloc Factures reçues) : " + url.origin + "/app/prestataires.html\nFichier : " + url.origin + "/app/data/prestataires/" + st.chemin, { env, req });
+      return json({ ok: true, id: ins.meta && ins.meta.last_row_id, taille: st.taille });
+    }
+    if (p === "/api/prest/admin/facture" && req.method === "POST") {
+      if (!admin) return json({ erreur: "reserve_admin" }, 403);
+      const st = ["recue", "payee", "rejetee"].includes(corps.statut) ? corps.statut : null;
+      if (!st) return json({ erreur: "statut_invalide" }, 400);
+      await env.DB.prepare("UPDATE factures_prest SET statut = ?, commentaire = COALESCE(?, commentaire) WHERE id = ?")
+        .bind(st, corps.commentaire == null ? null : String(corps.commentaire).slice(0, 200), corps.id | 0).run();
+      await journal(env, req, u, "prest_facture_statut", (corps.id | 0) + " → " + st);
+      return json({ ok: true });
     }
     /* --- administration des prestataires --- */
     if (p === "/api/prest/admin/liste") {
@@ -840,31 +900,16 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     if (p === "/api/prest/admin/upload" && req.method === "POST") {
       if (!admin) return json({ erreur: "reserve_admin" }, 403);
       let fd; try { fd = await req.formData(); } catch (e) { return json({ erreur: "formulaire_invalide" }, 400); }
-      const f = fd.get("fichier");
-      if (!f || typeof f === "string" || !f.size) return json({ erreur: "fichier_manquant" }, 400);
-      if (f.size > 20 * 1024 * 1024) return json({ erreur: "fichier_trop_gros" }, 413);
-      const TYPES = { pdf: "application/pdf", doc: "application/msword", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                      xls: "application/vnd.ms-excel", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg" };
-      const ext = ((f.name || "").match(/\.([a-z0-9]{2,5})$/i) || [0, ""])[1].toLowerCase();
-      if (!TYPES[ext]) return json({ erreur: "type_non_autorise" }, 400);
-      const sansExt = (f.name || "document").replace(/\.[^.]+$/, "");
-      const titre = String(fd.get("titre") || "").trim().slice(0, 160) || sansExt;
       const langue = LANGUES.includes(fd.get("langue")) ? fd.get("langue") : "fr";
       const pidDoc = parseInt(fd.get("prestataire_id") || "0", 10) || null;
       let dossier = "commun";
       if (pidDoc) { const pr = await env.DB.prepare("SELECT code FROM prestataires WHERE id = ?").bind(pidDoc).first(); if (!pr) return json({ erreur: "prestataire_introuvable" }, 404); dossier = pr.code; }
-      const base = sansExt.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "document";
-      let chemin = dossier + "/" + base + "." + ext, k = 1;
-      while (await env.DB.prepare("SELECT id FROM fichiers WHERE chemin = ?").bind(chemin).first()) chemin = dossier + "/" + base + "-" + (++k) + "." + ext;
-      const buf = new Uint8Array(await f.arrayBuffer());
-      const insF = await env.DB.prepare("INSERT INTO fichiers (chemin, type, taille, cree_par) VALUES (?,?,?,?)").bind(chemin, TYPES[ext], buf.length, u.email).run();
-      const fid = insF.meta && insF.meta.last_row_id;
-      const BLOC = 512 * 1024;
-      for (let i = 0, seq = 0; i < buf.length; i += BLOC, seq++)
-        await env.DB.prepare("INSERT INTO fichiers_blocs (fichier_id, seq, data) VALUES (?,?,?)").bind(fid, seq, buf.slice(i, i + BLOC).buffer).run();
-      const insD = await env.DB.prepare("INSERT INTO documents (prestataire_id, titre, fichier, langue) VALUES (?,?,?,?)").bind(pidDoc, titre, chemin, langue).run();
-      await journal(env, req, u, "prest_document_upload", chemin + " (" + buf.length + " o, " + (pidDoc ? dossier : "commun") + ")");
-      return json({ ok: true, id: insD.meta && insD.meta.last_row_id, chemin, taille: buf.length });
+      const st = await enregistrerFichier(env, u, dossier, fd.get("fichier"), ["pdf", "doc", "docx", "xls", "xlsx", "png", "jpg", "jpeg"], 20 * 1024 * 1024, "");
+      if (st.erreur) return json({ erreur: st.erreur }, st.erreur === "fichier_trop_gros" ? 413 : 400);
+      const titre = String(fd.get("titre") || "").trim().slice(0, 160) || st.sansExt;
+      const insD = await env.DB.prepare("INSERT INTO documents (prestataire_id, titre, fichier, langue) VALUES (?,?,?,?)").bind(pidDoc, titre, st.chemin, langue).run();
+      await journal(env, req, u, "prest_document_upload", st.chemin + " (" + st.taille + " o, " + (pidDoc ? dossier : "commun") + ")");
+      return json({ ok: true, id: insD.meta && insD.meta.last_row_id, chemin: st.chemin, taille: st.taille });
     }
     if (p === "/api/prest/admin/document" && req.method === "POST") {
       if (!admin) return json({ erreur: "reserve_admin" }, 403);
@@ -894,10 +939,10 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       const rows = (await env.DB.prepare("SELECT d.*, pr.societe, pr.code, pr.tarif_q, pr.tarif_nq, pr.paliers FROM declarations d JOIN prestataires pr ON pr.id = d.prestataire_id WHERE d.mois = ?" + (pid ? " AND d.prestataire_id = ?" : "") + " ORDER BY pr.societe, d.nom, d.prenom").bind(...(pid ? [mois, pid] : [mois])).all()).results;
       const parPrest = {}; rows.forEach(r => { if (r.statut === "validee" && r.heures > 0) (parPrest[r.prestataire_id] = parPrest[r.prestataire_id] || new Set()).add(r.nom + "|" + r.prenom); });
       const csv = v => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
-      const lignes = ["PRESTATAIRE;CODE;NOM;PRENOM;METIER;AGENCE;QUALIFIE;HEURES;TAUX;MONTANT HT;STATUT;COMMENTAIRE"];
+      const lignes = ["PRESTATAIRE;CODE;MATRICULE;NOM;PRENOM;METIER;AGENCE;QUALIFIE;HEURES;TAUX;MONTANT HT;STATUT;COMMENTAIRE"];
       rows.forEach(r => { const taux = tauxDe(r, r.qualifie, (parPrest[r.prestataire_id] || new Set()).size);
         const montant = (r.statut === "validee" && r.heures > 0) ? Math.round(r.heures * taux * 100) / 100 : 0;
-        lignes.push([r.societe, r.code, r.nom, r.prenom, r.metier, r.agence, r.qualifie ? "Q" : "NQ", r.heures == null ? "" : String(r.heures).replace(".", ","), String(taux).replace(".", ","), String(montant).replace(".", ","), r.statut, r.commentaire].map(csv).join(";")); });
+        lignes.push([r.societe, r.code, r.matricule, r.nom, r.prenom, r.metier, r.agence, r.qualifie ? "Q" : "NQ", r.heures == null ? "" : String(r.heures).replace(".", ","), String(taux).replace(".", ","), String(montant).replace(".", ","), r.statut, r.commentaire].map(csv).join(";")); });
       return new Response("﻿" + lignes.join("\r\n"), { headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": "attachment; filename=facturation-prestataires-" + mois + ".csv" } });
     }
     return json({ erreur: "inconnu" }, 404);
