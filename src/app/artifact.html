@@ -523,9 +523,10 @@ table.grille td.neg { color: var(--bad); }
         </div>
         <div id="leviers" style="margin-top:10px; padding:8px 12px; border:1px dashed var(--brass); border-radius:8px">
           <b>Leviers d'optimisation</b> <span class="hint" style="display:inline; margin:0">— cochez pour mesurer le gain (décochés = pratique maison actuelle : différé CET provisionné à 45 %, liquidation par contrat de causerie)</span>
-          <label class="check"><input type="checkbox" id="in-cetrepos" title="Pratique observée sur un bulletin ACTERIM (07/2026) : l'IFM et l'ICCP sont placées au CET puis restituées au salarié en HEURES DE REPOS payées au taux horaire de base, sur ses bulletins de mission. Ces heures entrent dans le SMIC de référence de la réduction générale : le différé (21 %) est chargé au taux patronal réel moins la réduction, au lieu du forfait 45 %. Plus de contrat de causerie nécessaire. Charnière juridique : les heures de repos indemnisées par le CET doivent compter comme absence intégralement rémunérée (BOSS allègements généraux) — à sécuriser par rescrit."> IFM + ICCP restitués en <b>heures de repos CET</b> au taux de base (réduction générale sur le différé au lieu des 45 % provisionnés)</label>
+          <label class="check"><input type="checkbox" id="in-cetrepos" title="Pratique observée sur un bulletin ACTERIM (07/2026) : l'IFM et l'ICCP sont placées au CET puis restituées au salarié en HEURES DE REPOS payées au taux horaire de base, sur ses bulletins de mission. Ces heures entrent dans le SMIC de référence de la réduction générale : le différé (21 %) est chargé au taux patronal réel moins la réduction, au lieu du forfait 45 %. Plus de contrat de causerie nécessaire. Charnière juridique : les heures de repos indemnisées par le CET doivent compter comme absence intégralement rémunérée (BOSS allègements généraux) — à sécuriser par rescrit."> IFM + ICCP restitués en <b>heures de repos CET</b> (taux de base) — réduction générale sur le différé au lieu des 45 % provisionnés</label>
           <label class="check"><input type="checkbox" id="in-hsrepos" title="« Alimentation CET auto HS » du même bulletin : seule la MAJORATION des heures sup (25 % / 50 %) est placée au CET et restituée en heures de repos au taux de base. La majoration est de l'argent sans heure en face : elle dégrade le rapport rémunération / SMIC de la réduction générale ; convertie en heures, elle redevient neutre. Base légale : repos compensateur de remplacement (L.3121-33) + accord CET de branche — à vérifier dans le texte et la clause signée. Le net du salarié est inchangé dans l'étude (exonération de la majoration à la sortie : point douteux, non modélisé)."> <b>Majoration des heures sup</b> placée au CET et restituée en heures de repos (« alimentation CET auto HS »)</label>
           <span id="leviers-out" class="hint"></span>
+          <p class="hint" style="margin:4px 0 0">⚠ Sous réserve : <b>rescrit URSSAF</b> (heures de repos CET = absence intégralement rémunérée dans le SMIC de référence, BOSS allègements généraux — la case « Pire scénario §900 » chiffre le refus) · <b>clause CET signée</b> + accord de branche (repos compensateur de remplacement, L.3121-33) · net du salarié inchangé dans l'étude. Pratique observée sur bulletin ACTERIM 07/2026. Sans objet en TO-DE agricole ou en constantes du classeur (Fillon).</p>
         </div>
         <p class="hint"><b>Mise en CET</b> : 100 % des IFM/ICCP placés sur le compte épargne temps. Provision du différé <b>21 % de la base</b> (D85) = arithmétique exacte IFM 10 % + ICCP 10 % en cascade (10 + 10 × 1,1) + provision de charges patronales <b>45 %</b> (H85) = charges pleines dues à la liquidation, sans réduction générale sur ces sommes (BOSS §490/830 et §900) — forfait prudent de ~1-2 points au-dessus du panier réel (~43-44 % selon l'agence), <b>confirmé par la direction le 03/09/2026</b>. Déblocage conseillé à l'issue du 2ᵉ contrat de prolongation, via le contrat de causerie ci-dessous — jamais SUR une mission réelle (la réintégration §900 y détruirait la réduction générale). <span id="cet-eco"></span> <span id="cet-reel-out"></span><br>
         <b>Déblocage par contrat de causerie</b> : la liquidation du CET s'appuie sur un <b>contrat court dédié</b> (~1,5 h de causerie sécurité, payées au salarié et non facturées) avec sa <b>fiche de paie à part</b> — le versement du CET est ainsi isolé des paies de mission (leur réduction générale n'est pas dégradée) et l'effet est minimisé sur ce faible volume d'heures. C'est le coût de ce contrat (heures + abondement + charges) que couvre l'option « Coûts CET réels ».<br>
@@ -1456,8 +1457,10 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
    * majHS = part majoration des lignes 28/29 (heures sup 25 % et 50 %). */
   S.majHS = Math.max(0, S.F28 - S.D28 * i.thBrut) + Math.max(0, S.F29 - S.D29 * i.thBrut);
   const d85Anticipe = (S.F32 + S.F33) > 0 ? 0 : S.D32 * (i.contrat === "saisonnier" ? 0.10 : 0.21);
-  S.levierCet = !!i.cetRepos && !modeCDI && d85Anticipe > 0;
-  S.levierHS = !!i.hsRepos && S.majHS > 0 && i.thBrut > 0;
+  /* leviers actifs seulement sous réduction générale (sans objet en TO-DE agricole ou en Fillon « constantes du classeur ») */
+  const rgduActif = cfg.exo !== "tode" && i.exoFormule === "rgdu" && i.thBrut > 0;
+  S.levierCet = !!i.cetRepos && !modeCDI && d85Anticipe > 0 && rgduActif;
+  S.levierHS = !!i.hsRepos && S.majHS > 0 && rgduActif;
   S.hReposCet = S.levierCet ? d85Anticipe / i.thBrut : 0;
   S.hReposHS = S.levierHS ? S.majHS / i.thBrut : 0;
   S.remRG = S.F42 + (S.levierCet ? d85Anticipe : 0);
@@ -1502,8 +1505,9 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
      l'IFM n'existe plus, seule l'ICCP (10 %, sans cascade) peut partir au CET */
   S.D85 = (S.F32 + S.F33) > 0 ? 0 : S.D32 * (i.contrat === "saisonnier" ? 0.10 : 0.21);
   /* taux patronal brut (avant réduction) de l'assiette principale — sert au différé restitué en heures */
+  /* (H82 = déduction forfaitaire patronale par heure sup : liée aux heures sup, pas aux heures de repos → exclue) */
   S.tauxPatBrut = S.F42 > 0 ? (S.H62 + S.H63 + S.H64 + S.H65 + S.H66 + S.H67 + S.H68 + S.H69 + S.H70 + S.H71 +
-                               S.H72 + S.H73 + S.H74 + S.H75 + S.H77 + S.H78 + S.H82) / S.F42 : 0;
+                               S.H72 + S.H73 + S.H74 + S.H75 + S.H77 + S.H78) / S.F42 : 0;
   S.H85 = S.D85 * (S.levierCet ? S.tauxPatBrut : 0.45);
 
   /* --- Pire scénario §900 (BOSS Allègements généraux) --- */
@@ -1513,7 +1517,9 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
    * (déblocage isolé par contrat de causerie, doctrine avocat TT) ; l'option
    * cetPireCas applique cette borne basse à l'étude. Toujours calculé pour affichage. */
   S.rgduPerte900 = 0; S.rgduReduc900 = null;
-  if (S.D85 > 0 && i.exoFormule === "rgdu" && !modeCDI && S.rgduAmount > 0 && S.F42 > 0 && !S.levierCet) {
+  /* Sous le levier « heures de repos CET », la borne basse §900 garde tout son sens : c'est le cas où l'URSSAF
+   * n'admet PAS les heures de repos dans le SMIC de référence (différé réintégré, heures de repos écartées). */
+  if (S.D85 > 0 && i.exoFormule === "rgdu" && cfg.exo !== "tode" && !modeCDI && S.rgduAmount > 0 && S.F42 > 0) {
     const rg = i.rgdu || {};
     const smicParam = (rg.smicRef || RGDU_DEFAULTS.smicRef) * S.D31;
     const tdelta = rg.fnal050 ? (rg.tdeltaGrande || RGDU_DEFAULTS.tdeltaGrande)
@@ -1530,7 +1536,7 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
     }
     const maj = (rg.interim === false) ? 1 : RGDU_DEFAULTS.interimMajoration;
     /* panier proportionné à l'assiette gonflée (les cotisations dues croissent avec elle) */
-    const panierPire = S.rgduPanier * (remuPire / S.F42);
+    const panierPire = S.rgduPanier * (remuPire / S.remRG);   /* rgduPanier est déjà à l'échelle de remRG sous levier */
     S.rgduReduc900 = Math.min(coeffPire * remuPire * maj, panierPire);
     S.rgduPerte900 = Math.max(0, S.H83 - S.rgduReduc900);
     if (i.cetPireCas) S.H83 = S.rgduReduc900;
@@ -2333,18 +2339,27 @@ function render(r) {
   /* leviers heures de repos CET : gain mesuré par recalcul SANS les leviers (même étude, même coefficient) */
   {
     let txt = "";
-    if ((inp.cetRepos || inp.hsRepos) && inp.heures > 0) {
+    const rgOK = SECTORS[inp.sector].exo !== "tode" && inp.exoFormule === "rgdu";
+    $("leviers").hidden = !rgOK;
+    if ((inp.cetRepos || inp.hsRepos) && inp.heures > 0 && !(m.levierCet || m.levierHS)) {
+      txt = "<b>Leviers heures de repos CET : sans objet ici</b> — " + (!rgOK ? "pas de réduction générale (TO-DE / Fillon classeur)." :
+        ((inp.cetRepos && !(m.D85 > 0) ? "IFM/ICCP payés en direct ou contrat CDI : choisir « Mise en CET 100 % » en CTT. " : "") +
+         (inp.hsRepos && !(m.majHS > 0) ? "aucune heure sup majorée cette semaine." : "")));
+    } else if ((m.levierCet || m.levierHS) && inp.heures > 0) {
       const sans = compute(Object.assign({}, inp, { cetRepos: false, hsRepos: false })).main;
-      const cetSeul = inp.cetRepos ? compute(Object.assign({}, inp, { cetRepos: true, hsRepos: false })).main : null;
-      const hsSeul = inp.hsRepos ? compute(Object.assign({}, inp, { cetRepos: false, hsRepos: true })).main : null;
+      const cetSeul = m.levierCet ? compute(Object.assign({}, inp, { cetRepos: true, hsRepos: false })).main : null;
+      const hsSeul = m.levierHS ? compute(Object.assign({}, inp, { cetRepos: false, hsRepos: true })).main : null;
       const d = m.O64 - sans.O64;
       const part = (mm, lib) => mm ? " · " + lib + " " + (mm.O64 - sans.O64 >= 0 ? "+" : "") + fmtE(mm.O64 - sans.O64) + "/sem" : "";
+      /* coût net marginal du différé : charges brutes du différé moins le supplément de réduction qu'il apporte */
+      const tauxMarg = cetSeul && cetSeul.D85 > 0 ? (cetSeul.H85 - (cetSeul.H83 - sans.H83)) / cetSeul.D85 * 100 : 0;
       txt = "<b>Leviers heures de repos CET :</b> marge " + (d >= 0 ? "+" : "") + fmtE(d) + "/sem (" + (d >= 0 ? "+" : "") + fmtE(d / inp.heures) + "/h" +
         (m.O60 > 0 ? ", " + (d >= 0 ? "+" : "") + N2.format(d / m.O60 * 100) + " pt de taux" : "") + ")" +
-        (inp.cetRepos && inp.hsRepos ? part(cetSeul, "IFM/ICCP") + part(hsSeul, "majoration HS") : "") +
-        (inp.cetRepos ? " — réduction générale calculée sur " + N2.format(m.heuresRG) + " h de référence (" + N2.format(inp.heures) + " h + " + N2.format(m.hReposCet + m.hReposHS) + " h de repos), différé chargé à " + N2.format((m.tauxPatBrut - (m.remRG > 0 ? m.H83 / m.remRG : 0)) * 100) + " % net de réduction au lieu de 45 %." : ".");
-    } else if (m.D85 > 0 && m.majHS > 0) {
-      txt = "Leviers décochés : différé provisionné à 45 %, majoration des heures sup (" + fmtE(m.majHS) + "/sem) comptée dans la rémunération de la réduction générale.";
+        (m.levierCet && m.levierHS ? part(cetSeul, "IFM/ICCP") + part(hsSeul, "majoration HS") : "") +
+        (m.levierCet ? " — réduction générale calculée sur " + N2.format(m.heuresRG) + " h de référence (" + N2.format(inp.heures) + " h + " + N2.format(m.hReposCet + m.hReposHS) + " h de repos) ; coût net du différé ≈ " + N2.format(tauxMarg) + " % après réduction, au lieu des 45 % provisionnés." : ".") +
+        (m.rgduPerte900 > 0.005 ? " <b>Borne basse §900</b> (heures de repos non admises dans le SMIC de référence) : −" + fmtE(m.rgduPerte900) + "/sem" + (inp.cetPireCas ? ", appliquée." : ", non appliquée.") : "");
+    } else if (m.D85 > 0 || m.majHS > 0) {
+      txt = "Leviers décochés : " + (m.D85 > 0 ? "différé provisionné à 45 %" : "") + (m.D85 > 0 && m.majHS > 0 ? ", " : "") + (m.majHS > 0 ? "majoration des heures sup (" + fmtE(m.majHS) + "/sem) comptée dans la rémunération de la réduction générale" : "") + ".";
     }
     $("leviers-out").innerHTML = txt;
   }
@@ -3087,10 +3102,10 @@ function renderFact(m) {
   if (m.recrutCout) s += kvRow("Prestataire recrutement " + N2.format(inp.recrutTarifH) + " € HT × " + N2.format(inp.heures) + " h travaillées (coût interne, non refacturé)", "", fmtE(-m.recrutCout));
   if (m.cetCoutReel > 0.005) s += kvRow("Coûts CET réels — abondement " + N2.format(inp.cetAbondPct) + " %/débloc. + contrat de causerie " + N2.format(inp.cetCauserieH) + " h × " + N2.format(inp.cetDebloc) + " déblocage(s)/an (contrat court dédié, fiche de paie à part, payé non facturé — isole le versement du CET des paies de mission)", "", fmtE(-m.cetCoutReel));
   if (inp.cetPireCas && m.rgduPerte900 > 0.005) s += kvRow("Pire scénario §900 APPLIQUÉ — réduction générale recalculée avec le différé CET réintégré au dernier contrat réel (borne basse prudentielle ; défaut maison = gain préservé par contrat de causerie)", "", fmtE(-m.rgduPerte900));
-  if (inp.cetRepos || inp.hsRepos) {
+  if (m.levierCet || m.levierHS) {
     const sans = compute(Object.assign({}, inp, { cetRepos: false, hsRepos: false })).main;
-    s += kvRow("Leviers heures de repos CET APPLIQUÉS — " + (inp.cetRepos ? "IFM/ICCP restitués en heures de repos (réduction générale sur le différé, pas de contrat de causerie)" : "") +
-      (inp.cetRepos && inp.hsRepos ? " + " : "") + (inp.hsRepos ? "majoration des heures sup restituée en heures de repos" : "") + " — gain de marge", "", fmtE(m.O64 - sans.O64));
+    s += kvRow("Leviers heures de repos CET APPLIQUÉS — " + (m.levierCet ? "IFM/ICCP restitués en heures de repos (réduction générale sur le différé, pas de contrat de causerie)" : "") +
+      (m.levierCet && m.levierHS ? " + " : "") + (m.levierHS ? "majoration des heures sup restituée en heures de repos" : "") + " — gain de marge", "", fmtE(m.O64 - sans.O64));
   }
   s += kvRow("Volume de marge brute", "O64", fmtE(m.O64), "total");
   s += kvRow("Taux de marge", "H17", fmtP(m.H17), "total");
@@ -3595,6 +3610,13 @@ function buildEtudePrix() {
             "<span class='sublet'>vs le même cas en CTT standard — argument chiffré pour la conclusion de l'accord</span>",
             "<b>" + (gain >= 0 ? "+" : "") + fmtE(gain) + "/sem</b>", "tot");
   }
+  if (m.levierCet || m.levierHS) {
+    const sansLev = compute(Object.assign({}, inp, { cetRepos: false, hsRepos: false })).main;
+    s += kv("<b>Leviers CET appliqués à cette offre</b> — " + [m.levierCet ? "IFM/ICCP restitués en heures de repos CET" : null, m.levierHS ? "majoration des heures sup en alimentation CET auto HS" : null].filter(Boolean).join(" + ") +
+      "<span class='sublet'>marge sans ces leviers : " + N2.format(sansLev.H17) + " % (" + fmtE(sansLev.O64) + "/sem) — sous réserve de rescrit URSSAF (heures de repos CET = absence intégralement rémunérée) et de la clause CET signée" +
+      (m.rgduPerte900 > 0.005 ? " ; borne basse §900 si refus : −" + fmtE(m.rgduPerte900) + "/sem" + (inp.cetPireCas ? " (appliquée)" : "") : "") + "</span>",
+      "<b>+" + fmtE(m.O64 - sansLev.O64) + "/sem</b>", "tot");
+  }
   s += "</table></div>";
 
   /* ===== 1. L'OFFRE — expression commerciale (ce que voit le client) =====
@@ -3646,6 +3668,7 @@ function buildEtudePrix() {
           " — conformément à la législation, les heures supplémentaires sont toujours majorées en paie, quelle que soit la base de facturation</span>" : ""),
           fmtE(inp.thBrut) + "/h");
   if (inp.netAttendu != null) s += kv("Taux horaire net promis (base de l'offre — paramétrage paie)", fmtE(inp.netAttendu) + "/h");
+  if (m.levierCet || m.levierHS) s += kv("Compte épargne-temps — paramétrage paie", (m.levierCet ? "IFM/ICCP → « Alimentation CET auto », restitués en « Heures repos CET » au taux de base" : "") + (m.levierCet && m.levierHS ? " · " : "") + (m.levierHS ? "majoration HS → « Alimentation CET auto HS »" : ""));
   s += "</table>";
 
   /* ===== 2. ÉLÉMENTS FACTURÉS — paramétrage FACTURATION ===== */

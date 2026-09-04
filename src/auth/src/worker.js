@@ -725,9 +725,16 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     /* --- profil + documents --- */
     if (p === "/api/prest/moi") {
       const docs = (await env.DB.prepare("SELECT id, prestataire_id, titre, fichier, langue FROM documents WHERE prestataire_id IS NULL" + (pid ? " OR prestataire_id = ?" : "") + " ORDER BY prestataire_id IS NULL DESC, id").bind(...(pid ? [pid] : [])).all()).results;
-      return json({ admin, prestataire: moi ? { id: moi.id, societe: moi.societe, code: moi.code, contact: moi.contact, langue: moi.langue, tarif_q: moi.tarif_q, tarif_nq: moi.tarif_nq, paliers: moi.paliers } : null,
+      /* décisions (équipes retenues / refusées) pas encore vues par le prestataire → bandeau à l'ouverture */
+      const decisions = moi ? (await env.DB.prepare("SELECT p.semaine, p.equipe, p.statut, COUNT(*) AS n, MAX(p.decision_le) AS decision_le, MAX(c.numero) AS numero, MAX(p.commande_ref) AS commande_ref, MAX(p.agence) AS agence FROM propositions p LEFT JOIN commandes c ON c.id = p.commande_id WHERE p.prestataire_id = ? AND p.vu = 0 AND p.statut <> 'proposee' GROUP BY p.semaine, p.equipe, p.statut ORDER BY p.decision_le DESC LIMIT 30").bind(moi.id).all()).results : [];
+      return json({ admin, decisions, prestataire: moi ? { id: moi.id, societe: moi.societe, code: moi.code, contact: moi.contact, langue: moi.langue, tarif_q: moi.tarif_q, tarif_nq: moi.tarif_nq, paliers: moi.paliers } : null,
                     langue: u.langue || (moi && moi.langue) || "fr", semaine: semaineCourante(), mois: parisNow().toISOString().slice(0, 7),
                     documents: docs.map(d => ({ id: d.id, titre: d.titre, langue: d.langue, url: "/app/data/prestataires/" + d.fichier, commun: d.prestataire_id == null })) });
+    }
+    if (p === "/api/prest/decisions/vu" && req.method === "POST") {
+      if (!estPrest) return json({ erreur: "reserve_prestataires" }, 403);
+      await env.DB.prepare("UPDATE propositions SET vu = 1 WHERE prestataire_id = ? AND vu = 0 AND statut <> 'proposee'").bind(moi.id).run();
+      return json({ ok: true });
     }
     /* --- commandes classées par semaine : import (brouillon) → publication (visible des prestataires) → archive après le vendredi.
        UNE LIGNE PAR (numéro, semaine) : une commande reconduite est recopiée dans la nouvelle semaine, l'archive de la précédente reste intacte. --- */
@@ -823,66 +830,97 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     /* --- propositions d'équipes (hebdo) --- */
     if (p === "/api/prest/propositions" && req.method === "GET") {
       const sem = url.searchParams.get("semaine") || "";
-      const q = "SELECT p.*, c.numero, c.titre AS commande_titre, c.lieu AS commande_lieu, c.agence AS commande_agence, pr.societe FROM propositions p LEFT JOIN commandes c ON c.id = p.commande_id JOIN prestataires pr ON pr.id = p.prestataire_id WHERE " +
+      const q = "SELECT p.*, c.numero, c.titre AS commande_titre, c.lieu AS commande_lieu, c.agence AS commande_agence, pr.societe, pr.code FROM propositions p LEFT JOIN commandes c ON c.id = p.commande_id JOIN prestataires pr ON pr.id = p.prestataire_id WHERE " +
         (pid ? "p.prestataire_id = ? AND " : "") + (sem ? "p.semaine = ? " : "1=1 ") + "ORDER BY p.semaine DESC, p.prestataire_id, p.equipe, p.id LIMIT 500";
       const args = []; if (pid) args.push(pid); if (sem) args.push(sem);
       return json({ propositions: (await env.DB.prepare(q).bind(...args).all()).results });
     }
     if (p === "/api/prest/propositions" && req.method === "POST") {
       if (!estPrest) return json({ erreur: "reserve_prestataires" }, 403);
-      const sem = /^\d{4}-W\d{2}$/.test(corps.semaine || "") ? corps.semaine : semaineCourante();
+      const semCour = semaineCourante();
+      let sem = semaineDe(corps.semaine) || semCour; if (sem < semCour) sem = semCour;
       const lignes = Array.isArray(corps.lignes) ? corps.lignes.slice(0, 100) : [];
-      /* équipes : numérotation continue pour ce prestataire et cette semaine (équipe 1 lundi, équipes 2-3 mardi…), 5 candidats max */
-      const dernier = await env.DB.prepare("SELECT COALESCE(MAX(equipe), 0) AS m FROM propositions WHERE prestataire_id = ? AND semaine = ?").bind(moi.id, sem).first();
-      const base = (dernier && dernier.m) || 0;
-      const parEq = {}; let n = 0;
-      /* une proposition faite le week-end pour une commande de la semaine suivante est classée dans CETTE semaine-là */
-      const semDeCmd = async id => { if (!id) return null; const c = await env.DB.prepare("SELECT semaine FROM commandes WHERE id = ?").bind(id).first(); return c && c.semaine ? c.semaine : null; };
-      const cacheRef = {};
-      for (const l of lignes) {
-        const nom = majNom(l.nom), prenom = majPrenom(l.prenom), metier = String(l.metier || "").toUpperCase().slice(0, 40);
-        if (!nom || !prenom || !metier) continue;
-        const eqLoc = Math.max(1, parseInt(l.equipe, 10) || 1); const eq = base + eqLoc;
-        parEq[eq] = (parEq[eq] || 0); if (parEq[eq] >= 5) continue;
-        let cmdId = parseInt(l.commande_id, 10) || null, ref = String(l.commande_ref || "").trim().slice(0, 20);
-        if (!cmdId && ref) {   /* n° saisi à la main : rattaché à la commande si elle est connue */
-          if (!(ref in cacheRef)) { const c = await env.DB.prepare("SELECT id FROM commandes WHERE numero = ? AND statut = 'ouverte' ORDER BY semaine DESC, id DESC LIMIT 1").bind(ref).first(); cacheRef[ref] = c ? c.id : null; }
-          cmdId = cacheRef[ref];
+      /* commande : id choisi dans la liste OU n° saisi — mêmes critères que la liste vue par le prestataire (publiée, ouverte, à venir) */
+      const cmdDe = async (id, ref) => id
+        ? env.DB.prepare("SELECT id, numero, titre, lieu, agence, semaine FROM commandes WHERE id = ? AND publiee = 1 AND statut = 'ouverte' AND semaine >= ?").bind(id, semCour).first()
+        : ref ? env.DB.prepare("SELECT id, numero, titre, lieu, agence, semaine FROM commandes WHERE numero = ? AND publiee = 1 AND statut = 'ouverte' AND semaine >= ? ORDER BY semaine, id DESC LIMIT 1").bind(ref, semCour).first() : null;
+      /* 1) regroupement par équipe locale et validation complète AVANT toute insertion */
+      const locales = new Map();
+      for (const l of lignes) { const k = Math.min(20, Math.max(1, parseInt(l.equipe, 10) || 1)); if (!locales.has(k)) locales.set(k, []); locales.get(k).push(l); }
+      const equipes = [];
+      for (const [k, ls] of [...locales.entries()].sort((a, b) => a[0] - b[0])) {
+        const membres = ls.map(l => ({ nom: majNom(l.nom), prenom: majPrenom(l.prenom), metier: String(l.metier || "").toUpperCase().slice(0, 40), vehicule: l.vehicule ? 1 : 0,
+          salaire_net: String(l.salaire_net || "").slice(0, 20), telephone: String(l.telephone || "").slice(0, 30), remarques: String(l.remarques || "").slice(0, 300) }))
+          .filter(m => m.nom && m.prenom && m.metier).slice(0, 5);
+        if (!membres.length) continue;
+        const l0 = ls[0], id = parseInt(l0.commande_id, 10) || 0, ref = String(l0.commande_ref || "").trim().slice(0, 20);
+        const cmd = await cmdDe(id, ref);
+        if (id && !cmd) return json({ erreur: "commande_invalide", equipe: k }, 400);   /* fermée ou dépubliée depuis l'ouverture de la page */
+        const agence = String(l0.agence || "").toUpperCase().trim().slice(0, 60) || (cmd && cmd.agence) || "";
+        equipes.push({ local: k, cmd, ref: cmd ? "" : ref, agence, semaine: (cmd && cmd.semaine) || sem, membres, num: 0 });
+      }
+      if (!equipes.length) return json({ erreur: "aucune_equipe" }, 400);
+      /* 2) numérotation continue PAR semaine cible (une proposition du week-end pour une commande de la semaine suivante y est classée) */
+      const bases = {};
+      const prochainNum = async sm => { if (!(sm in bases)) { const d = await env.DB.prepare("SELECT COALESCE(MAX(equipe), 0) AS m FROM propositions WHERE prestataire_id = ? AND semaine = ?").bind(moi.id, sm).first(); bases[sm] = (d && d.m) || 0; } return ++bases[sm]; };
+      let n = 0;
+      for (const e of equipes) {
+        e.num = await prochainNum(e.semaine);
+        for (const m of e.membres) {
+          await env.DB.prepare("INSERT INTO propositions (prestataire_id, user_id, commande_id, commande_ref, semaine, equipe, nom, prenom, metier, vehicule, salaire_net, telephone, remarques, agence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+            .bind(moi.id, u.id, e.cmd ? e.cmd.id : null, e.ref || null, e.semaine, e.num, m.nom, m.prenom, m.metier, m.vehicule, m.salaire_net, m.telephone, m.remarques, e.agence).run();
+          n++;
         }
-        await env.DB.prepare("INSERT INTO propositions (prestataire_id, user_id, commande_id, commande_ref, semaine, equipe, nom, prenom, metier, vehicule, salaire_net, telephone, remarques, agence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-          .bind(moi.id, u.id, cmdId, cmdId ? null : (ref || null), (await semDeCmd(cmdId)) || sem, eq, nom, prenom, metier, l.vehicule ? 1 : 0,
-                String(l.salaire_net || "").slice(0, 20), String(l.telephone || "").slice(0, 30), String(l.remarques || "").slice(0, 300), String(l.agence || "").toUpperCase().trim().slice(0, 60)).run();
-        parEq[eq]++; n++;
       }
-      const nbEq = Object.keys(parEq).filter(k => parEq[k] > 0).length;
-      await journal(env, req, u, "prest_proposition", moi.code + " " + sem + " : " + nbEq + " équipe(s), " + n + " candidat(s)");
-      if (n) {
-        const detail = Object.keys(parEq).filter(k => parEq[k] > 0).map(k => {
-          const membres = lignes.filter(l => base + Math.max(1, parseInt(l.equipe, 10) || 1) === +k && l.nom && l.prenom && l.metier).slice(0, 5);
-          const l0 = membres[0] || {};
-          return "Équipe " + k + (l0.commande_id ? " — commande #" + l0.commande_id : l0.commande_ref ? " — commande n° " + l0.commande_ref : "") + (l0.agence ? " — " + String(l0.agence).toUpperCase() : "") + " (" + membres.length + ") :\n" +
-            membres.map(l => "    • " + majNom(l.nom) + " " + majPrenom(l.prenom) + " — " + String(l.metier || "").toUpperCase() + (l.vehicule ? " · véhicule" : "") + (l.salaire_net ? " · " + l.salaire_net + " €" : "")).join("\n");
-        }).join("\n\n");
-        await envoyerEmail(env, ADMINS, "Prestataire " + moi.societe + " — " + nbEq + " équipe(s) proposée(s) " + libSemaine(sem) + " (" + n + " candidat(s))",
-          "Nouvelle proposition déposée sur le portail par " + moi.societe + " (" + moi.code + "), " + libSemaine(sem) + " : " + nbEq + " équipe(s), " + n + " candidat(s).\n\n" + detail +
-          "\n\nRetenir ou refuser chaque équipe : " + url.origin + "/app/prestataires.html (onglet Propositions)", { env, req });
-      }
-      return json({ ok: true, n, equipes: nbEq, semaine: sem });
+      await journal(env, req, u, "prest_proposition", moi.code + " : " + equipes.map(e => libSemaine(e.semaine) + " équipe " + e.num + " (" + e.membres.length + ")").join(", "));
+      const detail = equipes.map(e => "Équipe " + e.num + " — " + libSemaine(e.semaine) + (e.cmd ? " — commande n° " + e.cmd.numero + " · " + e.cmd.titre + (e.cmd.lieu ? " · " + e.cmd.lieu : "") : e.ref ? " — commande n° " + e.ref + " (n° saisi, non trouvée dans les commandes publiées)" : "") +
+        (e.agence ? " — " + e.agence : "") + " (" + e.membres.length + ") :\n" +
+        e.membres.map(m => "    • " + m.nom + " " + m.prenom + " — " + m.metier + (m.vehicule ? " · véhicule" : "") + (m.salaire_net ? " · " + m.salaire_net + " €" : "") + (m.telephone ? " · " + m.telephone : "")).join("\n")).join("\n\n");
+      await envoyerEmail(env, ADMINS, "Prestataire " + moi.societe + " — " + equipes.length + " équipe(s) proposée(s) (" + n + " candidat(s))",
+        "Nouvelle proposition déposée sur le portail par " + moi.societe + " (" + moi.code + ") : " + equipes.length + " équipe(s), " + n + " candidat(s).\n\n" + detail +
+        "\n\nRetenir ou refuser chaque équipe : " + url.origin + "/app/prestataires.html (onglet Propositions)", { env, req });
+      return json({ ok: true, n, equipes: equipes.map(e => ({ num: e.num, semaine: e.semaine, n: e.membres.length })) });
     }
+    /* information du prestataire à chaque décision : bandeau dans son espace (decision_le / vu) + e-mail dans sa langue */
+    const informerDecision = async (pid, sem, eq, st) => {
+      const pr = await env.DB.prepare("SELECT * FROM prestataires WHERE id = ?").bind(pid).first(); if (!pr) return 0;
+      const membres = (await env.DB.prepare("SELECT p.nom, p.prenom, p.metier, p.agence, p.commande_ref, c.numero, c.titre, c.lieu FROM propositions p LEFT JOIN commandes c ON c.id = p.commande_id WHERE p.prestataire_id = ? AND p.semaine = ? AND p.equipe = ? ORDER BY p.id").bind(pid, sem, eq).all()).results;
+      if (!membres.length) return 0;
+      const m0 = membres[0], cmd = m0.numero ? "n° " + m0.numero + " · " + m0.titre + (m0.lieu ? " · " + m0.lieu : "") : m0.commande_ref ? "n° " + m0.commande_ref : "";
+      const noms = membres.map(m => m.nom + " " + m.prenom + " (" + m.metier + ")").join(", ");
+      const lien = url.origin + "/app/prestataires.html", lg = LANGUES.includes(pr.langue) ? pr.langue : "fr", no = String(parseInt(sem.slice(6), 10)), per = periodeDe(sem);
+      const M = {
+        fr: { s: "AB2PRO — équipe " + eq + " " + (st === "retenue" ? "RETENUE" : st === "refusee" ? "refusée" : "remise en attente") + " (semaine " + no + ")",
+              b: "Bonjour,\n\nVotre équipe " + eq + " — semaine " + no + " (" + per + ")" + (cmd ? " — commande " + cmd : "") + (m0.agence ? " — " + m0.agence : "") + "\n" + noms + "\n\n" + (st === "retenue" ? "est RETENUE : l'agence vous contacte pour organiser la suite (dates, logement, documents)." : st === "refusee" ? "n'a pas été retenue." : "est remise en attente.") + "\n\nSuivi dans votre espace : " + lien + "\n\n— AB2PRO" },
+        en: { s: "AB2PRO — team " + eq + " " + (st === "retenue" ? "SELECTED" : st === "refusee" ? "declined" : "back to pending") + " (week " + no + ")",
+              b: "Hello,\n\nYour team " + eq + " — week " + no + " (" + per + ")" + (cmd ? " — job order " + cmd : "") + (m0.agence ? " — " + m0.agence : "") + "\n" + noms + "\n\n" + (st === "retenue" ? "is SELECTED: the agency will contact you to organise the next steps (dates, housing, documents)." : st === "refusee" ? "was not selected." : "is back to pending.") + "\n\nFollow-up in your space: " + lien + "\n\n— AB2PRO" },
+        ro: { s: "AB2PRO — echipa " + eq + " " + (st === "retenue" ? "REȚINUTĂ" : st === "refusee" ? "refuzată" : "repusă în așteptare") + " (săptămâna " + no + ")",
+              b: "Bună ziua,\n\nEchipa dvs. " + eq + " — săptămâna " + no + " (" + per + ")" + (cmd ? " — comanda " + cmd : "") + (m0.agence ? " — " + m0.agence : "") + "\n" + noms + "\n\n" + (st === "retenue" ? "este REȚINUTĂ: agenția vă va contacta pentru pașii următori (date, cazare, documente)." : st === "refusee" ? "nu a fost reținută." : "este repusă în așteptare.") + "\n\nUrmărire în spațiul dvs.: " + lien + "\n\n— AB2PRO" },
+        hu: { s: "AB2PRO — " + eq + ". csapat " + (st === "retenue" ? "KIVÁLASZTVA" : st === "refusee" ? "elutasítva" : "újra függőben") + " (" + no + ". hét)",
+              b: "Tisztelt Partnerünk!\n\nAz Ön " + eq + ". csapata — " + no + ". hét (" + per + ")" + (cmd ? " — megrendelés " + cmd : "") + (m0.agence ? " — " + m0.agence : "") + "\n" + noms + "\n\n" + (st === "retenue" ? "KIVÁLASZTVA: az iroda felveszi Önnel a kapcsolatot a következő lépésekhez (időpontok, szállás, dokumentumok)." : st === "refusee" ? "nem került kiválasztásra." : "újra függőben van.") + "\n\nNyomon követés a felületén: " + lien + "\n\n— AB2PRO" },
+      }[lg];
+      const dests = new Set([pr.email].filter(Boolean));
+      (await env.DB.prepare("SELECT email FROM utilisateurs WHERE prestataire_id = ? AND actif = 1").bind(pid).all()).results.forEach(x => dests.add(x.email));
+      let ok = 0; for (const d of dests) { const r = await envoyerEmail(env, d, M.s, M.b, { env, req }); if (r.some(x => x.ok)) ok++; }
+      return ok;
+    };
     if (p === "/api/prest/admin/proposition" && req.method === "POST") {
       if (!admin) return json({ erreur: "reserve_admin" }, 403);
       const st = ["proposee", "retenue", "refusee"].includes(corps.statut) ? corps.statut : "proposee";
-      await env.DB.prepare("UPDATE propositions SET statut = ? WHERE id = ?").bind(st, corps.id | 0).run();
-      return json({ ok: true });
+      const row = await env.DB.prepare("SELECT prestataire_id, semaine, equipe FROM propositions WHERE id = ?").bind(corps.id | 0).first();
+      await env.DB.prepare("UPDATE propositions SET statut = ?, decision_le = datetime('now'), vu = 0 WHERE id = ?").bind(st, corps.id | 0).run();
+      const prevenus = row ? await informerDecision(row.prestataire_id, row.semaine, row.equipe, st) : 0;
+      return json({ ok: true, prevenus });
     }
     /* décision par ÉQUIPE : les agences acceptent ou refusent une équipe entière */
     if (p === "/api/prest/admin/equipe" && req.method === "POST") {
       if (!admin) return json({ erreur: "reserve_admin" }, 403);
       const st = ["proposee", "retenue", "refusee"].includes(corps.statut) ? corps.statut : null;
       if (!st || !semaineDe(corps.semaine)) return json({ erreur: "parametres_invalides" }, 400);
-      const r = await env.DB.prepare("UPDATE propositions SET statut = ? WHERE prestataire_id = ? AND semaine = ? AND equipe = ?").bind(st, corps.prestataire_id | 0, corps.semaine, corps.equipe | 0).run();
-      await journal(env, req, u, "prest_equipe_statut", (corps.prestataire_id | 0) + " " + corps.semaine + " équipe " + (corps.equipe | 0) + " → " + st + " (" + ((r.meta && r.meta.changes) || 0) + ")");
-      return json({ ok: true, n: (r.meta && r.meta.changes) || 0 });
+      const r = await env.DB.prepare("UPDATE propositions SET statut = ?, decision_le = datetime('now'), vu = 0 WHERE prestataire_id = ? AND semaine = ? AND equipe = ?").bind(st, corps.prestataire_id | 0, corps.semaine, corps.equipe | 0).run();
+      const prevenus = await informerDecision(corps.prestataire_id | 0, corps.semaine, corps.equipe | 0, st);
+      await journal(env, req, u, "prest_equipe_statut", (corps.prestataire_id | 0) + " " + corps.semaine + " équipe " + (corps.equipe | 0) + " → " + st + " (" + ((r.meta && r.meta.changes) || 0) + " candidat(s), " + prevenus + " e-mail(s))");
+      return json({ ok: true, n: (r.meta && r.meta.changes) || 0, prevenus });
     }
     /* --- déclaration mensuelle des candidats placés + heures (admin) --- */
     if (p === "/api/prest/declarations" && req.method === "GET") {

@@ -610,8 +610,10 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
    * majHS = part majoration des lignes 28/29 (heures sup 25 % et 50 %). */
   S.majHS = Math.max(0, S.F28 - S.D28 * i.thBrut) + Math.max(0, S.F29 - S.D29 * i.thBrut);
   const d85Anticipe = (S.F32 + S.F33) > 0 ? 0 : S.D32 * (i.contrat === "saisonnier" ? 0.10 : 0.21);
-  S.levierCet = !!i.cetRepos && !modeCDI && d85Anticipe > 0;
-  S.levierHS = !!i.hsRepos && S.majHS > 0 && i.thBrut > 0;
+  /* leviers actifs seulement sous réduction générale (sans objet en TO-DE agricole ou en Fillon « constantes du classeur ») */
+  const rgduActif = cfg.exo !== "tode" && i.exoFormule === "rgdu" && i.thBrut > 0;
+  S.levierCet = !!i.cetRepos && !modeCDI && d85Anticipe > 0 && rgduActif;
+  S.levierHS = !!i.hsRepos && S.majHS > 0 && rgduActif;
   S.hReposCet = S.levierCet ? d85Anticipe / i.thBrut : 0;
   S.hReposHS = S.levierHS ? S.majHS / i.thBrut : 0;
   S.remRG = S.F42 + (S.levierCet ? d85Anticipe : 0);
@@ -656,8 +658,9 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
      l'IFM n'existe plus, seule l'ICCP (10 %, sans cascade) peut partir au CET */
   S.D85 = (S.F32 + S.F33) > 0 ? 0 : S.D32 * (i.contrat === "saisonnier" ? 0.10 : 0.21);
   /* taux patronal brut (avant réduction) de l'assiette principale — sert au différé restitué en heures */
+  /* (H82 = déduction forfaitaire patronale par heure sup : liée aux heures sup, pas aux heures de repos → exclue) */
   S.tauxPatBrut = S.F42 > 0 ? (S.H62 + S.H63 + S.H64 + S.H65 + S.H66 + S.H67 + S.H68 + S.H69 + S.H70 + S.H71 +
-                               S.H72 + S.H73 + S.H74 + S.H75 + S.H77 + S.H78 + S.H82) / S.F42 : 0;
+                               S.H72 + S.H73 + S.H74 + S.H75 + S.H77 + S.H78) / S.F42 : 0;
   S.H85 = S.D85 * (S.levierCet ? S.tauxPatBrut : 0.45);
 
   /* --- Pire scénario §900 (BOSS Allègements généraux) --- */
@@ -667,7 +670,9 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
    * (déblocage isolé par contrat de causerie, doctrine avocat TT) ; l'option
    * cetPireCas applique cette borne basse à l'étude. Toujours calculé pour affichage. */
   S.rgduPerte900 = 0; S.rgduReduc900 = null;
-  if (S.D85 > 0 && i.exoFormule === "rgdu" && !modeCDI && S.rgduAmount > 0 && S.F42 > 0 && !S.levierCet) {
+  /* Sous le levier « heures de repos CET », la borne basse §900 garde tout son sens : c'est le cas où l'URSSAF
+   * n'admet PAS les heures de repos dans le SMIC de référence (différé réintégré, heures de repos écartées). */
+  if (S.D85 > 0 && i.exoFormule === "rgdu" && cfg.exo !== "tode" && !modeCDI && S.rgduAmount > 0 && S.F42 > 0) {
     const rg = i.rgdu || {};
     const smicParam = (rg.smicRef || RGDU_DEFAULTS.smicRef) * S.D31;
     const tdelta = rg.fnal050 ? (rg.tdeltaGrande || RGDU_DEFAULTS.tdeltaGrande)
@@ -684,7 +689,7 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
     }
     const maj = (rg.interim === false) ? 1 : RGDU_DEFAULTS.interimMajoration;
     /* panier proportionné à l'assiette gonflée (les cotisations dues croissent avec elle) */
-    const panierPire = S.rgduPanier * (remuPire / S.F42);
+    const panierPire = S.rgduPanier * (remuPire / S.remRG);   /* rgduPanier est déjà à l'échelle de remRG sous levier */
     S.rgduReduc900 = Math.min(coeffPire * remuPire * maj, panierPire);
     S.rgduPerte900 = Math.max(0, S.H83 - S.rgduReduc900);
     if (i.cetPireCas) S.H83 = S.rgduReduc900;

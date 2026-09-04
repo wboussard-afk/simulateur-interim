@@ -488,6 +488,12 @@ function defaultInputs(DB, sector) {
     agence: "",                 // agence PALMA sélectionnée (fixe le taux AT par défaut ; portée dans l'étude de prix)
     cetCoutsReels: false,       // intégrer les coûts CET maison (abondement + causeries) dans la marge
     cetAbondPct: 5,             // abondement % versé à chaque déblocage (politique maison : 5 %)
+    /* leviers d'optimisation (décochés = pratique maison actuelle) — cf. bulletin ACTERIM 07/2026 :
+       cetRepos = IFM/ICCP placés au CET et restitués en HEURES DE REPOS payées au taux de base (ces heures
+       entrent dans le SMIC de référence → la réduction générale s'applique au différé au lieu des 45 % provisionnés) ;
+       hsRepos = la majoration des heures sup (argent sans heure) est placée au CET et restituée en heures. */
+    cetRepos: false,
+    hsRepos: false,
     cetDebloc: 3,               // déblocages CET par an (fonctionnement normal : 3)
     cetCauserieH: 1.5,          // heures de causerie par déblocage, payées NON facturées (contrat : 1 h 50)
     refactDim: true, refactFerie: true, refactNuit: true,
@@ -782,22 +788,35 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   /* --- RGDU 2026 (calculée dans tous les cas, à titre de comparaison) ---
    * Proratisation hebdomadaire cohérente avec la convention Fillon du classeur :
    * paramètre SMIC = SMIC réf × heures travaillées (D31, heures sup incluses). */
+  /* Leviers « heures de repos CET » : le différé (D85, calculé ici par anticipation) et/ou la majoration des
+   * heures sup sont restitués en heures payées au taux de base → ils comptent dans le SMIC de référence.
+   * majHS = part majoration des lignes 28/29 (heures sup 25 % et 50 %). */
+  S.majHS = Math.max(0, S.F28 - S.D28 * i.thBrut) + Math.max(0, S.F29 - S.D29 * i.thBrut);
+  const d85Anticipe = (S.F32 + S.F33) > 0 ? 0 : S.D32 * (i.contrat === "saisonnier" ? 0.10 : 0.21);
+  /* leviers actifs seulement sous réduction générale (sans objet en TO-DE agricole ou en Fillon « constantes du classeur ») */
+  const rgduActif = cfg.exo !== "tode" && i.exoFormule === "rgdu" && i.thBrut > 0;
+  S.levierCet = !!i.cetRepos && !modeCDI && d85Anticipe > 0 && rgduActif;
+  S.levierHS = !!i.hsRepos && S.majHS > 0 && rgduActif;
+  S.hReposCet = S.levierCet ? d85Anticipe / i.thBrut : 0;
+  S.hReposHS = S.levierHS ? S.majHS / i.thBrut : 0;
+  S.remRG = S.F42 + (S.levierCet ? d85Anticipe : 0);
+  S.heuresRG = S.D31 + S.hReposCet + S.hReposHS;
   {
     const rg = i.rgdu || {};
-    const smicParam = (rg.smicRef || RGDU_DEFAULTS.smicRef) * S.D31;
+    const smicParam = (rg.smicRef || RGDU_DEFAULTS.smicRef) * S.heuresRG;
     const tdelta = rg.fnal050 ? (rg.tdeltaGrande || RGDU_DEFAULTS.tdeltaGrande)
                               : (rg.tdeltaPetite || RGDU_DEFAULTS.tdeltaPetite);
     const tmin = (rg.tmin != null) ? rg.tmin : RGDU_DEFAULTS.tmin;
     const p = rg.p || RGDU_DEFAULTS.p;
     const plaf = rg.plafondSmic || RGDU_DEFAULTS.plafondSmic;
     let coeff = 0;
-    if (S.F42 > 0 && S.F42 < plaf * smicParam) {
-      const t = Math.min(1, 0.5 * (plaf * smicParam / S.F42 - 1));
+    if (S.remRG > 0 && S.remRG < plaf * smicParam) {
+      const t = Math.min(1, 0.5 * (plaf * smicParam / S.remRG - 1));
       coeff = tmin + tdelta * Math.pow(t, p);
       coeff = Math.round(Math.min(coeff, tmin + tdelta) * 10000) / 10000;
     }
     S.rgduCoeff = coeff;
-    S.rgduAmount = coeff * S.F42 * ((rg.interim === false || modeCDI) ? 1 : RGDU_DEFAULTS.interimMajoration);
+    S.rgduAmount = coeff * S.remRG * ((rg.interim === false || modeCDI) ? 1 : RGDU_DEFAULTS.interimMajoration);
   }
 
   /* --- Exonération (H83) : TO-DE (agri) ou allègement Fillon / RGDU (tarifaire) --- */
@@ -813,6 +832,7 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
      * supérieure aux cotisations réellement dues). */
     S.rgduPanier = S.H62 + S.H69 + S.H70 + S.H71 + S.H74 + S.H75 +
                    S.D62 * (0.0049 + 0.003 + ((i.rgdu && i.rgdu.fnal050) ? 0.005 : 0.001));
+    if (S.levierCet && S.F42 > 0) S.rgduPanier *= S.remRG / S.F42;   /* les cotisations dues croissent avec le différé */
     S.H83 = (i.exoFormule === "rgdu") ? Math.min(S.rgduAmount, S.rgduPanier) : S.H83_fillon;
   }
 
@@ -820,7 +840,11 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   /* provision CET : 21 % (IFM 10 % + ICCP 11 % en cascade) — saisonnier sous accord :
      l'IFM n'existe plus, seule l'ICCP (10 %, sans cascade) peut partir au CET */
   S.D85 = (S.F32 + S.F33) > 0 ? 0 : S.D32 * (i.contrat === "saisonnier" ? 0.10 : 0.21);
-  S.H85 = S.D85 * 0.45;
+  /* taux patronal brut (avant réduction) de l'assiette principale — sert au différé restitué en heures */
+  /* (H82 = déduction forfaitaire patronale par heure sup : liée aux heures sup, pas aux heures de repos → exclue) */
+  S.tauxPatBrut = S.F42 > 0 ? (S.H62 + S.H63 + S.H64 + S.H65 + S.H66 + S.H67 + S.H68 + S.H69 + S.H70 + S.H71 +
+                               S.H72 + S.H73 + S.H74 + S.H75 + S.H77 + S.H78) / S.F42 : 0;
+  S.H85 = S.D85 * (S.levierCet ? S.tauxPatBrut : 0.45);
 
   /* --- Pire scénario §900 (BOSS Allègements généraux) --- */
   /* Lecture défavorable du rattachement : le différé CET monétisé est réintégré dans
@@ -829,7 +853,9 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
    * (déblocage isolé par contrat de causerie, doctrine avocat TT) ; l'option
    * cetPireCas applique cette borne basse à l'étude. Toujours calculé pour affichage. */
   S.rgduPerte900 = 0; S.rgduReduc900 = null;
-  if (S.D85 > 0 && i.exoFormule === "rgdu" && !modeCDI && S.rgduAmount > 0 && S.F42 > 0) {
+  /* Sous le levier « heures de repos CET », la borne basse §900 garde tout son sens : c'est le cas où l'URSSAF
+   * n'admet PAS les heures de repos dans le SMIC de référence (différé réintégré, heures de repos écartées). */
+  if (S.D85 > 0 && i.exoFormule === "rgdu" && cfg.exo !== "tode" && !modeCDI && S.rgduAmount > 0 && S.F42 > 0) {
     const rg = i.rgdu || {};
     const smicParam = (rg.smicRef || RGDU_DEFAULTS.smicRef) * S.D31;
     const tdelta = rg.fnal050 ? (rg.tdeltaGrande || RGDU_DEFAULTS.tdeltaGrande)
@@ -846,7 +872,7 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
     }
     const maj = (rg.interim === false) ? 1 : RGDU_DEFAULTS.interimMajoration;
     /* panier proportionné à l'assiette gonflée (les cotisations dues croissent avec elle) */
-    const panierPire = S.rgduPanier * (remuPire / S.F42);
+    const panierPire = S.rgduPanier * (remuPire / S.remRG);   /* rgduPanier est déjà à l'échelle de remRG sous levier */
     S.rgduReduc900 = Math.min(coeffPire * remuPire * maj, panierPire);
     S.rgduPerte900 = Math.max(0, S.H83 - S.rgduReduc900);
     if (i.cetPireCas) S.H83 = S.rgduReduc900;
@@ -859,7 +885,7 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   S.cetAbondCout = 0; S.cetCauserieCout = 0;
   if (i.cetCoutsReels && S.D85 > 0) {
     S.cetAbondCout = (i.cetAbondPct || 0) / 100 * S.D85 * 1.45;
-    S.cetCauserieCout = ((i.cetDebloc || 0) * (i.cetCauserieH || 0) / 52) * i.thBrut * 1.45;
+    S.cetCauserieCout = S.levierCet ? 0 : ((i.cetDebloc || 0) * (i.cetCauserieH || 0) / 52) * i.thBrut * 1.45;
   }
   S.cetCoutReel = S.cetAbondCout + S.cetCauserieCout;
 
