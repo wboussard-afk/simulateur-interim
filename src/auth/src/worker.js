@@ -838,7 +838,9 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     if (p === "/api/prest/propositions" && req.method === "POST") {
       if (!estPrest) return json({ erreur: "reserve_prestataires" }, 403);
       const semCour = semaineCourante();
+      /* semaine visée par le prestataire : de la semaine courante à +8 semaines (une équipe rattachée à une commande suit la semaine de la commande) */
       let sem = semaineDe(corps.semaine) || semCour; if (sem < semCour) sem = semCour;
+      const semMax = semaineISO(new Date(lundiDe(semCour).getTime() + 8 * 7 * 86400000)); if (sem > semMax) sem = semMax;
       const lignes = Array.isArray(corps.lignes) ? corps.lignes.slice(0, 100) : [];
       /* commande : id choisi dans la liste OU n° saisi — mêmes critères que la liste vue par le prestataire (publiée, ouverte, à venir) */
       const cmdDe = async (id, ref) => id

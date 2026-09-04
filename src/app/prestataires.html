@@ -116,7 +116,7 @@ table.saisie .btn.s { padding: 6px 9px; }
 
   <!-- ===== prestataire : proposer une équipe ===== -->
   <section class="card" data-onglet="proposer">
-    <h2><span data-t="t_proposer">Proposer une équipe</span> <span class="note" id="prop-sem"></span></h2>
+    <h2><span data-t="t_proposer">Proposer une équipe</span> <select id="prop-sem" style="width:auto; padding:6px 8px; font-size:16px; margin-left:auto"></select></h2>
     <div class="b">
       <div class="note" data-t="prop_intro">Composez vos équipes : chaque équipe (2 à 5 candidats) est proposée entière, rattachée à une commande choisie dans la liste ou dont vous saisissez le numéro. Ajoutez une deuxième équipe, une troisième… puis envoyez : AB2PRO reçoit tout immédiatement.</div>
       <div id="prop-equipes" style="margin-top:10px"></div>
@@ -297,7 +297,7 @@ const T = {
     numero_facture: "N° de facture", montant_facture: "Montant HT (€)", fichier: "Fichier", choisir_fichier: "📎 Choisir le fichier…", envoyer_facture: "Envoyer ma facture", aucune_facture: "Aucune facture déposée.",
     depose_le: "Déposée le", fac_envoyee: "✓ Facture envoyée à AB2PRO.", fac_choisir_dabord: "Choisissez d'abord le fichier de la facture.", fac_trop_gros: "Fichier trop volumineux (10 Mo max).", st_recue: "reçue", st_payee: "payée",
     incompletes: "{n} ligne(s) incomplète(s) (en rouge) — nom, prénom et métier obligatoires.", defiler: "↔ Faites glisser le tableau vers la gauche : métier, agence… sont à droite.",
-    proposer_sur: "Proposer une équipe →", dec_titre: "Décisions AB2PRO", dec_retenue: "Équipe {n} · semaine {s} : RETENUE — l'agence vous contacte pour la suite.", dec_refusee: "Équipe {n} · semaine {s} : non retenue.", dec_attente: "Équipe {n} · semaine {s} : remise en attente.", dec_vu: "OK, vu", equipe_n: "Équipe {n}", composer_equipe: "+ Composer une autre équipe", supprimer_equipe: "Supprimer l'équipe", ajouter_candidat: "+ Ajouter un candidat (5 max)",
+    proposer_sur: "Proposer une équipe →", sem_en_cours: "en cours", archives: "Semaines passées (archives)", pour_semaine: "Proposition pour la", dec_titre: "Décisions AB2PRO", dec_retenue: "Équipe {n} · semaine {s} : RETENUE — l'agence vous contacte pour la suite.", dec_refusee: "Équipe {n} · semaine {s} : non retenue.", dec_attente: "Équipe {n} · semaine {s} : remise en attente.", dec_vu: "OK, vu", equipe_n: "Équipe {n}", composer_equipe: "+ Composer une autre équipe", supprimer_equipe: "Supprimer l'équipe", ajouter_candidat: "+ Ajouter un candidat (5 max)",
     numero_commande: "N° de commande", commande_libre: "Autre commande : saisir le n°", err_equipe_taille: "Équipe {n} : un seul candidat — une équipe compte au moins 2 candidats. Ajoutez-en un ou supprimez l'équipe.", eq_incompletes: "Équipe {n} : {c} ligne(s) incomplète(s) (en rouge) — nom, prénom et métier obligatoires.", compte_equipe: "{n} candidat(s) sur 5 — minimum 2", envoye_equipes: "✓ Envoyé : {e} — {c} candidat(s). AB2PRO a été prévenu.", err_commande: "commande fermée ou dépubliée depuis l'ouverture de la page : rechargez.", err_numero: "Équipe {n} : saisissez le n° de commande (ou choisissez « sans commande »).", candidats_n: "{n} candidat(s)", equipes_n: "{n} équipe(s)", equipe_vide: "Aucune équipe complète à envoyer.", deja_declares: "{n} déjà déclaré(s) ce mois, ignoré(s)", en_cours: "{n} ligne(s) saisie(s), pas encore déclarée(s)", fac_type: "Format non accepté : PDF, JPG ou PNG uniquement.", trop_de_factures: "5 factures maximum par mois.", montant_invalide: "Montant invalide." },
   en: { titre: "Recruitment partners", t_commandes: "This week's job orders", cmd_intro: "Positions to fill this week. Propose your candidates in the “Propose a team” tab, indicating the targeted order.",
     t_proposer: "Propose a team", prop_intro: "Build your teams: each team (2 to 5 candidates) is proposed as a whole, attached to a job order chosen from the list or typed by number. Add a second team, a third… then send: AB2PRO receives everything immediately.",
@@ -318,7 +318,7 @@ const T = {
     numero_facture: "Invoice no.", montant_facture: "Amount excl. VAT (€)", fichier: "File", choisir_fichier: "📎 Choose the file…", envoyer_facture: "Send my invoice", aucune_facture: "No invoice uploaded.",
     depose_le: "Uploaded on", fac_envoyee: "✓ Invoice sent to AB2PRO.", fac_choisir_dabord: "Choose the invoice file first.", fac_trop_gros: "File too large (10 MB max).", st_recue: "received", st_payee: "paid",
     incompletes: "{n} incomplete line(s) (in red) — surname, first name and trade are required.", defiler: "↔ Swipe the table left: trade, agency… are on the right.",
-    proposer_sur: "Propose a team →", dec_titre: "AB2PRO decisions", dec_retenue: "Team {n} · week {s}: SELECTED — the agency will contact you for the next steps.", dec_refusee: "Team {n} · week {s}: not selected.", dec_attente: "Team {n} · week {s}: back to pending.", dec_vu: "OK, seen", equipe_n: "Team {n}", composer_equipe: "+ Build another team", supprimer_equipe: "Remove this team", ajouter_candidat: "+ Add a candidate (max 5)",
+    proposer_sur: "Propose a team →", sem_en_cours: "current", archives: "Past weeks (archive)", pour_semaine: "Proposal for", dec_titre: "AB2PRO decisions", dec_retenue: "Team {n} · week {s}: SELECTED — the agency will contact you for the next steps.", dec_refusee: "Team {n} · week {s}: not selected.", dec_attente: "Team {n} · week {s}: back to pending.", dec_vu: "OK, seen", equipe_n: "Team {n}", composer_equipe: "+ Build another team", supprimer_equipe: "Remove this team", ajouter_candidat: "+ Add a candidate (max 5)",
     numero_commande: "Job order no.", commande_libre: "Other order: type the number", err_equipe_taille: "Team {n}: only one candidate — a team has at least 2. Add one or remove the team.", eq_incompletes: "Team {n}: {c} incomplete line(s) (in red) — surname, first name and trade are required.", compte_equipe: "{n} of 5 candidates — minimum 2", envoye_equipes: "✓ Sent: {e} — {c} candidate(s). AB2PRO has been notified.", err_commande: "job order closed or unpublished since the page was opened: reload.", err_numero: "Team {n}: type the job order number (or choose “no specific order”).", candidats_n: "{n} candidate(s)", equipes_n: "{n} team(s)", equipe_vide: "No complete team to send.", deja_declares: "{n} already declared this month, skipped", en_cours: "{n} line(s) typed, not declared yet", fac_type: "Format not accepted: PDF, JPG or PNG only.", trop_de_factures: "5 invoices maximum per month.", montant_invalide: "Invalid amount." },
   ro: { titre: "Parteneri recrutare", t_commandes: "Comenzile săptămânii", cmd_intro: "Posturi de ocupat săptămâna aceasta. Propuneți candidații în fila „Propuneți o echipă”, indicând comanda vizată.",
     t_proposer: "Propuneți o echipă", prop_intro: "Compuneți echipele: fiecare echipă (2–5 candidați) este propusă întreagă, legată de o comandă aleasă din listă sau al cărei număr îl scrieți. Adăugați a doua echipă, a treia… apoi trimiteți: AB2PRO primește totul imediat.",
@@ -339,7 +339,7 @@ const T = {
     numero_facture: "Nr. factură", montant_facture: "Sumă fără TVA (€)", fichier: "Fișier", choisir_fichier: "📎 Alegeți fișierul…", envoyer_facture: "Trimiteți factura", aucune_facture: "Nicio factură depusă.",
     depose_le: "Depusă la", fac_envoyee: "✓ Factura a fost trimisă la AB2PRO.", fac_choisir_dabord: "Alegeți mai întâi fișierul facturii.", fac_trop_gros: "Fișier prea mare (max. 10 MB).", st_recue: "primită", st_payee: "plătită",
     incompletes: "Linii incomplete (cu roșu): {n} — nume, prenume și meserie obligatorii.", defiler: "↔ Glisați tabelul spre stânga: meseria, agenția… sunt în dreapta.",
-    proposer_sur: "Propuneți o echipă →", dec_titre: "Decizii AB2PRO", dec_retenue: "Echipa {n} · săptămâna {s}: REȚINUTĂ — agenția vă va contacta pentru pașii următori.", dec_refusee: "Echipa {n} · săptămâna {s}: nu a fost reținută.", dec_attente: "Echipa {n} · săptămâna {s}: repusă în așteptare.", dec_vu: "OK, am văzut", equipe_n: "Echipa {n}", composer_equipe: "+ Compuneți o altă echipă", supprimer_equipe: "Ștergeți echipa", ajouter_candidat: "+ Adăugați un candidat (max. 5)",
+    proposer_sur: "Propuneți o echipă →", sem_en_cours: "în curs", archives: "Săptămâni trecute (arhivă)", pour_semaine: "Propunere pentru", dec_titre: "Decizii AB2PRO", dec_retenue: "Echipa {n} · săptămâna {s}: REȚINUTĂ — agenția vă va contacta pentru pașii următori.", dec_refusee: "Echipa {n} · săptămâna {s}: nu a fost reținută.", dec_attente: "Echipa {n} · săptămâna {s}: repusă în așteptare.", dec_vu: "OK, am văzut", equipe_n: "Echipa {n}", composer_equipe: "+ Compuneți o altă echipă", supprimer_equipe: "Ștergeți echipa", ajouter_candidat: "+ Adăugați un candidat (max. 5)",
     numero_commande: "Nr. comandă", commande_libre: "Altă comandă: scrieți numărul", err_equipe_taille: "Echipa {n}: un singur candidat — o echipă are cel puțin 2 candidați. Adăugați unul sau ștergeți echipa.", eq_incompletes: "Echipa {n}: linii incomplete (cu roșu): {c} — nume, prenume și meserie obligatorii.", compte_equipe: "{n} din 5 candidați — minimum 2", envoye_equipes: "✓ Trimis: {e} — {c} candidați. AB2PRO a fost anunțat.", err_commande: "comandă închisă sau retrasă de la deschiderea paginii: reîncărcați.", err_numero: "Echipa {n}: scrieți numărul comenzii (sau alegeți „fără comandă precisă”).", candidats_n: "Candidați: {n}", equipes_n: "Echipe: {n}", equipe_vide: "Nicio echipă completă de trimis.", deja_declares: "deja declarați luna aceasta, ignorați: {n}", en_cours: "Linii introduse, nedeclarate încă: {n}", fac_type: "Format neacceptat: doar PDF, JPG sau PNG.", trop_de_factures: "Maximum 5 facturi pe lună.", montant_invalide: "Sumă invalidă." },
   hu: { titre: "Toborzó partnerek", t_commandes: "A hét megrendelései", cmd_intro: "Ezen a héten betöltendő állások. Jelöltjeit a „Csapat javaslása” fülön ajánlja, megjelölve a célzott megrendelést.",
     t_proposer: "Csapat javaslása", prop_intro: "Állítsa össze csapatait: minden csapat (2–5 jelölt) egészben kerül ajánlásra, egy listából választott vagy számmal beírt megrendeléshez kötve. Adjon hozzá második, harmadik csapatot… majd küldje el: az AB2PRO azonnal mindent megkap.",
@@ -360,7 +360,7 @@ const T = {
     numero_facture: "Számlaszám", montant_facture: "Összeg (nettó, €)", fichier: "Fájl", choisir_fichier: "📎 Fájl kiválasztása…", envoyer_facture: "Számla küldése", aucune_facture: "Nincs feltöltött számla.",
     depose_le: "Feltöltve", fac_envoyee: "✓ A számlát elküldtük az AB2PRO-nak.", fac_choisir_dabord: "Először válassza ki a számla fájlját.", fac_trop_gros: "A fájl túl nagy (max. 10 MB).", st_recue: "beérkezett", st_payee: "kifizetett",
     incompletes: "{n} hiányos sor (pirossal) — vezetéknév, keresztnév és szakma kötelező.", defiler: "↔ Húzza balra a táblázatot: a szakma, iroda… jobbra található.",
-    proposer_sur: "Csapat javaslása →", dec_titre: "AB2PRO döntések", dec_retenue: "{n}. csapat · {s}. hét: KIVÁLASZTVA — az iroda felveszi Önnel a kapcsolatot.", dec_refusee: "{n}. csapat · {s}. hét: nem került kiválasztásra.", dec_attente: "{n}. csapat · {s}. hét: újra függőben.", dec_vu: "OK, láttam", equipe_n: "{n}. csapat", composer_equipe: "+ Újabb csapat összeállítása", supprimer_equipe: "Csapat törlése", ajouter_candidat: "+ Jelölt hozzáadása (max. 5)",
+    proposer_sur: "Csapat javaslása →", sem_en_cours: "folyamatban", archives: "Elmúlt hetek (archívum)", pour_semaine: "Javaslat erre a hétre:", dec_titre: "AB2PRO döntések", dec_retenue: "{n}. csapat · {s}. hét: KIVÁLASZTVA — az iroda felveszi Önnel a kapcsolatot.", dec_refusee: "{n}. csapat · {s}. hét: nem került kiválasztásra.", dec_attente: "{n}. csapat · {s}. hét: újra függőben.", dec_vu: "OK, láttam", equipe_n: "{n}. csapat", composer_equipe: "+ Újabb csapat összeállítása", supprimer_equipe: "Csapat törlése", ajouter_candidat: "+ Jelölt hozzáadása (max. 5)",
     numero_commande: "Megrendelés száma", commande_libre: "Más megrendelés: írja be a számát", err_equipe_taille: "{n}. csapat: csak egy jelölt — egy csapat legalább 2 jelöltből áll. Adjon hozzá egyet, vagy törölje a csapatot.", eq_incompletes: "{n}. csapat: {c} hiányos sor (pirossal) — vezetéknév, keresztnév és szakma kötelező.", compte_equipe: "{n} / 5 jelölt — legalább 2", envoye_equipes: "✓ Elküldve: {e} — {c} jelölt. Az AB2PRO értesítést kapott.", err_commande: "a megrendelést az oldal megnyitása óta lezárták vagy visszavonták: töltse be újra.", err_numero: "{n}. csapat: írja be a megrendelés számát (vagy válassza a „nincs konkrét megrendelés” lehetőséget).", candidats_n: "{n} jelölt", equipes_n: "{n} csapat", equipe_vide: "Nincs elküldhető teljes csapat.", deja_declares: "{n} már bejelentve ebben a hónapban, kihagyva", en_cours: "{n} beírt sor, még nincs bejelentve", fac_type: "Nem elfogadott formátum: csak PDF, JPG vagy PNG.", trop_de_factures: "Havonta legfeljebb 5 számla.", montant_invalide: "Érvénytelen összeg." },
 };
 let L = "fr";
@@ -402,7 +402,8 @@ async function init() {
   $("adm-note").hidden = !MOI.admin;
   document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => montrer(b.dataset.o)));
   document.querySelectorAll("#lang button").forEach(b => b.addEventListener("click", async () => { L = b.dataset.l; traduire(); rendreTout(); await post("/api/profil", { langue: L }).catch(() => {}); }));
-  $("cmd-sem").textContent = $("prop-sem").textContent = t("semaine") + " " + libSemaine(MOI.semaine);
+  $("cmd-sem").textContent = t("semaine") + " " + libSemaine(MOI.semaine);
+  remplirSemainesProp();
   remplirMois();
   document.body.classList.toggle("admin", !!MOI.admin);
   $("adm-decl-mois").value = MOI.mois;
@@ -454,7 +455,7 @@ function rendreTout() {
     const inp = eq.querySelector("[data-k='commande_ref']"); if (inp) inp.placeholder = t("numero_commande");
     majCompte(eq);
   });
-  $("prop-sem").textContent = t("semaine") + " " + libSemaine(MOI.semaine);
+  remplirSemainesProp();
   const on = document.querySelector("#tabs button.on"); if (on && on.dataset.o !== "commandes") montrer(on.dataset.o);
   /* documents */
   $("doc-liste").innerHTML = (MOI.documents || []).map(d =>
@@ -543,8 +544,17 @@ function majCompte(eq) {
   const rows = Array.from(eq.querySelectorAll(".eq-lignes tr")), n = rows.filter(tr => tr.querySelector("[data-k='nom']").value.trim()).length;
   eq.querySelector("[data-compte]").textContent = t("compte_equipe", { n }); eq.querySelector("[data-plus]").disabled = rows.length >= 5;
 }
-/* numéro affiché = numéro réel de la semaine (les équipes déjà envoyées comptent) */
-let EQ_BASE = 0;
+/* numéro affiché = numéro réel de la semaine choisie (les équipes déjà envoyées cette semaine-là comptent) */
+let EQ_BASE = 0, PROPS_EQ = [];
+/* semaine visée : en cours et les 6 suivantes (une équipe rattachée à une commande suit la semaine de la commande) */
+function remplirSemainesProp() {
+  const sel = $("prop-sem"); const v = sel.value; const opts = [];
+  for (let k = 0; k <= 6; k++) { const sm = semainePlus(MOI.semaine, k); opts.push("<option value='" + sm + "'>" + esc(t("semaine") + " " + libSemaine(sm) + (k === 0 ? " (" + t("sem_en_cours") + ")" : "")) + "</option>"); }
+  sel.innerHTML = opts.join(""); sel.value = v || MOI.semaine; if (!sel.value) sel.value = MOI.semaine;
+  majEqBase();
+}
+function majEqBase() { const sm = $("prop-sem").value || MOI.semaine; EQ_BASE = PROPS_EQ.filter(e => e.semaine === sm).reduce((mx, e) => Math.max(mx, e.equipe), 0); renumeroterEquipes(); }
+$("prop-sem").addEventListener("change", majEqBase);
 /* lignes à envoyer : une ligne commencée mais incomplète bloque l'envoi (surlignée), rien n'est perdu */
 function lignesAEnvoyer(tbody, msgEl) {
   const trs = Array.from(tbody.children), tous = lireLignes(tbody); let inc = 0;
@@ -579,7 +589,7 @@ $("btn-prop-envoyer").addEventListener("click", async () => {
   }
   if (!lignes.length) { m.className = "msg err"; m.textContent = t("equipe_vide"); return; }
   $("btn-prop-envoyer").disabled = true; m.className = "msg"; m.textContent = "…";
-  const j = await post("/api/prest/propositions", { semaine: MOI.semaine, lignes }).catch(() => ({}));
+  const j = await post("/api/prest/propositions", { semaine: $("prop-sem").value || MOI.semaine, lignes }).catch(() => ({}));
   $("btn-prop-envoyer").disabled = false;
   if (j.ok) { m.className = "msg ok"; m.textContent = t("envoye_equipes", { e: (j.equipes || []).map(x => t("equipe_n", { n: x.num })).join(", "), c: j.n }); $("prop-equipes").innerHTML = ""; await chargerProps(); ajouterEquipe(); }
   else { m.className = "msg err"; m.textContent = j.erreur === "commande_invalide" ? t("equipe_n", { n: j.equipe }) + " : " + t("err_commande") : t("erreur") + " " + (j.erreur || ""); }
@@ -593,12 +603,14 @@ const libCommandeProp = p => p.numero ? "n° " + p.numero + " · " + (p.commande
 const statutEquipe = m => { const s = new Set(m.map(x => x.statut)); return s.size === 1 ? m[0].statut : "proposee"; };
 async function chargerProps() {
   const j = await get("/api/prest/propositions").catch(() => ({ propositions: [] }));
-  const eqs = grouperEquipes(j.propositions || []); let semCour = null;
-  EQ_BASE = eqs.filter(e => e.semaine === MOI.semaine).reduce((mx, e) => Math.max(mx, e.equipe), 0); renumeroterEquipes();
-  $("liste-prop").innerHTML = eqs.length ? eqs.map(e => { const titreSem = e.semaine !== semCour ? "<div class='semaine-titre'>" + t("semaine") + " " + esc(e.semaine ? libSemaine(e.semaine) : "") + " · " + esc(t("equipes_n", { n: eqs.filter(x => x.semaine === e.semaine).length })) + " · " + esc(t("candidats_n", { n: eqs.filter(x => x.semaine === e.semaine).reduce((s, x) => s + x.membres.length, 0) })) + "</div>" : ""; semCour = e.semaine;
-    return titreSem + "<div class='eq-carte'><div class='eq-titre'><span>" + esc(t("equipe_n", { n: e.equipe })) + " · " + esc(libCommandeProp(e.membres[0])) + (e.membres[0].agence ? " · " + esc(e.membres[0].agence) : "") + "</span>" + tagStatut(statutEquipe(e.membres)) + "</div>" +
-      "<ul>" + e.membres.map(p => "<li><b>" + esc(p.nom) + "</b> " + esc(p.prenom) + " — " + esc(p.metier) + (p.vehicule ? " 🚗" : "") + (p.salaire_net ? " · " + esc(p.salaire_net) + " €" : "") + "</li>").join("") + "</ul></div>"; }).join("")
-    : "<div class='note'>" + t("aucun") + "</div>";
+  const eqs = grouperEquipes(j.propositions || []); PROPS_EQ = eqs; majEqBase();
+  const rendu = liste => { let semCour = null; return liste.map(e => { const titreSem = e.semaine !== semCour ? "<div class='semaine-titre'>" + t("semaine") + " " + esc(e.semaine ? libSemaine(e.semaine) : "") + " · " + esc(t("equipes_n", { n: liste.filter(x => x.semaine === e.semaine).length })) + " · " + esc(t("candidats_n", { n: liste.filter(x => x.semaine === e.semaine).reduce((s, x) => s + x.membres.length, 0) })) + "</div>" : ""; semCour = e.semaine;
+    const cmd = libCommandeProp(e.membres[0]);
+    return titreSem + "<div class='eq-carte'><div class='eq-titre'><span>" + esc(t("equipe_n", { n: e.equipe })) + (cmd !== "—" ? " · " + esc(cmd) : "") + (e.membres[0].agence ? " · " + esc(e.membres[0].agence) : "") + "</span>" + tagStatut(statutEquipe(e.membres)) + "</div>" +
+      "<ul>" + e.membres.map(p => "<li><b>" + esc(p.nom) + "</b> " + esc(p.prenom) + " — " + esc(p.metier) + (p.vehicule ? " 🚗" : "") + (p.salaire_net ? " · " + esc(p.salaire_net) + " €" : "") + "</li>").join("") + "</ul></div>"; }).join(""); };
+  const actives = eqs.filter(e => (e.semaine || "") >= MOI.semaine), passees = eqs.filter(e => (e.semaine || "") < MOI.semaine);
+  $("liste-prop").innerHTML = (actives.length ? rendu(actives) : "<div class='note'>" + t("aucun") + "</div>") +
+    (passees.length ? "<details style='margin-top:10px'><summary class='note' style='cursor:pointer'>📁 " + esc(t("archives")) + " · " + esc(t("equipes_n", { n: passees.length })) + "</summary>" + rendu(passees) + "</details>" : "");
 }
 /* ---- déclaration mensuelle (tableau : matricule / NOM / prénom / métier / agence / qualifié) ---- */
 let DECL_LISTE = [];
@@ -871,7 +883,7 @@ async function remplirSemainesProps() {
   const sel = $("adm-prop-sem"); if (sel.options.length) return;
   const j = await get("/api/prest/commandes").catch(() => null); const cour = (j && j.semaine_courante) || semaineISOde(new Date());
   const vues = new Set(); const opts = [];
-  [semainePlus(cour, 1), cour, semainePlus(cour, -1), semainePlus(cour, -2), semainePlus(cour, -3), ...((j && j.semaines) || []).map(z => z.semaine)].forEach(sm => { if (!vues.has(sm)) { vues.add(sm); opts.push(sm); } });
+  [semainePlus(cour, 6), semainePlus(cour, 5), semainePlus(cour, 4), semainePlus(cour, 3), semainePlus(cour, 2), semainePlus(cour, 1), cour, semainePlus(cour, -1), semainePlus(cour, -2), semainePlus(cour, -3), ...((j && j.semaines) || []).map(z => z.semaine)].forEach(sm => { if (!vues.has(sm)) { vues.add(sm); opts.push(sm); } });
   opts.sort().reverse();
   sel.innerHTML = opts.map(sm => "<option value='" + sm + "'>S" + esc(libSemaine(sm)) + (sm === cour ? " (en cours)" : "") + "</option>").join(""); sel.value = cour;
 }
