@@ -240,15 +240,17 @@ export default {
       const cible = (p === "/app" || p === "/app/") ? "/app/index.html" : p;
       /* documents des prestataires : commun/ pour tous les prestataires + admins, <code>/ pour le seul intéressé */
       if (cible.startsWith("/app/data/prestataires/")) {
+        /* chemin décodé puis validé : commun/<fichier>, <CODE>/<fichier> ou <CODE>/factures/<fichier> — rien d'autre */
+        let cheminFi; try { cheminFi = decodeURIComponent(cible.slice("/app/data/prestataires/".length)); } catch (e) { return new Response("Chemin invalide.", { status: 400 }); }
+        if (!/^(commun|[A-Z0-9]{3,20})(\/factures)?\/[^\/]+$/.test(cheminFi)) return new Response("Chemin invalide.", { status: 400 });
         let ok = estAdmin(u);
         if (!ok && u.entite === "prestataire" && u.prestataire_id) {
           const pr = await env.DB.prepare("SELECT code FROM prestataires WHERE id = ?").bind(u.prestataire_id).first();
-          ok = cible.startsWith("/app/data/prestataires/commun/") || (pr && cible.startsWith("/app/data/prestataires/" + pr.code + "/"));
+          ok = cheminFi.startsWith("commun/") || (pr && cheminFi.startsWith(pr.code + "/"));
         }
         if (!ok) { await journal(env, req, u, "acces_refuse_section", "prestataires", cible); return new Response("Accès refusé.", { status: 403 }); }
-        /* fichier téléversé par un admin (table fichiers, blocs de 512 Ko) : servi depuis la base ;
+        /* fichier téléversé (table fichiers, blocs de 512 Ko) : servi depuis la base ;
            sinon on retombe sur les fichiers statiques déployés avec le worker */
-        const cheminFi = decodeURIComponent(cible.slice("/app/data/prestataires/".length));
         const fi = await env.DB.prepare("SELECT id, type, taille FROM fichiers WHERE chemin = ?").bind(cheminFi).first();
         if (fi) {
           const blocs = (await env.DB.prepare("SELECT data FROM fichiers_blocs WHERE fichier_id = ? ORDER BY seq").bind(fi.id).all()).results;
@@ -288,7 +290,8 @@ export default {
 /* ---------- API ---------- */
 async function api(req, env, url, u) {
   const p = url.pathname;
-  const corps = req.method === "POST" ? await req.json().catch(() => ({})) : {};
+  const ctReq = req.headers.get("content-type") || "";
+  const corps = req.method === "POST" && !/^multipart\/form-data/i.test(ctReq) ? await req.json().catch(() => ({})) : {};
 
   /* ===== DATAtourisme LIVE (proxy — la clé API reste un SECRET serveur : la page
      n'appelle jamais api.datatourisme.fr en direct, sinon la clé fuirait côté client).
@@ -790,14 +793,14 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     }
     if (p === "/api/prest/declarations" && req.method === "POST") {
       if (!estPrest) return json({ erreur: "reserve_prestataires" }, 403);
-      const mois = /^\d{4}-\d{2}$/.test(corps.mois || "") ? corps.mois : new Date().toISOString().slice(0, 7);
+      const mois = /^\d{4}-(0[1-9]|1[0-2])$/.test(corps.mois || "") ? corps.mois : new Date().toISOString().slice(0, 7);
       const lignes = Array.isArray(corps.lignes) ? corps.lignes.slice(0, 200) : [];
-      let n = 0;
+      let n = 0, ignorees = 0;
       for (const l of lignes) {
         const nom = majNom(l.nom), prenom = majPrenom(l.prenom), metier = String(l.metier || "").toUpperCase().slice(0, 40);
         if (!nom || !prenom || !metier) continue;
         const doublon = await env.DB.prepare("SELECT id FROM declarations WHERE prestataire_id = ? AND mois = ? AND nom = ? AND prenom = ?").bind(moi.id, mois, nom, prenom).first();
-        if (doublon) continue;
+        if (doublon) { ignorees++; continue; }
         await env.DB.prepare("INSERT INTO declarations (prestataire_id, user_id, mois, nom, prenom, metier, agence, qualifie, commentaire, matricule) VALUES (?,?,?,?,?,?,?,?,?,?)")
           .bind(moi.id, u.id, mois, nom, prenom, metier, String(l.agence || "").toUpperCase().trim().slice(0, 60), l.qualifie ? 1 : 0, String(l.commentaire || "").slice(0, 200),
                 String(l.matricule || "").toUpperCase().trim().slice(0, 30) || null).run();
@@ -806,7 +809,7 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       await journal(env, req, u, "prest_declaration", moi.code + " " + mois + " : " + n + " ligne(s)");
       if (n) await envoyerEmail(env, ADMINS, "Prestataire " + moi.societe + " — déclaration " + mois + " (" + n + " candidat(s))",
         moi.societe + " (" + moi.code + ") a déclaré " + n + " candidat(s) placé(s) pour " + mois + ". Heures à renseigner et à valider avant le 12 : " + url.origin + "/app/prestataires.html", { env, req });
-      return json({ ok: true, n, mois });
+      return json({ ok: true, n, ignorees, mois });
     }
     if (p === "/api/prest/declaration" && req.method === "POST") {   /* suppression par le prestataire (tant que non validée) */
       if (!estPrest) return json({ erreur: "reserve_prestataires" }, 403);
@@ -817,9 +820,9 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       if (!admin) return json({ erreur: "reserve_admin" }, 403);
       const st = ["declaree", "validee", "rejetee"].includes(corps.statut) ? corps.statut : null;
       const h = corps.heures == null || corps.heures === "" ? null : Math.max(0, parseFloat(String(corps.heures).replace(",", ".")) || 0);
-      await env.DB.prepare("UPDATE declarations SET heures = ?, qualifie = COALESCE(?, qualifie), statut = COALESCE(?, statut), valide_le = CASE WHEN ? = 'validee' THEN datetime('now') ELSE valide_le END, commentaire = COALESCE(?, commentaire), matricule = COALESCE(?, matricule) WHERE id = ?")
+      await env.DB.prepare("UPDATE declarations SET heures = ?, qualifie = COALESCE(?, qualifie), statut = COALESCE(?, statut), valide_le = CASE WHEN ? = 'validee' THEN datetime('now') ELSE valide_le END, commentaire = COALESCE(?, commentaire), matricule = NULLIF(COALESCE(?, matricule), '') WHERE id = ?")
         .bind(h, corps.qualifie == null ? null : (corps.qualifie ? 1 : 0), st, st, corps.commentaire == null ? null : String(corps.commentaire).slice(0, 200),
-              corps.matricule == null ? null : (String(corps.matricule).toUpperCase().trim().slice(0, 30) || null), corps.id | 0).run();
+              corps.matricule == null ? null : String(corps.matricule).toUpperCase().trim().slice(0, 30), corps.id | 0).run();
       return json({ ok: true });
     }
     /* --- facturation du mois (calcul contractuel) --- */
@@ -853,12 +856,16 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     if (p === "/api/prest/facture/upload" && req.method === "POST") {
       if (!estPrest) return json({ erreur: "reserve_prestataires" }, 403);
       let fd; try { fd = await req.formData(); } catch (e) { return json({ erreur: "formulaire_invalide" }, 400); }
-      const mois = /^\d{4}-\d{2}$/.test(fd.get("mois") || "") ? fd.get("mois") : new Date().toISOString().slice(0, 7);
-      const st = await enregistrerFichier(env, u, moi.code + "/factures", fd.get("fichier"), ["pdf", "png", "jpg", "jpeg"], 10 * 1024 * 1024, mois + "-facture-");
-      if (st.erreur) return json({ erreur: st.erreur }, st.erreur === "fichier_trop_gros" ? 413 : 400);
+      const mois = /^\d{4}-(0[1-9]|1[0-2])$/.test(fd.get("mois") || "") ? fd.get("mois") : new Date().toISOString().slice(0, 7);
       const numero = String(fd.get("numero") || "").trim().slice(0, 40);
       const montantS = String(fd.get("montant") || "").replace(/\s/g, "").replace(",", ".");
-      const montant = montantS ? Math.round((parseFloat(montantS) || 0) * 100) / 100 : null;
+      const vMont = Number(montantS);
+      if (montantS && (!Number.isFinite(vMont) || vMont < 0)) return json({ erreur: "montant_invalide" }, 400);
+      const montant = montantS ? Math.round(vMont * 100) / 100 : null;
+      const deja = await env.DB.prepare("SELECT COUNT(*) AS n FROM factures_prest WHERE prestataire_id = ? AND mois = ?").bind(moi.id, mois).first();
+      if (deja && deja.n >= 5) return json({ erreur: "trop_de_factures" }, 429);
+      const st = await enregistrerFichier(env, u, moi.code + "/factures", fd.get("fichier"), ["pdf", "png", "jpg", "jpeg"], 10 * 1024 * 1024, mois + "-facture-");
+      if (st.erreur) return json({ erreur: st.erreur }, st.erreur === "fichier_trop_gros" ? 413 : 400);
       const ins = await env.DB.prepare("INSERT INTO factures_prest (prestataire_id, mois, numero, montant, fichier, cree_par) VALUES (?,?,?,?,?,?)").bind(moi.id, mois, numero, montant, st.chemin, u.email).run();
       await journal(env, req, u, "prest_facture_depot", moi.code + " " + mois + " " + numero + (montant == null ? "" : " " + montant + " €"));
       await envoyerEmail(env, ADMINS, "Prestataire " + moi.societe + " — facture " + mois + (numero ? " n° " + numero : "") + (montant == null ? "" : " (" + montant + " € HT)"),
@@ -889,6 +896,17 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       if (corps.paliers !== undefined) { champs.push("paliers = ?"); vals.push(corps.paliers ? JSON.stringify(corps.paliers) : null); }
       if (corps.langue) { champs.push("langue = ?"); vals.push(LANGUES.includes(corps.langue) ? corps.langue : "fr"); }
       if (corps.actif != null) { champs.push("actif = ?"); vals.push(corps.actif ? 1 : 0); }
+      if (corps.code != null) {
+        const code = String(corps.code).trim().toUpperCase();
+        if (!/^[A-Z0-9]{3,20}$/.test(code) || code === "COMMUN") return json({ erreur: "code_invalide" }, 400);
+        const actuel = await env.DB.prepare("SELECT code FROM prestataires WHERE id = ?").bind(id).first();
+        if (actuel && actuel.code !== code) {
+          /* le code est aussi le dossier des fichiers : on refuse le renommage tant que des fichiers y sont rangés */
+          const lie = await env.DB.prepare("SELECT (SELECT COUNT(*) FROM fichiers WHERE chemin LIKE ? || '/%') + (SELECT COUNT(*) FROM documents WHERE fichier LIKE ? || '/%') + (SELECT COUNT(*) FROM factures_prest WHERE fichier LIKE ? || '/%') AS n").bind(actuel.code, actuel.code, actuel.code).first();
+          if (lie && lie.n > 0) return json({ erreur: "code_fichiers_lies" }, 409);
+        }
+        corps.code = code;
+      }
       for (const k of ["societe", "contact", "telephone", "pays", "code"]) if (corps[k] != null) { champs.push(k + " = ?"); vals.push(String(corps[k]).slice(0, 120)); }
       if (!champs.length) return json({ erreur: "rien_a_modifier" }, 400);
       await env.DB.prepare("UPDATE prestataires SET " + champs.join(", ") + " WHERE id = ?").bind(...vals, id).run();
