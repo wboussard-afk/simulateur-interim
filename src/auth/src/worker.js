@@ -709,6 +709,11 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     /* horloge Paris : la « semaine courante » est la même pour toutes les routes (moi, propositions, commandes) */
     const parisNow = () => new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Paris" }));
     const semaineCourante = () => semaineISO(parisNow());
+    const semaineDe = str => /^\d{4}-W(0[1-9]|[1-4]\d|5[0-3])$/.test(str || "") ? str : null;
+    const lundiDe = sem => { const [y, w] = sem.split("-W").map(Number); const j4 = new Date(Date.UTC(y, 0, 4)); const lundi = new Date(j4); lundi.setUTCDate(j4.getUTCDate() - ((j4.getUTCDay() || 7) - 1) + (w - 1) * 7); return lundi; };
+    const dateFR = iso => /^\d{4}-\d{2}-\d{2}$/.test(iso || "") ? iso.slice(8, 10) + "/" + iso.slice(5, 7) + "/" + iso.slice(0, 4) : (iso || "");
+    const periodeDe = sem => { const lu = lundiDe(sem), ve = new Date(lu.getTime() + 4 * 86400000); return dateFR(lu.toISOString().slice(0, 10)) + " – " + dateFR(ve.toISOString().slice(0, 10)); };
+    const libSemaine = sem => "semaine " + String(parseInt(sem.slice(6), 10)) + " (" + periodeDe(sem) + ")";
     const majNom = x => String(x || "").trim().toUpperCase().slice(0, 60);
     const majPrenom = x => String(x || "").trim().toLowerCase().replace(/(^|[\s-])(\p{L})/gu, (m, a, b) => a + b.toUpperCase()).slice(0, 60);
     const tauxDe = (pr, qualifie, nbTT) => {
@@ -726,14 +731,9 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     }
     /* --- commandes classées par semaine : import (brouillon) → publication (visible des prestataires) → archive après le vendredi.
        UNE LIGNE PAR (numéro, semaine) : une commande reconduite est recopiée dans la nouvelle semaine, l'archive de la précédente reste intacte. --- */
-    const semaineDe = str => /^\d{4}-W(0[1-9]|[1-4]\d|5[0-3])$/.test(str || "") ? str : null;
     /* archivée = semaine passée, ou semaine courante à partir du samedi (modifiable « jusqu'au vendredi ») */
     const estArchivee = sem => { const now = semaineCourante(); return sem < now || (sem === now && [0, 6].includes(parisNow().getDay())); };
-    const lundiDe = sem => { const [y, w] = sem.split("-W").map(Number); const j4 = new Date(Date.UTC(y, 0, 4)); const lundi = new Date(j4); lundi.setUTCDate(j4.getUTCDate() - ((j4.getUTCDay() || 7) - 1) + (w - 1) * 7); return lundi; };
     const semaineSuivante = sem => semaineISO(new Date(lundiDe(sem).getTime() + 7 * 86400000));
-    const dateFR = iso => /^\d{4}-\d{2}-\d{2}$/.test(iso || "") ? iso.slice(8, 10) + "/" + iso.slice(5, 7) + "/" + iso.slice(0, 4) : (iso || "");
-    const periodeDe = sem => { const lu = lundiDe(sem), ve = new Date(lu.getTime() + 4 * 86400000); return dateFR(lu.toISOString().slice(0, 10)) + " – " + dateFR(ve.toISOString().slice(0, 10)); };
-    const libSemaine = sem => "semaine " + String(parseInt(sem.slice(6), 10)) + " (" + periodeDe(sem) + ")";
     const libCmd = c => c.titre + (c.lieu && !String(c.titre).toUpperCase().endsWith(String(c.lieu).toUpperCase()) ? " · " + c.lieu : "") + " · " + c.agence + " · n° " + c.numero + (c.date_debut ? " · début " + dateFR(c.date_debut) : "");
     /* nombre de postes : colonne dédiée, sinon le nombre en tête du titre (« 2/3 POSEURS » → 3, « 2 x 2 CHARPENTIERS » → 4) */
     const nbPostesDe = (titre, nb) => { if (nb > 0) return nb; const m = String(titre).match(/^(\d{1,2})(?:\s*([\/x×])\s*(\d{1,2}))?\s/i); if (!m) return 1; const a = +m[1], b = +(m[3] || 0); return m[2] && /[x×]/i.test(m[2]) ? a * b : Math.max(a, b); };
@@ -831,30 +831,58 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     if (p === "/api/prest/propositions" && req.method === "POST") {
       if (!estPrest) return json({ erreur: "reserve_prestataires" }, 403);
       const sem = /^\d{4}-W\d{2}$/.test(corps.semaine || "") ? corps.semaine : semaineCourante();
-      const lignes = Array.isArray(corps.lignes) ? corps.lignes.slice(0, 60) : [];
-      let n = 0;
+      const lignes = Array.isArray(corps.lignes) ? corps.lignes.slice(0, 100) : [];
+      /* équipes : numérotation continue pour ce prestataire et cette semaine (équipe 1 lundi, équipes 2-3 mardi…), 5 candidats max */
+      const dernier = await env.DB.prepare("SELECT COALESCE(MAX(equipe), 0) AS m FROM propositions WHERE prestataire_id = ? AND semaine = ?").bind(moi.id, sem).first();
+      const base = (dernier && dernier.m) || 0;
+      const parEq = {}; let n = 0;
       /* une proposition faite le week-end pour une commande de la semaine suivante est classée dans CETTE semaine-là */
       const semDeCmd = async id => { if (!id) return null; const c = await env.DB.prepare("SELECT semaine FROM commandes WHERE id = ?").bind(id).first(); return c && c.semaine ? c.semaine : null; };
+      const cacheRef = {};
       for (const l of lignes) {
         const nom = majNom(l.nom), prenom = majPrenom(l.prenom), metier = String(l.metier || "").toUpperCase().slice(0, 40);
         if (!nom || !prenom || !metier) continue;
-        await env.DB.prepare("INSERT INTO propositions (prestataire_id, user_id, commande_id, semaine, equipe, nom, prenom, metier, vehicule, salaire_net, telephone, remarques, agence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
-          .bind(moi.id, u.id, parseInt(l.commande_id, 10) || null, (await semDeCmd(parseInt(l.commande_id, 10) || null)) || sem, parseInt(l.equipe, 10) || 1, nom, prenom, metier, l.vehicule ? 1 : 0,
+        const eqLoc = Math.max(1, parseInt(l.equipe, 10) || 1); const eq = base + eqLoc;
+        parEq[eq] = (parEq[eq] || 0); if (parEq[eq] >= 5) continue;
+        let cmdId = parseInt(l.commande_id, 10) || null, ref = String(l.commande_ref || "").trim().slice(0, 20);
+        if (!cmdId && ref) {   /* n° saisi à la main : rattaché à la commande si elle est connue */
+          if (!(ref in cacheRef)) { const c = await env.DB.prepare("SELECT id FROM commandes WHERE numero = ? AND statut = 'ouverte' ORDER BY semaine DESC, id DESC LIMIT 1").bind(ref).first(); cacheRef[ref] = c ? c.id : null; }
+          cmdId = cacheRef[ref];
+        }
+        await env.DB.prepare("INSERT INTO propositions (prestataire_id, user_id, commande_id, commande_ref, semaine, equipe, nom, prenom, metier, vehicule, salaire_net, telephone, remarques, agence) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+          .bind(moi.id, u.id, cmdId, cmdId ? null : (ref || null), (await semDeCmd(cmdId)) || sem, eq, nom, prenom, metier, l.vehicule ? 1 : 0,
                 String(l.salaire_net || "").slice(0, 20), String(l.telephone || "").slice(0, 30), String(l.remarques || "").slice(0, 300), String(l.agence || "").toUpperCase().trim().slice(0, 60)).run();
-        n++;
+        parEq[eq]++; n++;
       }
-      await journal(env, req, u, "prest_proposition", moi.code + " " + sem + " : " + n + " candidat(s)");
-      if (n) await envoyerEmail(env, ADMINS, "Prestataire " + moi.societe + " — proposition d'équipe " + sem + " (" + n + " candidat(s))",
-        "Nouvelle proposition d'équipe déposée sur le portail par " + moi.societe + " (" + moi.code + "), semaine " + sem + " : " + n + " candidat(s).\n\n" +
-        lignes.filter(l => l.nom && l.prenom).map(l => "  • " + majNom(l.nom) + " " + majPrenom(l.prenom) + " — " + String(l.metier || "").toUpperCase() + (l.commande_id ? " (commande #" + l.commande_id + ")" : "") + (l.vehicule ? " · véhicule" : "") + (l.salaire_net ? " · net " + l.salaire_net : "")).join("\n") +
-        "\n\nDétail et suivi : " + url.origin + "/app/prestataires.html", { env, req });
-      return json({ ok: true, n, semaine: sem });
+      const nbEq = Object.keys(parEq).filter(k => parEq[k] > 0).length;
+      await journal(env, req, u, "prest_proposition", moi.code + " " + sem + " : " + nbEq + " équipe(s), " + n + " candidat(s)");
+      if (n) {
+        const detail = Object.keys(parEq).filter(k => parEq[k] > 0).map(k => {
+          const membres = lignes.filter(l => base + Math.max(1, parseInt(l.equipe, 10) || 1) === +k && l.nom && l.prenom && l.metier).slice(0, 5);
+          const l0 = membres[0] || {};
+          return "Équipe " + k + (l0.commande_id ? " — commande #" + l0.commande_id : l0.commande_ref ? " — commande n° " + l0.commande_ref : "") + (l0.agence ? " — " + String(l0.agence).toUpperCase() : "") + " (" + membres.length + ") :\n" +
+            membres.map(l => "    • " + majNom(l.nom) + " " + majPrenom(l.prenom) + " — " + String(l.metier || "").toUpperCase() + (l.vehicule ? " · véhicule" : "") + (l.salaire_net ? " · " + l.salaire_net + " €" : "")).join("\n");
+        }).join("\n\n");
+        await envoyerEmail(env, ADMINS, "Prestataire " + moi.societe + " — " + nbEq + " équipe(s) proposée(s) " + libSemaine(sem) + " (" + n + " candidat(s))",
+          "Nouvelle proposition déposée sur le portail par " + moi.societe + " (" + moi.code + "), " + libSemaine(sem) + " : " + nbEq + " équipe(s), " + n + " candidat(s).\n\n" + detail +
+          "\n\nRetenir ou refuser chaque équipe : " + url.origin + "/app/prestataires.html (onglet Propositions)", { env, req });
+      }
+      return json({ ok: true, n, equipes: nbEq, semaine: sem });
     }
     if (p === "/api/prest/admin/proposition" && req.method === "POST") {
       if (!admin) return json({ erreur: "reserve_admin" }, 403);
       const st = ["proposee", "retenue", "refusee"].includes(corps.statut) ? corps.statut : "proposee";
       await env.DB.prepare("UPDATE propositions SET statut = ? WHERE id = ?").bind(st, corps.id | 0).run();
       return json({ ok: true });
+    }
+    /* décision par ÉQUIPE : les agences acceptent ou refusent une équipe entière */
+    if (p === "/api/prest/admin/equipe" && req.method === "POST") {
+      if (!admin) return json({ erreur: "reserve_admin" }, 403);
+      const st = ["proposee", "retenue", "refusee"].includes(corps.statut) ? corps.statut : null;
+      if (!st || !semaineDe(corps.semaine)) return json({ erreur: "parametres_invalides" }, 400);
+      const r = await env.DB.prepare("UPDATE propositions SET statut = ? WHERE prestataire_id = ? AND semaine = ? AND equipe = ?").bind(st, corps.prestataire_id | 0, corps.semaine, corps.equipe | 0).run();
+      await journal(env, req, u, "prest_equipe_statut", (corps.prestataire_id | 0) + " " + corps.semaine + " équipe " + (corps.equipe | 0) + " → " + st + " (" + ((r.meta && r.meta.changes) || 0) + ")");
+      return json({ ok: true, n: (r.meta && r.meta.changes) || 0 });
     }
     /* --- déclaration mensuelle des candidats placés + heures (admin) --- */
     if (p === "/api/prest/declarations" && req.method === "GET") {

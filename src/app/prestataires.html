@@ -77,6 +77,15 @@ body.admin .wrap { max-width: 1500px; }
 .tag.brouillon { background: var(--warn-soft); color: var(--warn); } .tag.arch { background: var(--card2); color: var(--muted); }
 table.saisie input.court { min-width: 60px; width: 70px; } table.saisie input.moyen { min-width: 110px; width: 130px; }
 .semaine-titre { font-weight: 800; color: var(--brass-deep); margin: 10px 0 6px; font-size: 14px; }
+.equipe { border: 1px solid var(--line); border-radius: 10px; margin-bottom: 12px; background: var(--paper); }
+.equipe .eq-tete { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; padding: 10px 12px; border-bottom: 1px solid var(--line-soft); }
+.equipe .eq-tete .num-eq { font-weight: 800; color: var(--brass-deep); font-size: 15px; align-self: center; }
+.equipe .eq-tete .field { flex: 1 1 200px; } .equipe .eq-tete .field label { margin-bottom: 3px; }
+.equipe .tbl { padding: 0 4px; } .equipe .eq-pied { padding: 8px 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.equipe table.saisie th:nth-child(-n+2), .equipe table.saisie td:nth-child(-n+2) { background: var(--paper); }
+.eq-carte { border: 1px solid var(--line-soft); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; background: var(--paper); }
+.eq-carte .eq-titre { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-weight: 800; }
+.eq-carte ul { margin: 6px 0 0 18px; padding: 0; font-size: 14px; } .eq-carte li { margin: 2px 0; }
 table.saisie .num { color: var(--muted); font-size: 12px; text-align: center; }
 table.saisie .btn.s { padding: 6px 9px; }
 .compteur { display: inline-block; background: var(--good-soft); color: var(--good); border-radius: 12px; padding: 3px 10px; font-weight: 800; font-size: 14px; }
@@ -108,16 +117,15 @@ table.saisie .btn.s { padding: 6px 9px; }
   <section class="card" data-onglet="proposer">
     <h2><span data-t="t_proposer">Proposer une équipe</span> <span class="note" id="prop-sem"></span></h2>
     <div class="b">
-      <div class="note" data-t="prop_intro">Un candidat par ligne. NOM en majuscules et prénom sont mis en forme automatiquement. Ajoutez autant de lignes que nécessaire, puis envoyez : AB2PRO reçoit la proposition immédiatement.</div>
-      <div class="note" data-t="defiler" style="margin-top:8px">↔ Faites glisser le tableau vers la gauche : métier, agence… sont à droite.</div>
-      <div class="tbl" style="margin-top:6px"><table class="saisie"><thead id="prop-entete"></thead><tbody id="prop-lignes"></tbody></table></div>
+      <div class="note" data-t="prop_intro">Composez vos équipes : chaque équipe (2 à 5 candidats) est proposée entière, rattachée à une commande choisie dans la liste ou dont vous saisissez le numéro. Ajoutez une deuxième équipe, une troisième… puis envoyez : AB2PRO reçoit tout immédiatement.</div>
+      <div id="prop-equipes" style="margin-top:10px"></div>
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px">
-        <button class="btn" id="btn-prop-plus" data-t="ajouter_ligne">+ Ajouter un candidat</button>
+        <button class="btn" id="btn-prop-equipe" data-t="composer_equipe">+ Composer une autre équipe</button>
         <button class="btn p" id="btn-prop-envoyer" data-t="envoyer">Envoyer la proposition</button>
       </div>
       <div class="msg" id="prop-msg"></div>
       <h2 style="margin:14px -14px 8px; border-top:1px solid var(--line-soft)"><span data-t="mes_propositions">Mes propositions</span></h2>
-      <div class="tbl"><table id="tbl-prop"></table></div>
+      <div id="liste-prop"></div>
     </div>
   </section>
 
@@ -212,7 +220,8 @@ table.saisie .btn.s { padding: 6px 9px; }
   <!-- ===== admin : propositions ===== -->
   <section class="card" data-onglet="adm-propositions" data-admin>
     <h2>Propositions reçues (admin) <select id="adm-prop-sem" style="width:auto; min-width:220px; padding:6px 8px; font-size:16px; margin-left:auto"></select> <button class="btn s" id="btn-adm-prop">Afficher</button></h2>
-    <div class="b"><div class="tbl"><table id="tbl-adm-prop"></table></div></div>
+    <div class="b"><div class="note" id="adm-prop-resume"></div><div class="tbl" style="margin-top:8px"><table id="tbl-adm-prop"></table></div>
+      <div class="note" style="margin-top:8px">Les équipes sont acceptées ou refusées entières ; le prestataire voit le statut dans son espace.</div></div>
   </section>
 
   <!-- ===== admin : déclarations & heures ===== -->
@@ -269,7 +278,7 @@ const get = u => fetch(u).then(r => r.ok ? r.json() : r.json().then(j => Promise
 /* ===== textes FR / EN / RO / HU ===== */
 const T = {
   fr: { titre: "Prestataires recrutement", t_commandes: "Commandes de la semaine", cmd_intro: "Postes à pourvoir cette semaine. Proposez vos candidats dans l'onglet « Proposer une équipe » en indiquant la commande visée.",
-    t_proposer: "Proposer une équipe", prop_intro: "Un candidat par ligne. NOM en majuscules et prénom sont mis en forme automatiquement. Ajoutez autant de lignes que nécessaire, puis envoyez : AB2PRO reçoit la proposition immédiatement.",
+    t_proposer: "Proposer une équipe", prop_intro: "Composez vos équipes : chaque équipe (2 à 5 candidats) est proposée entière, rattachée à une commande choisie dans la liste ou dont vous saisissez le numéro. Ajoutez une deuxième équipe, une troisième… puis envoyez : AB2PRO reçoit tout immédiatement.",
     ajouter_ligne: "+ Ajouter un candidat", envoyer: "Envoyer la proposition", mes_propositions: "Mes propositions", t_declarer: "Candidats placés du mois",
     decl_intro: "Déclarez ici, avant le 15 du mois suivant, chaque candidat que vous avez présenté et qui a travaillé dans le mois. AB2PRO renseigne ensuite les heures travaillées et facturées (avant le 12) : le tableau validé sert de base à votre facture.",
     declarer_btn: "Déclarer", mes_declarations: "Mes déclarations", t_facture: "Ma facturation", fac_note: "Seules les lignes validées par AB2PRO avec des heures comptent. Déposez votre facture ci-dessous une fois le tableau validé (adv@ab2pro.com pour toute question sur les heures).",
@@ -287,9 +296,10 @@ const T = {
     numero_facture: "N° de facture", montant_facture: "Montant HT (€)", fichier: "Fichier", choisir_fichier: "📎 Choisir le fichier…", envoyer_facture: "Envoyer ma facture", aucune_facture: "Aucune facture déposée.",
     depose_le: "Déposée le", fac_envoyee: "✓ Facture envoyée à AB2PRO.", fac_choisir_dabord: "Choisissez d'abord le fichier de la facture.", fac_trop_gros: "Fichier trop volumineux (10 Mo max).", st_recue: "reçue", st_payee: "payée",
     incompletes: "{n} ligne(s) incomplète(s) (en rouge) — nom, prénom et métier obligatoires.", defiler: "↔ Faites glisser le tableau vers la gauche : métier, agence… sont à droite.",
-    proposer_sur: "Proposer un candidat →", deja_declares: "{n} déjà déclaré(s) ce mois, ignoré(s)", en_cours: "{n} ligne(s) saisie(s), pas encore déclarée(s)", fac_type: "Format non accepté : PDF, JPG ou PNG uniquement.", trop_de_factures: "5 factures maximum par mois.", montant_invalide: "Montant invalide." },
+    proposer_sur: "Proposer un candidat →", equipe_n: "Équipe {n}", composer_equipe: "+ Composer une autre équipe", supprimer_equipe: "Supprimer l'équipe", ajouter_candidat: "+ Ajouter un candidat (5 max)",
+    numero_commande: "N° de commande", commande_libre: "Autre commande : saisir le n°", err_equipe_taille: "Équipe {n} : de 2 à 5 candidats complets (nom, prénom, métier).", candidats_n: "{n} candidat(s)", equipes_n: "{n} équipe(s)", equipe_vide: "Aucune équipe complète à envoyer.", deja_declares: "{n} déjà déclaré(s) ce mois, ignoré(s)", en_cours: "{n} ligne(s) saisie(s), pas encore déclarée(s)", fac_type: "Format non accepté : PDF, JPG ou PNG uniquement.", trop_de_factures: "5 factures maximum par mois.", montant_invalide: "Montant invalide." },
   en: { titre: "Recruitment partners", t_commandes: "This week's job orders", cmd_intro: "Positions to fill this week. Propose your candidates in the “Propose a team” tab, indicating the targeted order.",
-    t_proposer: "Propose a team", prop_intro: "One candidate per line. SURNAME (capitals) and first name are formatted automatically. Add as many lines as needed, then send: AB2PRO receives the proposal immediately.",
+    t_proposer: "Propose a team", prop_intro: "Build your teams: each team (2 to 5 candidates) is proposed as a whole, attached to a job order chosen from the list or typed by number. Add a second team, a third… then send: AB2PRO receives everything immediately.",
     ajouter_ligne: "+ Add a candidate", envoyer: "Send the proposal", mes_propositions: "My proposals", t_declarer: "Candidates placed this month",
     decl_intro: "Declare here, before the 15th of the following month, each candidate you presented who worked during the month. AB2PRO then fills in the hours worked and invoiced (before the 12th): the validated table is the basis of your invoice.",
     declarer_btn: "Declare", mes_declarations: "My declarations", t_facture: "My invoicing", fac_note: "Only lines validated by AB2PRO that have hours are counted. Upload your invoice below once the table is validated (adv@ab2pro.com for any question about hours).",
@@ -307,9 +317,10 @@ const T = {
     numero_facture: "Invoice no.", montant_facture: "Amount excl. VAT (€)", fichier: "File", choisir_fichier: "📎 Choose the file…", envoyer_facture: "Send my invoice", aucune_facture: "No invoice uploaded.",
     depose_le: "Uploaded on", fac_envoyee: "✓ Invoice sent to AB2PRO.", fac_choisir_dabord: "Choose the invoice file first.", fac_trop_gros: "File too large (10 MB max).", st_recue: "received", st_payee: "paid",
     incompletes: "{n} incomplete line(s) (in red) — surname, first name and trade are required.", defiler: "↔ Swipe the table left: trade, agency… are on the right.",
-    proposer_sur: "Propose a candidate →", deja_declares: "{n} already declared this month, skipped", en_cours: "{n} line(s) typed, not declared yet", fac_type: "Format not accepted: PDF, JPG or PNG only.", trop_de_factures: "5 invoices maximum per month.", montant_invalide: "Invalid amount." },
+    proposer_sur: "Propose a candidate →", equipe_n: "Team {n}", composer_equipe: "+ Build another team", supprimer_equipe: "Remove this team", ajouter_candidat: "+ Add a candidate (max 5)",
+    numero_commande: "Job order no.", commande_libre: "Other order: type the number", err_equipe_taille: "Team {n}: 2 to 5 complete candidates (surname, first name, trade).", candidats_n: "{n} candidate(s)", equipes_n: "{n} team(s)", equipe_vide: "No complete team to send.", deja_declares: "{n} already declared this month, skipped", en_cours: "{n} line(s) typed, not declared yet", fac_type: "Format not accepted: PDF, JPG or PNG only.", trop_de_factures: "5 invoices maximum per month.", montant_invalide: "Invalid amount." },
   ro: { titre: "Parteneri recrutare", t_commandes: "Comenzile săptămânii", cmd_intro: "Posturi de ocupat săptămâna aceasta. Propuneți candidații în fila „Propuneți o echipă”, indicând comanda vizată.",
-    t_proposer: "Propuneți o echipă", prop_intro: "Un candidat pe linie. NUMELE (majuscule) și prenumele se formatează automat. Adăugați câte linii este nevoie, apoi trimiteți: AB2PRO primește propunerea imediat.",
+    t_proposer: "Propuneți o echipă", prop_intro: "Compuneți echipele: fiecare echipă (2–5 candidați) este propusă întreagă, legată de o comandă aleasă din listă sau al cărei număr îl scrieți. Adăugați a doua echipă, a treia… apoi trimiteți: AB2PRO primește totul imediat.",
     ajouter_ligne: "+ Adăugați un candidat", envoyer: "Trimiteți propunerea", mes_propositions: "Propunerile mele", t_declarer: "Candidați plasați în luna",
     decl_intro: "Declarați aici, înainte de 15 ale lunii următoare, fiecare candidat prezentat de dvs. care a lucrat în cursul lunii. AB2PRO completează apoi orele lucrate și facturate (înainte de 12): tabelul validat este baza facturii dvs.",
     declarer_btn: "Declarați", mes_declarations: "Declarațiile mele", t_facture: "Facturarea mea", fac_note: "Numai liniile validate de AB2PRO cu ore contează. Depuneți factura mai jos după validarea tabelului (adv@ab2pro.com pentru orice întrebare despre ore).",
@@ -327,9 +338,10 @@ const T = {
     numero_facture: "Nr. factură", montant_facture: "Sumă fără TVA (€)", fichier: "Fișier", choisir_fichier: "📎 Alegeți fișierul…", envoyer_facture: "Trimiteți factura", aucune_facture: "Nicio factură depusă.",
     depose_le: "Depusă la", fac_envoyee: "✓ Factura a fost trimisă la AB2PRO.", fac_choisir_dabord: "Alegeți mai întâi fișierul facturii.", fac_trop_gros: "Fișier prea mare (max. 10 MB).", st_recue: "primită", st_payee: "plătită",
     incompletes: "Linii incomplete (cu roșu): {n} — nume, prenume și meserie obligatorii.", defiler: "↔ Glisați tabelul spre stânga: meseria, agenția… sunt în dreapta.",
-    proposer_sur: "Propuneți un candidat →", deja_declares: "deja declarați luna aceasta, ignorați: {n}", en_cours: "Linii introduse, nedeclarate încă: {n}", fac_type: "Format neacceptat: doar PDF, JPG sau PNG.", trop_de_factures: "Maximum 5 facturi pe lună.", montant_invalide: "Sumă invalidă." },
+    proposer_sur: "Propuneți un candidat →", equipe_n: "Echipa {n}", composer_equipe: "+ Compuneți o altă echipă", supprimer_equipe: "Ștergeți echipa", ajouter_candidat: "+ Adăugați un candidat (max. 5)",
+    numero_commande: "Nr. comandă", commande_libre: "Altă comandă: scrieți numărul", err_equipe_taille: "Echipa {n}: între 2 și 5 candidați completi (nume, prenume, meserie).", candidats_n: "Candidați: {n}", equipes_n: "Echipe: {n}", equipe_vide: "Nicio echipă completă de trimis.", deja_declares: "deja declarați luna aceasta, ignorați: {n}", en_cours: "Linii introduse, nedeclarate încă: {n}", fac_type: "Format neacceptat: doar PDF, JPG sau PNG.", trop_de_factures: "Maximum 5 facturi pe lună.", montant_invalide: "Sumă invalidă." },
   hu: { titre: "Toborzó partnerek", t_commandes: "A hét megrendelései", cmd_intro: "Ezen a héten betöltendő állások. Jelöltjeit a „Csapat javaslása” fülön ajánlja, megjelölve a célzott megrendelést.",
-    t_proposer: "Csapat javaslása", prop_intro: "Soronként egy jelölt. A VEZETÉKNÉV (nagybetűvel) és a keresztnév automatikusan formázódik. Adjon hozzá annyi sort, amennyi szükséges, majd küldje el: az AB2PRO azonnal megkapja a javaslatot.",
+    t_proposer: "Csapat javaslása", prop_intro: "Állítsa össze csapatait: minden csapat (2–5 jelölt) egészben kerül ajánlásra, egy listából választott vagy számmal beírt megrendeléshez kötve. Adjon hozzá második, harmadik csapatot… majd küldje el: az AB2PRO azonnal mindent megkap.",
     ajouter_ligne: "+ Jelölt hozzáadása", envoyer: "Javaslat küldése", mes_propositions: "Javaslataim", t_declarer: "A hónapban elhelyezett jelöltek",
     decl_intro: "Itt jelentse be a következő hónap 15-e előtt minden jelöltjét, aki a hónapban dolgozott. Az AB2PRO ezután kitölti a ledolgozott és kiszámlázott órákat (12-e előtt): a jóváhagyott táblázat a számlája alapja.",
     declarer_btn: "Bejelentés", mes_declarations: "Bejelentéseim", t_facture: "Számlázásom", fac_note: "Csak az AB2PRO által jóváhagyott, órákkal rendelkező sorok számítanak. Számláját a táblázat jóváhagyása után töltse fel alább (órákkal kapcsolatos kérdések: adv@ab2pro.com).",
@@ -347,7 +359,8 @@ const T = {
     numero_facture: "Számlaszám", montant_facture: "Összeg (nettó, €)", fichier: "Fájl", choisir_fichier: "📎 Fájl kiválasztása…", envoyer_facture: "Számla küldése", aucune_facture: "Nincs feltöltött számla.",
     depose_le: "Feltöltve", fac_envoyee: "✓ A számlát elküldtük az AB2PRO-nak.", fac_choisir_dabord: "Először válassza ki a számla fájlját.", fac_trop_gros: "A fájl túl nagy (max. 10 MB).", st_recue: "beérkezett", st_payee: "kifizetett",
     incompletes: "{n} hiányos sor (pirossal) — vezetéknév, keresztnév és szakma kötelező.", defiler: "↔ Húzza balra a táblázatot: a szakma, iroda… jobbra található.",
-    proposer_sur: "Jelölt ajánlása →", deja_declares: "{n} már bejelentve ebben a hónapban, kihagyva", en_cours: "{n} beírt sor, még nincs bejelentve", fac_type: "Nem elfogadott formátum: csak PDF, JPG vagy PNG.", trop_de_factures: "Havonta legfeljebb 5 számla.", montant_invalide: "Érvénytelen összeg." },
+    proposer_sur: "Jelölt ajánlása →", equipe_n: "{n}. csapat", composer_equipe: "+ Újabb csapat összeállítása", supprimer_equipe: "Csapat törlése", ajouter_candidat: "+ Jelölt hozzáadása (max. 5)",
+    numero_commande: "Megrendelés száma", commande_libre: "Más megrendelés: írja be a számát", err_equipe_taille: "{n}. csapat: 2–5 teljes jelölt (vezetéknév, keresztnév, szakma).", candidats_n: "{n} jelölt", equipes_n: "{n} csapat", equipe_vide: "Nincs elküldhető teljes csapat.", deja_declares: "{n} már bejelentve ebben a hónapban, kihagyva", en_cours: "{n} beírt sor, még nincs bejelentve", fac_type: "Nem elfogadott formátum: csak PDF, JPG vagy PNG.", trop_de_factures: "Havonta legfeljebb 5 számla.", montant_invalide: "Érvénytelen összeg." },
 };
 let L = "fr";
 const t = (k, v) => { let s = (T[L] && T[L][k]) || T.fr[k] || k; if (v) for (const x in v) s = s.replace("{" + x + "}", v[x]); return s; };
@@ -416,21 +429,27 @@ function rendreTout() {
   $("cmd-liste").querySelectorAll("[data-prop]").forEach(b => b.addEventListener("click", () => {
     montrer("proposer");
     const cmd = COMMANDES.find(c => String(c.id) === b.dataset.prop) || {};
-    const vide = Array.from($("prop-lignes").children).find(tr => !tr.querySelector("[data-k='nom']").value);
-    if (vide) { vide.querySelector("[data-k='commande_id']").value = b.dataset.prop; if (cmd.agence) vide.querySelector("[data-k='agence']").value = cmd.agence; }
-    else ajouterLigneProp({ commande_id: b.dataset.prop, agence: cmd.agence });
-    (vide || $("prop-lignes").lastElementChild).querySelector("[data-k='nom']").focus();
+    /* équipe vide existante → on la rattache ; sinon nouvelle équipe rattachée à la commande */
+    const vide = Array.from($("prop-equipes").children).find(eq => !Array.from(eq.querySelectorAll("[data-k='nom']")).some(e => e.value));
+    let eq = vide; if (eq) { eq.querySelector("[data-k='commande_id']").value = b.dataset.prop; eq.querySelector("[data-k='commande_ref']").hidden = true; if (cmd.agence) eq.querySelector("[data-k='agence']").value = cmd.agence; }
+    else eq = ajouterEquipe({ commande_id: b.dataset.prop, agence: cmd.agence });
+    eq.querySelector("[data-k='nom']").focus();
   }));
   $("cmd-sem").textContent = Object.keys(parSem).filter(Boolean).length ? "" : t("semaine") + " " + libSemaine(MOI.semaine);
   enteteProp(); enteteDecl(); remplirMois();
-  if (!$("prop-lignes").children.length) { ajouterLigneProp(); }
+  if (!$("prop-equipes").children.length) { ajouterEquipe(); }
+  renumeroterEquipes();
   if (!$("decl-lignes").children.length) { ajouterLigneDecl(); }
-  document.querySelectorAll("#prop-lignes tr, #decl-lignes tr").forEach(tr => {
+  document.querySelectorAll("#prop-equipes tr, #decl-lignes tr").forEach(tr => {
     const o0 = tr.querySelector("[data-k='metier_sel'] option[value='']"); if (o0) o0.textContent = t("choisir_metier");
     const oa = tr.querySelector("[data-k='metier_sel'] option[value='__autre']"); if (oa) oa.textContent = t("metier_libre");
     const il = tr.querySelector("[data-k='metier_libre']"); if (il) il.placeholder = t("metier");
-    const oc = tr.querySelector("[data-k='commande_id'] option[value='']"); if (oc) oc.textContent = t("libre");
     const bx = tr.querySelector("[data-x]"); if (bx) bx.title = t("supprimer");
+  });
+  document.querySelectorAll("#prop-equipes .equipe").forEach(eq => {
+    const oc = eq.querySelector("[data-k='commande_id'] option[value='']"); if (oc) oc.textContent = t("libre");
+    const ol = eq.querySelector("[data-k='commande_id'] option[value='__libre']"); if (ol) ol.textContent = t("commande_libre");
+    const inp = eq.querySelector("[data-k='commande_ref']"); if (inp) inp.placeholder = t("numero_commande");
   });
   $("prop-sem").textContent = t("semaine") + " " + libSemaine(MOI.semaine);
   const on = document.querySelector("#tabs button.on"); if (on && on.dataset.o !== "commandes") montrer(on.dataset.o);
@@ -454,28 +473,54 @@ function brancherMetier(tr) {
 const renumeroter = tbody => Array.from(tbody.children).forEach((tr, i) => { tr.querySelector(".num").textContent = i + 1; });
 const cellule = html => "<td>" + html + "</td>";
 function enteteProp() {
-  $("prop-entete").innerHTML = "<tr><th>#</th><th></th><th>" + t("nom") + "</th><th>" + t("prenom") + "</th><th>" + t("metier") + "</th><th>" + t("agence") + "</th><th>" + t("commande") + "</th><th>" + t("vehicule") + "</th><th>" + t("salaire") + "</th><th>" + t("tel") + "</th><th>" + t("remarques") + "</th></tr>";
+  document.querySelectorAll("#prop-equipes thead").forEach(th => { th.innerHTML = "<tr><th>#</th><th></th><th>" + t("nom") + "</th><th>" + t("prenom") + "</th><th>" + t("metier") + "</th><th>" + t("vehicule") + "</th><th>" + t("salaire") + "</th><th>" + t("tel") + "</th><th>" + t("remarques") + "</th></tr>"; });
 }
 function enteteDecl() {
   $("decl-entete").innerHTML = "<tr><th>#</th><th></th><th>" + t("matricule") + "</th><th>" + t("nom") + "</th><th>" + t("prenom") + "</th><th>" + t("metier") + "</th><th>" + t("agence") + "</th><th>" + t("qualifie") + "</th><th>" + t("commentaire") + "</th></tr>";
 }
-function ajouterLigneProp(v) {
+/* une équipe = en-tête (commande choisie dans la liste OU n° saisi, agence) + 2 à 5 candidats */
+const renumeroterEquipes = () => Array.from($("prop-equipes").children).forEach((eq, i) => { eq.querySelector(".num-eq").textContent = t("equipe_n", { n: i + 1 }); eq.dataset.eq = i + 1; });
+function ajouterEquipe(v) {
   v = v || {};
+  const eq = document.createElement("div"); eq.className = "equipe";
+  const agences = [...new Set([...AGENCES, ...COMMANDES.map(c => c.agence).filter(Boolean)])].sort();
+  eq.innerHTML = "<div class='eq-tete'><span class='num-eq'></span>" +
+    "<div class='field'><label>" + esc(t("commande")) + "</label><select data-k='commande_id'><option value=''>" + esc(t("libre")) + "</option>" +
+      COMMANDES.map(c => "<option value='" + c.id + "'" + (String(v.commande_id || "") === String(c.id) ? " selected" : "") + ">" + esc(libCmd(c)) + "</option>").join("") +
+      "<option value='__libre'>" + esc(t("commande_libre")) + "</option></select>" +
+      "<input data-k='commande_ref' placeholder=\"" + esc(t("numero_commande")) + "\" inputmode='numeric' style='margin-top:4px' hidden></div>" +
+    "<div class='field'><label>" + esc(t("agence")) + "</label><select data-k='agence'><option value=''>—</option>" + opts(agences, v.agence || "") + "</select></div>" +
+    "<button class='btn s' data-x-eq title=\"" + esc(t("supprimer_equipe")) + "\">✕ " + esc(t("supprimer_equipe")) + "</button></div>" +
+    "<div class='tbl'><table class='saisie'><thead></thead><tbody class='eq-lignes'></tbody></table></div>" +
+    "<div class='eq-pied'><button class='btn s' data-plus>" + esc(t("ajouter_candidat")) + "</button><span class='note' data-compte></span></div>";
+  const selC = eq.querySelector("[data-k='commande_id']"), refC = eq.querySelector("[data-k='commande_ref']"), selA = eq.querySelector("[data-k='agence']");
+  selC.addEventListener("change", () => { refC.hidden = selC.value !== "__libre"; if (!refC.hidden) refC.focus(); const c = COMMANDES.find(x => String(x.id) === selC.value); if (c && c.agence) selA.value = c.agence; });
+  eq.querySelector("[data-x-eq]").addEventListener("click", () => { if ($("prop-equipes").children.length <= 1) { eq.querySelectorAll("input:not([type=checkbox])").forEach(e => { e.value = ""; }); eq.querySelectorAll("input[type=checkbox]").forEach(e => { e.checked = false; }); return; } eq.remove(); renumeroterEquipes(); });
+  eq.querySelector("[data-plus]").addEventListener("click", () => ajouterLigneProp(eq));
+  $("prop-equipes").appendChild(eq);
+  enteteProp();
+  ajouterLigneProp(eq); ajouterLigneProp(eq);
+  renumeroterEquipes();
+  return eq;
+}
+function ajouterLigneProp(eq, v) {
+  v = v || {};
+  const tbody = eq.querySelector(".eq-lignes"); if (tbody.children.length >= 5) return null;
   const tr = document.createElement("tr");
-  tr.innerHTML = "<td class='num'>" + ($("prop-lignes").children.length + 1) + "</td>" +
+  tr.innerHTML = "<td class='num'>" + (tbody.children.length + 1) + "</td>" +
     cellule("<button class='btn s' data-x title=\"" + esc(t("supprimer")) + "\">✕</button>") +
     cellule("<input data-k='nom' value=\"" + esc(v.nom || "") + "\" style='text-transform:uppercase; min-width:140px' autocapitalize='characters' enterkeyhint='next'>") +
     cellule("<input data-k='prenom' value=\"" + esc(v.prenom || "") + "\" style='min-width:120px' autocapitalize='words'>") +
     cellule(selMetier(v.metier)) +
-    cellule("<select data-k='agence'><option value=''>—</option>" + opts([...new Set([...AGENCES, ...COMMANDES.map(c => c.agence).filter(Boolean)])].sort(), v.agence || "") + "</select>") +
-    cellule("<select data-k='commande_id'><option value=''>" + esc(t("libre")) + "</option>" + COMMANDES.map(c => "<option value='" + c.id + "'" + (String(v.commande_id || "") === String(c.id) ? " selected" : "") + ">" + esc(libCmd(c)) + "</option>").join("") + "</select>") +
     cellule("<label class='cell-chk'><input data-k='vehicule' type='checkbox'" + (v.vehicule ? " checked" : "") + "></label>") +
     cellule("<input data-k='salaire_net' inputmode='decimal' placeholder='11,50' style='min-width:80px; width:90px'>") +
     cellule("<input data-k='telephone' inputmode='tel' style='min-width:120px'>") +
     cellule("<input data-k='remarques' style='min-width:160px'>");
-  tr.querySelector("[data-x]").addEventListener("click", () => { tr.remove(); renumeroter($("prop-lignes")); });
+  const maj = () => { const n = tbody.children.length; eq.querySelector("[data-compte]").textContent = t("candidats_n", { n }) + " · 2–5"; eq.querySelector("[data-plus]").disabled = n >= 5; };
+  tr.querySelector("[data-x]").addEventListener("click", () => { tr.remove(); renumeroter(tbody); maj(); });
   brancherMetier(tr);
-  $("prop-lignes").appendChild(tr);
+  tbody.appendChild(tr); maj();
+  return tr;
 }
 /* lignes à envoyer : une ligne commencée mais incomplète bloque l'envoi (surlignée), rien n'est perdu */
 function lignesAEnvoyer(tbody, msgEl) {
@@ -494,21 +539,41 @@ function lireLignes(cont) {
     return o;
   });
 }
-$("btn-prop-plus").addEventListener("click", ajouterLigneProp);
+$("btn-prop-equipe").addEventListener("click", () => { const eq = ajouterEquipe(); eq.scrollIntoView({ behavior: "smooth", block: "start" }); eq.querySelector("[data-k='nom']").focus(); });
 $("btn-prop-envoyer").addEventListener("click", async () => {
-  const m = $("prop-msg"); const lignes = lignesAEnvoyer($("prop-lignes"), m); if (!lignes) return;
+  const m = $("prop-msg"); const lignes = []; let k = 0;
+  for (const eq of Array.from($("prop-equipes").children)) {
+    const tbody = eq.querySelector(".eq-lignes"); const trs = Array.from(tbody.children), tous = lireLignes(tbody); let inc = 0, saisies = 0;
+    trs.forEach((tr, i) => { const l = tous[i]; const saisi = l.nom || l.prenom || l.telephone || l.remarques || l.metier; const ok = l.nom && l.prenom && l.metier;
+      tr.classList.toggle("incomplete", !!saisi && !ok); if (saisi && !ok) inc++; if (ok) saisies++; });
+    const num = +eq.dataset.eq;
+    if (!saisies && !inc) continue;                       /* équipe vide : ignorée */
+    if (inc || saisies < 2 || saisies > 5) { m.className = "msg err"; m.textContent = inc ? t("incompletes", { n: inc }) : t("err_equipe_taille", { n: num }); eq.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+    k++;
+    const selC = eq.querySelector("[data-k='commande_id']").value, ref = eq.querySelector("[data-k='commande_ref']").value.trim(), agence = eq.querySelector("[data-k='agence']").value;
+    tous.filter(l => l.nom && l.prenom && l.metier).forEach(l => lignes.push(Object.assign(l, { equipe: k, commande_id: selC === "__libre" ? "" : selC, commande_ref: selC === "__libre" ? ref : "", agence })));
+  }
+  if (!lignes.length) { m.className = "msg err"; m.textContent = t("equipe_vide"); return; }
   $("btn-prop-envoyer").disabled = true; m.className = "msg"; m.textContent = "…";
   const j = await post("/api/prest/propositions", { semaine: MOI.semaine, lignes }).catch(() => ({}));
   $("btn-prop-envoyer").disabled = false;
-  if (j.ok) { m.className = "msg ok"; m.textContent = t("envoye") + " (" + j.n + ")"; $("prop-lignes").innerHTML = ""; ajouterLigneProp(); chargerProps(); }
+  if (j.ok) { m.className = "msg ok"; m.textContent = t("envoye") + " — " + t("equipes_n", { n: j.equipes }) + ", " + t("candidats_n", { n: j.n }); $("prop-equipes").innerHTML = ""; ajouterEquipe(); chargerProps(); }
   else { m.className = "msg err"; m.textContent = t("erreur") + " " + (j.erreur || ""); }
 });
+/* regroupement des propositions par semaine puis par équipe */
+function grouperEquipes(l) {
+  const g = {}; l.forEach(p => { const k = (p.semaine || "") + "|" + (p.societe || "") + "|" + (p.equipe || 1); (g[k] = g[k] || { semaine: p.semaine, societe: p.societe, code: p.code, prestataire_id: p.prestataire_id, equipe: p.equipe || 1, membres: [] }).membres.push(p); });
+  return Object.values(g).sort((a, b) => (b.semaine || "").localeCompare(a.semaine || "") || String(a.societe).localeCompare(String(b.societe)) || a.equipe - b.equipe);
+}
+const libCommandeProp = p => p.numero ? "n° " + p.numero + " · " + (p.commande_titre || "") + (p.commande_lieu ? " · " + p.commande_lieu : "") : p.commande_ref ? "n° " + p.commande_ref : "—";
+const statutEquipe = m => { const s = new Set(m.map(x => x.statut)); return s.size === 1 ? m[0].statut : "proposee"; };
 async function chargerProps() {
   const j = await get("/api/prest/propositions").catch(() => ({ propositions: [] }));
-  const l = j.propositions || [];
-  $("tbl-prop").innerHTML = l.length ? "<tr><th>" + t("semaine") + "</th><th>" + t("nom") + "</th><th>" + t("metier") + "</th><th>" + t("agence") + "</th><th>" + t("commande") + "</th><th>" + t("statut") + "</th></tr>" +
-    l.map(p => "<tr><td>" + esc(p.semaine) + "</td><td>" + esc(p.nom + " " + p.prenom) + "</td><td>" + esc(p.metier) + (p.vehicule ? " 🚗" : "") + "</td><td>" + esc(p.agence || "—") + "</td><td>" + esc(p.numero ? p.numero + " · " + p.commande_lieu : "—") + "</td><td>" + tagStatut(p.statut) + "</td></tr>").join("")
-    : "<tr><td class='note'>" + t("aucun") + "</td></tr>";
+  const eqs = grouperEquipes(j.propositions || []); let semCour = null;
+  $("liste-prop").innerHTML = eqs.length ? eqs.map(e => { const titreSem = e.semaine !== semCour ? "<div class='semaine-titre'>" + t("semaine") + " " + esc(e.semaine ? libSemaine(e.semaine) : "") + " · " + esc(t("equipes_n", { n: eqs.filter(x => x.semaine === e.semaine).length })) + " · " + esc(t("candidats_n", { n: eqs.filter(x => x.semaine === e.semaine).reduce((s, x) => s + x.membres.length, 0) })) + "</div>" : ""; semCour = e.semaine;
+    return titreSem + "<div class='eq-carte'><div class='eq-titre'><span>" + esc(t("equipe_n", { n: e.equipe })) + " · " + esc(libCommandeProp(e.membres[0])) + (e.membres[0].agence ? " · " + esc(e.membres[0].agence) : "") + "</span>" + tagStatut(statutEquipe(e.membres)) + "</div>" +
+      "<ul>" + e.membres.map(p => "<li><b>" + esc(p.nom) + "</b> " + esc(p.prenom) + " — " + esc(p.metier) + (p.vehicule ? " 🚗" : "") + (p.salaire_net ? " · " + esc(p.salaire_net) + " €" : "") + "</li>").join("") + "</ul></div>"; }).join("")
+    : "<div class='note'>" + t("aucun") + "</div>";
 }
 /* ---- déclaration mensuelle (tableau : matricule / NOM / prénom / métier / agence / qualifié) ---- */
 let DECL_LISTE = [];
@@ -788,9 +853,16 @@ async function remplirSemainesProps() {
 async function admProps() {
   await remplirSemainesProps();
   const j = await get("/api/prest/propositions?semaine=" + encodeURIComponent($("adm-prop-sem").value)).catch(() => ({ propositions: [] }));
-  $("tbl-adm-prop").innerHTML = "<tr><th>Prestataire</th><th>Candidat</th><th>Métier</th><th>Véh.</th><th>Net</th><th>Tél.</th><th>Commande</th><th>Remarques</th><th>Statut</th><th></th></tr>" +
-    ((j.propositions || []).map(p => "<tr><td>" + esc(p.societe) + "</td><td><b>" + esc(p.nom) + "</b> " + esc(p.prenom) + "</td><td>" + esc(p.metier) + "</td><td>" + (p.vehicule ? "oui" : "—") + "</td><td>" + esc(p.salaire_net) + "</td><td>" + esc(p.telephone) + "</td><td>" + esc(p.numero ? p.numero + " · " + p.commande_titre + " · " + p.commande_lieu : "—") + "</td><td>" + esc(p.remarques) + "</td><td>" + tagStatut(p.statut) + "</td><td><button class='btn s' data-st='retenue' data-id='" + p.id + "'>Retenir</button> <button class='btn s' data-st='refusee' data-id='" + p.id + "'>Refuser</button></td></tr>").join("") || "<tr><td class='note'>Aucune proposition.</td></tr>");
-  $("tbl-adm-prop").querySelectorAll("[data-st]").forEach(b => b.addEventListener("click", async () => { await post("/api/prest/admin/proposition", { id: +b.dataset.id, statut: b.dataset.st }); admProps(); }));
+  const eqs = grouperEquipes(j.propositions || []);
+  const parPrest = {}; eqs.forEach(e => { (parPrest[e.societe] = parPrest[e.societe] || { n: 0, c: 0 }); parPrest[e.societe].n++; parPrest[e.societe].c += e.membres.length; });
+  $("adm-prop-resume").textContent = eqs.length ? Object.entries(parPrest).map(([soc, x]) => soc + " : " + x.n + " équipe(s) · " + x.c + " candidat(s)").join("  —  ") : "Aucune proposition pour cette semaine.";
+  $("tbl-adm-prop").innerHTML = eqs.map(e => "<tr style='background:var(--card2)'><td colspan='7'><b>" + esc(e.societe) + "</b> <span class='note'>" + esc(e.code || "") + "</span> · <b>Équipe " + e.equipe + "</b> · " + esc(libCommandeProp(e.membres[0])) + (e.membres[0].agence ? " · " + esc(e.membres[0].agence) : "") + " · " + e.membres.length + " candidat(s) " + tagStatut(statutEquipe(e.membres)) + "</td>" +
+      "<td><button class='btn s p' data-eq-st='retenue' data-pid='" + e.prestataire_id + "' data-sem='" + esc(e.semaine) + "' data-eq='" + e.equipe + "'>Retenir l'équipe</button> <button class='btn s' data-eq-st='refusee' data-pid='" + e.prestataire_id + "' data-sem='" + esc(e.semaine) + "' data-eq='" + e.equipe + "'>Refuser</button></td></tr>" +
+      e.membres.map(p => "<tr><td></td><td><b>" + esc(p.nom) + "</b> " + esc(p.prenom) + "</td><td>" + esc(p.metier) + "</td><td>" + (p.vehicule ? "🚗 véhicule" : "—") + "</td><td>" + (p.salaire_net ? esc(p.salaire_net) + " €" : "—") + "</td><td>" + esc(p.telephone || "—") + "</td><td>" + esc(p.remarques || "") + "</td><td>" + tagStatut(p.statut) + "</td></tr>").join("")).join("")
+    || "<tr><td class='note'>Aucune proposition.</td></tr>";
+  $("tbl-adm-prop").querySelectorAll("[data-eq-st]").forEach(b => b.addEventListener("click", async () => {
+    const r = await post("/api/prest/admin/equipe", { prestataire_id: +b.dataset.pid, semaine: b.dataset.sem, equipe: +b.dataset.eq, statut: b.dataset.eqSt }).catch(() => ({ erreur: "serveur" }));
+    if (!r.ok) alert("Erreur : " + (r.erreur || "?")); admProps(); }));
 }
 $("btn-adm-prop").addEventListener("click", admProps);
 async function admDecl() {
