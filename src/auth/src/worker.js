@@ -721,33 +721,96 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
                     langue: u.langue || (moi && moi.langue) || "fr", semaine: semaineISO(new Date()), mois: new Date().toISOString().slice(0, 7),
                     documents: docs.map(d => ({ id: d.id, titre: d.titre, langue: d.langue, url: "/app/data/prestataires/" + d.fichier, commun: d.prestataire_id == null })) });
     }
-    /* --- commandes ouvertes (lecture prestataires, gestion admins) --- */
+    /* --- commandes classées par semaine : brouillon (import) → publication (visible des prestataires) → archive après le vendredi --- */
+    const semaineDe = str => /^\d{4}-W(0[1-9]|[1-4]\d|5[0-3])$/.test(str || "") ? str : null;
+    const parisNow = () => new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Paris" }));
+    const semaineCourante = () => semaineISO(parisNow());
+    /* archivée = semaine passée, ou semaine courante à partir du samedi (modifiable « jusqu'au vendredi ») */
+    const estArchivee = sem => { const now = semaineCourante(); return sem < now || (sem === now && [0, 6].includes(parisNow().getDay())); };
+    const lundiDe = sem => { const [y, w] = sem.split("-W").map(Number); const j4 = new Date(Date.UTC(y, 0, 4)); const lundi = new Date(j4); lundi.setUTCDate(j4.getUTCDate() - ((j4.getUTCDay() || 7) - 1) + (w - 1) * 7); return lundi; };
+    const dateFR = iso => /^\d{4}-\d{2}-\d{2}$/.test(iso || "") ? iso.slice(8, 10) + "/" + iso.slice(5, 7) + "/" + iso.slice(0, 4) : (iso || "");
     if (p === "/api/prest/commandes") {
-      const r = await env.DB.prepare("SELECT id, numero, date_debut, nb_postes, titre, agence, lieu, statut FROM commandes WHERE statut = 'ouverte' ORDER BY date_debut, agence").all();
-      return json({ commandes: r.results });
+      if (admin) {
+        const sem = semaineDe(url.searchParams.get("semaine")) || semaineCourante();
+        const rows = (await env.DB.prepare("SELECT * FROM commandes WHERE semaine = ? ORDER BY statut = 'ouverte' DESC, agence, numero").bind(sem).all()).results;
+        const semaines = (await env.DB.prepare("SELECT semaine, COUNT(*) AS n, SUM(publiee) AS publiees, SUM(statut = 'ouverte') AS ouvertes FROM commandes WHERE semaine IS NOT NULL GROUP BY semaine ORDER BY semaine DESC LIMIT 80").all()).results;
+        return json({ semaine: sem, semaine_courante: semaineCourante(), archivee: estArchivee(sem), commandes: rows, semaines });
+      }
+      /* prestataire : uniquement les commandes publiées, ouvertes, de la semaine courante et des suivantes */
+      const r = await env.DB.prepare("SELECT id, numero, date_debut, nb_postes, titre, agence, lieu, statut, semaine FROM commandes WHERE publiee = 1 AND statut = 'ouverte' AND semaine >= ? ORDER BY semaine, agence, numero").bind(semaineCourante()).all();
+      return json({ semaine_courante: semaineCourante(), commandes: r.results });
     }
     if (p === "/api/prest/admin/commandes" && req.method === "POST") {
       if (!admin) return json({ erreur: "reserve_admin" }, 403);
-      const lignes = Array.isArray(corps.lignes) ? corps.lignes.slice(0, 200) : [];
-      const numeros = [];
+      const sem = semaineDe(corps.semaine) || semaineCourante();
+      if (estArchivee(sem)) return json({ erreur: "semaine_archivee" }, 409);
+      const lignes = Array.isArray(corps.lignes) ? corps.lignes.slice(0, 300) : [];
+      const numeros = []; let nouvelles = 0, modifiees = 0;
       for (const l of lignes) {
-        const num = String(l.numero || "").trim().slice(0, 20); if (!num) continue;
+        const num = String(l.numero || "").trim().slice(0, 20); if (!num || numeros.includes(num)) continue;
         numeros.push(num);
-        const ex = await env.DB.prepare("SELECT id FROM commandes WHERE numero = ? AND statut = 'ouverte'").bind(num).first();
-        const v = [String(l.date_debut || "").slice(0, 10), parseInt(l.nb_postes, 10) || 1, String(l.titre || "").slice(0, 120), String(l.agence || "").slice(0, 60), String(l.lieu || "").slice(0, 80)];
-        if (ex) await env.DB.prepare("UPDATE commandes SET date_debut = ?, nb_postes = ?, titre = ?, agence = ?, lieu = ? WHERE id = ?").bind(...v, ex.id).run();
-        else await env.DB.prepare("INSERT INTO commandes (numero, date_debut, nb_postes, titre, agence, lieu) VALUES (?,?,?,?,?,?)").bind(num, ...v).run();
+        const titre = String(l.titre || "").trim().slice(0, 120);
+        /* nombre de postes : colonne dédiée, sinon le nombre en tête du titre (« 2/3 POSEURS ITE » → 3) */
+        const mT = titre.match(/^(\d{1,2})(?:\s*\/\s*(\d{1,2}))?\s/);
+        const nb = parseInt(l.nb_postes, 10) || (mT ? Math.max(parseInt(mT[1], 10), parseInt(mT[2] || "0", 10)) : 1);
+        const dIso = String(l.date_debut || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})$/) ? String(l.date_debut).trim() : "";
+        const v = [dIso, nb, titre, String(l.agence || "").trim().toUpperCase().slice(0, 60), String(l.lieu || "").trim().toUpperCase().slice(0, 80), String(l.charge || "").trim().slice(0, 80), sem];
+        const ex = await env.DB.prepare("SELECT id FROM commandes WHERE numero = ? ORDER BY id DESC LIMIT 1").bind(num).first();
+        /* import = brouillon : la semaine redevient visible des prestataires à la publication */
+        if (ex) { await env.DB.prepare("UPDATE commandes SET date_debut = ?, nb_postes = ?, titre = ?, agence = ?, lieu = ?, charge = ?, semaine = ?, statut = 'ouverte', publiee = 0, maj_le = datetime('now') WHERE id = ?").bind(...v, ex.id).run(); modifiees++; }
+        else { await env.DB.prepare("INSERT INTO commandes (numero, date_debut, nb_postes, titre, agence, lieu, charge, semaine, publiee, maj_le) VALUES (?,?,?,?,?,?,?,?,0,datetime('now'))").bind(num, ...v).run(); nouvelles++; }
       }
-      if (corps.fermer_absentes && numeros.length)
-        await env.DB.prepare("UPDATE commandes SET statut = 'fermee' WHERE statut = 'ouverte' AND numero NOT IN (" + numeros.map(() => "?").join(",") + ")").bind(...numeros).run();
-      await journal(env, req, u, "prest_commandes", numeros.length + " commande(s)");
-      return json({ ok: true, n: numeros.length });
+      let fermees = 0;
+      if (corps.fermer_absentes && numeros.length) {
+        const r = await env.DB.prepare("UPDATE commandes SET statut = 'fermee', maj_le = datetime('now') WHERE semaine = ? AND statut = 'ouverte' AND numero NOT IN (" + numeros.map(() => "?").join(",") + ")").bind(sem, ...numeros).run();
+        fermees = (r.meta && r.meta.changes) || 0;
+      }
+      await journal(env, req, u, "prest_commandes_import", sem + " : " + nouvelles + " nouvelle(s), " + modifiees + " mise(s) à jour, " + fermees + " fermée(s)");
+      return json({ ok: true, n: numeros.length, nouvelles, modifiees, fermees, semaine: sem });
     }
     if (p === "/api/prest/admin/commande" && req.method === "POST") {
       if (!admin) return json({ erreur: "reserve_admin" }, 403);
-      const st = ["ouverte", "pourvue", "fermee"].includes(corps.statut) ? corps.statut : "fermee";
-      await env.DB.prepare("UPDATE commandes SET statut = ? WHERE id = ?").bind(st, corps.id | 0).run();
+      const c = await env.DB.prepare("SELECT * FROM commandes WHERE id = ?").bind(corps.id | 0).first();
+      if (!c) return json({ erreur: "commande_introuvable" }, 404);
+      if (c.semaine && estArchivee(c.semaine)) return json({ erreur: "semaine_archivee" }, 409);
+      const champs = [], vals = [];
+      if (corps.numero != null) { const n = String(corps.numero).trim().slice(0, 20); if (!n) return json({ erreur: "numero_requis" }, 400); champs.push("numero = ?"); vals.push(n); }
+      if (corps.date_debut != null) { const d = String(corps.date_debut).trim(); if (d && !/^\d{4}-\d{2}-\d{2}$/.test(d)) return json({ erreur: "date_invalide" }, 400); champs.push("date_debut = ?"); vals.push(d); }
+      if (corps.nb_postes != null) { champs.push("nb_postes = ?"); vals.push(Math.max(1, parseInt(corps.nb_postes, 10) || 1)); }
+      if (corps.titre != null) { const t = String(corps.titre).trim().slice(0, 120); if (!t) return json({ erreur: "titre_requis" }, 400); champs.push("titre = ?"); vals.push(t); }
+      if (corps.agence != null) { champs.push("agence = ?"); vals.push(String(corps.agence).trim().toUpperCase().slice(0, 60)); }
+      if (corps.lieu != null) { champs.push("lieu = ?"); vals.push(String(corps.lieu).trim().toUpperCase().slice(0, 80)); }
+      if (corps.charge != null) { champs.push("charge = ?"); vals.push(String(corps.charge).trim().slice(0, 80)); }
+      if (corps.statut != null) { if (!["ouverte", "pourvue", "fermee"].includes(corps.statut)) return json({ erreur: "statut_invalide" }, 400); champs.push("statut = ?"); vals.push(corps.statut); }
+      if (corps.semaine != null) { const sm = semaineDe(corps.semaine); if (!sm || estArchivee(sm)) return json({ erreur: "semaine_invalide" }, 400); champs.push("semaine = ?"); vals.push(sm); }
+      if (!champs.length) return json({ erreur: "rien_a_modifier" }, 400);
+      champs.push("maj_le = datetime('now')");
+      await env.DB.prepare("UPDATE commandes SET " + champs.join(", ") + " WHERE id = ?").bind(...vals, c.id).run();
+      await journal(env, req, u, "prest_commande_maj", c.numero + " : " + champs.map(x => x.split(" =")[0]).join(", "));
       return json({ ok: true });
+    }
+    /* publication : les commandes ouvertes de la semaine deviennent visibles ; e-mail aux prestataires actifs (dans leur langue) sur demande */
+    if (p === "/api/prest/admin/publier" && req.method === "POST") {
+      if (!admin) return json({ erreur: "reserve_admin" }, 403);
+      const sem = semaineDe(corps.semaine); if (!sem) return json({ erreur: "semaine_invalide" }, 400);
+      if (estArchivee(sem)) return json({ erreur: "semaine_archivee" }, 409);
+      await env.DB.prepare("UPDATE commandes SET publiee = 1, publiee_le = datetime('now') WHERE semaine = ? AND statut = 'ouverte'").bind(sem).run();
+      const rows = (await env.DB.prepare("SELECT numero, date_debut, nb_postes, titre, agence, lieu FROM commandes WHERE semaine = ? AND statut = 'ouverte' ORDER BY agence, numero").bind(sem).all()).results;
+      let prevenus = 0;
+      if (corps.prevenir && rows.length) {
+        const lignes = rows.map(c => "• n° " + c.numero + " · " + c.titre + " · " + c.agence + (c.lieu ? " · " + c.lieu : "") + (c.date_debut ? " · " + dateFR(c.date_debut) : "")).join("\n");
+        const lien = url.origin + "/app/prestataires.html";
+        const M = {
+          fr: { s: "AB2PRO — commandes de la semaine " + sem + " (" + rows.length + ")", b: "Bonjour,\n\nAB2PRO vient de publier les commandes de la semaine " + sem + " sur le portail :\n\n" + lignes + "\n\nProposez vos candidats dans l'onglet « Proposer une équipe » : " + lien + "\n\n— AB2PRO" },
+          en: { s: "AB2PRO — job orders for week " + sem + " (" + rows.length + ")", b: "Hello,\n\nAB2PRO has just published the job orders for week " + sem + " on the portal:\n\n" + lignes + "\n\nPropose your candidates in the “Propose a team” tab: " + lien + "\n\n— AB2PRO" },
+          ro: { s: "AB2PRO — comenzile săptămânii " + sem + " (" + rows.length + ")", b: "Bună ziua,\n\nAB2PRO a publicat comenzile săptămânii " + sem + " pe portal:\n\n" + lignes + "\n\nPropuneți candidații în fila „Propuneți o echipă”: " + lien + "\n\n— AB2PRO" },
+          hu: { s: "AB2PRO — a(z) " + sem + " hét megrendelései (" + rows.length + ")", b: "Tisztelt Partnerünk!\n\nAz AB2PRO közzétette a(z) " + sem + " hét megrendeléseit a portálon:\n\n" + lignes + "\n\nJelöltjeit a „Csapat javaslása” fülön ajánlhatja: " + lien + "\n\n— AB2PRO" },
+        };
+        const prs = (await env.DB.prepare("SELECT email, langue FROM prestataires WHERE actif = 1 AND email <> ''").all()).results;
+        for (const pr of prs) { const m = M[LANGUES.includes(pr.langue) ? pr.langue : "fr"]; await envoyerEmail(env, pr.email, m.s, m.b, { env, req }); prevenus++; }
+      }
+      await journal(env, req, u, "prest_commandes_publiees", sem + " : " + rows.length + " commande(s)" + (prevenus ? ", " + prevenus + " prestataire(s) prévenu(s)" : ""));
+      return json({ ok: true, n: rows.length, prevenus, semaine: sem });
     }
     /* --- propositions d'équipes (hebdo) --- */
     if (p === "/api/prest/propositions" && req.method === "GET") {

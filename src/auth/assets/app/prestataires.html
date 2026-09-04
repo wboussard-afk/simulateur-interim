@@ -74,6 +74,9 @@ table.saisie th:nth-child(2), table.saisie td:nth-child(2) { left: 28px; }
 table.saisie tr.incomplete td { background: rgba(219,48,63,.08); }
 table.saisie tr.incomplete td:nth-child(-n+2) { background: #fbe9eb; }
 body.admin .wrap { max-width: 1500px; }
+.tag.brouillon { background: var(--warn-soft); color: var(--warn); } .tag.arch { background: var(--card2); color: var(--muted); }
+table.saisie input.court { min-width: 60px; width: 70px; } table.saisie input.moyen { min-width: 110px; width: 130px; }
+.semaine-titre { font-weight: 800; color: var(--brass-deep); margin: 10px 0 6px; font-size: 14px; }
 table.saisie .num { color: var(--muted); font-size: 12px; text-align: center; }
 table.saisie .btn.s { padding: 6px 9px; }
 .compteur { display: inline-block; background: var(--good-soft); color: var(--good); border-radius: 12px; padding: 3px 10px; font-weight: 800; font-size: 14px; }
@@ -170,18 +173,32 @@ table.saisie .btn.s { padding: 6px 9px; }
     </div>
   </section>
 
-  <!-- ===== admin : commandes ===== -->
+  <!-- ===== admin : commandes par semaine ===== -->
   <section class="card" data-onglet="adm-commandes" data-admin>
-    <h2>Commandes ouvertes (admin)</h2>
+    <h2>Commandes de la semaine (admin)
+      <select id="adm-cmd-sem" style="width:auto; padding:6px 8px; font-size:16px; margin-left:auto"></select>
+      <span class="tag" id="adm-cmd-etat"></span></h2>
     <div class="b">
-      <div class="note">Collez les lignes du CRM (onglet « Toutes les commandes ») : une commande par ligne, colonnes séparées par des tabulations — numéro, date de début, nombre de postes, titre, agence, lieu. Les commandes ouvertes absentes de la liste seront fermées si la case est cochée.</div>
-      <textarea id="adm-cmd-texte" rows="6" style="margin-top:8px; font-size:13px" placeholder="3600	07/09/2026	1	1 SOUDEUR BTP	PALMA BRETAGNE	VEZIN LE COQUET"></textarea>
+      <div class="note"><b>1.</b> Importez l'export du CRM — fichier Excel « exportJobOrders » (ou CSV), ou copier-coller des lignes : les colonnes sont reconnues automatiquement quel que soit leur ordre (n° de commande, titre, agence, chargé, date de début, postes, lieu ; le nombre de postes et la ville sont lus dans le titre s'il n'y a pas de colonne).
+        <b>2.</b> Corrigez directement dans le tableau (Enregistrer par ligne). <b>3.</b> Publiez : les prestataires voient alors la semaine. Modifiable jusqu'au vendredi ; à partir du samedi la semaine est archivée (lecture seule).</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px">
+        <input type="file" id="adm-cmd-file" accept=".xlsx,.xls,.xltx,.xlsm,.csv,.txt" hidden>
+        <button class="btn" id="btn-adm-cmd-fichier" type="button">📎 Importer un fichier Excel / CSV…</button>
+        <span class="note" id="adm-cmd-nomfichier"></span>
+      </div>
+      <textarea id="adm-cmd-texte" rows="4" style="margin-top:8px; font-size:14px" placeholder="…ou collez ici les lignes du CRM (une commande par ligne)"></textarea>
+      <div id="adm-cmd-apercu" style="margin-top:8px"></div>
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:8px">
-        <label class="chk" style="margin:0"><input type="checkbox" id="adm-cmd-fermer" checked> Fermer les commandes absentes</label>
-        <button class="btn p" id="btn-adm-cmd">Mettre à jour les commandes</button>
+        <label class="chk" style="margin:0"><input type="checkbox" id="adm-cmd-fermer" checked> Fermer les commandes de la semaine absentes de l'import</label>
+        <button class="btn p" id="btn-adm-cmd">Importer dans la semaine</button>
         <span class="msg" id="adm-cmd-msg" style="margin:0"></span>
       </div>
-      <div class="tbl" style="margin-top:10px"><table id="tbl-adm-cmd"></table></div>
+      <div class="tbl" style="margin-top:12px"><table id="tbl-adm-cmd"></table></div>
+      <div style="margin-top:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; border-top:1px solid var(--line-soft); padding-top:10px">
+        <button class="btn p" id="btn-adm-publier">📣 Publier la semaine</button>
+        <label class="chk" style="margin:0"><input type="checkbox" id="adm-cmd-prevenir" checked> Prévenir les prestataires par e-mail (dans leur langue)</label>
+        <span class="msg" id="adm-pub-msg" style="margin:0"></span>
+      </div>
     </div>
   </section>
 
@@ -379,8 +396,9 @@ function montrer(id) {
 function rendreTout() {
   if (!MOI) return;
   /* commandes ouvertes (prestataire) */
-  $("cmd-liste").innerHTML = COMMANDES.length ? COMMANDES.map(c =>
-    "<div class='cmd'><b>" + esc(c.titre) + "</b> — " + esc(c.nb_postes) + " " + t("postes") + "<br><span class='m'>" + esc(c.agence) + " · " + esc(c.lieu) + " · " + t("debut") + " " + esc(c.date_debut) + " · n° " + esc(c.numero) + "</span></div>").join("")
+  const parSem = {}; COMMANDES.forEach(c => { (parSem[c.semaine || ""] = parSem[c.semaine || ""] || []).push(c); });
+  $("cmd-liste").innerHTML = COMMANDES.length ? Object.keys(parSem).sort().map(sm => "<div class='semaine-titre'>" + t("semaine") + " " + esc(sm) + "</div>" + parSem[sm].map(c =>
+    "<div class='cmd'><b>" + esc(c.titre) + "</b> — " + esc(c.nb_postes) + " " + t("postes") + "<br><span class='m'>" + esc(c.agence) + (c.lieu ? " · " + esc(c.lieu) : "") + (c.date_debut ? " · " + t("debut") + " " + esc(c.date_debut) : "") + " · n° " + esc(c.numero) + "</span></div>").join("")).join("")
     : "<div class='note'>" + t("aucune_commande") + "</div>";
   enteteProp(); enteteDecl(); remplirMois();
   if (!$("prop-lignes").children.length) { ajouterLigneProp(); }
@@ -428,7 +446,7 @@ function ajouterLigneProp(v) {
     cellule("<input data-k='prenom' value=\"" + esc(v.prenom || "") + "\" style='min-width:120px' autocapitalize='words'>") +
     cellule(selMetier(v.metier)) +
     cellule("<select data-k='agence'><option value=''>—</option>" + opts(AGENCES, v.agence) + "</select>") +
-    cellule("<select data-k='commande_id'><option value=''>" + esc(t("libre")) + "</option>" + COMMANDES.map(c => "<option value='" + c.id + "'>" + esc(c.numero + " · " + c.titre + " · " + c.lieu) + "</option>").join("") + "</select>") +
+    cellule("<select data-k='commande_id'><option value=''>" + esc(t("libre")) + "</option>" + COMMANDES.map(c => "<option value='" + c.id + "'>" + esc(c.numero + " · " + c.titre + (c.lieu ? " · " + c.lieu : "") + " · " + c.agence) + "</option>").join("") + "</select>") +
     cellule("<label class='cell-chk'><input data-k='vehicule' type='checkbox'" + (v.vehicule ? " checked" : "") + "></label>") +
     cellule("<input data-k='salaire_net' inputmode='decimal' placeholder='11,50' style='min-width:80px; width:90px'>") +
     cellule("<input data-k='telephone' inputmode='tel' style='min-width:120px'>") +
@@ -561,22 +579,136 @@ async function chargerFactures() {
     : "<tr><td class='note'>" + t("aucune_facture") + "</td></tr>";
 }
 /* ===== ADMIN ===== */
+/* ---- commandes par semaine : import reconnu, édition en ligne, publication ---- */
+let CMD_ETAT = { semaine: null, archivee: false, semaines: [] };
+const semaineISOde = d => { const x = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const j = x.getUTCDay() || 7; x.setUTCDate(x.getUTCDate() + 4 - j); const a = new Date(Date.UTC(x.getUTCFullYear(), 0, 1)); return x.getUTCFullYear() + "-W" + String(Math.ceil(((x - a) / 86400000 + 1) / 7)).padStart(2, "0"); };
+const semainePlus = (sem, k) => { const [y, w] = sem.split("-W").map(Number); const j4 = new Date(Date.UTC(y, 0, 4)); const lundi = new Date(j4); lundi.setUTCDate(j4.getUTCDate() - ((j4.getUTCDay() || 7) - 1) + (w - 1 + k) * 7); return semaineISOde(new Date(lundi.getUTCFullYear(), lundi.getUTCMonth(), lundi.getUTCDate())); };
+function remplirSemaines(sel, courante, semaines) {
+  const vues = new Set(); const opts = [];
+  const lib = sm => { const x = (semaines || []).find(z => z.semaine === sm); return sm + (sm === courante ? " (en cours)" : sm === semainePlus(courante, 1) ? " (prochaine)" : "") + (x ? " · " + x.ouvertes + " ouverte(s)" + (!x.ouvertes ? "" : x.publiees >= x.ouvertes ? ", publiée" : ", brouillon") : "") + (sm < courante ? " · archivée" : ""); };
+  [semainePlus(courante, 1), courante, ...(semaines || []).map(z => z.semaine)].forEach(sm => { if (!vues.has(sm)) { vues.add(sm); opts.push(sm); } });
+  opts.sort().reverse();
+  const v = sel.value; sel.innerHTML = opts.map(sm => "<option value='" + sm + "'>" + esc(lib(sm)) + "</option>").join(""); sel.value = opts.includes(v) ? v : courante;
+}
 async function admCommandes() {
-  const j = await get("/api/prest/commandes").catch(() => ({ commandes: [] }));
-  $("tbl-adm-cmd").innerHTML = "<tr><th>N°</th><th>Début</th><th>Postes</th><th>Titre</th><th>Agence</th><th>Lieu</th><th></th></tr>" +
-    (j.commandes || []).map(c => "<tr><td>" + esc(c.numero) + "</td><td>" + esc(c.date_debut) + "</td><td>" + esc(c.nb_postes) + "</td><td>" + esc(c.titre) + "</td><td>" + esc(c.agence) + "</td><td>" + esc(c.lieu) + "</td><td><button class='btn s' data-cl='" + c.id + "'>Fermer</button></td></tr>").join("");
-  $("tbl-adm-cmd").querySelectorAll("[data-cl]").forEach(b => b.addEventListener("click", async () => { await post("/api/prest/admin/commande", { id: +b.dataset.cl, statut: "fermee" }); admCommandes(); }));
+  const sel = $("adm-cmd-sem"); const q = sel.value ? "?semaine=" + encodeURIComponent(sel.value) : "";
+  const j = await get("/api/prest/commandes" + q).catch(() => null); if (!j) return;
+  CMD_ETAT = { semaine: j.semaine, archivee: j.archivee, semaines: j.semaines || [] };
+  remplirSemaines(sel, j.semaine_courante, j.semaines); sel.value = j.semaine;
+  const l = j.commandes || []; const pub = l.filter(c => c.publiee && c.statut === "ouverte").length, ouv = l.filter(c => c.statut === "ouverte").length;
+  $("adm-cmd-etat").className = "tag " + (j.archivee ? "arch" : pub && pub === ouv ? "ok" : "brouillon");
+  $("adm-cmd-etat").textContent = j.archivee ? "archivée (lecture seule)" : !l.length ? "vide" : pub === ouv ? "publiée · " + ouv + " visible(s)" : (ouv - pub) + " brouillon(s) à publier";
+  const ro = j.archivee ? " disabled" : "";
+  $("tbl-adm-cmd").innerHTML = "<tr><th>N°</th><th>Début</th><th>Postes</th><th>Titre</th><th>Agence</th><th>Lieu</th><th>Chargé</th><th>Statut</th><th>Publiée</th><th></th></tr>" +
+    (l.map(c => "<tr data-id='" + c.id + "'>" +
+      "<td><input class='court' data-k='numero' value=\"" + esc(c.numero) + "\"" + ro + "></td>" +
+      "<td><input class='moyen' data-k='date_debut' type='date' value=\"" + esc(c.date_debut || "") + "\"" + ro + "></td>" +
+      "<td><input class='court' data-k='nb_postes' inputmode='numeric' value=\"" + esc(c.nb_postes) + "\"" + ro + "></td>" +
+      "<td><input data-k='titre' value=\"" + esc(c.titre) + "\" style='min-width:220px'" + ro + "></td>" +
+      "<td><input data-k='agence' list='liste-agences' value=\"" + esc(c.agence) + "\" style='min-width:150px'" + ro + "></td>" +
+      "<td><input class='moyen' data-k='lieu' value=\"" + esc(c.lieu || "") + "\"" + ro + "></td>" +
+      "<td><input class='moyen' data-k='charge' value=\"" + esc(c.charge || "") + "\"" + ro + "></td>" +
+      "<td><select data-k='statut'" + ro + ">" + ["ouverte", "pourvue", "fermee"].map(x => "<option" + (c.statut === x ? " selected" : "") + ">" + x + "</option>").join("") + "</select></td>" +
+      "<td>" + (c.statut !== "ouverte" ? "—" : c.publiee ? "<span class='tag ok'>✓ publiée</span>" : "<span class='tag brouillon'>brouillon</span>") + "</td>" +
+      "<td>" + (j.archivee ? "" : "<button class='btn s p' data-sv>Enregistrer</button>") + "</td></tr>").join("") || "<tr><td class='note' colspan='10'>Aucune commande pour " + esc(j.semaine) + " — importez l'export du CRM ci-dessus.</td></tr>") +
+    "<datalist id='liste-agences'>" + AGENCES.map(a => "<option value=\"" + esc(a) + "\">").join("") + "</datalist>";
+  $("tbl-adm-cmd").querySelectorAll("[data-sv]").forEach(b => b.addEventListener("click", async () => {
+    const tr = b.closest("tr"); const o = { id: +tr.dataset.id }; tr.querySelectorAll("[data-k]").forEach(e => { o[e.dataset.k] = e.value; });
+    const r = await post("/api/prest/admin/commande", o).catch(() => ({ erreur: "serveur" }));
+    if (!r.ok) { alert("Erreur : " + (LIB_CMD[r.erreur] || r.erreur || "?")); return; }
+    tr.style.background = "var(--good-soft)"; setTimeout(() => admCommandes(), 500);
+  }));
+  $("btn-adm-cmd").disabled = $("btn-adm-publier").disabled = !!j.archivee;
+}
+const LIB_CMD = { semaine_archivee: "semaine archivée (modifiable jusqu'au vendredi seulement)", numero_requis: "n° de commande obligatoire", titre_requis: "titre obligatoire", date_invalide: "date invalide", statut_invalide: "statut invalide", semaine_invalide: "semaine invalide", serveur: "serveur injoignable" };
+$("adm-cmd-sem").addEventListener("change", admCommandes);
+
+/* --- reconnaissance des colonnes : en-têtes (CRM : Job no. / Job title / Office / Owner ; FR : n°, titre, agence, chargé, date, postes, lieu) sinon contenu --- */
+const ENTETES = [
+  ["numero", /job\s*no|^n[°o]|num[ée]ro|commande|^id$|^ref/i], ["date_debut", /date|d[ée]but|start/i], ["nb_postes", /^postes?$|nb\s*postes?|nombre|qty|quantit/i],
+  ["titre", /title|titre|intitul|libell|poste\b|job\b/i], ["agence", /office|agence|branch/i], ["lieu", /lieu|ville|city|location|site|chantier/i], ["charge", /owner|charg|recrut|responsable|consultant/i],
+];
+const estDate = v => /^\d{2}\/\d{2}\/\d{4}$|^\d{4}-\d{2}-\d{2}$/.test(String(v || "").trim());
+const versISO = v => { const x = String(v || "").trim(); const m = x.match(/^(\d{2})\/(\d{2})\/(\d{4})$/); return m ? m[3] + "-" + m[2] + "-" + m[1] : /^\d{4}-\d{2}-\d{2}$/.test(x) ? x : ""; };
+function detecterColonnes(rows) {
+  const n = Math.max(...rows.map(r => r.length)); const map = {};
+  const tete = rows[0] || []; const enTete = tete.filter(c => /[a-z]/i.test(String(c))).length >= 2 && !tete.some(c => /^\d{3,6}$/.test(String(c).trim()));
+  if (enTete) { tete.forEach((c, i) => { for (const [k, re] of ENTETES) if (!(k in map) && !Object.values(map).includes(i) && re.test(String(c))) { map[k] = i; break; } }); }
+  const corps = enTete ? rows.slice(1) : rows;
+  const col = i => corps.map(r => String(r[i] == null ? "" : r[i]).trim()).filter(Boolean);
+  const pris = new Set(Object.values(map));
+  const score = (i, f) => { const c = col(i); return c.length ? c.filter(f).length / c.length : 0; };
+  const meilleur = (k, f, seuil) => { if (k in map) return; let best = -1, bs = seuil; for (let i = 0; i < n; i++) { if (pris.has(i)) continue; const sc = score(i, f); if (sc > bs) { bs = sc; best = i; } } if (best >= 0) { map[k] = best; pris.add(best); } };
+  meilleur("numero", v => /^\d{3,7}$/.test(v), 0.7);
+  meilleur("date_debut", estDate, 0.7);
+  meilleur("agence", v => /PALMA|AB2PRO|AB SERVICE/i.test(v) || AGENCES.includes(v.toUpperCase()), 0.5);
+  meilleur("charge", v => /^[A-ZÀ-Ý][a-zà-ÿ'-]+(?:\s[A-ZÀ-Ý][a-zà-ÿ'-]+)?\s[A-ZÀ-Ý' -]{2,}$/.test(v), 0.6);
+  meilleur("nb_postes", v => /^\d{1,2}$/.test(v), 0.8);
+  meilleur("titre", v => /[a-z]{3}/i.test(v) && /\d/.test(v) || /[a-z]{4}/i.test(v), 0.6);
+  meilleur("lieu", v => /^[A-ZÀ-Ý][A-ZÀ-Ý' -]{2,}$/.test(v), 0.5);
+  return { map, corps };
+}
+function lignesDepuisTableau(rows) {
+  const { map, corps } = detecterColonnes(rows.filter(r => r.some(c => String(c == null ? "" : c).trim())));
+  const val = (r, k) => (k in map) ? String(r[map[k]] == null ? "" : r[map[k]]).trim() : "";
+  const out = [];
+  corps.forEach(r => {
+    const numero = val(r, "numero").replace(/\.0$/, ""); if (!/^\d{3,7}$/.test(numero)) return;
+    let titre = val(r, "titre"), lieu = val(r, "lieu"), nb = parseInt(val(r, "nb_postes"), 10) || 0;
+    const mT = titre.match(/^(\d{1,2})(?:\s*\/\s*(\d{1,2}))?\s+(.*)$/);
+    if (!nb && mT) nb = Math.max(parseInt(mT[1], 10), parseInt(mT[2] || "0", 10));
+    if (!lieu) { const mL = titre.match(/\s[-–—]\s([A-ZÀ-Ý][A-ZÀ-Ý' -]{2,})$/); if (mL) lieu = mL[1].trim(); }
+    out.push({ numero, date_debut: versISO(val(r, "date_debut")), nb_postes: nb || 1, titre: titre.toUpperCase(), agence: val(r, "agence").toUpperCase(), lieu: lieu.toUpperCase(), charge: val(r, "charge") });
+  });
+  return { lignes: out, map };
+}
+let CMD_APERCU = [];
+function montrerApercu(res, source) {
+  CMD_APERCU = res.lignes;
+  const cols = Object.keys(res.map).map(k => ({ numero: "n°", date_debut: "début", nb_postes: "postes", titre: "titre", agence: "agence", lieu: "lieu", charge: "chargé" }[k] + " ← col. " + (res.map[k] + 1))).join(" · ");
+  $("adm-cmd-apercu").innerHTML = res.lignes.length
+    ? "<div class='note'>" + esc(source) + " : <b>" + res.lignes.length + " commande(s) reconnue(s)</b> — colonnes : " + esc(cols) + ". Vérifiez puis cliquez « Importer dans la semaine ».</div>" +
+      "<div class='tbl'><table><tr><th>N°</th><th>Début</th><th>Postes</th><th>Titre</th><th>Agence</th><th>Lieu</th><th>Chargé</th></tr>" +
+      res.lignes.map(c => "<tr><td>" + esc(c.numero) + "</td><td>" + esc(c.date_debut || "—") + "</td><td>" + esc(c.nb_postes) + "</td><td>" + esc(c.titre) + "</td><td>" + esc(c.agence) + "</td><td>" + esc(c.lieu || "—") + "</td><td>" + esc(c.charge || "—") + "</td></tr>").join("") + "</table></div>"
+    : "<div class='msg err'>" + esc(source) + " : aucune commande reconnue (il faut au moins un n° de commande à 3-7 chiffres par ligne).</div>";
+}
+$("adm-cmd-texte").addEventListener("input", () => {
+  const rows = $("adm-cmd-texte").value.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => l.includes("\t") ? l.split("\t") : l.includes(";") ? l.split(";") : l.split(/\s{2,}/));
+  if (rows.length) montrerApercu(lignesDepuisTableau(rows), "Texte collé"); else { $("adm-cmd-apercu").innerHTML = ""; CMD_APERCU = []; }
+});
+$("btn-adm-cmd-fichier").addEventListener("click", () => $("adm-cmd-file").click());
+$("adm-cmd-file").addEventListener("change", async () => {
+  const f = $("adm-cmd-file").files[0]; if (!f) return; $("adm-cmd-nomfichier").textContent = f.name;
+  try {
+    let rows;
+    if (/\.(csv|txt)$/i.test(f.name)) { const txt = await f.text(); rows = txt.split(/\r?\n/).filter(Boolean).map(l => l.includes("\t") ? l.split("\t") : l.split(";")); }
+    else { await chargerSheetJS(); const wb = XLSX.read(await f.arrayBuffer(), { type: "array" }); const ws = wb.Sheets[wb.SheetNames[0]]; rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: "" }); }
+    montrerApercu(lignesDepuisTableau(rows), f.name);
+  } catch (e) { $("adm-cmd-apercu").innerHTML = "<div class='msg err'>Fichier illisible : " + esc(e.message || e) + "</div>"; }
+  $("adm-cmd-file").value = "";
+});
+function chargerSheetJS() {
+  if (window.XLSX) return Promise.resolve();
+  return new Promise((ok, ko) => { const sc = document.createElement("script"); sc.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"; sc.onload = ok; sc.onerror = () => ko(new Error("bibliothèque Excel non chargée (réseau)")); document.head.appendChild(sc); });
 }
 $("btn-adm-cmd").addEventListener("click", async () => {
-  /* colle du CRM : colonnes tabulées ; secours : espaces multiples. Date jj/mm/aaaa -> ISO */
-  const lignes = $("adm-cmd-texte").value.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => {
-    let c = l.includes("\t") ? l.split("\t").map(x => x.trim()) : l.split(/\s{2,}/).map(x => x.trim());
-    if (c.length < 5) return null;
-    const dm = c[1].match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    return { numero: c[0], date_debut: dm ? dm[3] + "-" + dm[2] + "-" + dm[1] : c[1], nb_postes: parseInt(c[2], 10) || 1, titre: c[3], agence: c[4] || "", lieu: c[5] || "" };
-  }).filter(Boolean);
-  const j = await post("/api/prest/admin/commandes", { lignes, fermer_absentes: $("adm-cmd-fermer").checked });
-  $("adm-cmd-msg").textContent = j.ok ? "✓ " + j.n + " commande(s) à jour." : "Erreur : " + (j.erreur || "?");
+  const m = $("adm-cmd-msg");
+  if (!CMD_APERCU.length) { m.className = "msg err"; m.textContent = "Rien à importer : choisissez un fichier ou collez des lignes."; return; }
+  $("btn-adm-cmd").disabled = true; m.className = "msg"; m.textContent = "Import…";
+  const j = await post("/api/prest/admin/commandes", { semaine: $("adm-cmd-sem").value, lignes: CMD_APERCU, fermer_absentes: $("adm-cmd-fermer").checked }).catch(() => ({ erreur: "serveur" }));
+  $("btn-adm-cmd").disabled = false;
+  m.className = "msg " + (j.ok ? "ok" : "err");
+  m.textContent = j.ok ? "✓ " + j.nouvelles + " nouvelle(s), " + j.modifiees + " mise(s) à jour, " + j.fermees + " fermée(s) — semaine " + j.semaine + " en brouillon : publiez-la quand le tableau est prêt." : "Erreur : " + (LIB_CMD[j.erreur] || j.erreur || "?");
+  if (j.ok) { $("adm-cmd-texte").value = ""; $("adm-cmd-apercu").innerHTML = ""; CMD_APERCU = []; $("adm-cmd-nomfichier").textContent = ""; admCommandes(); }
+});
+$("btn-adm-publier").addEventListener("click", async () => {
+  const m = $("adm-pub-msg"); const sem = $("adm-cmd-sem").value; const prevenir = $("adm-cmd-prevenir").checked;
+  if (!confirm("Publier la semaine " + sem + " ?\nLes commandes ouvertes deviennent visibles des prestataires" + (prevenir ? " et ils reçoivent un e-mail." : "."))) return;
+  $("btn-adm-publier").disabled = true; m.className = "msg"; m.textContent = "Publication…";
+  const j = await post("/api/prest/admin/publier", { semaine: sem, prevenir }).catch(() => ({ erreur: "serveur" }));
+  $("btn-adm-publier").disabled = false;
+  m.className = "msg " + (j.ok ? "ok" : "err");
+  m.textContent = j.ok ? "✓ Semaine " + j.semaine + " publiée : " + j.n + " commande(s) visible(s)" + (j.prevenus ? ", " + j.prevenus + " prestataire(s) prévenu(s) par e-mail." : ".") : "Erreur : " + (LIB_CMD[j.erreur] || j.erreur || "?");
   admCommandes();
 });
 async function admProps() {
