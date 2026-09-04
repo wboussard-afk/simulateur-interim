@@ -527,6 +527,12 @@ table.grille td.neg { color: var(--bad); }
           <div class="field"><label for="in-cetdebloc">Déblocages / an</label><input type="number" id="in-cetdebloc" step="1" min="0"></div>
           <div class="field"><label for="in-cetcaus">Causerie h / déblocage</label><input type="number" id="in-cetcaus" step="0.25" min="0" title="Contrat de causerie : heures payées au salarié et NON facturées au client, à chaque déblocage."></div>
         </div>
+        <div id="leviers" style="margin-top:10px; padding:8px 12px; border:1px dashed var(--brass); border-radius:8px">
+          <b>Leviers d'optimisation</b> <span class="hint" style="display:inline; margin:0">— cochez pour mesurer le gain (décochés = pratique maison actuelle : différé CET provisionné à 45 %, liquidation par contrat de causerie)</span>
+          <label class="check"><input type="checkbox" id="in-cetrepos" title="Pratique observée sur un bulletin ACTERIM (07/2026) : l'IFM et l'ICCP sont placées au CET puis restituées au salarié en HEURES DE REPOS payées au taux horaire de base, sur ses bulletins de mission. Ces heures entrent dans le SMIC de référence de la réduction générale : le différé (21 %) est chargé au taux patronal réel moins la réduction, au lieu du forfait 45 %. Plus de contrat de causerie nécessaire. Charnière juridique : les heures de repos indemnisées par le CET doivent compter comme absence intégralement rémunérée (BOSS allègements généraux) — à sécuriser par rescrit."> IFM + ICCP restitués en <b>heures de repos CET</b> au taux de base (réduction générale sur le différé au lieu des 45 % provisionnés)</label>
+          <label class="check"><input type="checkbox" id="in-hsrepos" title="« Alimentation CET auto HS » du même bulletin : seule la MAJORATION des heures sup (25 % / 50 %) est placée au CET et restituée en heures de repos au taux de base. La majoration est de l'argent sans heure en face : elle dégrade le rapport rémunération / SMIC de la réduction générale ; convertie en heures, elle redevient neutre. Base légale : repos compensateur de remplacement (L.3121-33) + accord CET de branche — à vérifier dans le texte et la clause signée. Le net du salarié est inchangé dans l'étude (exonération de la majoration à la sortie : point douteux, non modélisé)."> <b>Majoration des heures sup</b> placée au CET et restituée en heures de repos (« alimentation CET auto HS »)</label>
+          <span id="leviers-out" class="hint"></span>
+        </div>
         <p class="hint"><b>Mise en CET</b> : 100 % des IFM/ICCP placés sur le compte épargne temps. Provision du différé <b>21 % de la base</b> (D85) = arithmétique exacte IFM 10 % + ICCP 10 % en cascade (10 + 10 × 1,1) + provision de charges patronales <b>45 %</b> (H85) = charges pleines dues à la liquidation, sans réduction générale sur ces sommes (BOSS §490/830 et §900) — forfait prudent de ~1-2 points au-dessus du panier réel (~43-44 % selon l'agence), <b>confirmé par la direction le 03/09/2026</b>. Déblocage conseillé à l'issue du 2ᵉ contrat de prolongation, via le contrat de causerie ci-dessous — jamais SUR une mission réelle (la réintégration §900 y détruirait la réduction générale). <span id="cet-eco"></span> <span id="cet-reel-out"></span><br>
         <b>Déblocage par contrat de causerie</b> : la liquidation du CET s'appuie sur un <b>contrat court dédié</b> (~1,5 h de causerie sécurité, payées au salarié et non facturées) avec sa <b>fiche de paie à part</b> — le versement du CET est ainsi isolé des paies de mission (leur réduction générale n'est pas dégradée) et l'effet est minimisé sur ce faible volume d'heures. C'est le coût de ce contrat (heures + abondement + charges) que couvre l'option « Coûts CET réels ».<br>
         Attestation fiscale <b>OUI</b> : maladie salariale 5,5&nbsp;% et pas de CSG/CRDS. <b>NON</b> : CSG/CRDS, pas de maladie salariale.</p>
@@ -1028,6 +1034,7 @@ function setFormFromInputs() {
   $("in-agence").value = inp.agence || "";
   $("in-cetreel").checked = !!inp.cetCoutsReels;
   $("in-cetpire").checked = !!inp.cetPireCas;
+  $("in-cetrepos").checked = !!inp.cetRepos; $("in-hsrepos").checked = !!inp.hsRepos;
   $("in-cetabond").value = inp.cetAbondPct; $("in-cetdebloc").value = inp.cetDebloc; $("in-cetcaus").value = inp.cetCauserieH;
   /* IFM/ICCP : « paiement direct » (indemnités payées en paie) ou « mise en CET »
    * (non payées → provision CET 21 % + 45 % du classeur, D85/H85) */
@@ -1161,6 +1168,7 @@ function readInputsFromForm() {
   inp.agence = $("in-agence").value;
   inp.cetCoutsReels = $("in-cetreel").checked;
   inp.cetPireCas = $("in-cetpire").checked;
+  inp.cetRepos = $("in-cetrepos").checked; inp.hsRepos = $("in-hsrepos").checked;
   inp.cetAbondPct = num($("in-cetabond")); inp.cetDebloc = num($("in-cetdebloc")); inp.cetCauserieH = num($("in-cetcaus"));
 }
 
@@ -1208,6 +1216,24 @@ function render(r) {
       ? " <b>Pire scénario §900 :</b> réduction générale recalculée avec le différé réintégré au dernier contrat réel → perte de <b>" +
         fmtE(m.rgduPerte900) + "/sem</b>" + (inp.cetPireCas ? " — <b>appliquée à la marge ci-contre</b> (borne basse)." : " (non appliquée — gain préservé par le déblocage en contrat de causerie).")
       : "");
+  /* leviers heures de repos CET : gain mesuré par recalcul SANS les leviers (même étude, même coefficient) */
+  {
+    let txt = "";
+    if ((inp.cetRepos || inp.hsRepos) && inp.heures > 0) {
+      const sans = compute(Object.assign({}, inp, { cetRepos: false, hsRepos: false })).main;
+      const cetSeul = inp.cetRepos ? compute(Object.assign({}, inp, { cetRepos: true, hsRepos: false })).main : null;
+      const hsSeul = inp.hsRepos ? compute(Object.assign({}, inp, { cetRepos: false, hsRepos: true })).main : null;
+      const d = m.O64 - sans.O64;
+      const part = (mm, lib) => mm ? " · " + lib + " " + (mm.O64 - sans.O64 >= 0 ? "+" : "") + fmtE(mm.O64 - sans.O64) + "/sem" : "";
+      txt = "<b>Leviers heures de repos CET :</b> marge " + (d >= 0 ? "+" : "") + fmtE(d) + "/sem (" + (d >= 0 ? "+" : "") + fmtE(d / inp.heures) + "/h" +
+        (m.O60 > 0 ? ", " + (d >= 0 ? "+" : "") + N2.format(d / m.O60 * 100) + " pt de taux" : "") + ")" +
+        (inp.cetRepos && inp.hsRepos ? part(cetSeul, "IFM/ICCP") + part(hsSeul, "majoration HS") : "") +
+        (inp.cetRepos ? " — réduction générale calculée sur " + N2.format(m.heuresRG) + " h de référence (" + N2.format(inp.heures) + " h + " + N2.format(m.hReposCet + m.hReposHS) + " h de repos), différé chargé à " + N2.format((m.tauxPatBrut - (m.remRG > 0 ? m.H83 / m.remRG : 0)) * 100) + " % net de réduction au lieu de 45 %." : ".");
+    } else if (m.D85 > 0 && m.majHS > 0) {
+      txt = "Leviers décochés : différé provisionné à 45 %, majoration des heures sup (" + fmtE(m.majHS) + "/sem) comptée dans la rémunération de la réduction générale.";
+    }
+    $("leviers-out").innerHTML = txt;
+  }
   $("pilot-part").disabled = false;   /* levier toujours disponible (rôle plancher en mode SANS participation) */
   /* premier remplissage (avant régul) — le bloc cascade REFINE ensuite avec le net atteint (avances incluses),
      pour que la carte Logement et le panneau « Contrôle du net » racontent la MÊME histoire */
@@ -1947,6 +1973,11 @@ function renderFact(m) {
   if (m.recrutCout) s += kvRow("Prestataire recrutement " + N2.format(inp.recrutTarifH) + " € HT × " + N2.format(inp.heures) + " h travaillées (coût interne, non refacturé)", "", fmtE(-m.recrutCout));
   if (m.cetCoutReel > 0.005) s += kvRow("Coûts CET réels — abondement " + N2.format(inp.cetAbondPct) + " %/débloc. + contrat de causerie " + N2.format(inp.cetCauserieH) + " h × " + N2.format(inp.cetDebloc) + " déblocage(s)/an (contrat court dédié, fiche de paie à part, payé non facturé — isole le versement du CET des paies de mission)", "", fmtE(-m.cetCoutReel));
   if (inp.cetPireCas && m.rgduPerte900 > 0.005) s += kvRow("Pire scénario §900 APPLIQUÉ — réduction générale recalculée avec le différé CET réintégré au dernier contrat réel (borne basse prudentielle ; défaut maison = gain préservé par contrat de causerie)", "", fmtE(-m.rgduPerte900));
+  if (inp.cetRepos || inp.hsRepos) {
+    const sans = compute(Object.assign({}, inp, { cetRepos: false, hsRepos: false })).main;
+    s += kvRow("Leviers heures de repos CET APPLIQUÉS — " + (inp.cetRepos ? "IFM/ICCP restitués en heures de repos (réduction générale sur le différé, pas de contrat de causerie)" : "") +
+      (inp.cetRepos && inp.hsRepos ? " + " : "") + (inp.hsRepos ? "majoration des heures sup restituée en heures de repos" : "") + " — gain de marge", "", fmtE(m.O64 - sans.O64));
+  }
   s += kvRow("Volume de marge brute", "O64", fmtE(m.O64), "total");
   s += kvRow("Taux de marge", "H17", fmtP(m.H17), "total");
   $("tbl-fact").innerHTML = s;
