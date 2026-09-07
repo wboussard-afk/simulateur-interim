@@ -78,10 +78,11 @@ function sectionsDe(x) {
   if (estAdmin(x)) return SECTIONS_APPS;
   /* pas de liste explicite : défaut de l'entité (comptes historiques AB2PRO sans entité = outils internes) */
   if (x.sections == null || x.sections === "") return SECTIONS_DEFAUT[entiteDe(x)] || SECTIONS_DEFAUT.ab2pro;
+  /* liste illisible = défaut de l'entité (jamais « tout », jamais tarifs-btp par accident) */
   try {
     const l = JSON.parse(x.sections);
-    return Array.isArray(l) ? l.filter(s => SECTIONS_APPS.includes(s)) : SECTIONS_APPS;
-  } catch (e) { return SECTIONS_APPS; }
+    return Array.isArray(l) ? l.filter(s => SECTIONS_APPS.includes(s)) : (SECTIONS_DEFAUT[entiteDe(x)] || SECTIONS_DEFAUT.ab2pro);
+  } catch (e) { return SECTIONS_DEFAUT[entiteDe(x)] || SECTIONS_DEFAUT.ab2pro; }
 }
 const SESSION_MS = 12 * 3600 * 1000;       // 12 h glissantes
 const INVITE_MS = 72 * 3600 * 1000;        // lien d'invitation 72 h
@@ -1135,6 +1136,9 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
           { nom: "Catégorie 2 — Métiers industriels", metiers: ["Soudeurs", "Tuyauteurs", "Peintres industriels", "Sableurs", "Serruriers - Chaudronniers"],
             paliers: [{ netMin: 14.50, netMax: 16.00, tarif: 33.50, libelle: "Ouvrier qualifié" }, { netMin: 16.00, netMax: 17.00, tarif: 35.50, libelle: "Profil supérieur" }] },
         ],
+        majorations: { logement: 2.50, libelle_logement: "Paris & alentours / Haute-Savoie & Pays de Gex / saison touristique / difficulté logistique", propre_logement: "KO + 1 €" },
+        mention_attestation: "Attestation fiscale non-résident obligatoire (le net promis suppose l'exonération CSG/CRDS).",
+        heures_mois: 169, heures_an: 1607,
         regles: [
           "Justificatif de domicile et/ou attestation fiscale OBLIGATOIRE pour les non-résidents (le net promis suppose l'exonération CSG/CRDS).",
           "Intérimaire avec son propre logement : KO + 1 €.",
@@ -1166,7 +1170,7 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     if (p === "/api/admin/apercu") {
       const dem = await env.DB.prepare("SELECT * FROM demandes_acces WHERE statut = 'en_attente' ORDER BY id DESC").all();
       const usr = await env.DB.prepare("SELECT id, email, nom, prenom, role, actif, doit_changer_mdp, cree_le, cree_par, sections, entite, agences, fonction, langue, prestataire_id FROM utilisateurs ORDER BY id").all();
-      return json({ demandes: dem.results, utilisateurs: usr.results, sections_apps: SECTIONS_APPS, agences_abservice: Object.keys(AGENCES_ABSERVICE) });
+      return json({ demandes: dem.results, utilisateurs: usr.results, sections_apps: SECTIONS_APPS, sections_defaut: SECTIONS_DEFAUT, agences_abservice: Object.keys(AGENCES_ABSERVICE) });
     }
 
     if (p === "/api/admin/test-email") {
