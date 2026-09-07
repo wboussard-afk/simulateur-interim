@@ -4,3 +4,5 @@ src/auth/assets/app/data/bailleurs.json
 src/auth/assets/app/data/dt/
 src/auth/assets/app/data/meubles-mairies.json
 src/auth/assets/app/data/prestataires/
+src/auth/assets/app/data/salaires-btp/
+src/auth/assets/app/data/tarifs-btp/

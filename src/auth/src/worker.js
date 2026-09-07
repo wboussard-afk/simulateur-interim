@@ -16,7 +16,7 @@ const estSuper = x => !!x && x.role === "super_admin";
 /* Accès par section : l'admin choisit les applications visibles par chaque utilisateur.
  * utilisateurs.sections = NULL → accès à tout (héritage) ; sinon tableau JSON de slugs.
  * Les admins et super admins voient toujours tout. */
-const SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe", "logements", "prestataires"];
+const SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe", "logements", "prestataires", "salaires-btp", "tarifs-btp"];
 
 /* Adresse de réponse des communications EXTERNES d'AB Service (réservations
  * DATAtourisme, etc.) — domaine dédié actif depuis le 03/09/2026 (Email Routing
@@ -31,7 +31,9 @@ const EMAIL_EXTERNE = "info@abservice-logement.com";
 const ENTITES = ["ab2pro", "abservice", "prestataire"];   /* prestataire = recruteur partenaire externe */
 const LANGUES = ["fr", "en", "ro", "hu"];                 /* langue de l'espace (choisie à l'inscription, modifiable dans le profil) */
 /* sections ouvertes PAR DÉFAUT selon l'entité (décision direction 04/09) — un admin peut en ajouter ensuite */
-const SECTIONS_DEFAUT = { ab2pro: ["simulateur", "paie", "conventions", "salaires-europe"], abservice: ["logements"], prestataire: ["prestataires"] };
+/* salaires-btp = calculette du net + argumentaire + fiche (consultants recrutement, par défaut AB2PRO) ;
+   tarifs-btp = grille de facturation et correspondance net → tarif (responsables d'agence, ouverte par un admin) */
+const SECTIONS_DEFAUT = { ab2pro: ["simulateur", "paie", "conventions", "salaires-europe", "salaires-btp"], abservice: ["logements"], prestataire: ["prestataires"] };
 const AGENCES_ABSERVICE = {
   "rennes": "rennes@abservicefrance.com",
   "paris": "paris@abservicefrance.com",
@@ -267,6 +269,10 @@ export default {
         return new Response(PAGE_SECTION_REFUSEE, { status: 403, headers: { "content-type": "text/html; charset=utf-8" } });
       }
       /* données personnelles bailleurs : réservées aux utilisateurs de la section logements */
+      /* documents d'évaluation (consultants) et grille de facturation (responsables) : même règle que la page */
+      for (const [pref, sec] of [["/app/data/salaires-btp/", "salaires-btp"], ["/app/data/tarifs-btp/", "tarifs-btp"]]) {
+        if (cible.startsWith(pref) && !sectionsDe(u).includes(sec)) { await journal(env, req, u, "acces_refuse_section", sec, cible); return new Response("Accès refusé.", { status: 403 }); }
+      }
       if ((cible === "/app/data/bailleurs.json" || cible === "/app/data/meubles-mairies.json") && !sectionsDe(u).includes("logements")) {
         await journal(env, req, u, "acces_refuse_section", "logements", cible);
         return new Response("{}", { status: 403, headers: { "content-type": "application/json" } });
@@ -1105,6 +1111,44 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       return new Response("﻿" + lignes.join("\r\n"), { headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": "attachment; filename=facturation-prestataires-" + mois + ".csv" } });
     }
     return json({ erreur: "inconnu" }, 404);
+  }
+
+  /* -- évaluation & salaire net BTP : droits et documents ; grille de facturation réservée à « tarifs-btp » -- */
+  if (p === "/api/salaires-btp") {
+    if (!u) return json({ erreur: "non_connecte" }, 401);
+    const secs = sectionsDe(u);
+    if (!secs.includes("salaires-btp")) return json({ erreur: "acces_refuse" }, 403);
+    const docs = [
+      { titre: "Argumentaire « salaire juste »", url: "/app/data/salaires-btp/argumentaire-salaire-juste.pdf" },
+      { titre: "Fiche d'évaluation intérimaire (v1.0, janvier 2026)", url: "/app/data/salaires-btp/fiche-evaluation-interimaire.pdf" },
+      { titre: "Tables de correspondance A → F (référentiel)", url: "/app/data/salaires-btp/table-de-correspondance.pdf" },
+      { titre: "Calculette Excel d'origine", url: "/app/data/salaires-btp/calculette-salaire-net-btp.xlsx" },
+    ];
+    const rep = { ok: true, documents: docs, facturation: secs.includes("tarifs-btp") };
+    if (rep.facturation) {
+      /* grille BTP offre taux de facturation horaire tout inclus — version 11-2025, document confidentiel */
+      rep.grille = {
+        version: "11-2025", devise: "€ HT / heure travaillée, tout inclus (logement compris)",
+        categories: [
+          { nom: "Catégorie 1 — Ouvriers BTP", metiers: ["Façadiers - Poseurs ITE", "Plaquistes", "Ravaleurs", "Poseurs panneaux solaires", "Peintres intérieur", "Électriciens", "Enduiseurs - Projeté", "Poseurs d'armatures métalliques", "Plombiers - Chauffagistes", "Monteurs de gaines", "Bardeurs", "Maçons traditionnels", "Menuisiers bois / alu", "Étancheurs", "Soliers", "Carreleurs", "Maçons coffreurs bancheurs", "Charpentiers", "Couvreurs"],
+            paliers: [{ netMin: 12.00, netMax: 14.50, tarif: 31.50, libelle: "Ouvrier BTP" }, { netMin: 14.50, netMax: 16.00, tarif: 33.50, libelle: "Profil supérieur" }] },
+          { nom: "Catégorie 2 — Métiers industriels", metiers: ["Soudeurs", "Tuyauteurs", "Peintres industriels", "Sableurs", "Serruriers - Chaudronniers"],
+            paliers: [{ netMin: 14.50, netMax: 16.00, tarif: 33.50, libelle: "Ouvrier qualifié" }, { netMin: 16.00, netMax: 17.00, tarif: 35.50, libelle: "Profil supérieur" }] },
+        ],
+        regles: [
+          "Justificatif de domicile et/ou attestation fiscale OBLIGATOIRE pour les non-résidents (le net promis suppose l'exonération CSG/CRDS).",
+          "Intérimaire avec son propre logement : KO + 1 €.",
+          "Majoration OBLIGATOIRE logement Paris & alentours / Haute-Savoie & Pays de Gex / saison touristique / difficulté logistique : + 2,50 € HT par heure travaillée.",
+          "Aucun rabais du tarif si le client fournit le logement : le logement doit nous être facturé par le client via AB SERVICE KFT sur une base horaire de 2,50 € par heure travaillée.",
+          "Toute demande hors grille doit faire l'objet d'une quotation par la direction avec un tarif client spécifique.",
+        ],
+        exemples: [
+          { metier: "Plombier - chauffagiste", net: 13.50, tarif: 31.50, commentaire: "profil ouvrier BTP, attestation fiscale non-résident" },
+          { metier: "Plombier - chauffagiste", net: 15.00, tarif: 33.50, commentaire: "profil supérieur : le tarif suit, sinon la marge s'effondre" },
+        ],
+      };
+    }
+    return json(rep);
   }
 
   /* -- journal d'activité (balise des apps) -- */

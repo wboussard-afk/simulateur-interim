@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<title>Évaluation & salaire net BTP — AB2Pro</title>
+<style>
+/* ===== Évaluation & salaire net horaire BTP — calculette (consultants), argumentaire, fiche imprimable,
+   correspondance de facturation (responsables d'agence, section « tarifs-btp »). Source : calculette Excel V2 01/2026,
+   tables de correspondance v1.0, grille BTP 11-2025. ===== */
+:root { --paper:#f4f4f5; --card:#FFFFFF; --card2:#ececef; --ink:#29293b; --muted:#5f5f74; --line:#d9d9e0; --line-soft:#e8e8ee;
+  --brass:#db303f; --brass-deep:#681316; --good:#47713E; --good-soft:rgba(71,113,62,.12); --warn:#93660F; --warn-soft:#F1E6C8;
+  --shadow:0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper:#1b1b25; --card:#232330; --card2:#2c2c3b; --ink:#ececf1; --muted:#a2a2b5;
+  --line:#3b3b4d; --line-soft:#2f2f3e; --brass:#e85160; --brass-deep:#f0929c; --good:#93BD82; --warn:#D9B45E; --warn-soft:#383018; --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3); } }
+:root[data-theme="dark"] { --paper:#1b1b25; --card:#232330; --card2:#2c2c3b; --ink:#ececf1; --muted:#a2a2b5; --line:#3b3b4d; --line-soft:#2f2f3e;
+  --brass:#e85160; --brass-deep:#f0929c; --good:#93BD82; --warn:#D9B45E; --warn-soft:#383018; --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3); }
+* { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.45 "Segoe UI", system-ui, sans-serif; }
+h1, h2, h3 { font-family: "Poppins", "Segoe UI", system-ui, sans-serif; }
+header { background: var(--card); border-bottom: 1px solid var(--line); padding: 12px 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+header h1 { margin: 0; font-size: 19px; } header h1 b { color: var(--brass); }
+header .qui { color: var(--muted); font-size: 12.5px; margin-left: auto; }
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding: 10px 12px 0; scrollbar-width: none; }
+.tabs button { flex: 0 0 auto; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 10px; padding: 9px 13px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.tabs button.on { background: var(--brass); border-color: var(--brass); color: #fff; }
+.wrap { max-width: 1000px; margin: 0 auto; padding: 12px 12px 80px; display: flex; flex-direction: column; gap: 12px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+.card h2 { font-size: 16px; margin: 0; padding: 11px 14px; border-bottom: 1px solid var(--line-soft); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.card .b { padding: 12px 14px 14px; }
+.note { font-size: 13px; color: var(--muted); }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; } .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 12px; }
+@media (max-width: 640px) { .grid, .grid3 { grid-template-columns: 1fr; } }
+label { display: block; font-size: 12px; color: var(--muted); font-weight: 700; margin: 0 0 3px; }
+input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--card2); color: var(--ink); font: inherit; font-size: 16px; }
+textarea { min-height: 56px; }
+.btn { border: 1px solid var(--line); background: var(--card2); color: var(--ink); border-radius: 9px; padding: 10px 14px; font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer; }
+.btn.p { background: var(--brass); border-color: var(--brass); color: #fff; } .btn.s { padding: 6px 10px; font-size: 13px; font-weight: 600; }
+.crit { border: 1px solid var(--line-soft); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; background: var(--paper); }
+.crit .tit { display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap; }
+.crit .tit b { font-size: 15px; } .crit .pond { font-size: 12px; color: var(--muted); }
+.notes { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.notes label { flex: 1 1 110px; margin: 0; border: 1px solid var(--line); border-radius: 9px; padding: 8px; background: var(--card); cursor: pointer; font-weight: 600; color: var(--ink); font-size: 13px; display: flex; gap: 6px; align-items: flex-start; }
+.notes label.on { border-color: var(--brass); background: var(--good-soft); }
+.notes input { width: 18px; height: 18px; padding: 0; margin: 2px 0 0; flex: 0 0 auto; }
+.notes .lib { font-weight: 400; color: var(--muted); font-size: 12px; display: block; }
+details { margin-top: 6px; } summary { cursor: pointer; font-size: 12.5px; color: var(--brass-deep); }
+.detail table { font-size: 12.5px; } .detail th { text-align: left; }
+.result { position: sticky; top: 0; z-index: 2; background: var(--card); border: 2px solid var(--brass); border-radius: 12px; padding: 10px 14px; display: flex; gap: 14px 24px; flex-wrap: wrap; align-items: baseline; }
+.result .k { font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); display: block; }
+.result .v { font: 800 22px/1.2 "Poppins", sans-serif; color: var(--brass-deep); }
+.tbl { width: 100%; overflow-x: auto; } table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+td, th { padding: 7px 8px; border-bottom: 1px solid var(--line-soft); text-align: left; vertical-align: top; }
+th { color: var(--muted); font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tag { display: inline-block; border-radius: 10px; padding: 1px 8px; font-size: 11.5px; font-weight: 700; background: var(--warn-soft); color: var(--warn); }
+.tag.ok { background: var(--good-soft); color: var(--good); } .tag.ko { background: rgba(219,48,63,.12); color: var(--brass-deep); }
+.msg { font-size: 13.5px; margin-top: 8px; } .msg.err { color: var(--brass-deep); } .msg.ok { color: var(--good); }
+.doc { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line-soft); border-radius: 10px; margin-bottom: 8px; text-decoration: none; color: var(--ink); background: var(--paper); }
+.big { font: 800 26px/1.1 "Poppins", sans-serif; color: var(--brass-deep); }
+.argu h3 { font-size: 15px; margin: 14px 0 4px; } .argu ul { margin: 4px 0 0 18px; padding: 0; }
+.confid { border: 1px dashed var(--brass); border-radius: 10px; padding: 8px 12px; font-size: 12.5px; color: var(--brass-deep); background: rgba(219,48,63,.06); }
+[hidden] { display: none !important; }
+/* ===== impression de la fiche d'évaluation ===== */
+#fiche-print { display: none; }
+@media print {
+  body { background: #fff; color: #000; font: 11pt/1.35 "Segoe UI", system-ui, sans-serif; }
+  header, .tabs, .wrap, .barre-app, #ab-toolbar { display: none !important; }
+  #fiche-print { display: block; padding: 10mm 12mm; }
+  #fiche-print h1 { font-size: 17pt; margin: 0 0 2pt; } #fiche-print .sous { font-size: 9pt; color: #444; margin-bottom: 8pt; }
+  #fiche-print table { width: 100%; border-collapse: collapse; font-size: 10pt; margin: 6pt 0; }
+  #fiche-print td, #fiche-print th { border: 1px solid #999; padding: 4pt 6pt; text-align: left; vertical-align: top; }
+  #fiche-print th { background: #eee; }
+  #fiche-print .sig { display: flex; gap: 30pt; margin-top: 18pt; } #fiche-print .sig div { flex: 1; border-top: 1px solid #000; padding-top: 4pt; font-size: 9.5pt; }
+  #fiche-print .lig { border-bottom: 1px dotted #999; min-height: 14pt; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1><b>AB2Pro</b> — Évaluation &amp; salaire net BTP</h1>
+  <span class="qui" id="qui"></span>
+</header>
+<div class="tabs" id="tabs">
+  <button data-o="calc" class="on">Calculette</button>
+  <button data-o="argu">Argumentaire</button>
+  <button data-o="docs">Documents</button>
+  <button data-o="factu" id="tab-factu" hidden>Facturation</button>
+</div>
+
+<div class="wrap">
+  <!-- ===== Calculette ===== -->
+  <section data-onglet="calc">
+    <div class="result" id="resultat">
+      <div><span class="k">Score retenu</span><span class="v" id="r-score">—</span></div>
+      <div><span class="k">Niveau AB2PRO</span><span class="v" id="r-niveau">—</span></div>
+      <div><span class="k">Salaire net horaire</span><span class="v" id="r-net">—</span></div>
+      <div style="flex:1 1 220px"><span class="k">Profil type</span><span id="r-profil" style="font-weight:700">—</span></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h2>Informations</h2>
+      <div class="b">
+        <div class="grid3">
+          <div><label>Type d'évaluation</label><select id="in-type"><option value="candidat">Candidat (entrée) — axes A à D</option><option value="interimaire">Intérimaire en poste — axes A à F</option></select></div>
+          <div><label>Nom / Prénom</label><input id="in-nom" autocomplete="off"></div>
+          <div><label>Métier</label><input id="in-metier" list="liste-metiers" autocomplete="off"><datalist id="liste-metiers"></datalist></div>
+          <div><label>Agence AB2PRO</label><input id="in-agence" list="liste-agences"><datalist id="liste-agences"></datalist></div>
+          <div><label>CR responsable</label><input id="in-cr"></div>
+          <div><label>Date de l'évaluation</label><input id="in-date" type="date"></div>
+          <div><label>Salaire actuel (€ net / h)</label><input id="in-actuel" inputmode="decimal" placeholder="12,50"></div>
+          <div><label>Salaire souhaité (€ net / h)</label><input id="in-souhaite" inputmode="decimal" placeholder="14,00"></div>
+          <div><label>Heures AB2Pro cumulées</label><input id="in-heures" inputmode="numeric" placeholder="1 850"></div>
+          <div><label>Années d'expérience métier</label><input id="in-annees" inputmode="decimal" placeholder="3"></div>
+        </div>
+        <div class="note" id="note-type" style="margin-top:8px"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h2>Évaluation — 6 critères, notes de 1 à 5</h2>
+      <div class="b" id="criteres"></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h2>Proposition</h2>
+      <div class="b">
+        <div class="grid3">
+          <div><label>Salaire proposé (€ net / h)</label><input id="in-propose" inputmode="decimal" placeholder="dans la fourchette"></div>
+          <div><label>Origine de la demande</label><select id="in-origine"><option value="">—</option><option>Demande de l'intérimaire</option><option>Proposition du CR</option></select></div>
+          <div><label>Décision</label><select id="in-decision"><option value="">—</option><option>Acceptée</option><option>Refusée</option><option>Reportée</option></select></div>
+          <div><label>Date d'entrée en vigueur</label><input id="in-effet" type="date"></div>
+          <div><label>Recommandation finale</label><select id="in-reco"><option value="">—</option><option>Maintien du niveau</option><option>Augmentation de salaire</option><option>Repositionnement / changement de poste</option></select></div>
+          <div><label>Approbateur (chef d'agence / coordinateur / responsable)</label><input id="in-approb"></div>
+        </div>
+        <div style="margin-top:8px"><label>Justification (obligatoire sur la fiche)</label><textarea id="in-justif"></textarea></div>
+        <div class="msg" id="msg-propose"></div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px">
+          <button class="btn p" id="btn-imprimer">🖨 Imprimer la fiche d'évaluation</button>
+          <button class="btn" id="btn-reset">Réinitialiser</button>
+          <button class="btn" id="btn-factu-lien" hidden>→ Correspondance de facturation</button>
+        </div>
+      </div>
+    </div>
+    <p class="note" style="margin:10px 4px 0">Mémo : candidat = (A + B + C + D) / 4 ; intérimaire = (A + B + C + D + 2 × E + 1,5 × F) / 7,5. La note décrit le niveau de compétence ; le score seul sélectionne la fourchette. La fourchette reste indicative selon agence, tension du marché et métier. Source : grille d'évaluation salaire net horaire BTP V2, janvier 2026.</p>
+  </section>
+
+  <!-- ===== Argumentaire ===== -->
+  <section data-onglet="argu" hidden>
+    <div class="card"><h2>Argumentaire simplifié — salaire juste, stabilité et limitation du turn-over</h2>
+      <div class="b argu">
+        <h3>Le principe du salaire juste</h3>
+        <p>L'objectif n'est pas d'attribuer le salaire le plus élevé possible, mais le salaire le plus juste : celui qui correspond réellement aux compétences, à l'autonomie et au comportement professionnel sur chantier. Un salaire juste permet d'être en adéquation avec les attentes des entreprises, de sécuriser la mission et de construire une relation durable.</p>
+        <h3>Salaire et durée des missions</h3>
+        <p>Un salaire cohérent avec le niveau réel de compétences est la meilleure garantie de missions longues et stables. Quand le niveau de salaire est aligné avec ce que la personne apporte concrètement sur le chantier, l'entreprise est satisfaite et renouvelle la mission.</p>
+        <h3>Le risque d'un salaire trop élevé</h3>
+        <p>Un salaire trop élevé par rapport au niveau réel crée un décalage entre les attentes de l'entreprise et la réalité du terrain :</p>
+        <ul><li>pression excessive sur l'intérimaire,</li><li>insatisfaction de l'entreprise,</li><li>remarques négatives ou reprises,</li><li>à terme, une fin de mission prématurée.</li></ul>
+        <h3>Turn-over et instabilité</h3>
+        <p>Lorsque le salaire ne correspond pas au niveau réel du profil : missions plus courtes, changements fréquents de chantier, perte de crédibilité du profil, difficulté à construire une évolution salariale durable.</p>
+        <h3>Pourquoi les grilles protègent l'intérimaire</h3>
+        <p>Elles positionnent le salaire au bon niveau dès le départ, afin de sécuriser la mission et de favoriser la continuité. Un salaire juste aujourd'hui, c'est moins de ruptures, plus de stabilité et une évolution possible dans le temps.</p>
+        <h3>Message clé à transmettre</h3>
+        <p><b>L'évolution salariale se construit dans la durée.</b> Elle repose sur la montée en compétences, le rendement, le savoir-être et la régularité, pas uniquement sur la tension du marché ou les offres concurrentes.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Documents ===== -->
+  <section data-onglet="docs" hidden>
+    <div class="card"><h2>Documents de référence</h2><div class="b" id="liste-docs"><div class="note">Chargement…</div></div></div>
+  </section>
+
+  <!-- ===== Facturation (responsables d'agence) ===== -->
+  <section data-onglet="factu" hidden>
+    <div class="confid">Document à usage strictement confidentiel — grille BTP « offre taux de facturation horaire tout inclus », réservée aux responsables d'agence. Ne pas transmettre aux consultants ni aux intérimaires.</div>
+    <div class="card" style="margin-top:12px"><h2>Correspondance net promis → tarif facturé</h2>
+      <div class="b">
+        <div class="grid3">
+          <div><label>Métier</label><select id="f-metier"></select></div>
+          <div><label>Net promis (€ / h)</label><input id="f-net" inputmode="decimal" placeholder="13,50"></div>
+          <div><label>Options</label>
+            <label style="display:flex; align-items:center; gap:6px; font-weight:400; font-size:13px; color:var(--ink); margin:6px 0"><input type="checkbox" id="f-majo" style="width:20px; height:20px"> Paris & alentours / Haute-Savoie & Pays de Gex / saison / difficulté logistique (+ 2,50 €)</label>
+            <label style="display:flex; align-items:center; gap:6px; font-weight:400; font-size:13px; color:var(--ink); margin:6px 0"><input type="checkbox" id="f-propre" style="width:20px; height:20px"> Intérimaire avec son propre logement (KO + 1 €)</label>
+          </div>
+        </div>
+        <div style="margin-top:10px; display:flex; gap:14px 28px; flex-wrap:wrap; align-items:baseline">
+          <div><span class="note">Tarif grille</span><br><span class="big" id="f-tarif">—</span> <span class="note">€ HT / heure travaillée, tout inclus</span></div>
+          <div><span class="note">Palier</span><br><b id="f-palier">—</b></div>
+          <div style="flex:1 1 260px"><span class="note">Lecture</span><br><span id="f-lecture">—</span></div>
+        </div>
+        <div class="msg" id="f-msg"></div>
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap"><a class="btn" id="f-simu" target="_blank" rel="noopener">Ouvrir ce net dans le simulateur ↗</a></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px"><h2>Pourquoi le tarif doit suivre le profil</h2>
+      <div class="b" id="f-pedago"></div>
+    </div>
+    <div class="card" style="margin-top:12px"><h2>Grille BTP <span class="note" id="f-version"></span></h2>
+      <div class="b"><div class="tbl" id="f-grille"></div><ul class="note" id="f-regles" style="margin:10px 0 0 18px; padding:0"></ul></div>
+    </div>
+  </section>
+</div>
+
+<!-- ===== fiche imprimable ===== -->
+<div id="fiche-print"></div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const num = v => { const x = parseFloat(String(v == null ? "" : v).replace(/\s/g, "").replace(",", ".")); return isFinite(x) ? x : null; };
+const N2 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/* ===== référentiel (calculette Excel V2 01/2026 + tables de correspondance v1.0) ===== */
+const CRITERES = [
+  { k: "A", nom: "Expérience & autonomie technique", pond: 1, notes: ["0–500 h · très encadré · tâches simples", "1 000–2 000 h · semi-autonome · tâches courantes", "2 000–3 000 h · autonome · peut encadrer ponctuellement", "3 000–4 000 h · très autonome · encadre un binôme · contrôle qualité", "4 000–7 000 h · expert · supervision · forte valeur ajoutée"],
+    detail: [["Niveau", "Manœuvre / aide", "Ouvrier qualifié basique", "Ouvrier qualifié expert", "Profil sup. basique", "Profil sup. expert"], ["Heures cumulées", "0 – 500 h", "1 000 – 2 000 h", "2 000 – 3 000 h", "3 000 – 4 000 h", "4 000 – 7 000 h"], ["Années métier", "< 1 an", "1 – 2 ans", "2 – 3 ans", "3 – 4 ans", "4 – 6 ans"], ["Missions", "Travaux simples, aide, observation", "Tâches de base, semi-autonome", "Autonome sur la majorité des tâches, encadre occasionnellement un aide", "Autonomie complète, encadrement d'un binôme, contrôle qualité", "Supervision d'équipe, coordination, expertise"]] },
+  { k: "B", nom: "Compétences techniques", pond: 1, notes: ["bases simples · aucune lecture de plans", "maîtrise d'un poste · lecture basique", "réalisation complète · lecture courante", "expertise · lecture avancée", "polyvalence / innovation · contrôle complet"],
+    detail: [["Technique", "Bases", "Maîtrise d'un poste", "Réalisation complète", "Expertise", "Polyvalence / innovation"], ["Autonomie", "Très encadré", "Semi-autonome", "Autonome", "Totalement autonome", "Encadrant"], ["Lecture de plans", "Non", "Basique", "Courant", "Avancé", "Contrôle complet"], ["Sécurité", "Formation initiale", "Application", "Responsabilité personnelle", "Supervision", "Référent sécurité"], ["Encadrement", "Aucun", "Aucun", "Appui à l'apprenti", "Chef de binôme", "Chef d'équipe / formateur"]] },
+  { k: "C", nom: "Maîtrise du français", pond: 1, notes: ["très faible · quasi non communicant", "compréhension simple · échanges basiques", "autonome sur tâches simples", "fluidité professionnelle", "maîtrise complète · reformulation"],
+    detail: [["Compréhension orale", "Quelques mots isolés", "Comprend si l'on parle lentement en montrant", "Consignes courtes et courantes", "Échanges complets et consignes techniques", "Tout type d'échanges"], ["Expression orale", "Ne parle pas ou quelques mots", "Quelques mots, phrases courtes", "Phrases simples, se fait comprendre", "Parle clairement, explique un problème", "Communique naturellement, reformule"], ["Lecture", "Ne lit pas", "Déchiffre quelques mots", "Consignes simples, panneaux de sécurité", "Documents techniques simples", "Plans, procédures, mails"], ["Écriture", "N'écrit pas", "Quelques mots (noms, chiffres)", "Phrases courtes, fiche basique", "Messages simples compréhensibles", "Comptes rendus, formulaires structurés"]] },
+  { k: "D", nom: "Outillage & EPI", pond: 1, notes: ["peu ou pas d'outillage personnel", "outils manuels courants", "électroportatif standard et outillage complet métier", "outillage complet · mesure précise · plusieurs électroportatifs", "outillage expert · matériel avancé (laser, équipement pro complet)"],
+    detail: [["Outillage attendu", "Crayon, mètre, cutter, sacoche basique", "D1 + outils manuels courants, éventuellement une visseuse", "Manuel complet + électroportatif standard de chantier", "Plusieurs électroportatifs, outils de mesure précis (laser)", "Complet et polyvalent, matériel avancé de productivité et de contrôle"], ["EPI", "Peut arriver sans EPI (fournis par l'entreprise)", "Complets : chaussures, gants, lunettes, casque", "Complets", "Complets et spécifiques métier", "Complets et spécifiques métier"]] },
+  { k: "E", nom: "Rendement", pond: 2, notes: ["< 70 % du rendement attendu · lenteur · reprises fréquentes", "70–80 % · autonome sur tâches simples", "rendement standard · 100 % attendu · sans reprise", "très bon rendement · 110–130 % · accélère l'équipe", "> 130 % · expert · optimise l'organisation et les délais"],
+    detail: [["Productivité", "< 70 %, tâches non terminées", "70–80 %, fragile", "100 %, standard", "110–130 %, très bon", "> 130 %, expert"], ["Délais / rythme", "Très lent, reprises", "Irrégulier", "Normal, délais tenus", "Soutenu, accélère l'équipe", "Optimal, anticipe"], ["Qualité", "Erreurs fréquentes", "Erreurs régulières en baisse", "Correcte, erreurs rares", "Propre, très faible taux d'erreur", "Précision maximale"], ["Autonomie", "Encadrement constant", "Tâches simples", "Satisfaisante", "Très autonome, plusieurs tâches", "Totale, gère imprévus et priorités"], ["Organisation", "Faible, oublis", "Hésitante, rappels", "Cohérente", "Optimise, anticipe", "Améliore les process"]] },
+  { k: "F", nom: "Savoir-être", pond: 1.5, notes: ["retards / absences fréquents · respect faible de la sécurité · problèmes d'attitude ou de logement", "ponctualité irrégulière · rappels sécurité · attitude correcte mais peu impliquée", "présence stable · respect global des consignes · intégration correcte · logement respecté", "ponctualité / assiduité fiables · sécurité exemplaire · bonne attitude · logement entretenu", "aucune absence ni retard injustifié · sécurité irréprochable · moteur du groupe · logement impeccable"],
+    detail: [["Ponctualité, assiduité", "Retards / absences fréquents", "Irrégulière", "Présence stable", "Exemplaire", "Fiabilité parfaite"], ["Règles de sécurité", "Faible, nombreux rappels", "Partiel, rappels", "Global", "Rigoureux", "Modèle, sensibilise les autres"], ["Attitude, communication", "Conflits", "Correcte, peu impliquée", "Professionnelle", "Positive, constructive", "Moteur du groupe"], ["Esprit d'équipe", "Tensions", "Neutre", "Correcte", "Bonne cohésion, aide les autres", "Fédérateur"], ["Logement", "Non-respect, plaintes", "Correct, remarques fréquentes", "Respecté", "Propre, aucune remarque", "Impeccable, modèle"]] },
+];
+/* score → niveau AB2PRO → fourchette nette (feuille « Grilles » : bornes basses 1 / 2 / 3 / 3,5 / 4,5) */
+const NIVEAUX = [
+  { min: 1, niveau: 1, net: [11.00, 11.50], profil: "Manœuvre · très faible autonomie" },
+  { min: 2, niveau: 2, net: [12.00, 13.00], profil: "Ouvrier qualifié basique" },
+  { min: 3, niveau: 3, net: [13.50, 14.50], profil: "Ouvrier autonome" },
+  { min: 3.5, niveau: 4, net: [14.50, 15.50], profil: "Ouvrier expert · profil supérieur · chef de binôme" },
+  { min: 4.5, niveau: 5, net: [16.00, 16.50], profil: "Expert métier · chef d'équipe · haute valeur ajoutée" },
+];
+const METIERS = ["Façadier - poseur ITE", "Plaquiste", "Ravaleur", "Poseur panneaux solaires", "Peintre intérieur", "Électricien", "Enduiseur - projeté", "Poseur d'armatures métalliques", "Plombier - chauffagiste", "Monteur de gaines", "Bardeur", "Maçon traditionnel", "Menuisier bois / alu", "Étancheur", "Solier", "Carreleur", "Maçon coffreur bancheur", "Charpentier", "Couvreur", "Soudeur", "Tuyauteur", "Peintre industriel", "Sableur", "Serrurier - chaudronnier"];
+const AGENCES = ["Rennes", "Paris", "Bordeaux", "Aix-en-Provence", "Lyon", "Strasbourg", "Angers", "Rouen", "Nantes", "Toulouse", "Lille"];
+
+/* ===== état ===== */
+const NOTES = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+let INFOS = null;   /* /api/salaires-btp : documents, droits, grille */
+
+function rendreCriteres() {
+  const inter = $("in-type").value === "interimaire";
+  $("criteres").innerHTML = CRITERES.map(c => {
+    const actif = inter || "ABCD".includes(c.k);
+    return "<div class='crit' data-k='" + c.k + "'" + (actif ? "" : " style='opacity:.45'") + "><div class='tit'><b>" + c.k + " — " + esc(c.nom) + "</b><span class='pond'>" + (c.pond !== 1 ? "pondération × " + N2.format(c.pond).replace(",00", "") : "pondération × 1") + (actif ? "" : " · ignoré pour un candidat") + "</span></div>" +
+      "<div class='notes'>" + c.notes.map((lib, i) => "<label" + (NOTES[c.k] === i + 1 ? " class='on'" : "") + "><input type='radio' name='n" + c.k + "' value='" + (i + 1) + "'" + (NOTES[c.k] === i + 1 ? " checked" : "") + (actif ? "" : " disabled") + "><span><b>" + c.k + (i + 1) + "</b><span class='lib'>" + esc(lib) + "</span></span></label>").join("") + "</div>" +
+      "<details><summary>Voir la table de correspondance " + c.k + "1 → " + c.k + "5</summary><div class='tbl detail'><table><tr><th></th>" + [1, 2, 3, 4, 5].map(i => "<th>" + c.k + i + "</th>").join("") + "</tr>" +
+      c.detail.map(r => "<tr><td><b>" + esc(r[0]) + "</b></td>" + r.slice(1).map(x => "<td>" + esc(x) + "</td>").join("") + "</tr>").join("") + "</table></div></details>" +
+      "<div style='margin-top:6px'><input data-justif='" + c.k + "' placeholder='Justification (facultative, reprise sur la fiche)' style='font-size:14px; padding:8px'></div></div>";
+  }).join("");
+  $("criteres").querySelectorAll("input[type=radio]").forEach(r => r.addEventListener("change", () => { NOTES[r.name.slice(1)] = +r.value; r.closest(".notes").querySelectorAll("label").forEach(l => l.classList.toggle("on", l.querySelector("input").checked)); calculer(); }));
+  $("note-type").textContent = inter ? "Intérimaire en poste : axes E (rendement × 2) et F (savoir-être × 1,5) intégrés au score." : "Candidat à l'entrée : score sur les axes A à D uniquement, E et F ignorés pour ne pas interférer avec la note d'entrée.";
+  calculer();
+}
+function scoreActuel() {
+  const inter = $("in-type").value === "interimaire";
+  const n = NOTES; const base = ["A", "B", "C", "D"];
+  if (base.some(k => !n[k])) return null;
+  if (!inter) return (n.A + n.B + n.C + n.D) / 4;
+  if (!n.E || !n.F) return null;
+  return (n.A + n.B + n.C + n.D + 2 * n.E + 1.5 * n.F) / 7.5;
+}
+const niveauDe = s => { let r = NIVEAUX[0]; for (const x of NIVEAUX) if (s >= x.min) r = x; return r; };
+function calculer() {
+  const s = scoreActuel();
+  if (s == null) { $("r-score").textContent = "—"; $("r-niveau").textContent = "—"; $("r-net").textContent = "—"; $("r-profil").textContent = "Renseignez les notes " + ($("in-type").value === "interimaire" ? "A à F" : "A à D") + "."; verifierPropose(); return; }
+  const nv = niveauDe(s);
+  $("r-score").textContent = N2.format(Math.round(s * 100) / 100); $("r-niveau").textContent = "Niveau " + nv.niveau;
+  $("r-net").textContent = N2.format(nv.net[0]) + " € – " + N2.format(nv.net[1]) + " €"; $("r-profil").textContent = nv.profil;
+  verifierPropose();
+}
+function verifierPropose() {
+  const m = $("msg-propose"); const v = num($("in-propose").value); const s = scoreActuel();
+  if (v == null || s == null) { m.textContent = ""; m.className = "msg"; return; }
+  const nv = niveauDe(s);
+  if (v < nv.net[0]) { m.className = "msg err"; m.textContent = "Proposition sous la fourchette du niveau " + nv.niveau + " (" + N2.format(nv.net[0]) + " – " + N2.format(nv.net[1]) + " €)."; }
+  else if (v > nv.net[1]) { m.className = "msg err"; m.textContent = "Proposition au-dessus de la fourchette du niveau " + nv.niveau + " (" + N2.format(nv.net[0]) + " – " + N2.format(nv.net[1]) + " €) : à justifier et à faire approuver (tension marché, métier)."; }
+  else { m.className = "msg ok"; m.textContent = "✓ Dans la fourchette du niveau " + nv.niveau + "."; }
+  if (INFOS && INFOS.facturation) { $("f-net").value = String(v).replace(".", ","); correspondance(); }
+}
+
+/* ===== fiche imprimable (reprend la fiche d'évaluation v1.0 janvier 2026) ===== */
+function fiche() {
+  const s = scoreActuel(); const nv = s == null ? null : niveauDe(s); const inter = $("in-type").value === "interimaire";
+  const j = k => { const e = document.querySelector("[data-justif='" + k + "']"); return e ? e.value : ""; };
+  const v = id => $(id).value || "";
+  const box = (lib, on) => "<span style='white-space:nowrap'>" + (on ? "☑" : "☐") + " " + lib + "</span>";
+  return "<h1>Fiche d'évaluation intérimaire</h1><div class='sous'>Version 1.0 · Janvier 2026 · Pôle Recrutement · AB2PRO · " + (inter ? "Intérimaire en poste" : "Candidat à l'entrée") + "</div>" +
+    "<table><tr><td style='width:50%'><b>Nom / Prénom :</b> " + esc(v("in-nom")) + "</td><td><b>Métier :</b> " + esc(v("in-metier")) + "</td></tr>" +
+    "<tr><td><b>Agence AB2PRO :</b> " + esc(v("in-agence")) + "</td><td><b>CR responsable :</b> " + esc(v("in-cr")) + "</td></tr>" +
+    "<tr><td><b>Salaire actuel :</b> " + esc(v("in-actuel")) + (v("in-actuel") ? " € net/h" : "") + "</td><td><b>Salaire souhaité :</b> " + esc(v("in-souhaite")) + (v("in-souhaite") ? " € net/h" : "") + "</td></tr>" +
+    "<tr><td><b>Date de l'évaluation :</b> " + esc(v("in-date")) + "</td><td><b>Approbateur :</b> " + esc(v("in-approb")) + "</td></tr>" +
+    "<tr><td><b>Heures AB2Pro :</b> " + esc(v("in-heures")) + "</td><td><b>Années d'expérience métier :</b> " + esc(v("in-annees")) + "</td></tr></table>" +
+    "<table><tr><th style='width:34%'>Critère</th><th style='width:22%'>Note (1 à 5)</th><th style='width:8%'>Pond.</th><th>Justification</th></tr>" +
+    CRITERES.map(c => { const actif = inter || "ABCD".includes(c.k); return "<tr><td>" + c.k + " – " + esc(c.nom) + (actif ? "" : " <i>(non compté)</i>") + "</td><td>" + [1, 2, 3, 4, 5].map(i => (NOTES[c.k] === i ? "☑" : "☐") + i).join(" ") + "</td><td>× " + N2.format(c.pond).replace(",00", "") + "</td><td>" + (esc(j(c.k)) || "<div class='lig'></div>") + "</td></tr>"; }).join("") + "</table>" +
+    "<p><b>Score intérimaire</b> = (A + B + C + D + 2×E + 1,5×F) / 7,5" + (inter ? "" : " — candidat : (A + B + C + D) / 4") + " = <b>" + (s == null ? "________" : N2.format(Math.round(s * 100) / 100)) + "</b>" +
+    " &nbsp; <b>Niveau AB2PRO ajusté :</b> " + (nv ? "Niveau " + nv.niveau + " (" + N2.format(nv.net[0]) + " – " + N2.format(nv.net[1]) + " €)" : "________") + " &nbsp; <b>Salaire proposé :</b> " + (v("in-propose") ? esc(v("in-propose")) + " €/h" : "________ €/h") + "</p>" +
+    "<p><b>Demande d'évolution salariale — origine :</b> " + box("Demande de l'intérimaire", v("in-origine") === "Demande de l'intérimaire") + " &nbsp; " + box("Proposition du CR", v("in-origine") === "Proposition du CR") + "</p>" +
+    "<p><b>Décision :</b> " + ["Acceptée", "Refusée", "Reportée"].map(x => box(x, v("in-decision") === x)).join(" &nbsp; ") + " &nbsp; <b>Date d'entrée en vigueur :</b> " + (esc(v("in-effet")) || "____________") + "</p>" +
+    "<p><b>Justification obligatoire :</b><br>" + (esc(v("in-justif")).replace(/\n/g, "<br>") || "<div class='lig'></div><div class='lig'></div><div class='lig'></div>") + "</p>" +
+    "<p><b>Recommandation finale :</b> " + ["Repositionnement / changement de poste", "Augmentation de salaire", "Maintien du niveau"].map(x => box(x, v("in-reco") === x)).join(" &nbsp; ") + "</p>" +
+    "<div class='sig'><div>Signature CR</div><div>Signature approbateur</div></div>";
+}
+$("btn-imprimer").addEventListener("click", () => { $("fiche-print").innerHTML = fiche(); window.print(); });
+$("btn-reset").addEventListener("click", () => { for (const k in NOTES) NOTES[k] = 0; document.querySelectorAll("#in-nom, #in-metier, #in-agence, #in-cr, #in-actuel, #in-souhaite, #in-heures, #in-annees, #in-propose, #in-justif, #in-approb").forEach(e => { e.value = ""; }); rendreCriteres(); });
+$("in-type").addEventListener("change", rendreCriteres);
+$("in-propose").addEventListener("input", verifierPropose);
+$("btn-factu-lien").addEventListener("click", () => montrer("factu"));
+
+/* ===== facturation (responsables) ===== */
+function correspondance() {
+  const g = INFOS && INFOS.grille; if (!g) return;
+  const cat = g.categories[+($("f-metier").value.split("|")[0]) || 0]; const v = num($("f-net").value);
+  const t = $("f-tarif"), pal = $("f-palier"), lec = $("f-lecture"), msg = $("f-msg");
+  if (v == null) { t.textContent = "—"; pal.textContent = "—"; lec.textContent = "Saisissez le net promis."; msg.textContent = ""; return; }
+  const p = cat.paliers.find(x => v >= x.netMin && v <= x.netMax);
+  if (!p) { t.textContent = "hors grille"; pal.textContent = "—"; lec.textContent = "Net promis en dehors des paliers de la " + cat.nom.toLowerCase() + " (" + N2.format(cat.paliers[0].netMin) + " – " + N2.format(cat.paliers[cat.paliers.length - 1].netMax) + " €)."; msg.className = "msg err"; msg.textContent = "Toute demande hors grille doit faire l'objet d'une quotation par la direction avec un tarif client spécifique."; return; }
+  let tarif = p.tarif; const extras = [];
+  if ($("f-majo").checked) { tarif += 2.50; extras.push("+ 2,50 € majoration logement / logistique"); }
+  if ($("f-propre").checked) { extras.push("KO + 1 € : intérimaire logé par ses propres moyens"); }
+  t.textContent = N2.format(tarif); pal.textContent = p.libelle + " · net " + N2.format(p.netMin) + " – " + N2.format(p.netMax) + " €";
+  lec.innerHTML = "<b>" + esc(cat.nom) + "</b> — " + N2.format(v) + " € net promis → <b>" + N2.format(p.tarif) + " € HT/h</b> tout inclus" + (extras.length ? " · " + extras.map(esc).join(" · ") : "") + ". Attestation fiscale non-résident obligatoire (le net promis suppose l'exonération CSG/CRDS).";
+  const pAutre = cat.paliers.find(x => x !== p);
+  msg.className = "msg"; msg.textContent = pAutre && v > pAutre.netMax ? "Profil supérieur : ne pas facturer au tarif ouvrier (" + N2.format(pAutre.tarif) + " €), il manquerait " + N2.format(p.tarif - pAutre.tarif) + " € HT par heure." : "";
+  /* lien simulateur : étude BTP grand déplacement 39 h, net attendu pré-rempli (la cible de facturation se saisit dans le simulateur) */
+  const inp = { sector: "tarifaire", mode: "SIMULATEUR BTP GRAND D", branche: "btp", contrat: "ctt", heures: 39, jours: 5, attestation: true, logement: true, netAttendu: v };
+  $("f-simu").href = "simulateur.html#s=" + encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(inp)))));
+}
+function rendreFacturation() {
+  const g = INFOS.grille; if (!g) return;
+  $("f-version").textContent = "version " + g.version + " · " + g.devise;
+  $("f-metier").innerHTML = g.categories.map((c, ci) => "<optgroup label='" + esc(c.nom) + "'>" + c.metiers.map(m => "<option value='" + ci + "|" + esc(m) + "'>" + esc(m) + "</option>").join("") + "</optgroup>").join("");
+  const met = ($("in-metier").value || "").toLowerCase().slice(0, 5);
+  if (met) { const o = Array.from($("f-metier").options).find(x => x.text.toLowerCase().startsWith(met)); if (o) $("f-metier").value = o.value; }
+  $("f-grille").innerHTML = g.categories.map(c => "<table style='margin-bottom:10px'><tr><th colspan='3'>" + esc(c.nom) + "</th></tr><tr><th>Métiers</th><th>Taux net promis intérimaires</th><th class='n'>Taux horaire tout inclus</th></tr>" +
+    c.paliers.map((p, i) => "<tr><td>" + (i === 0 ? esc(c.metiers.join(", ")) : "") + "</td><td>" + N2.format(p.netMin) + " € – " + N2.format(p.netMax) + " € <span class='note'>(" + esc(p.libelle) + ")</span></td><td class='n'><b>" + N2.format(p.tarif) + " €</b></td></tr>").join("") + "</table>").join("");
+  $("f-regles").innerHTML = g.regles.map(r => "<li>" + esc(r) + "</li>").join("");
+  const ex = g.exemples;
+  $("f-pedago").innerHTML = "<p>Le taux de marge brute est garanti par la grille <b>seulement si le tarif suit le niveau du profil</b>. Payer un profil supérieur et le facturer au tarif ouvrier, c'est donner la différence au client.</p>" +
+    "<div class='tbl'><table><tr><th>Exemple</th><th class='n'>Net promis</th><th class='n'>Tarif grille</th><th>Lecture</th></tr>" + ex.map(e => "<tr><td>" + esc(e.metier) + "</td><td class='n'>" + N2.format(e.net) + " €</td><td class='n'><b>" + N2.format(e.tarif) + " €</b></td><td>" + esc(e.commentaire) + "</td></tr>").join("") + "</table></div>" +
+    "<p style='margin-top:10px'>Ordre de grandeur : entre les deux exemples, <b>1,50 € de net promis en plus</b> se facture <b>2,00 € HT de plus</b>. Facturer le plombier à 15 € net au tarif ouvrier de 31,50 € au lieu de 33,50 € fait perdre 2 € HT par heure, soit environ <b>340 € HT par mois</b> et <b>3 200 € HT par an</b> de marge sur un seul intérimaire (169 h par mois). Sur dix intérimaires mal facturés, c'est une trentaine de milliers d'euros par an.</p>" +
+    "<p>Le simulateur donne la marge exacte pour un net promis et un tarif : bouton « Ouvrir ce net dans le simulateur » ci-dessus, puis saisir le tarif cible dans le pilotage.</p>";
+  ["f-metier", "f-net", "f-majo", "f-propre"].forEach(id => $(id).addEventListener("input", correspondance)); $("f-metier").addEventListener("change", correspondance);
+  correspondance();
+}
+
+/* ===== navigation & init ===== */
+function montrer(id) {
+  document.querySelectorAll("[data-onglet]").forEach(s => { s.hidden = s.dataset.onglet !== id; });
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.o === id));
+  if (id === "factu" && INFOS && INFOS.grille) { const v = num($("in-propose").value); if (v != null) $("f-net").value = String(v).replace(".", ","); rendreFacturation(); }
+}
+document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => montrer(b.dataset.o)));
+$("liste-metiers").innerHTML = METIERS.map(m => "<option value=\"" + esc(m) + "\">").join("");
+$("liste-agences").innerHTML = AGENCES.map(a => "<option value=\"" + esc(a) + "\">").join("");
+$("in-date").value = new Date().toISOString().slice(0, 10);
+rendreCriteres();
+(async () => {
+  try {
+    const moi = await fetch("/api/moi").then(r => r.ok ? r.json() : null);
+    if (moi) $("qui").textContent = (moi.nom_complet || moi.nom || moi.email) + (moi.fonction ? " · " + moi.fonction : "");
+    INFOS = await fetch("/api/salaires-btp").then(r => r.ok ? r.json() : { documents: [], facturation: false });
+  } catch (e) { INFOS = { documents: [], facturation: false }; }
+  const docs = (INFOS.documents || []).concat(INFOS.facturation ? [{ titre: "Grille BTP 2026 — offre taux de facturation (confidentiel)", url: "/app/data/tarifs-btp/grille-btp-2026.pdf" }] : []);
+  $("liste-docs").innerHTML = docs.length ? docs.map(d => "<a class='doc' target='_blank' rel='noopener' href='" + esc(d.url) + "'><span>📄</span><b>" + esc(d.titre) + "</b></a>").join("") : "<div class='note'>Aucun document.</div>";
+  if (INFOS.facturation) { $("tab-factu").hidden = false; $("btn-factu-lien").hidden = false; }
+})();
+</script>
+</body>
+</html>
