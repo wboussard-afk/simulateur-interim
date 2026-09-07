@@ -1150,7 +1150,7 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
           { nom: "Catégorie 2 — Métiers industriels", metiers: ["Soudeurs", "Tuyauteurs", "Peintres industriels", "Sableurs", "Serruriers - Chaudronniers"],
             paliers: [{ netMin: 14.50, netMax: 16.00, tarif: 33.50, libelle: "Ouvrier qualifié" }, { netMin: 16.00, netMax: 17.00, tarif: 35.50, libelle: "Profil supérieur" }] },
         ],
-        majorations: { logement: 2.50, libelle_logement: "Paris & alentours / Haute-Savoie & Pays de Gex / saison touristique / difficulté logistique", propre_logement: "KO + 1 €" },
+        majorations: { logement: 2.50, libelle_logement: "+ 2,50 € HT par heure travaillée à la facturation si l'intérimaire est logé sur un secteur majoré (Paris & alentours, Haute-Savoie & Pays de Gex, saison touristique) ou en cas de difficulté logistique", propre_logement: "KO + 1 €" },
         mention_attestation: "Attestation fiscale non-résident obligatoire (le net promis suppose l'exonération CSG/CRDS).",
         heures_mois: 169, heures_an: 1607,
         regles: [

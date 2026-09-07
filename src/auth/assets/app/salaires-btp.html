@@ -64,18 +64,38 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space:
 .argu h3 { font-size: 15px; margin: 14px 0 4px; } .argu ul { margin: 4px 0 0 18px; padding: 0; }
 .confid { border: 1px dashed var(--brass); border-radius: 10px; padding: 8px 12px; font-size: 12.5px; color: var(--brass-deep); background: rgba(219,48,63,.06); }
 [hidden] { display: none !important; }
-/* ===== impression de la fiche d'évaluation ===== */
+/* ===== catégories de la grille BTP : catégorie 1 marine, catégorie 2 rouge (charte AB2PRO) ===== */
+:root { --cat1:#29293a; --cat2:#ea0029; --cat1-ink:#29293a; --cat2-ink:#c3001f; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --cat1-ink:#c9cbe0; --cat2-ink:#ff8a96; } }
+:root[data-theme="dark"] { --cat1-ink:#c9cbe0; --cat2-ink:#ff8a96; }
+table.cat { border-left: 4px solid var(--cat1); } table.cat.k2 { border-left-color: var(--cat2); }
+table.cat tr.cat-h th { background: var(--cat1); color: #fff; font-size: 12.5px; letter-spacing: .06em; padding: 8px 10px; } table.cat.k2 tr.cat-h th { background: var(--cat2); }
+table.cat td.n b { color: var(--cat1-ink); } table.cat.k2 td.n b { color: var(--cat2-ink); }
+.cat-tag { display: inline-block; border-radius: 6px; padding: 1px 8px; color: #fff; background: var(--cat1); font-size: 12px; font-weight: 700; vertical-align: middle; } .cat-tag.k2 { background: var(--cat2); }
+/* ===== impression de la fiche d'évaluation — charte AB2PRO (PDF Pôle Recrutement v1.0 : logo, bandeau marine, bandes rouges) ===== */
 #fiche-print { display: none; }
 @media print {
-  body { background: #fff; color: #000; font: 11pt/1.35 "Segoe UI", system-ui, sans-serif; }
+  @page { size: A4 portrait; margin: 0; }
+  body { background: #fff; color: #111; font: 10.5pt/1.35 "Segoe UI", system-ui, sans-serif; }
   header, .tabs, .wrap, .barre-app, #ab-toolbar { display: none !important; }
-  #fiche-print { display: block; padding: 10mm 12mm; }
-  #fiche-print h1 { font-size: 17pt; margin: 0 0 2pt; } #fiche-print .sous { font-size: 9pt; color: #444; margin-bottom: 8pt; }
-  #fiche-print table { width: 100%; border-collapse: collapse; font-size: 10pt; margin: 6pt 0; }
-  #fiche-print td, #fiche-print th { border: 1px solid #999; padding: 4pt 6pt; text-align: left; vertical-align: top; }
-  #fiche-print th { background: #eee; }
-  #fiche-print .sig { display: flex; gap: 30pt; margin-top: 18pt; } #fiche-print .sig div { flex: 1; border-top: 1px solid #000; padding-top: 4pt; font-size: 9.5pt; }
-  #fiche-print .lig { border-bottom: 1px dotted #999; min-height: 14pt; }
+  #fiche-print { display: block; padding: 12mm 13mm 18mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #fiche-print .logo { display: block; height: 15mm; width: auto; margin: 0 auto 5mm; }
+  #fiche-print .bande-titre { background: #29293a; color: #fff; text-align: center; font: 800 14pt/1.25 "Poppins", "Segoe UI", sans-serif; text-transform: uppercase; letter-spacing: .04em; padding: 6pt 8pt; }
+  #fiche-print .bande-titre .l2 { display: block; border-top: 1px solid rgba(255,255,255,.55); margin-top: 5pt; padding-top: 5pt; font-size: 12.5pt; }
+  #fiche-print .bande { background: #ea0029; color: #fff; font-weight: 700; font-size: 10.5pt; padding: 3pt 8pt; margin: 10pt 0 5pt; break-after: avoid; }
+  #fiche-print .infos { display: grid; grid-template-columns: 1fr 1fr; gap: 2pt 16pt; }
+  #fiche-print .infos div { border-bottom: 1px dotted #888; padding: 3pt 0; min-height: 15pt; }
+  #fiche-print .bx { white-space: nowrap; }
+  #fiche-print table.crit-t { width: 100%; border-collapse: separate; border-spacing: 2pt; margin: 4pt 0; }
+  #fiche-print .crit-t th { background: #29293a; color: #fff; font-weight: 700; text-align: center; padding: 4pt 5pt; font-size: 9.5pt; text-transform: none; letter-spacing: 0; border: 0; }
+  #fiche-print .crit-t td { padding: 4pt 6pt; vertical-align: middle; font-size: 9.5pt; border: 0; }
+  #fiche-print .crit-t td.c { background: #29293a; color: #fff; font-weight: 700; text-align: center; }
+  #fiche-print .crit-t td.r { background: #ea0029; color: #fff; font-weight: 700; text-align: center; white-space: nowrap; }
+  #fiche-print .crit-t td.j { background: #ea0029; color: #fff; }
+  #fiche-print .score p { margin: 3pt 0; }
+  #fiche-print .lig { border-bottom: 1px dotted #888; min-height: 15pt; }
+  #fiche-print .sig { display: flex; gap: 30pt; margin-top: 20pt; } #fiche-print .sig div { flex: 1; border-top: 1px solid #111; padding-top: 4pt; font-size: 9.5pt; }
+  #fiche-print .pied { position: fixed; bottom: 6mm; left: 13mm; right: 13mm; display: flex; justify-content: space-between; font-size: 8pt; color: #666; }
 }
 </style>
 </head>
@@ -193,7 +213,6 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space:
           <div style="flex:1 1 260px"><span class="note">Lecture</span><br><span id="f-lecture">—</span></div>
         </div>
         <div class="msg" id="f-msg"></div>
-        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap"><a class="btn" id="f-simu" target="_blank" rel="noopener" hidden>Ouvrir ce net dans le simulateur ↗</a></div>
       </div>
     </div>
     <div class="card" style="margin-top:12px"><h2>Pourquoi le tarif doit suivre le profil</h2>
@@ -217,6 +236,8 @@ const N2 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFra
 const dfr = iso => /^\d{4}-\d{2}-\d{2}$/.test(iso || "") ? iso.split("-").reverse().join("/") : (iso || "");
 const aujourdhui = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
 const norm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/s\b/g, "").replace(/[^a-z]/g, "");
+/* logo officiel (extrait des fiches PDF Pôle Recrutement) pour la fiche imprimée */
+const LOGO_FICHE = "data:image/png;base64,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";
 
 /* ===== référentiel (calculette Excel V2 01/2026 + tables de correspondance v1.0) ===== */
 const CRITERES = [
@@ -242,7 +263,8 @@ const NIVEAUX = [
   { min: 4.5, niveau: 5, net: [16.00, 16.50], profil: "Expert métier · chef d'équipe · haute valeur ajoutée" },
 ];
 const METIERS = ["Façadier - poseur ITE", "Plaquiste", "Ravaleur", "Poseur panneaux solaires", "Peintre intérieur", "Électricien", "Enduiseur - projeté", "Poseur d'armatures métalliques", "Plombier - chauffagiste", "Monteur de gaines", "Bardeur", "Maçon traditionnel", "Menuisier bois / alu", "Étancheur", "Solier", "Carreleur", "Maçon coffreur bancheur", "Charpentier", "Couvreur", "Soudeur", "Tuyauteur", "Peintre industriel", "Sableur", "Serrurier - chaudronnier"];
-const AGENCES = ["Rennes", "Paris", "Bordeaux", "Aix-en-Provence", "Lyon", "Strasbourg", "Angers", "Rouen", "Nantes", "Toulouse", "Lille"];
+/* agences AB2PRO telles que nommées dans le CRM (export commandes) ; saisie libre possible */
+const AGENCES = ["PALMA ANJOU", "PALMA AQUITAINE", "PALMA ATLANTIQUE", "PALMA BRETAGNE", "PALMA HAUTS-DE-FRANCE", "PALMA ILE-DE-FRANCE", "PALMA NORMANDIE", "PALMA OCCITANIE", "PALMA PROVENCE", "PALMA RHÔNE-ALPES"];
 const PAYS = ["France", "Roumanie", "Hongrie", "Pologne", "Portugal", "Bulgarie", "Moldavie", "Ukraine", "Espagne", "Italie"];
 let MOI = null;
 /* pré-remplissage du nom du recruteur (fiche candidat) et du CR responsable (fiche intérimaire) avec l'utilisateur connecté, modifiable */
@@ -315,42 +337,48 @@ function verifierPropose() {
   if (INFOS && INFOS.facturation && document.querySelector("[data-onglet='factu']").hidden) { $("f-net").value = String(v).replace(".", ","); }
 }
 
-/* ===== fiche imprimable : fiche candidat (4 critères) ou fiche intérimaire (6 critères), v1.0 janvier 2026 ===== */
+/* ===== fiche imprimable — charte AB2PRO (logo, bandeau titre marine, bandes rouges, tableau marine/rouge), fidèle aux PDF v1.0 janvier 2026 ===== */
 function fiche() {
   const s = scoreActuel(); const nv = s == null ? null : niveauDe(s); const inter = $("in-type").value === "interimaire";
   const j = k => { const e = document.querySelector("[data-justif='" + k + "']"); return e ? e.value : ""; };
   const v = id => $(id).value || "";
   const fmt = id => { const x = num(v(id)); return x == null ? esc(v(id)) : N2.format(x); };
-  const box = (lib, on) => "<span style='white-space:nowrap'>" + (on ? "☑" : "☐") + " " + lib + "</span>";
+  const box = (lib, on) => "<span class='bx'>" + (on ? "☑" : "☐") + " " + lib + "</span>";
   const lignes = n => Array.from({ length: n }, () => "<div class='lig'></div>").join("");
+  const champ = (lib, val) => "<div><b>" + lib + " :</b> " + (val || "") + "</div>";
   const crits = CRITERES.filter(c => inter || "ABCD".includes(c.k));
-  const tableCrit = "<table><tr><th style='width:34%'>Critère</th><th style='width:22%'>Note (1 à 5)</th><th style='width:8%'>Pond.</th><th>Justification</th></tr>" +
-    crits.map(c => "<tr><td>" + c.k + " – " + esc(c.nom) + "</td><td>" + [1, 2, 3, 4, 5].map(i => (NOTES[c.k] === i ? "☑" : "☐") + i).join(" ") + "</td><td>× " + N2.format(c.pond).replace(",00", "") + "</td><td>" + (esc(j(c.k)) || "<div class='lig'></div>") + "</td></tr>").join("") + "</table>";
+  const tableCrit = "<table class='crit-t'><tr><th style='width:30%'>Critère</th><th style='width:24%'>Note (1 à 5)</th><th style='width:11%'>Pondération</th><th>Justification</th></tr>" +
+    crits.map(c => "<tr><td class='c'>" + c.k + " – " + esc(c.nom) + "</td><td class='r'>" + [1, 2, 3, 4, 5].map(i => (NOTES[c.k] === i ? "☑" : "☐") + i).join(" ") + "</td><td class='r'>X" + N2.format(c.pond).replace(",00", "") + "</td><td class='j'>" + (esc(j(c.k)) || "…") + "</td></tr>").join("") + "</table>";
   const scoreTxt = "<b>" + (s == null ? "________" : N2.format(Math.round(s * 100) / 100)) + "</b>";
-  const niveauTxt = nv ? "Niveau " + nv.niveau + " (" + N2.format(nv.net[0]) + " – " + N2.format(nv.net[1]) + " € · " + esc(nv.profil) + ")" : "________";
-  const proposeTxt = v("in-propose") ? fmt("in-propose") + " €/h" : "________ €/h";
+  const niveauTxt = nv ? "<b>Niveau " + nv.niveau + "</b> (" + N2.format(nv.net[0]) + " – " + N2.format(nv.net[1]) + " € · " + esc(nv.profil) + ")" : "Niveau ________";
+  const proposeTxt = v("in-propose") ? "<b>" + fmt("in-propose") + " €/h</b>" : "________ €/h";
+  const entete = titre => "<img class='logo' src='" + LOGO_FICHE + "' alt='AB2PRO — Groupe Triangle Solutions RH'><div class='bande-titre'>Fiche d'évaluation<span class='l2'>" + titre + "</span></div>";
+  const pied = "<div class='pied'><span>Version : 1.0 | Date : Janvier 2026 | Service : Pôle Recrutement</span><span>AB2PRO · imprimée le " + esc(dfr(aujourdhui())) + "</span></div>";
   if (!inter) {
-    return "<h1>Fiche d'évaluation candidat</h1><div class='sous'>Version 1.0 · Janvier 2026 · Pôle Recrutement · AB2PRO · Candidat à l'entrée — 4 critères</div>" +
-      "<table><tr><td style='width:50%'><b>Nom / Prénom :</b> " + esc(v("in-nom")) + "</td><td><b>Métier visé :</b> " + esc(v("in-metier")) + "</td></tr>" +
-      "<tr><td><b>Pays de recrutement :</b> " + esc(v("in-pays")) + "</td><td><b>Type de recruteur :</b> " + ["TEAMPRO", "CR France", "Prestataire externe"].map(x => box(x, v("in-rtype") === x)).join(" ") + "</td></tr>" +
-      "<tr><td><b>Nom du recruteur :</b> " + esc(v("in-recruteur")) + "</td><td><b>Date de l'entretien :</b> " + esc(dfr(v("in-date"))) + "</td></tr></table>" +
-      tableCrit +
-      "<p><b>Score candidat</b> = (A + B + C + D) / 4 = " + scoreTxt + " &nbsp; <b>Niveau AB2PRO proposé :</b> " + niveauTxt + " &nbsp; <b>Salaire proposé :</b> " + proposeTxt + "</p>" +
-      "<p><b>Commentaires du recruteur :</b><br>" + (esc(v("in-justif")).replace(/\n/g, "<br>") || lignes(3)) + "</p>";
+    return entete("Candidat") +
+      "<div class='bande'>Informations générales</div><div class='infos'>" +
+      champ("Nom / Prénom", esc(v("in-nom"))) + champ("Métier visé", esc(v("in-metier"))) +
+      champ("Pays de recrutement", esc(v("in-pays"))) + champ("Type de recruteur", ["TEAMPRO", "CR France", "Prestataire externe"].map(x => box(x, v("in-rtype") === x)).join(" ")) +
+      champ("Nom du recruteur", esc(v("in-recruteur"))) + champ("Date de l'entretien", esc(dfr(v("in-date")))) + "</div>" +
+      "<div class='bande'>Évaluation (4 critères avec pondération)</div>" + tableCrit +
+      "<div class='bande'>Score candidat</div><div class='score'><p>Score candidat = (A + B + C + D) / 4 = " + scoreTxt + "</p><p>Niveau AB2PRO proposé : " + niveauTxt + "</p><p>Salaire proposé : " + proposeTxt + "</p></div>" +
+      "<div class='bande'>Commentaires du recruteur</div><div class='score'>" + (esc(v("in-justif")).replace(/\n/g, "<br>") || lignes(3)) + "</div>" + pied;
   }
-  return "<h1>Fiche d'évaluation intérimaire</h1><div class='sous'>Version 1.0 · Janvier 2026 · Pôle Recrutement · AB2PRO · Intérimaire en poste — 6 critères</div>" +
-    "<table><tr><td style='width:50%'><b>Nom / Prénom :</b> " + esc(v("in-nom")) + "</td><td><b>Métier :</b> " + esc(v("in-metier")) + "</td></tr>" +
-    "<tr><td><b>Agence AB2PRO :</b> " + esc(v("in-agence")) + "</td><td><b>CR responsable :</b> " + esc(v("in-cr")) + "</td></tr>" +
-    "<tr><td><b>Salaire actuel :</b> " + fmt("in-actuel") + (v("in-actuel") ? " € net/h" : "") + "</td><td><b>Salaire souhaité :</b> " + fmt("in-souhaite") + (v("in-souhaite") ? " € net/h" : "") + "</td></tr>" +
-    "<tr><td><b>Date de l'évaluation :</b> " + esc(dfr(v("in-date"))) + "</td><td><b>Approbateur :</b> " + esc(v("in-approb")) + "</td></tr>" +
-    "<tr><td><b>Heures AB2Pro :</b> " + esc(v("in-heures")) + "</td><td><b>Années d'expérience métier :</b> " + esc(v("in-annees")) + "</td></tr></table>" +
-    tableCrit +
-    "<p><b>Score intérimaire</b> = (A + B + C + D + 2×E + 1,5×F) / 7,5 = " + scoreTxt + " &nbsp; <b>Niveau AB2PRO ajusté :</b> " + niveauTxt + " &nbsp; <b>Salaire proposé :</b> " + proposeTxt + "</p>" +
-    "<p><b>Demande d'évolution salariale — origine :</b> " + box("Demande de l'intérimaire", v("in-origine") === "Demande de l'intérimaire") + " &nbsp; " + box("Proposition du CR", v("in-origine") === "Proposition du CR") + "</p>" +
-    "<p><b>Décision :</b> " + ["Acceptée", "Refusée", "Reportée"].map(x => box(x, v("in-decision") === x)).join(" &nbsp; ") + " &nbsp; <b>Date d'entrée en vigueur :</b> " + (esc(dfr(v("in-effet"))) || "____________") + "</p>" +
-    "<p><b>Justification obligatoire :</b><br>" + (esc(v("in-justif")).replace(/\n/g, "<br>") || lignes(3)) + "</p>" +
-    "<p><b>Recommandation finale :</b> " + ["Repositionnement / changement de poste", "Augmentation de salaire", "Maintien du niveau"].map(x => box(x, v("in-reco") === x)).join(" &nbsp; ") + "</p>" +
-    "<div class='sig'><div>Signature CR</div><div>Signature approbateur</div></div>";
+  return entete("Intérimaire") +
+    "<div class='bande'>Informations générales</div><div class='infos'>" +
+    champ("Nom / Prénom", esc(v("in-nom"))) + champ("Métier", esc(v("in-metier"))) +
+    champ("Agence AB2PRO", esc(v("in-agence"))) + champ("CR responsable", esc(v("in-cr"))) +
+    champ("Salaire actuel", fmt("in-actuel") + (v("in-actuel") ? " € net/h" : "")) + champ("Salaire souhaité", fmt("in-souhaite") + (v("in-souhaite") ? " € net/h" : "")) +
+    champ("Date de l'évaluation", esc(dfr(v("in-date")))) + champ("Approbateur (chef d'agence / coordinateur / responsable)", esc(v("in-approb"))) +
+    champ("Heures AB2Pro", esc(v("in-heures"))) + champ("Années d'expérience métier", esc(v("in-annees"))) + "</div>" +
+    "<div class='bande'>Évaluation (6 critères avec pondération)</div>" + tableCrit +
+    "<div class='bande'>Score intérimaire</div><div class='score'><p>Score intérimaire = (A + B + C + D + 2×E + 1,5×F) / 7,5 = " + scoreTxt + "</p><p>Niveau AB2PRO ajusté : " + niveauTxt + "</p><p>Salaire proposé : " + proposeTxt + "</p></div>" +
+    "<div class='bande'>Demande d'évolution salariale</div><div class='score'>" +
+    "<p>Origine de la demande : " + box("Demande de l'intérimaire", v("in-origine") === "Demande de l'intérimaire") + " &nbsp; " + box("Proposition du CR", v("in-origine") === "Proposition du CR") + "</p>" +
+    "<p>Décision : " + ["Acceptée", "Refusée", "Reportée"].map(x => box(x, v("in-decision") === x)).join(" &nbsp; ") + " &nbsp; Date d'entrée en vigueur : <b>" + (esc(dfr(v("in-effet"))) || "____________") + "</b></p>" +
+    "<p>Justification obligatoire :</p>" + (esc(v("in-justif")).replace(/\n/g, "<br>") || lignes(3)) + "</div>" +
+    "<div class='bande'>Recommandation finale</div><div class='score'><p>" + ["Repositionnement / changement de poste", "Augmentation de salaire", "Maintien du niveau"].map(x => box(x, v("in-reco") === x)).join(" &nbsp; ") + "</p></div>" +
+    "<div class='sig'><div>Signature CR</div><div>Signature approbateur</div></div>" + pied;
 }
 $("btn-imprimer").addEventListener("click", () => { $("fiche-print").innerHTML = fiche(); window.print(); });
 $("btn-reset").addEventListener("click", () => {
@@ -367,9 +395,9 @@ $("btn-factu-lien").addEventListener("click", () => montrer("factu"));
 /* ===== facturation (responsables) ===== */
 function correspondance() {
   const g = INFOS && INFOS.grille; if (!g) return;
-  const cat = g.categories[+($("f-metier").value.split("|")[0]) || 0]; const v = num($("f-net").value);
+  const ci = +($("f-metier").value.split("|")[0]) || 0; const cat = g.categories[ci]; const v = num($("f-net").value);
   const t = $("f-tarif"), pal = $("f-palier"), lec = $("f-lecture"), msg = $("f-msg");
-  $("f-simu").hidden = true;
+  t.style.color = ci === 0 ? "var(--cat1-ink)" : "var(--cat2-ink)";
   if (v == null) { t.textContent = "—"; pal.textContent = "—"; lec.textContent = "Saisissez le net promis."; msg.textContent = ""; return; }
   const p = cat.paliers.find(x => v >= x.netMin && v <= x.netMax);
   if (!p) { t.textContent = "hors grille"; pal.textContent = "—"; lec.textContent = "Net promis en dehors des paliers de la " + cat.nom.toLowerCase() + " (" + N2.format(cat.paliers[0].netMin) + " – " + N2.format(cat.paliers[cat.paliers.length - 1].netMax) + " €)."; msg.className = "msg err"; msg.textContent = "Toute demande hors grille doit faire l'objet d'une quotation par la direction avec un tarif client spécifique."; return; }
@@ -377,12 +405,9 @@ function correspondance() {
   if ($("f-majo").checked && maj.logement) { tarif += maj.logement; extras.push("+ " + N2.format(maj.logement) + " € majoration logement / logistique"); }
   if ($("f-propre").checked && maj.propre_logement) { extras.push(maj.propre_logement + " : intérimaire logé par ses propres moyens"); }
   t.textContent = N2.format(tarif); pal.textContent = p.libelle + " · net " + N2.format(p.netMin) + " – " + N2.format(p.netMax) + " €";
-  lec.innerHTML = "<b>" + esc(cat.nom) + "</b> — " + N2.format(v) + " € net promis → <b>" + N2.format(p.tarif) + " € HT/h</b> tout inclus" + (extras.length ? " · " + extras.map(esc).join(" · ") : "") + (g.mention_attestation ? ". " + esc(g.mention_attestation) : "");
+  lec.innerHTML = "<span class='cat-tag k" + (ci + 1) + "'>" + esc(cat.nom) + "</span> " + N2.format(v) + " € net promis → <b>" + N2.format(p.tarif) + " € HT/h</b> tout inclus" + (extras.length ? " · " + extras.map(esc).join(" · ") : "") + (g.mention_attestation ? ". " + esc(g.mention_attestation) : "");
   const pAutre = cat.paliers.find(x => x !== p);
   msg.className = "msg"; msg.textContent = pAutre && v > pAutre.netMax ? "Profil supérieur : ne pas facturer au tarif ouvrier (" + N2.format(pAutre.tarif) + " €), il manquerait " + N2.format(p.tarif - pAutre.tarif) + " € HT par heure." : "";
-  /* lien simulateur : étude BTP grand déplacement 39 h, net attendu pré-rempli (la cible de facturation se saisit dans le simulateur) */
-  const inp = { sector: "tarifaire", mode: "SIMULATEUR BTP GRAND D", branche: "btp", contrat: "ctt", heures: 39, jours: 5, attestation: true, logement: true, netAttendu: v };
-  $("f-simu").href = "simulateur.html#s=" + encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(inp))))); $("f-simu").hidden = !!$("f-simu").dataset.off;
 }
 let FACTU_PRETE = false, METIER_CHOISI = false;
 function preselectionMetier() {
@@ -395,9 +420,9 @@ function rendreFacturation() {
   $("f-version").textContent = "version " + g.version + " · " + g.devise;
   $("f-metier").innerHTML = g.categories.map((c, ci) => "<optgroup label='" + esc(c.nom) + "'>" + c.metiers.map(m => "<option value='" + ci + "|" + esc(m) + "'>" + esc(m) + "</option>").join("") + "</optgroup>").join("");
   const maj = g.majorations || {};
-  $("f-majo-lib").textContent = (maj.libelle_logement || "Majoration grille") + (maj.logement ? " (+ " + N2.format(maj.logement) + " €)" : "");
+  $("f-majo-lib").textContent = maj.libelle_logement || ("Majoration logement" + (maj.logement ? " (+ " + N2.format(maj.logement) + " €)" : ""));
   $("f-propre-lib").textContent = "Intérimaire avec son propre logement" + (maj.propre_logement ? " (" + maj.propre_logement + ")" : "");
-  $("f-grille").innerHTML = g.categories.map(c => "<table style='margin-bottom:10px'><tr><th colspan='3'>" + esc(c.nom) + "</th></tr><tr><th>Métiers</th><th>Taux net promis intérimaires</th><th class='n'>Taux horaire tout inclus</th></tr>" +
+  $("f-grille").innerHTML = g.categories.map((c, ci) => "<table class='cat k" + (ci + 1) + "' style='margin-bottom:10px'><tr class='cat-h'><th colspan='3'>" + esc(c.nom) + "</th></tr><tr><th>Métiers</th><th>Taux net promis intérimaires</th><th class='n'>Taux horaire tout inclus</th></tr>" +
     c.paliers.map((p, i) => "<tr><td>" + (i === 0 ? esc(c.metiers.join(", ")) : "") + "</td><td>" + N2.format(p.netMin) + " € – " + N2.format(p.netMax) + " € <span class='note'>(" + esc(p.libelle) + ")</span></td><td class='n'><b>" + N2.format(p.tarif) + " €</b></td></tr>").join("") + "</table>").join("");
   $("f-regles").innerHTML = g.regles.map(r => "<li>" + esc(r) + "</li>").join("");
   const ex = g.exemples || []; const hMois = g.heures_mois || 169, hAn = g.heures_an || 1607;
@@ -405,7 +430,7 @@ function rendreFacturation() {
   if (ex.length) pedago += "<div class='tbl'><table><tr><th>Exemple</th><th class='n'>Net promis</th><th class='n'>Tarif grille</th><th>Lecture</th></tr>" + ex.map(e => "<tr><td>" + esc(e.metier) + "</td><td class='n'>" + N2.format(e.net) + " €</td><td class='n'><b>" + N2.format(e.tarif) + " €</b></td><td>" + esc(e.commentaire) + "</td></tr>").join("") + "</table></div>";
   if (ex.length >= 2) { const dNet = ex[1].net - ex[0].net, dTarif = ex[1].tarif - ex[0].tarif;
     pedago += "<p style='margin-top:10px'>Ordre de grandeur : entre les deux exemples, <b>" + N2.format(dNet) + " € de net promis en plus</b> se facture <b>" + N2.format(dTarif) + " € HT de plus</b>. Facturer le second au tarif du premier (" + N2.format(ex[0].tarif) + " € au lieu de " + N2.format(ex[1].tarif) + " €) fait perdre " + N2.format(dTarif) + " € HT par heure, soit environ <b>" + Math.round(dTarif * hMois) + " € HT par mois de mission</b> (" + hMois + " h) et <b>" + Math.round(dTarif * hAn) + " € HT sur une année de " + hAn + " h travaillées</b>, pour un seul intérimaire. Sur dix intérimaires mal facturés, c'est " + Math.round(dTarif * hAn * 10 / 1000) + " 000 € par an.</p>"; }
-  pedago += "<p>Le simulateur donne la marge exacte pour un net promis et un tarif : bouton « Ouvrir ce net dans le simulateur », puis saisir le tarif cible dans le pilotage.</p>";
+  pedago += "<p>Toute demande hors grille ou tout doute sur un tarif : quotation par la direction, qui seule réalise les études de prix.</p>";
   $("f-pedago").innerHTML = pedago;
   ["f-net", "f-majo", "f-propre"].forEach(id => $(id).addEventListener("input", correspondance));
   $("f-metier").addEventListener("change", () => { METIER_CHOISI = true; correspondance(); });
@@ -426,7 +451,6 @@ $("liste-metiers").innerHTML = METIERS.map(m => "<option value=\"" + esc(m) + "\
 $("liste-agences").innerHTML = AGENCES.map(a => "<option value=\"" + esc(a) + "\">").join("");
 $("liste-pays").innerHTML = PAYS.map(a => "<option value=\"" + esc(a) + "\">").join("");
 $("in-date").value = aujourdhui();
-if (Array.isArray(window.AB_SECTIONS) && !window.AB_SECTIONS.includes("simulateur")) $("f-simu").dataset.off = "1";
 rendreCriteres();
 (async () => {
   try {
