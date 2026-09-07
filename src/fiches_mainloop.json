@@ -4350,6 +4350,172 @@
      "fiabilite": "verifie"
     }
    ]
+  },
+  {
+   "idcc": "2272",
+   "titre": "Assainissement et maintenance industrielle (CCN du 21/05/2002)",
+   "dateDerniereActu": "07/09/2026",
+   "themes": [
+    {
+     "cle": "minima",
+     "titre": "Grille des minima (avenant n° 45)",
+     "cleValeur": "Ouvriers/ETAM coef 170 → 580 : 1 863,00 → 3 739,15 €/mois (01/04/2026)",
+     "points": [
+      "Ouvriers/employés — mensuel brut base 151,67 h : **NI-E1 (coef 170) : 1 863,00 €** · NI-E2 (185) : **1 913,63 €** · NII-E1 (200) : **1 978,92 €** · NII-E2 (215) : **2 048,40 €** · NII-E3 (230) : **2 117,89 €** · NII-E4 (245) : **2 187,37 €** · NIII-E1 (260) : **2 256,85 €** · NIII-E2 (280) : **2 349,50 €**.",
+      "Agents de maîtrise (niveaux IV-V) : coef 260 : **2 256,85 €** · 280 : **2 349,50 €** · 320 : **2 534,78 €** · 430 : **3 044,32 €** · 500 : **3 368,58 €** · 580 : **3 739,15 €**. Cadres niveaux VI-IX (annuel, hors cible intérim) : **36 531,89 → 94 341,59 €**.",
+      "Grille = partie fixe **1 052,484 €** + **4,632 €** × coefficient, SAUF coefficients 170 et 185 fixés à titre exceptionnel pour 2026 (relevés au-dessus de la formule).",
+      "Avenant n° **45 du 20/02/2026**, effet **01/04/2026** (+**1,25 %** en moyenne sur la grille) — **ÉTENDU par arrêté du 05/05/2026, JORF du 16/05/2026**. Grille VÉRIFIÉE au centime sur le texte authentique (KALI KALITEXT000054303965, base DILA locale).",
+      "Le plus favorable s'applique entre SMIC, minimum conventionnel et salaire d'entreprise (coef 170 quasiment au SMIC)."
+     ],
+     "dateCourte": "avenant n° 45 du 20/02/2026",
+     "source": "https://www.juristique.org/conventionnel/salaires-assainissement-maintenance-industrielle-2026",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "nuit",
+     "titre": "Travail de nuit",
+     "cleValeur": "Habituel (21 h-5 h) +15 % · exceptionnel +50 % · panier de nuit 7,50 €",
+     "points": [
+      "Heures entre **21 h et 5 h** : majoration **15 %** en travail de nuit **habituel**, **50 %** en travail de nuit **exceptionnel** (annexe III ouvriers/employés — VÉRIFIÉ sur le texte authentique KALITEXT000005670320).",
+      "**Panier de nuit 7,50 €** (au 01/04/2026, avenant n° 45) pour un travail entre 21 h et 5 h d'une durée continue d'au moins **3 h**.",
+      "Attention : plusieurs sources paie citent la plage « 21 h-6 h » — le texte de l'annexe III majore les heures **21 h-5 h** (la plage 21 h-6 h relève du STATUT de travailleur de nuit, accord du 07/01/2004).",
+      "Intérim : majoration + panier dus dès la première heure (égalité de traitement) — le caractère habituel/exceptionnel se juge au poste, à demander au client."
+     ],
+     "dateCourte": "annexe III + avenant n° 45 (01/04/2026)",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000005670320/?idConteneur=KALICONT000005635133",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "hs",
+     "titre": "Heures supplémentaires",
+     "cleValeur": "25 % (8 premières) / 50 % ensuite · contingent 180 h",
+     "points": [
+      "Majorations : **25 %** pour les 8 premières HS, **50 %** au-delà (avenant n° 9 du 13/11/2006 — le taux minoré 10 % des entreprises < 20 salariés est un régime transitoire caduc).",
+      "Contingent conventionnel : **180 h**/an ; contingent d'heures choisies au-delà : **180 h** (sans repos compensateur conventionnel).",
+      "Vérifié sur le texte de l'avenant n° 9 (Légifrance, KALITEXT000005670356)."
+     ],
+     "dateCourte": "avenant n° 9 du 13/11/2006",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000005670356/?idConteneur=KALICONT000005635133",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "weekend",
+     "titre": "Dimanche",
+     "cleValeur": "Habituel +15 % · exceptionnel +100 %",
+     "points": [
+      "Heures du **dimanche habituel** : majoration **15 %** (avec repos hebdomadaire un autre jour) ; **dimanche exceptionnel** : majoration **100 %** ou repos d'une durée équivalente — annexe III, VÉRIFIÉ sur le texte authentique (KALITEXT000005670320).",
+      "Pas de majoration conventionnelle du samedi relevée (jour ouvrable ordinaire).",
+      "Secteur à interventions d'urgence : qualifier le poste (habituel vs exceptionnel) avec le client avant paramétrage."
+     ],
+     "dateCourte": "annexe III",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000005670320/?idConteneur=KALICONT000005635133",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "feries",
+     "titre": "Jours fériés",
+     "cleValeur": "Férié travaillé : heures payées à 115 % EN PLUS du salaire maintenu",
+     "points": [
+      "Travail exceptionnel un jour férié (art. 2.B annexe III, texte exact) : les heures sont payées, **en plus de la rémunération normale au titre de la mensualisation**, au tarif des heures normales **majoré de 15 %** — soit un supplément total de **115 %** du taux horaire (VÉRIFIÉ sur le texte authentique KALITEXT000005670320).",
+      "Les sources paie résument souvent en « majoration 115 % » : c'est le supplément versé en plus du salaire maintenu, PAS une majoration de 115 % s'ajoutant aux heures déjà payées.",
+      "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18)."
+     ],
+     "dateCourte": "annexe III, art. 2.B",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000005670320/?idConteneur=KALICONT000005635133",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "repas",
+     "titre": "Repas / paniers",
+     "cleValeur": "Indemnité repas 10,40 € · panier de nuit 7,50 € (01/04/2026)",
+     "points": [
+      "**Indemnité repas 10,40 €** (au 01/04/2026) pour le salarié qui, du fait de son éloignement, ne peut déjeuner ni à l'entreprise ni à sa résidence.",
+      "**Panier de nuit 7,50 €** (≥ 3 h continues entre 21 h et 5 h — voir thème nuit).",
+      "Montants fixés par l'art. II de l'avenant n° **45 du 20/02/2026** (indemnités visées à l'art. 4 de l'annexe III) — VÉRIFIÉS sur le texte authentique (KALI KALITEXT000054303965). Oubli déclaratif fréquent sur les chantiers d'intervention."
+     ],
+     "dateCourte": "avenant n° 45 (01/04/2026)",
+     "source": "https://www.juristique.org/conventionnel/salaires-assainissement-maintenance-industrielle-2026",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "transport",
+     "titre": "Transport / déplacements",
+     "cleValeur": "Art. 5.4 déplacements — pas de barème kilométrique de branche relevé",
+     "points": [
+      "La CCN traite les **déplacements** (art. 5.4) mais aucun barème kilométrique de branche chiffré n'a été relevé en accès libre — demander la pratique du client (véhicules de service fréquents dans le secteur).",
+      "Prise en charge légale : **50 %** des abonnements de transports publics.",
+      "Le temps de trajet vers les chantiers d'intervention est un point de litige classique : vérifier ce que le client applique à ses permanents."
+     ],
+     "dateCourte": "à relever sur le texte",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALICONT000005635133",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "primes",
+     "titre": "Ancienneté · 13e mois · astreintes",
+     "cleValeur": "Ancienneté 2 % (2 ans) → 15 % (15 ans) · 13e mois · astreintes indemnisées",
+     "points": [
+      "**Prime d'ancienneté** : de **2 %** (2 ans) à **15 %** (15 ans), calculée sur les minima conventionnels ; décompte au 1er jour du mois civil suivant la date anniversaire.",
+      "**Prime de fin d'année (13e mois)** : un mois de salaire de base pour le salarié inscrit au 31/12, prorata en cas d'entrée/sortie en cours d'année.",
+      "**Indemnités d'astreinte** (art. 5.7, montants au 01/04/2025 — avenant n° 44 du 12/02/2025, VÉRIFIÉS sur Légifrance KALITEXT000051580313 ; non revalorisés par l'avenant n° 45) : **85,19 €** pendant le repos hebdomadaire · **155,00 €** en semaine civile hors heures ouvrées · complément **20,64 €** si un férié tombe en semaine hors repos hebdomadaire.",
+      "**Congés d'ancienneté** : **2 jours** après 10 ans, **3 jours** après 20 ans, **4 jours** après 30 ans.",
+      "Intérim : ancienneté et 13e mois via égalité de traitement (comparable du client) — le 13e mois se paie au prorata dès la première mission."
+     ],
+     "dateCourte": "CCN + avenants salaires",
+     "source": "https://ressources.convention.fr/ressources-juridiques/primes-convention-assainissement-et-maintenance-industrielle",
+     "fiabilite": "aConfirmer"
+    },
+    {
+     "cle": "annualisation",
+     "titre": "Aménagement du temps",
+     "cleValeur": "Modulation prévue par l'avenant n° 9 (2006) — régime du client applicable",
+     "points": [
+      "L'organisation du temps de travail (modulation, heures choisies) est cadrée par l'**avenant n° 9 du 13/11/2006** ; pour les entreprises sans modulation, les HS sont majorées et payées **chaque mois**.",
+      "Le régime d'aménagement du client s'applique à l'intérimaire (art. L.1251-21) — demander l'accord d'entreprise le cas échéant."
+     ],
+     "dateCourte": "avenant n° 9 du 13/11/2006",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000005670356/?idConteneur=KALICONT000005635133",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "saisonniers",
+     "titre": "Saisonniers",
+     "cleValeur": "Pas de statut saisonnier de branche — droit commun",
+     "points": [
+      "Pas de statut saisonnier spécifique relevé dans la CCN — régime intérim de droit commun (**IFM 10 %** + **ICCP 10 %** dues).",
+      "Activité peu saisonnière (interventions d'urgence, curage, maintenance planifiée en arrêts d'usine) : les pointes passent par les arrêts techniques — anticiper les majorations des interventions décalées."
+     ],
+     "dateCourte": "—",
+     "source": "https://code.travail.gouv.fr/convention-collective/2272",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "durees",
+     "titre": "Durées maximales",
+     "cleValeur": "48 h/semaine isolée · 44 h sur 12 semaines · 10 h/jour",
+     "points": [
+      "L'avenant n° 9 reprend les maxima légaux : **48 h** sur une semaine isolée, **44 h** en moyenne sur 12 semaines consécutives ; durée quotidienne légale **10 h**.",
+      "Interventions d'urgence fréquentes (pollutions, débordements) : suivre finement les compteurs des intérimaires mobilisés en astreinte."
+     ],
+     "dateCourte": "avenant n° 9 du 13/11/2006",
+     "source": "https://www.legifrance.gouv.fr/conv_coll/id/KALITEXT000005670356/?idConteneur=KALICONT000005635133",
+     "fiabilite": "verifie"
+    },
+    {
+     "cle": "specifique",
+     "titre": "Points de vigilance paie intérim",
+     "cleValeur": "Déchets LIQUIDES (≠ 2149/2147) · astreintes & paniers omis · CACES/ADR",
+     "points": [
+      "Champ : assainissement (curage, pompage, vidange), collecte des **déchets liquides**, nettoyage/maintenance industrielle — ne pas confondre avec la CCN **2149 (activités du déchet — déchets solides)** ni la **2147 (services d'eau et d'assainissement — délégataires eau potable)** : vérifier l'IDCC réellement appliqué par le client (DSN).",
+      "CCN du **21/05/2002**, étendue par arrêté du **26/10/2004** (JORF 09/11/2004) — pas de fiches CDTN pour cet IDCC : contrôles sur Légifrance/KALI.",
+      "Ce que les clients omettent le plus : **panier de nuit**, **indemnité repas**, **majorations habituel vs exceptionnel** (nuit/dimanche), **13e mois prorata**, indemnités d'**astreinte**.",
+      "Métiers à habilitations (CACES pompage, ADR pour hydrocureurs) : la prime éventuelle liée à l'habilitation suit l'égalité de traitement."
+     ],
+     "dateCourte": "CCN 21/05/2002 + avenant n° 45 (2026)",
+     "source": "https://code.travail.gouv.fr/convention-collective/2272",
+     "fiabilite": "verifie"
+    }
+   ]
   }
  ],
  "remplacements": [
