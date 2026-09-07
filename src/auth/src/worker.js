@@ -271,14 +271,23 @@ export default {
       }
       /* données personnelles bailleurs : réservées aux utilisateurs de la section logements */
       /* documents d'évaluation (consultants) et grille de facturation (responsables) : même règle que la page */
+      let secDoc = null;
       for (const [pref, sec] of [["/app/data/salaires-btp/", "salaires-btp"], ["/app/data/tarifs-btp/", "tarifs-btp"]]) {
-        if (cible.startsWith(pref) && !sectionsDe(u).includes(sec)) { await journal(env, req, u, "acces_refuse_section", sec, cible); return new Response("Accès refusé.", { status: 403 }); }
+        if (!cible.startsWith(pref)) continue;
+        if (!sectionsDe(u).includes(sec)) { await journal(env, req, u, "acces_refuse_section", sec, cible); return new Response("Accès refusé.", { status: 403 }); }
+        secDoc = sec;
       }
       if ((cible === "/app/data/bailleurs.json" || cible === "/app/data/meubles-mairies.json") && !sectionsDe(u).includes("logements")) {
         await journal(env, req, u, "acces_refuse_section", "logements", cible);
         return new Response("{}", { status: 403, headers: { "content-type": "application/json" } });
       }
       const rep = await env.ASSETS.fetch(new Request(url.origin + cible, req));
+      if (secDoc && rep.ok) {
+        /* documents réservés (évaluation, grille de facturation) : lecture journalisée, jamais conservés par un cache partagé ni après déconnexion */
+        await journal(env, req, u, "document_lu", secDoc, cible);
+        const h = new Headers(rep.headers); h.set("cache-control", "private, no-store"); h.delete("etag");
+        return new Response(rep.body, { status: rep.status, headers: h });
+      }
       const ct = rep.headers.get("content-type") || "";
       if (rep.ok && ct.includes("text/html")) {
         await journal(env, req, u, "page", "", cible);
@@ -968,9 +977,12 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       if (!admin) return json({ erreur: "reserve_admin" }, 403);
       const st = ["declaree", "validee", "rejetee"].includes(corps.statut) ? corps.statut : null;
       const h = corps.heures == null || corps.heures === "" ? null : Math.max(0, parseFloat(String(corps.heures).replace(",", ".")) || 0);
-      await env.DB.prepare("UPDATE declarations SET heures = ?, qualifie = COALESCE(?, qualifie), statut = COALESCE(?, statut), valide_le = CASE WHEN ? = 'validee' THEN datetime('now') ELSE valide_le END, commentaire = COALESCE(?, commentaire), matricule = NULLIF(COALESCE(?, matricule), '') WHERE id = ?")
+      /* nom / prénom corrigeables par l'admin (les prestataires orthographient souvent mal leurs intérimaires) ; vide = inchangé */
+      const nomC = corps.nom == null ? null : String(corps.nom).trim().toUpperCase().slice(0, 60);
+      const prenomC = corps.prenom == null ? null : String(corps.prenom).trim().slice(0, 60);
+      await env.DB.prepare("UPDATE declarations SET heures = ?, qualifie = COALESCE(?, qualifie), statut = COALESCE(?, statut), valide_le = CASE WHEN ? = 'validee' THEN datetime('now') ELSE valide_le END, commentaire = COALESCE(?, commentaire), matricule = NULLIF(COALESCE(?, matricule), ''), nom = COALESCE(NULLIF(?, ''), nom), prenom = COALESCE(NULLIF(?, ''), prenom) WHERE id = ?")
         .bind(h, corps.qualifie == null ? null : (corps.qualifie ? 1 : 0), st, st, corps.commentaire == null ? null : String(corps.commentaire).slice(0, 200),
-              corps.matricule == null ? null : String(corps.matricule).toUpperCase().trim().slice(0, 30), corps.id | 0).run();
+              corps.matricule == null ? null : String(corps.matricule).toUpperCase().trim().slice(0, 30), nomC, prenomC, corps.id | 0).run();
       return json({ ok: true });
     }
     /* --- facturation du mois (calcul contractuel) --- */
@@ -1120,9 +1132,11 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     const secs = sectionsDe(u);
     if (!secs.includes("salaires-btp")) return json({ erreur: "acces_refuse" }, 403);
     const docs = [
-      { titre: "Argumentaire « salaire juste »", url: "/app/data/salaires-btp/argumentaire-salaire-juste.pdf" },
-      { titre: "Fiche d'évaluation intérimaire (v1.0, janvier 2026)", url: "/app/data/salaires-btp/fiche-evaluation-interimaire.pdf" },
+      { titre: "Grille d'évaluation — salaire net horaire BTP, candidats / intérimaires (v1.0, janvier 2026)", url: "/app/data/salaires-btp/grille-evaluation-salaire-net-btp.pdf" },
+      { titre: "Fiche d'évaluation candidat — 4 critères (v1.0, janvier 2026)", url: "/app/data/salaires-btp/fiche-evaluation-candidat.pdf" },
+      { titre: "Fiche d'évaluation intérimaire — 6 critères (v1.0, janvier 2026)", url: "/app/data/salaires-btp/fiche-evaluation-interimaire.pdf" },
       { titre: "Tables de correspondance A → F (référentiel)", url: "/app/data/salaires-btp/table-de-correspondance.pdf" },
+      { titre: "Argumentaire « salaire juste »", url: "/app/data/salaires-btp/argumentaire-salaire-juste.pdf" },
       { titre: "Calculette Excel d'origine", url: "/app/data/salaires-btp/calculette-salaire-net-btp.xlsx" },
     ];
     const rep = { ok: true, documents: docs, facturation: secs.includes("tarifs-btp") };

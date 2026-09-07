@@ -7,7 +7,8 @@
 <title>Évaluation & salaire net BTP — AB2Pro</title>
 <style>
 /* ===== Évaluation & salaire net horaire BTP — calculette (consultants), argumentaire, fiche imprimable,
-   correspondance de facturation (responsables d'agence, section « tarifs-btp »). Source : calculette Excel V2 01/2026,
+   correspondance de facturation (responsables d'agence, section « tarifs-btp »). Sources : grille d'évaluation salaire net
+   horaire BTP v1.0 01/2026, fiches candidat (4 critères) et intérimaire (6 critères) v1.0, calculette Excel V2 01/2026,
    tables de correspondance v1.0, grille BTP 11-2025. ===== */
 :root { --paper:#f4f4f5; --card:#FFFFFF; --card2:#ececef; --ink:#29293b; --muted:#5f5f74; --line:#d9d9e0; --line-soft:#e8e8ee;
   --brass:#db303f; --brass-deep:#681316; --good:#47713E; --good-soft:rgba(71,113,62,.12); --warn:#93660F; --warn-soft:#F1E6C8;
@@ -105,20 +106,23 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space:
         <div class="grid3">
           <div><label>Type d'évaluation</label><select id="in-type"><option value="candidat">Candidat (entrée) — axes A à D</option><option value="interimaire">Intérimaire en poste — axes A à F</option></select></div>
           <div><label>Nom / Prénom</label><input id="in-nom" autocomplete="off"></div>
-          <div><label>Métier</label><input id="in-metier" list="liste-metiers" autocomplete="off"><datalist id="liste-metiers"></datalist></div>
-          <div><label>Agence AB2PRO</label><input id="in-agence" list="liste-agences"><datalist id="liste-agences"></datalist></div>
-          <div><label>CR responsable</label><input id="in-cr"></div>
-          <div><label>Date de l'évaluation</label><input id="in-date" type="date"></div>
-          <div><label>Salaire actuel (€ net / h)</label><input id="in-actuel" inputmode="decimal" placeholder="12,50"></div>
-          <div><label>Salaire souhaité (€ net / h)</label><input id="in-souhaite" inputmode="decimal" placeholder="14,00"></div>
-          <div><label>Heures AB2Pro cumulées</label><input id="in-heures" inputmode="numeric" placeholder="1 850"></div>
-          <div><label>Années d'expérience métier</label><input id="in-annees" inputmode="decimal" placeholder="3"></div>
+          <div><label id="lbl-metier">Métier</label><input id="in-metier" list="liste-metiers" autocomplete="off"><datalist id="liste-metiers"></datalist></div>
+          <div><label id="lbl-date">Date de l'évaluation</label><input id="in-date" type="date"></div>
+          <div data-pour="candidat"><label>Pays de recrutement</label><input id="in-pays" list="liste-pays" autocomplete="off"><datalist id="liste-pays"></datalist></div>
+          <div data-pour="candidat"><label>Type de recruteur</label><select id="in-rtype"><option value="">—</option><option>TEAMPRO</option><option>CR France</option><option>Prestataire externe</option></select></div>
+          <div data-pour="candidat"><label>Nom du recruteur</label><input id="in-recruteur" autocomplete="off"></div>
+          <div data-pour="interimaire"><label>Agence AB2PRO</label><input id="in-agence" list="liste-agences"><datalist id="liste-agences"></datalist></div>
+          <div data-pour="interimaire"><label>CR responsable</label><input id="in-cr"></div>
+          <div data-pour="interimaire"><label>Salaire actuel (€ net / h)</label><input id="in-actuel" inputmode="decimal" placeholder="12,50"></div>
+          <div data-pour="interimaire"><label>Salaire souhaité (€ net / h)</label><input id="in-souhaite" inputmode="decimal" placeholder="14,00"></div>
+          <div data-pour="interimaire"><label>Heures AB2Pro cumulées</label><input id="in-heures" inputmode="numeric" placeholder="1 850"></div>
+          <div data-pour="interimaire"><label>Années d'expérience métier</label><input id="in-annees" inputmode="decimal" placeholder="3"></div>
         </div>
         <div class="note" id="note-type" style="margin-top:8px"></div>
       </div>
     </div>
     <div class="card" style="margin-top:12px">
-      <h2>Évaluation — 6 critères, notes de 1 à 5</h2>
+      <h2 id="h-criteres">Évaluation — 6 critères, notes de 1 à 5</h2>
       <div class="b" id="criteres"></div>
     </div>
     <div class="card" style="margin-top:12px">
@@ -126,13 +130,13 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space:
       <div class="b">
         <div class="grid3">
           <div><label>Salaire proposé (€ net / h)</label><input id="in-propose" inputmode="decimal" placeholder="dans la fourchette"></div>
-          <div><label>Origine de la demande</label><select id="in-origine"><option value="">—</option><option>Demande de l'intérimaire</option><option>Proposition du CR</option></select></div>
-          <div><label>Décision</label><select id="in-decision"><option value="">—</option><option>Acceptée</option><option>Refusée</option><option>Reportée</option></select></div>
-          <div><label>Date d'entrée en vigueur</label><input id="in-effet" type="date"></div>
-          <div><label>Recommandation finale</label><select id="in-reco"><option value="">—</option><option>Maintien du niveau</option><option>Augmentation de salaire</option><option>Repositionnement / changement de poste</option></select></div>
-          <div><label>Approbateur (chef d'agence / coordinateur / responsable)</label><input id="in-approb"></div>
+          <div data-pour="interimaire"><label>Origine de la demande</label><select id="in-origine"><option value="">—</option><option>Demande de l'intérimaire</option><option>Proposition du CR</option></select></div>
+          <div data-pour="interimaire"><label>Décision</label><select id="in-decision"><option value="">—</option><option>Acceptée</option><option>Refusée</option><option>Reportée</option></select></div>
+          <div data-pour="interimaire"><label>Date d'entrée en vigueur</label><input id="in-effet" type="date"></div>
+          <div data-pour="interimaire"><label>Recommandation finale</label><select id="in-reco"><option value="">—</option><option>Maintien du niveau</option><option>Augmentation de salaire</option><option>Repositionnement / changement de poste</option></select></div>
+          <div data-pour="interimaire"><label>Approbateur (chef d'agence / coordinateur / responsable)</label><input id="in-approb"></div>
         </div>
-        <div style="margin-top:8px"><label>Justification (obligatoire sur la fiche)</label><textarea id="in-justif"></textarea></div>
+        <div style="margin-top:8px"><label id="lbl-justif">Justification (obligatoire sur la fiche)</label><textarea id="in-justif"></textarea></div>
         <div class="msg" id="msg-propose"></div>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px">
           <button class="btn p" id="btn-imprimer">🖨 Imprimer la fiche d'évaluation</button>
@@ -141,7 +145,7 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space:
         </div>
       </div>
     </div>
-    <p class="note" style="margin:10px 4px 0">Mémo : candidat = (A + B + C + D) / 4 ; intérimaire = (A + B + C + D + 2 × E + 1,5 × F) / 7,5. La note décrit le niveau de compétence ; le score seul sélectionne la fourchette. La fourchette reste indicative selon agence, tension du marché et métier. Source : grille d'évaluation salaire net horaire BTP V2, janvier 2026.</p>
+    <p class="note" style="margin:10px 4px 0">Mémo : candidat = (A + B + C + D) / 4 ; intérimaire = (A + B + C + D + 2 × E + 1,5 × F) / 7,5. La note décrit le niveau de compétence ; le score seul sélectionne la fourchette. La fourchette reste indicative selon agence, tension du marché et métier. Source : grille d'évaluation salaire net horaire BTP v1.0, janvier 2026 (calculette Excel V2).</p>
   </section>
 
   <!-- ===== Argumentaire ===== -->
@@ -216,8 +220,8 @@ const norm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[\u030
 
 /* ===== référentiel (calculette Excel V2 01/2026 + tables de correspondance v1.0) ===== */
 const CRITERES = [
-  { k: "A", nom: "Expérience & autonomie technique", pond: 1, notes: ["0–500 h · très encadré · tâches simples", "1 000–2 000 h · semi-autonome · tâches courantes", "2 000–3 000 h · autonome · peut encadrer ponctuellement", "3 000–4 000 h · très autonome · encadre un binôme · contrôle qualité", "4 000–7 000 h · expert · supervision · forte valeur ajoutée"],
-    detail: [["Niveau", "Manœuvre / aide", "Ouvrier qualifié basique", "Ouvrier qualifié expert", "Profil sup. basique", "Profil sup. expert"], ["Heures cumulées", "0 – 500 h", "1 000 – 2 000 h", "2 000 – 3 000 h", "3 000 – 4 000 h", "4 000 – 7 000 h"], ["Années métier", "< 1 an", "1 – 2 ans", "2 – 3 ans", "3 – 4 ans", "4 – 6 ans"], ["Missions", "Travaux simples, aide, observation", "Tâches de base, semi-autonome", "Autonome sur la majorité des tâches, encadre occasionnellement un aide", "Autonomie complète, encadrement d'un binôme, contrôle qualité", "Supervision d'équipe, coordination, expertise"]] },
+  { k: "A", nom: "Expérience & autonomie technique", perim: "Heures réelles de chantier sur les 5 dernières années cumulées + autonomie opérationnelle.", pond: 1, notes: ["0–500 h · très encadré · tâches simples", "1 000–2 000 h · semi-autonome · tâches courantes", "2 000–3 000 h · autonome · peut encadrer ponctuellement", "3 000–4 000 h · très autonome · encadre un binôme · contrôle qualité", "4 000–7 000 h · expert · supervision · forte valeur ajoutée"],
+    detail: [["Niveau", "Manœuvre / aide", "Ouvrier qualifié basique", "Ouvrier qualifié expert", "Profil sup. basique", "Profil sup. expert"], ["Heures cumulées (5 dernières années)", "0 – 500 h", "1 000 – 2 000 h", "2 000 – 3 000 h", "3 000 – 4 000 h", "4 000 – 7 000 h"], ["Années métier", "< 1 an", "1 – 2 ans", "2 – 3 ans", "3 – 4 ans", "4 – 6 ans"], ["Missions", "Travaux simples, aide, observation", "Tâches de base, semi-autonome", "Autonome sur la majorité des tâches, encadre occasionnellement un aide", "Autonomie complète, encadrement d'un binôme, contrôle qualité", "Supervision d'équipe, coordination, expertise"]] },
   { k: "B", nom: "Compétences techniques", pond: 1, notes: ["bases simples · aucune lecture de plans", "maîtrise d'un poste · lecture basique", "réalisation complète · lecture courante", "expertise · lecture avancée", "polyvalence / innovation · contrôle complet"],
     detail: [["Technique", "Bases", "Maîtrise d'un poste", "Réalisation complète", "Expertise", "Polyvalence / innovation"], ["Autonomie", "Très encadré", "Semi-autonome", "Autonome", "Totalement autonome", "Encadrant"], ["Lecture de plans", "Non", "Basique", "Courant", "Avancé", "Contrôle complet"], ["Sécurité", "Formation initiale", "Application", "Responsabilité personnelle", "Supervision", "Référent sécurité"], ["Encadrement", "Aucun", "Aucun", "Appui à l'apprenti", "Chef de binôme", "Chef d'équipe / formateur"]] },
   { k: "C", nom: "Maîtrise du français", pond: 1, notes: ["très faible · quasi non communicant", "compréhension simple · échanges basiques", "autonome sur tâches simples", "fluidité professionnelle", "maîtrise complète · reformulation"],
@@ -239,6 +243,14 @@ const NIVEAUX = [
 ];
 const METIERS = ["Façadier - poseur ITE", "Plaquiste", "Ravaleur", "Poseur panneaux solaires", "Peintre intérieur", "Électricien", "Enduiseur - projeté", "Poseur d'armatures métalliques", "Plombier - chauffagiste", "Monteur de gaines", "Bardeur", "Maçon traditionnel", "Menuisier bois / alu", "Étancheur", "Solier", "Carreleur", "Maçon coffreur bancheur", "Charpentier", "Couvreur", "Soudeur", "Tuyauteur", "Peintre industriel", "Sableur", "Serrurier - chaudronnier"];
 const AGENCES = ["Rennes", "Paris", "Bordeaux", "Aix-en-Provence", "Lyon", "Strasbourg", "Angers", "Rouen", "Nantes", "Toulouse", "Lille"];
+const PAYS = ["France", "Roumanie", "Hongrie", "Pologne", "Portugal", "Bulgarie", "Moldavie", "Ukraine", "Espagne", "Italie"];
+let MOI = null;
+/* pré-remplissage du nom du recruteur (fiche candidat) et du CR responsable (fiche intérimaire) avec l'utilisateur connecté, modifiable */
+function prefillMoi() {
+  if (!MOI) return; const n = MOI.nom_complet || MOI.nom || "";
+  if (n && !$("in-recruteur").value) $("in-recruteur").value = n;
+  if (n && !$("in-cr").value) $("in-cr").value = n;
+}
 
 /* ===== état ===== */
 const NOTES = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
@@ -248,7 +260,7 @@ function rendreCriteres() {
   const inter = $("in-type").value === "interimaire";
   $("criteres").innerHTML = CRITERES.map(c => {
     const actif = inter || "ABCD".includes(c.k);
-    return "<div class='crit' data-k='" + c.k + "'" + (actif ? "" : " style='opacity:.45'") + "><div class='tit'><b>" + c.k + " — " + esc(c.nom) + "</b><span class='pond'>" + (c.pond !== 1 ? "pondération × " + N2.format(c.pond).replace(",00", "") : "pondération × 1") + (actif ? "" : " · ignoré pour un candidat") + "</span></div>" +
+    return "<div class='crit' data-k='" + c.k + "'" + (actif ? "" : " style='opacity:.45'") + "><div class='tit'><b>" + c.k + " — " + esc(c.nom) + "</b><span class='pond'>" + (c.pond !== 1 ? "pondération × " + N2.format(c.pond).replace(",00", "") : "pondération × 1") + (actif ? "" : " · ignoré pour un candidat") + "</span></div>" + (c.perim ? "<div class='note' style='margin-top:2px'>" + esc(c.perim) + "</div>" : "") +
       "<div class='notes'>" + c.notes.map((lib, i) => "<label" + (NOTES[c.k] === i + 1 ? " class='on'" : "") + "><input type='radio' name='n" + c.k + "' value='" + (i + 1) + "'" + (NOTES[c.k] === i + 1 ? " checked" : "") + (actif ? "" : " disabled") + "><span><b>" + c.k + (i + 1) + "</b><span class='lib'>" + esc(lib) + "</span></span></label>").join("") + "</div>" +
       "<details><summary>Voir la table de correspondance " + c.k + "1 → " + c.k + "5</summary><div class='tbl detail'><table><tr><th></th>" + [1, 2, 3, 4, 5].map(i => "<th>" + c.k + i + "</th>").join("") + "</tr>" +
       c.detail.map(r => "<tr><td><b>" + esc(r[0]) + "</b></td>" + r.slice(1).map(x => "<td>" + esc(x) + "</td>").join("") + "</tr>").join("") + "</table></div></details>" +
@@ -268,6 +280,12 @@ function majType() {
     b.querySelector(".pond").textContent = "pondération × " + N2.format(c.pond).replace(",00", "") + (inter ? "" : " · ignoré pour un candidat");
   }
   $("note-type").textContent = inter ? "Intérimaire en poste : axes E (rendement × 2) et F (savoir-être × 1,5) intégrés au score." : "Candidat à l'entrée : score sur les axes A à D uniquement, E et F ignorés pour ne pas interférer avec la note d'entrée.";
+  /* champs propres à chaque fiche : candidat (pays, type et nom du recruteur, entretien, commentaires) / intérimaire (agence, CR, salaires, heures, demande d'évolution) */
+  document.querySelectorAll("[data-pour]").forEach(e => { e.hidden = e.dataset.pour !== (inter ? "interimaire" : "candidat"); });
+  $("h-criteres").textContent = inter ? "Évaluation intérimaire — 6 critères (A à F), notes de 1 à 5" : "Évaluation candidat — 4 critères (A à D), notes de 1 à 5";
+  $("lbl-metier").textContent = inter ? "Métier" : "Métier visé";
+  $("lbl-date").textContent = inter ? "Date de l'évaluation" : "Date de l'entretien";
+  $("lbl-justif").textContent = inter ? "Justification (obligatoire sur la fiche)" : "Commentaires du recruteur (repris sur la fiche)";
   calculer();
 }
 function scoreActuel() {
@@ -297,25 +315,40 @@ function verifierPropose() {
   if (INFOS && INFOS.facturation && document.querySelector("[data-onglet='factu']").hidden) { $("f-net").value = String(v).replace(".", ","); }
 }
 
-/* ===== fiche imprimable (reprend la fiche d'évaluation v1.0 janvier 2026) ===== */
+/* ===== fiche imprimable : fiche candidat (4 critères) ou fiche intérimaire (6 critères), v1.0 janvier 2026 ===== */
 function fiche() {
   const s = scoreActuel(); const nv = s == null ? null : niveauDe(s); const inter = $("in-type").value === "interimaire";
   const j = k => { const e = document.querySelector("[data-justif='" + k + "']"); return e ? e.value : ""; };
   const v = id => $(id).value || "";
+  const fmt = id => { const x = num(v(id)); return x == null ? esc(v(id)) : N2.format(x); };
   const box = (lib, on) => "<span style='white-space:nowrap'>" + (on ? "☑" : "☐") + " " + lib + "</span>";
-  return "<h1>Fiche d'évaluation intérimaire</h1><div class='sous'>Version 1.0 · Janvier 2026 · Pôle Recrutement · AB2PRO · " + (inter ? "Intérimaire en poste" : "Candidat à l'entrée") + "</div>" +
+  const lignes = n => Array.from({ length: n }, () => "<div class='lig'></div>").join("");
+  const crits = CRITERES.filter(c => inter || "ABCD".includes(c.k));
+  const tableCrit = "<table><tr><th style='width:34%'>Critère</th><th style='width:22%'>Note (1 à 5)</th><th style='width:8%'>Pond.</th><th>Justification</th></tr>" +
+    crits.map(c => "<tr><td>" + c.k + " – " + esc(c.nom) + "</td><td>" + [1, 2, 3, 4, 5].map(i => (NOTES[c.k] === i ? "☑" : "☐") + i).join(" ") + "</td><td>× " + N2.format(c.pond).replace(",00", "") + "</td><td>" + (esc(j(c.k)) || "<div class='lig'></div>") + "</td></tr>").join("") + "</table>";
+  const scoreTxt = "<b>" + (s == null ? "________" : N2.format(Math.round(s * 100) / 100)) + "</b>";
+  const niveauTxt = nv ? "Niveau " + nv.niveau + " (" + N2.format(nv.net[0]) + " – " + N2.format(nv.net[1]) + " € · " + esc(nv.profil) + ")" : "________";
+  const proposeTxt = v("in-propose") ? fmt("in-propose") + " €/h" : "________ €/h";
+  if (!inter) {
+    return "<h1>Fiche d'évaluation candidat</h1><div class='sous'>Version 1.0 · Janvier 2026 · Pôle Recrutement · AB2PRO · Candidat à l'entrée — 4 critères</div>" +
+      "<table><tr><td style='width:50%'><b>Nom / Prénom :</b> " + esc(v("in-nom")) + "</td><td><b>Métier visé :</b> " + esc(v("in-metier")) + "</td></tr>" +
+      "<tr><td><b>Pays de recrutement :</b> " + esc(v("in-pays")) + "</td><td><b>Type de recruteur :</b> " + ["TEAMPRO", "CR France", "Prestataire externe"].map(x => box(x, v("in-rtype") === x)).join(" ") + "</td></tr>" +
+      "<tr><td><b>Nom du recruteur :</b> " + esc(v("in-recruteur")) + "</td><td><b>Date de l'entretien :</b> " + esc(dfr(v("in-date"))) + "</td></tr></table>" +
+      tableCrit +
+      "<p><b>Score candidat</b> = (A + B + C + D) / 4 = " + scoreTxt + " &nbsp; <b>Niveau AB2PRO proposé :</b> " + niveauTxt + " &nbsp; <b>Salaire proposé :</b> " + proposeTxt + "</p>" +
+      "<p><b>Commentaires du recruteur :</b><br>" + (esc(v("in-justif")).replace(/\n/g, "<br>") || lignes(3)) + "</p>";
+  }
+  return "<h1>Fiche d'évaluation intérimaire</h1><div class='sous'>Version 1.0 · Janvier 2026 · Pôle Recrutement · AB2PRO · Intérimaire en poste — 6 critères</div>" +
     "<table><tr><td style='width:50%'><b>Nom / Prénom :</b> " + esc(v("in-nom")) + "</td><td><b>Métier :</b> " + esc(v("in-metier")) + "</td></tr>" +
     "<tr><td><b>Agence AB2PRO :</b> " + esc(v("in-agence")) + "</td><td><b>CR responsable :</b> " + esc(v("in-cr")) + "</td></tr>" +
-    "<tr><td><b>Salaire actuel :</b> " + esc(v("in-actuel")) + (v("in-actuel") ? " € net/h" : "") + "</td><td><b>Salaire souhaité :</b> " + esc(v("in-souhaite")) + (v("in-souhaite") ? " € net/h" : "") + "</td></tr>" +
+    "<tr><td><b>Salaire actuel :</b> " + fmt("in-actuel") + (v("in-actuel") ? " € net/h" : "") + "</td><td><b>Salaire souhaité :</b> " + fmt("in-souhaite") + (v("in-souhaite") ? " € net/h" : "") + "</td></tr>" +
     "<tr><td><b>Date de l'évaluation :</b> " + esc(dfr(v("in-date"))) + "</td><td><b>Approbateur :</b> " + esc(v("in-approb")) + "</td></tr>" +
     "<tr><td><b>Heures AB2Pro :</b> " + esc(v("in-heures")) + "</td><td><b>Années d'expérience métier :</b> " + esc(v("in-annees")) + "</td></tr></table>" +
-    "<table><tr><th style='width:34%'>Critère</th><th style='width:22%'>Note (1 à 5)</th><th style='width:8%'>Pond.</th><th>Justification</th></tr>" +
-    CRITERES.map(c => { const actif = inter || "ABCD".includes(c.k); return "<tr><td>" + c.k + " – " + esc(c.nom) + (actif ? "" : " <i>(non compté)</i>") + "</td><td>" + [1, 2, 3, 4, 5].map(i => (NOTES[c.k] === i ? "☑" : "☐") + i).join(" ") + "</td><td>× " + N2.format(c.pond).replace(",00", "") + "</td><td>" + (esc(j(c.k)) || "<div class='lig'></div>") + "</td></tr>"; }).join("") + "</table>" +
-    "<p><b>" + (inter ? "Score intérimaire</b> = (A + B + C + D + 2×E + 1,5×F) / 7,5" : "Score candidat</b> = (A + B + C + D) / 4") + " = <b>" + (s == null ? "________" : N2.format(Math.round(s * 100) / 100)) + "</b>" +
-    " &nbsp; <b>Niveau AB2PRO ajusté :</b> " + (nv ? "Niveau " + nv.niveau + " (" + N2.format(nv.net[0]) + " – " + N2.format(nv.net[1]) + " €)" : "________") + " &nbsp; <b>Salaire proposé :</b> " + (v("in-propose") ? esc(v("in-propose")) + " €/h" : "________ €/h") + "</p>" +
+    tableCrit +
+    "<p><b>Score intérimaire</b> = (A + B + C + D + 2×E + 1,5×F) / 7,5 = " + scoreTxt + " &nbsp; <b>Niveau AB2PRO ajusté :</b> " + niveauTxt + " &nbsp; <b>Salaire proposé :</b> " + proposeTxt + "</p>" +
     "<p><b>Demande d'évolution salariale — origine :</b> " + box("Demande de l'intérimaire", v("in-origine") === "Demande de l'intérimaire") + " &nbsp; " + box("Proposition du CR", v("in-origine") === "Proposition du CR") + "</p>" +
     "<p><b>Décision :</b> " + ["Acceptée", "Refusée", "Reportée"].map(x => box(x, v("in-decision") === x)).join(" &nbsp; ") + " &nbsp; <b>Date d'entrée en vigueur :</b> " + (esc(dfr(v("in-effet"))) || "____________") + "</p>" +
-    "<p><b>Justification obligatoire :</b><br>" + (esc(v("in-justif")).replace(/\n/g, "<br>") || "<div class='lig'></div><div class='lig'></div><div class='lig'></div>") + "</p>" +
+    "<p><b>Justification obligatoire :</b><br>" + (esc(v("in-justif")).replace(/\n/g, "<br>") || lignes(3)) + "</p>" +
     "<p><b>Recommandation finale :</b> " + ["Repositionnement / changement de poste", "Augmentation de salaire", "Maintien du niveau"].map(x => box(x, v("in-reco") === x)).join(" &nbsp; ") + "</p>" +
     "<div class='sig'><div>Signature CR</div><div>Signature approbateur</div></div>";
 }
@@ -323,8 +356,8 @@ $("btn-imprimer").addEventListener("click", () => { $("fiche-print").innerHTML =
 $("btn-reset").addEventListener("click", () => {
   if (!confirm("Effacer la fiche en cours ?")) return;
   for (const k in NOTES) NOTES[k] = 0;
-  document.querySelectorAll("#in-nom, #in-metier, #in-agence, #in-cr, #in-actuel, #in-souhaite, #in-heures, #in-annees, #in-propose, #in-justif, #in-approb, #in-origine, #in-decision, #in-reco, #in-effet").forEach(e => { e.value = ""; });
-  $("in-date").value = aujourdhui(); $("msg-propose").textContent = "";
+  document.querySelectorAll("#in-nom, #in-metier, #in-pays, #in-rtype, #in-recruteur, #in-agence, #in-cr, #in-actuel, #in-souhaite, #in-heures, #in-annees, #in-propose, #in-justif, #in-approb, #in-origine, #in-decision, #in-reco, #in-effet").forEach(e => { e.value = ""; });
+  $("in-date").value = aujourdhui(); $("msg-propose").textContent = ""; prefillMoi();
   rendreCriteres();
 });
 $("in-type").addEventListener("change", majType);
@@ -391,13 +424,14 @@ function montrer(id) {
 document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => montrer(b.dataset.o)));
 $("liste-metiers").innerHTML = METIERS.map(m => "<option value=\"" + esc(m) + "\">").join("");
 $("liste-agences").innerHTML = AGENCES.map(a => "<option value=\"" + esc(a) + "\">").join("");
+$("liste-pays").innerHTML = PAYS.map(a => "<option value=\"" + esc(a) + "\">").join("");
 $("in-date").value = aujourdhui();
 if (Array.isArray(window.AB_SECTIONS) && !window.AB_SECTIONS.includes("simulateur")) $("f-simu").dataset.off = "1";
 rendreCriteres();
 (async () => {
   try {
     const moi = await fetch("/api/moi").then(r => r.ok ? r.json() : null);
-    if (moi) $("qui").textContent = (moi.nom_complet || moi.nom || moi.email) + (moi.fonction ? " · " + moi.fonction : "");
+    if (moi) { $("qui").textContent = (moi.nom_complet || moi.nom || moi.email) + (moi.fonction ? " · " + moi.fonction : ""); MOI = moi; prefillMoi(); }
     INFOS = await fetch("/api/salaires-btp").then(r => r.ok ? r.json() : { documents: [], facturation: false });
   } catch (e) { INFOS = { documents: [], facturation: false }; }
   const docs = (INFOS.documents || []).concat(INFOS.facturation ? [{ titre: "Grille BTP 2026 — offre taux de facturation (confidentiel)", url: "/app/data/tarifs-btp/grille-btp-2026.pdf" }] : []);
