@@ -16,7 +16,7 @@ const estSuper = x => !!x && x.role === "super_admin";
 /* Accès par section : l'admin choisit les applications visibles par chaque utilisateur.
  * utilisateurs.sections = NULL → accès à tout (héritage) ; sinon tableau JSON de slugs.
  * Les admins et super admins voient toujours tout. */
-const SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe", "logements", "prestataires", "salaires-btp", "tarifs-btp"];
+const SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe", "logements", "prestataires", "salaires-btp", "tarifs-btp", "notes"];
 
 /* Adresse de réponse des communications EXTERNES d'AB Service (réservations
  * DATAtourisme, etc.) — domaine dédié actif depuis le 03/09/2026 (Email Routing
@@ -272,7 +272,7 @@ export default {
       /* données personnelles bailleurs : réservées aux utilisateurs de la section logements */
       /* documents d'évaluation (consultants) et grille de facturation (responsables) : même règle que la page */
       let secDoc = null;
-      for (const [pref, sec] of [["/app/data/salaires-btp/", "salaires-btp"], ["/app/data/tarifs-btp/", "tarifs-btp"]]) {
+      for (const [pref, sec] of [["/app/data/salaires-btp/", "salaires-btp"], ["/app/data/tarifs-btp/", "tarifs-btp"], ["/app/data/notes/", "notes"]]) {
         if (!cible.startsWith(pref)) continue;
         if (!sectionsDe(u).includes(sec)) { await journal(env, req, u, "acces_refuse_section", sec, cible); return new Response("Accès refusé.", { status: 403 }); }
         secDoc = sec;

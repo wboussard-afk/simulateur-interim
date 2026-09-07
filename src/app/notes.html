@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<title>Notes de direction — AB2Pro</title>
+<style>
+/* ===== Notes de direction : études et notes internes réservées (section « notes », attribuée par un admin).
+   Les notes sont des pages HTML servies sous /app/data/notes/ (porte d'accès côté serveur, jamais mises en cache), listées par index.json. ===== */
+:root { --paper:#f4f4f5; --card:#FFFFFF; --card2:#ececef; --ink:#29293b; --muted:#5f5f74; --line:#d9d9e0; --line-soft:#e8e8ee; --brass:#db303f; --brass-deep:#681316;
+  --shadow:0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper:#1b1b25; --card:#232330; --card2:#2c2c3b; --ink:#ececf1; --muted:#a2a2b5; --line:#3b3b4d; --line-soft:#2f2f3e; --brass:#e85160; --brass-deep:#f0929c; --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3); } }
+:root[data-theme="dark"] { --paper:#1b1b25; --card:#232330; --card2:#2c2c3b; --ink:#ececf1; --muted:#a2a2b5; --line:#3b3b4d; --line-soft:#2f2f3e; --brass:#e85160; --brass-deep:#f0929c; --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3); }
+* { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.45 "Segoe UI", system-ui, sans-serif; }
+h1, h2 { font-family: "Poppins", "Segoe UI", system-ui, sans-serif; }
+header { background: var(--card); border-bottom: 1px solid var(--line); padding: 12px 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+header h1 { margin: 0; font-size: 19px; } header h1 b { color: var(--brass); } header .qui { color: var(--muted); font-size: 12.5px; margin-left: auto; }
+.wrap { max-width: 900px; margin: 0 auto; padding: 14px 12px 80px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+.card h2 { font-size: 16px; margin: 0; padding: 11px 14px; border-bottom: 1px solid var(--line-soft); } .card .b { padding: 12px 14px 14px; }
+.note { font-size: 13px; color: var(--muted); }
+a.doc { display: block; padding: 12px 14px; border: 1px solid var(--line-soft); border-radius: 10px; margin-bottom: 10px; text-decoration: none; color: var(--ink); background: var(--paper); }
+a.doc:hover { border-color: var(--brass); } a.doc b { display: block; font-size: 15.5px; } a.doc .d { color: var(--muted); font-size: 13px; margin-top: 3px; } a.doc .m { color: var(--brass-deep); font-size: 12px; margin-top: 4px; }
+.confid { border: 1px dashed var(--brass); border-radius: 10px; padding: 8px 12px; font-size: 12.5px; color: var(--brass-deep); background: rgba(219,48,63,.06); margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<header><h1><b>AB2Pro</b> — Notes de direction</h1><span class="qui" id="qui"></span></header>
+<div class="wrap">
+  <div class="confid">Documents internes réservés aux comptes autorisés par la direction. Ne pas transmettre.</div>
+  <div class="card"><h2>Notes disponibles</h2><div class="b" id="liste"><div class="note">Chargement…</div></div></div>
+</div>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const dfr = iso => /^\d{4}-\d{2}-\d{2}$/.test(iso || "") ? iso.split("-").reverse().join("/") : (iso || "");
+(async () => {
+  try {
+    const moi = await fetch("/api/moi").then(r => r.ok ? r.json() : null);
+    if (moi) $("qui").textContent = (moi.nom_complet || moi.nom || moi.email) + (moi.fonction ? " · " + moi.fonction : "");
+  } catch (e) {}
+  try {
+    const r = await fetch("/app/data/notes/index.json", { cache: "no-store" });
+    if (!r.ok) throw new Error(String(r.status));
+    const notes = (await r.json()).notes || [];
+    $("liste").innerHTML = notes.length ? notes.map(n => "<a class='doc' target='_blank' rel='noopener' href='/app/data/notes/" + esc(n.fichier) + "'><b>" + esc(n.titre) + "</b><div class='d'>" + esc(n.description || "") + "</div><div class='m'>" + esc(dfr(n.date)) + (n.auteur ? " · " + esc(n.auteur) : "") + "</div></a>").join("") : "<div class='note'>Aucune note.</div>";
+  } catch (e) { $("liste").innerHTML = "<div class='note'>Accès refusé ou liste indisponible (" + esc(e.message) + ").</div>"; }
+})();
+</script>
+</body>
+</html>
