@@ -1,0 +1,170 @@
+{
+ "idcc": "843",
+ "titre": "Boulangerie-pâtisserie — entreprises artisanales (CCN du 19/03/1976)",
+ "dateDerniereActu": "08/09/2026",
+ "themes": [
+  {
+   "cle": "minima",
+   "titre": "Grille des minima (avenant n° 139 + grilles régionales)",
+   "cleValeur": "Horaire : 12,41 € (coef 155) → 14,59 € (coef 240) au 01/01/2026",
+   "points": [
+    "Grille « autres régions » (avenant n° **139 du 14/01/2026**, effet 01/01/2026) — fabrication : coef **155 : 12,41 €** · 160 : 12,53 · 170 : 12,78 · 175 : 12,91 · 185 : 13,31 · 190 : 13,43 · 195 : 13,54 · **240 : 14,59 €**/h.",
+    "Vente : coef 155→190 : **12,41 → 13,43 €**/h ; services : coef 155→170 : **12,41 → 12,78 €**/h (mêmes valeurs de coefficient que la fabrication).",
+    "Formule : (valeur du point × coefficient) + constante — coef 155-180 : point **0,0248 €** + constante **8,566 €** ; coef 185-240 : point **0,023273 €** + constante **9,00448 €**.",
+    "TROIS grilles territoriales : « autres régions » (av. 139), **Île-de-France** (avenant n° 61 du 22/01/2026) et **Bouches-du-Rhône** — vérifier la grille du lieu de mission (les fiches CDTN listent les trois).",
+    "Cadres : forfaits annuels **Cadre 1 : 39 871 €** (218 jours) · **Cadre 2 : 57 206 €** — hors cible intérim.",
+    "Le plus favorable s'applique entre SMIC (12,31 € depuis le 01/06/2026), minimum conventionnel et salaire du comparable client."
+   ],
+   "detail": "Montants concordants sur 2 sources spécialisées (juristique.org, lofficieldesmetiers.fr) ; l'existence des avenants 139/61 et des 3 grilles est confirmée par la fiche officielle CDTN (page « salaire minimum » 843, màj 01/06/2026), mais les montants n'y sont pas reproduits — grille à recouper sur le texte authentique (KALI/BOCC) avant paramétrage définitif.",
+   "dateCourte": "avenant n° 139 du 14/01/2026",
+   "source": "https://code.travail.gouv.fr/contribution/843-quel-est-le-salaire-minimum",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "nuit",
+   "titre": "Travail de nuit",
+   "cleValeur": "Nuit 20 h - 6 h : majoration 25 % + repos compensateur annuel",
+   "points": [
+    "Heures entre **20 h et 6 h** majorées de **25 %** — cœur de métier en fabrication (fournil) : quasi systématique pour les intérimaires boulangers.",
+    "Repos compensateur : **1 jour** à partir de **270 h** de nuit/an, **2 jours** au-delà de **600 h**.",
+    "Suivi médical renforcé du travailleur de nuit — vérifier l'aptitude avant délégation."
+   ],
+   "detail": "Taux et seuils concordants sur 2 sources paie (macompta.fr, keobiz.fr) — à recouper sur le texte conventionnel (KALI) pour l'article exact.",
+   "dateCourte": "CCN 19/03/1976 — texte à recouper",
+   "source": "https://blog.macompta.fr/paie/convention-collective-boulangerie/",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "hs",
+   "titre": "Heures supplémentaires",
+   "cleValeur": "25 % (36e-43e h), 50 % au-delà ; contingent 220 h",
+   "points": [
+    "Majoration **25 %** de la 36e à la 43e heure, **50 %** au-delà (taux légaux).",
+    "Contingent annuel : **220 h** (fiche CDTN officielle, màj 04/12/2025) ; contreparties en salaire et/ou repos compensateur de remplacement.",
+    "Dépassement du contingent : repos obligatoire en plus des majorations."
+   ],
+   "dateCourte": "fiche CDTN màj 04/12/2025",
+   "source": "https://code.travail.gouv.fr/contribution/843-heures-supplementaires",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "weekend",
+   "titre": "Dimanche",
+   "cleValeur": "Dimanche travaillé : +20 % (25 % IdF / Bouches-du-Rhône)",
+   "points": [
+    "Dimanche travaillé majoré de **20 %** sur le salaire horaire de base (grille nationale).",
+    "Majorations territoriales supérieures : **25 %** en Île-de-France et dans les Bouches-du-Rhône (jusqu'à 30 % cités dans certains départements) — vérifier la grille locale.",
+    "Cumul avec la nuit : une heure de dimanche entre 20 h et 6 h cumule **+25 % nuit +20 % dimanche**.",
+    "Repos hebdomadaire : **24 h** consécutives + repos quotidien 11 h ; le jour de fermeture hebdomadaire de la boulangerie s'impose souvent comme jour de repos."
+   ],
+   "detail": "Sources secondaires concordantes sur le taux national 20 % ; divergence sur les taux territoriaux (25 % IdF/13 chez keobiz ; « 25-30 % selon départements » chez macompta) — relever la grille territoriale applicable avant paramétrage.",
+   "dateCourte": "texte à recouper",
+   "source": "https://www.keobiz.fr/le-mag/majoration-dimanche-et-jour-ferie-boulangerie/",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "feries",
+   "titre": "Jours fériés",
+   "cleValeur": "Férié travaillé : +100 % OU repos compensateur (choix employeur)",
+   "points": [
+    "Jour férié travaillé (hors 1er mai) : au choix de l'employeur, majoration de **100 %** OU repos compensateur équivalent — relever la pratique du client.",
+    "1er mai : régime légal (chômé payé ; travaillé = doublé).",
+    "Rappel intérim : fériés chômés payés **sans condition d'ancienneté** (art. L.1251-18) — oubli déclaratif fréquent chez les artisans."
+   ],
+   "detail": "Régime « majoration ou repos au choix de l'employeur » cité par macompta/keobiz — à recouper sur le texte conventionnel.",
+   "dateCourte": "texte à recouper",
+   "source": "https://blog.macompta.fr/paie/convention-collective-boulangerie/",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "repas",
+   "titre": "Repas / nourriture",
+   "cleValeur": "Pas de panier de branche relevé ; avantage nourriture à déclarer",
+   "points": [
+    "Pas d'indemnité de panier de branche relevée pour les entreprises artisanales — les paniers éventuels relèvent de la pratique du client (égalité de traitement).",
+    "Avantages en nature nourriture (pain, produits) : à évaluer et porter sur le bulletin s'ils sont fournis.",
+    "Demander explicitement la pratique du client (repas fournis en fournil, remises) au déclaratif."
+   ],
+   "dateCourte": "—",
+   "source": "https://blog.macompta.fr/paie/convention-collective-boulangerie/",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "transport",
+   "titre": "Transport",
+   "cleValeur": "50 % transports publics (droit commun)",
+   "points": [
+    "Prise en charge légale de **50 %** des abonnements de transports publics ; pas de barème de branche relevé.",
+    "Vigilance horaires : prises de poste nocturnes (3 h - 5 h) souvent sans transport public — la pratique indemnitaire du client (trajet, carburant) doit être relevée."
+   ],
+   "dateCourte": "droit commun",
+   "source": "https://code.travail.gouv.fr/convention-collective/843",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "primes",
+   "titre": "Prime de fin d'année, chou blanc, ancienneté, salissure",
+   "cleValeur": "Fin d'année 4,75 % du brut annuel (2026) · chou blanc 8 h · ancienneté locale",
+   "points": [
+    "**Prime de fin d'année** (art. 42) : **4,75 %** du salaire brut annuel à compter du 01/01/2026 (4,50 % en 2025 ; **5 %** au 01/01/2027) — conditions : **1 an d'ancienneté** et présence au 31/12 ; versement au plus tard le 15 janvier ; non cumulable avec 13e mois ou équivalent.",
+    "Intérim : la prime de fin d'année est due **au prorata** via l'égalité de traitement quand le comparable y a droit — vérifier la pratique du client au déclaratif.",
+    "**Indemnité « chou blanc »** : salarié qui se présente à l'heure et est renvoyé sans travailler = **8 heures** de salaire minimum professionnel.",
+    "**Prime d'ancienneté** : uniquement territoriale — relevée en **Indre-et-Loire et Somme** (valeur d'une journée de travail par 5 ans de présence continue) ; pas de prime nationale.",
+    "**Prime de salissure** due si le salarié entretient lui-même ses tenues de travail."
+   ],
+   "dateCourte": "fiches CDTN màj 21/11/2023 et 15/02/2024",
+   "source": "https://code.travail.gouv.fr/contribution/843-quelles-sont-les-primes-prevues-par-la-convention-collective",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "annualisation",
+   "titre": "Aménagement du temps",
+   "cleValeur": "Modulation : 35 h en moyenne annuelle, semaines de 24 à 46 h",
+   "points": [
+    "Modulation possible : horaire collectif moyen de **35 h** sur l'année, hebdo variant de **24 h** (mini) à **46 h** (maxi) ; compteur mensuel des écarts porté sur le bulletin.",
+    "Le régime d'aménagement du client s'applique à l'intérimaire (art. L.1251-21) — demander l'accord ou la pratique écrite."
+   ],
+   "dateCourte": "texte à recouper",
+   "source": "https://payfit.com/fr/ccn/boulangerie-patisserie/duree-du-travail/",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "saisonniers",
+   "titre": "Saisonniers",
+   "cleValeur": "Pointes saisonnières (fêtes, été touristique) : droit commun",
+   "points": [
+    "Renforts saisonniers courants (fêtes de fin d'année, galette, zones touristiques l'été) sans statut de branche spécifique relevé — régime intérim de droit commun (**IFM 10 %** + **ICCP 10 %** dues)."
+   ],
+   "dateCourte": "—",
+   "source": "https://code.travail.gouv.fr/convention-collective/843",
+   "fiabilite": "verifie"
+  },
+  {
+   "cle": "durees",
+   "titre": "Durées maximales",
+   "cleValeur": "10 h/j, 48 h/sem ; modulation plafonnée à 46 h",
+   "points": [
+    "Maxima légaux : **10 h**/jour, **48 h**/semaine isolée, 44 h en moyenne sur 12 semaines ; en modulation, plafond hebdo conventionnel de **46 h**.",
+    "Repos quotidien 11 h + repos hebdomadaire 24 h consécutives."
+   ],
+   "dateCourte": "droit commun + modulation",
+   "source": "https://payfit.com/fr/ccn/boulangerie-patisserie/duree-du-travail/",
+   "fiabilite": "aConfirmer"
+  },
+  {
+   "cle": "specifique",
+   "titre": "Points de vigilance paie intérim",
+   "cleValeur": "Artisanal ≠ industriel (3255) · 3 grilles territoriales · nuit systématique",
+   "points": [
+    "Ne pas confondre avec l'IDCC **3255** (industries de boulangerie-pâtisserie, ex-1747) ni le **1267** (pâtisserie) : le 843 couvre les **entreprises artisanales** de boulangerie et boulangerie-pâtisserie (fabrication et vente).",
+    "Trois grilles de minima territoriales (nationale / Île-de-France / Bouches-du-Rhône) ET des majorations dimanche différentes — toujours relever le département de la mission.",
+    "Fabrication = travail de nuit structurel (prises de poste 3 h - 6 h) : majoration 25 % + suivi des compteurs de repos compensateur dès la 270e heure.",
+    "Prime de fin d'année 4,75 % : entre dans le comparatif d'égalité de traitement au prorata de la mission — souvent omise par les clients artisans.",
+    "CCN du **19/03/1976** étendue (arrêté du 21/06/1978), brochure JO 3117 — en vigueur étendue (KALI VIGUEUR_ETEN, conteneur KALICONT000005635886)."
+   ],
+   "dateCourte": "CCN 19/03/1976 + avenants 2026",
+   "source": "https://code.travail.gouv.fr/convention-collective/843",
+   "fiabilite": "verifie"
+  }
+ ]
+}
