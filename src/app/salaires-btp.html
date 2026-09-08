@@ -107,7 +107,6 @@ table.cat td.n b { color: var(--cat1-ink); } table.cat.k2 td.n b { color: var(--
 <div class="tabs" id="tabs">
   <button data-o="calc" class="on">Calculette</button>
   <button data-o="argu">Argumentaire</button>
-  <button data-o="docs">Documents</button>
   <button data-o="factu" id="tab-factu" hidden>Facturation</button>
 </div>
 
@@ -187,11 +186,6 @@ table.cat td.n b { color: var(--cat1-ink); } table.cat.k2 td.n b { color: var(--
         <p><b>L'évolution salariale se construit dans la durée.</b> Elle repose sur la montée en compétences, le rendement, le savoir-être et la régularité, pas uniquement sur la tension du marché ou les offres concurrentes.</p>
       </div>
     </div>
-  </section>
-
-  <!-- ===== Documents ===== -->
-  <section data-onglet="docs" hidden>
-    <div class="card"><h2>Documents de référence</h2><div class="b" id="liste-docs"><div class="note">Chargement…</div></div></div>
   </section>
 
   <!-- ===== Facturation (responsables d'agence) ===== -->
@@ -458,8 +452,6 @@ rendreCriteres();
     if (moi) { $("qui").textContent = (moi.nom_complet || moi.nom || moi.email) + (moi.fonction ? " · " + moi.fonction : ""); MOI = moi; prefillMoi(); }
     INFOS = await fetch("/api/salaires-btp").then(r => r.ok ? r.json() : { documents: [], facturation: false });
   } catch (e) { INFOS = { documents: [], facturation: false }; }
-  const docs = (INFOS.documents || []).concat(INFOS.facturation ? [{ titre: "Grille BTP 2026 — offre taux de facturation (confidentiel)", url: "/app/data/tarifs-btp/grille-btp-2026.pdf" }] : []);
-  $("liste-docs").innerHTML = docs.length ? docs.map(d => "<a class='doc' target='_blank' rel='noopener' href='" + esc(d.url) + "'><span>📄</span><b>" + esc(d.titre) + "</b></a>").join("") : "<div class='note'>Aucun document.</div>";
   if (INFOS.facturation) { $("tab-factu").hidden = false; $("btn-factu-lien").hidden = false; }
 })();
 </script>

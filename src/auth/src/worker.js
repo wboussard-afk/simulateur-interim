@@ -1131,15 +1131,7 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     if (!u) return json({ erreur: "non_connecte" }, 401);
     const secs = sectionsDe(u);
     if (!secs.includes("salaires-btp")) return json({ erreur: "acces_refuse" }, 403);
-    const docs = [
-      { titre: "Grille d'évaluation — salaire net horaire BTP, candidats / intérimaires (v1.0, janvier 2026)", url: "/app/data/salaires-btp/grille-evaluation-salaire-net-btp.pdf" },
-      { titre: "Fiche d'évaluation candidat — 4 critères (v1.0, janvier 2026)", url: "/app/data/salaires-btp/fiche-evaluation-candidat.pdf" },
-      { titre: "Fiche d'évaluation intérimaire — 6 critères (v1.0, janvier 2026)", url: "/app/data/salaires-btp/fiche-evaluation-interimaire.pdf" },
-      { titre: "Tables de correspondance A → F (référentiel)", url: "/app/data/salaires-btp/table-de-correspondance.pdf" },
-      { titre: "Argumentaire « salaire juste »", url: "/app/data/salaires-btp/argumentaire-salaire-juste.pdf" },
-      { titre: "Calculette Excel d'origine", url: "/app/data/salaires-btp/calculette-salaire-net-btp.xlsx" },
-    ];
-    const rep = { ok: true, documents: docs, facturation: secs.includes("tarifs-btp") };
+    const rep = { ok: true, facturation: secs.includes("tarifs-btp") };  /* documents PDF retirés le 08/09/2026 : tout est repris dans l'application */
     if (rep.facturation) {
       /* grille BTP offre taux de facturation horaire tout inclus — version 11-2025, document confidentiel */
       rep.grille = {
