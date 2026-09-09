@@ -2313,7 +2313,13 @@ $("in-agence").addEventListener("change", () => {
    pondérée par la population du département de la mission, puis moyenne France. Manuel = saisie conservée jusqu'au prochain
    choix de chantier ou de département. ===== */
 let VM_TABLE = null, VM_SRC = "", VM_BANDE = null;   /* VM_BANDE : dispersion des taux quand on utilise une moyenne (p10, p90, mad) */
-fetch("data/vm-communes.json", { cache: "force-cache" }).then(r => r.ok ? r.json() : null).then(t => { VM_TABLE = t; appliquerVM(false); }).catch(() => {});
+/* URL versionnée : un navigateur qui garde l'ancienne table (format sans déciles) ne doit pas la réutiliser */
+fetch("data/vm-communes.json?v=2026-09-10b").then(r => r.ok ? r.json() : null).then(t => {
+  if (!t) return;
+  const normer = st => (typeof st === "number" ? { m: st, p10: st, p90: st, mad: 0 } : st);   // tolère l'ancien format (nombre seul)
+  t.france = normer(t.france); Object.keys(t.dept || {}).forEach(k => { t.dept[k] = normer(t.dept[k]); });
+  VM_TABLE = t; appliquerVM(false);
+}).catch(() => {});
 function vmPourCode(code) {
   if (!VM_TABLE || !code) return null;
   const t = VM_TABLE.taux[code];
