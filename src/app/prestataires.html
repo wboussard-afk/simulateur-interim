@@ -25,10 +25,10 @@ header .qui { color: var(--muted); font-size: 12.5px; flex: 1 1 auto; }
 .lang { display: flex; gap: 4px; }
 .lang button { border: 1px solid var(--line); background: var(--card2); color: var(--ink); border-radius: 8px; padding: 6px 9px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
 .lang button.on { background: var(--brass); border-color: var(--brass); color: #fff; }
-.tabs { display: flex; gap: 6px; overflow-x: auto; padding: 10px 12px 0; scrollbar-width: none; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px 0; }
 .tabs button { flex: 0 0 auto; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 10px; padding: 9px 13px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .tabs button.on { background: var(--brass); border-color: var(--brass); color: #fff; }
-.wrap { max-width: 900px; margin: 0 auto; padding: 12px 12px 90px; display: flex; flex-direction: column; gap: 12px; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 12px 12px 90px; display: flex; flex-direction: column; gap: 12px; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
 .card h2 { font-size: 16px; margin: 0; padding: 11px 14px; border-bottom: 1px solid var(--line-soft); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .card .b { padding: 12px 14px 14px; }
@@ -60,22 +60,44 @@ td.n { text-align: right; font-variant-numeric: tabular-nums; }
 .total { font-size: 18px; font-weight: 800; color: var(--brass-deep); }
 [hidden] { display: none !important; }
 .tot td { border-top: 2px solid var(--brass-deep); font-weight: 800; }
-/* tableau de saisie (une ligne = un candidat, comme le fichier Excel des recruteurs) */
+/* tableau de saisie (une ligne = un candidat, comme le fichier Excel des recruteurs) : toutes les colonnes tiennent dans la page,
+   largeurs en % fixées dans l'en-tête (table-layout: fixed), champs à 100 % de leur colonne */
+table.saisie { table-layout: fixed; }
+table.saisie th { white-space: normal; line-height: 1.2; }
 table.saisie td { padding: 4px 3px; vertical-align: middle; }
-table.saisie input, table.saisie select { padding: 8px 6px; font-size: 16px; min-width: 96px; }
+table.saisie input, table.saisie select { padding: 8px 6px; font-size: 15px; min-width: 0; width: 100%; }
 table.saisie input[type=checkbox] { min-width: 0; width: 22px; height: 22px; display: block; margin: 0 auto; }
 table.saisie [data-k='metier_libre'] { display: block; width: 100%; margin-top: 4px; }
-table.saisie .cell-chk { display: block; margin: 0; padding: 9px 12px; text-align: center; cursor: pointer; }
-table.saisie .btn.s { min-width: 40px; min-height: 40px; }
-/* # et ✕ restent visibles pendant le défilement horizontal (téléphone) */
-table.saisie th:nth-child(-n+2), table.saisie td:nth-child(-n+2) { position: sticky; background: var(--card); z-index: 1; }
-table.saisie th:first-child, table.saisie td:first-child { left: 0; }
-table.saisie th:nth-child(2), table.saisie td:nth-child(2) { left: 28px; }
+table.saisie .cell-chk { display: block; margin: 0; padding: 9px 4px; text-align: center; cursor: pointer; }
+table.saisie .btn.s { min-width: 40px; min-height: 40px; padding: 6px 0; width: 100%; }
 table.saisie tr.incomplete td { background: rgba(219,48,63,.08); }
-table.saisie tr.incomplete td:nth-child(-n+2) { background: #fbe9eb; }
+table.cartes td { white-space: normal; }
+table.saisie .chk-lib { display: none; font-size: 13px; font-weight: 700; }
+/* téléphone : une ligne = une carte à deux colonnes avec ses libellés (plus rien à faire défiler) */
+@media (max-width: 720px) {
+  table.saisie, table.cartes, table.saisie tbody, table.cartes tbody { display: block; width: 100%; }
+  table.saisie thead, table.cartes tr:has(th) { display: none; }
+  table.saisie tr, table.cartes tr { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; margin: 0 0 10px; background: var(--card); }
+  table.saisie td, table.cartes td { display: block; padding: 0; border: 0; white-space: normal; min-width: 0; }
+  table.saisie td[data-l]::before, table.cartes td[data-l]::before { content: attr(data-l); display: block; font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; }
+  table.saisie td.num { grid-column: 1; font-size: 14px; font-weight: 800; color: var(--brass-deep); text-align: left; align-self: center; }
+  table.saisie td.num::before { content: "# "; }
+  table.saisie td.act { grid-column: 2; justify-self: end; } table.saisie td.act .btn.s { width: auto; padding: 6px 12px; }
+  table.saisie td.large, table.cartes td.large { grid-column: 1 / -1; }
+  table.saisie .cell-chk { display: flex; align-items: center; gap: 8px; padding: 6px 0; text-align: left; }
+  table.saisie input[type=checkbox] { margin: 0; }
+  table.saisie .chk-lib { display: inline; }
+  table.saisie input, table.saisie select { font-size: 16px; }
+  table.saisie tr.incomplete { border-color: var(--brass); }
+  table.cartes td.n { text-align: left; }
+  table.cartes td:empty { display: none; }
+  .equipe .tbl { padding: 0 8px; }
+  .card h2 select { margin-left: 0 !important; width: 100% !important; }
+  .tabs button { flex: 1 1 45%; font-size: 13.5px; padding: 8px 8px; white-space: normal; }
+}
 body.admin .wrap { max-width: 1500px; }
 .tag.brouillon { background: var(--warn-soft); color: var(--warn); } .tag.arch { background: var(--card2); color: var(--muted); }
-table.saisie input.court { min-width: 60px; width: 70px; } table.saisie input.moyen { min-width: 110px; width: 130px; }
+table.saisie input.court { min-width: 0; width: 100%; } table.saisie input.moyen { min-width: 0; width: 100%; }
 .semaine-titre { font-weight: 800; color: var(--brass-deep); margin: 10px 0 6px; font-size: 14px; }
 .equipe { border: 1px solid var(--line); border-radius: 10px; margin-bottom: 12px; background: var(--paper); }
 .equipe .eq-tete { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; padding: 10px 12px; border-bottom: 1px solid var(--line-soft); }
@@ -136,7 +158,6 @@ table.saisie .btn.s { padding: 6px 9px; }
       <select id="decl-mois" style="width:auto; padding:6px 8px; font-size:16px; margin-left:auto"></select></h2>
     <div class="b">
       <div class="note" data-t="decl_intro">Déclarez ici, avant le 15 du mois suivant, chaque candidat que vous avez présenté et qui a travaillé dans le mois. AB2PRO renseigne ensuite les heures travaillées et facturées (avant le 12) : le tableau validé sert de base à votre facture.</div>
-      <div class="note" data-t="defiler" style="margin-top:8px">↔ Faites glisser le tableau vers la gauche : métier, agence… sont à droite.</div>
       <div class="tbl" style="margin-top:6px"><table class="saisie"><thead id="decl-entete"></thead><tbody id="decl-lignes"></tbody></table></div>
       <div class="note" id="decl-en-cours"></div>
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px">
@@ -146,7 +167,7 @@ table.saisie .btn.s { padding: 6px 9px; }
       </div>
       <div class="msg" id="decl-msg"></div>
       <h2 style="margin:14px -14px 8px; border-top:1px solid var(--line-soft)"><span data-t="mes_declarations">Mes déclarations</span></h2>
-      <div class="tbl"><table id="tbl-decl"></table></div>
+      <div class="tbl"><table id="tbl-decl" class="cartes"></table></div>
     </div>
   </section>
 
@@ -156,7 +177,7 @@ table.saisie .btn.s { padding: 6px 9px; }
       <select id="fac-mois" style="width:auto; padding:6px 8px; font-size:16px; margin-left:auto"></select></h2>
     <div class="b">
       <div class="note" id="fac-regle"></div>
-      <div class="tbl" style="margin-top:8px"><table id="tbl-fac"></table></div>
+      <div class="tbl" style="margin-top:8px"><table id="tbl-fac" class="cartes"></table></div>
       <div class="note" style="margin-top:8px" data-t="fac_note">Seules les lignes validées par AB2PRO avec des heures comptent. Déposez votre facture ci-dessous une fois le tableau validé (adv@ab2pro.com pour toute question sur les heures).</div>
       <h2 style="margin:14px -14px 8px; border-top:1px solid var(--line-soft)"><span data-t="mes_factures">Mes factures</span></h2>
       <div class="note" data-t="fac_depot_intro">Déposez ici votre facture du mois (PDF ou image, 10 Mo max) : elle n'est visible que par vous et par AB2PRO.</div>
@@ -173,11 +194,20 @@ table.saisie .btn.s { padding: 6px 9px; }
     </div>
   </section>
 
-  <!-- ===== prestataire : documents ===== -->
+  <!-- ===== prestataire : contrat de partenariat (documents propres au prestataire) ===== -->
+  <section class="card" data-onglet="contrat">
+    <h2><span data-t="t_contrat">Mon contrat de partenariat</span></h2>
+    <div class="b">
+      <div class="note" data-t="contrat_intro">Votre contrat de partenariat AB2PRO et ses annexes, déposés par AB2PRO. Seul votre compte y a accès.</div>
+      <div id="contrat-liste" style="margin-top:10px"></div>
+    </div>
+  </section>
+
+  <!-- ===== prestataire : documents communs ===== -->
   <section class="card" data-onglet="documents">
     <h2><span data-t="t_documents">Mes documents</span></h2>
     <div class="b">
-      <div class="note" data-t="doc_intro">Votre contrat de partenariat et les consignes de fonctionnement AB2PRO (conditions d'hébergement des intérimaires, etc.).</div>
+      <div class="note" data-t="doc_intro">Consignes de fonctionnement AB2PRO communes à tous les partenaires (conditions d'hébergement des intérimaires, etc.).</div>
       <div id="doc-liste" style="margin-top:10px"></div>
     </div>
   </section>
@@ -252,7 +282,7 @@ table.saisie .btn.s { padding: 6px 9px; }
   <section class="card" data-onglet="adm-documents" data-admin>
     <h2>Documents (admin)</h2>
     <div class="b">
-      <div class="note">Choisissez le document sur votre ordinateur (PDF, Word, Excel ou image, 20 Mo max) : il est enregistré sur le serveur et apparaît aussitôt dans l'espace du prestataire choisi (ou de tous si « commun »).</div>
+      <div class="note">Choisissez le document sur votre ordinateur (PDF, Word, Excel ou image, 20 Mo max) : il est enregistré sur le serveur et apparaît aussitôt dans l'espace du prestataire choisi (ou de tous si « commun »). Un document déposé pour un prestataire précis (contrat, annexe) apparaît dans son onglet « Mon contrat de partenariat » ; un document commun apparaît dans « Mes documents » de tous.</div>
       <div class="grid" style="margin-top:8px">
         <div style="grid-column:1/-1">
           <input type="file" id="adm-doc-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" hidden>
@@ -283,7 +313,8 @@ const T = {
     ajouter_ligne: "+ Ajouter un candidat", envoyer: "Envoyer la proposition", mes_propositions: "Mes propositions", t_declarer: "Candidats placés du mois",
     decl_intro: "Déclarez ici, avant le 15 du mois suivant, chaque candidat que vous avez présenté et qui a travaillé dans le mois. AB2PRO renseigne ensuite les heures travaillées et facturées (avant le 12) : le tableau validé sert de base à votre facture.",
     declarer_btn: "Déclarer", mes_declarations: "Mes déclarations", t_facture: "Ma facturation", fac_note: "Seules les lignes validées par AB2PRO avec des heures comptent. Déposez votre facture ci-dessous une fois le tableau validé (adv@ab2pro.com pour toute question sur les heures).",
-    t_documents: "Mes documents", doc_intro: "Votre contrat de partenariat et les consignes de fonctionnement AB2PRO (conditions d'hébergement des intérimaires, etc.).",
+    t_documents: "Mes documents", doc_intro: "Consignes de fonctionnement AB2PRO communes à tous les partenaires (conditions d'hébergement des intérimaires, etc.).",
+    t_contrat: "Mon contrat de partenariat", contrat_intro: "Votre contrat de partenariat AB2PRO et ses annexes, déposés par AB2PRO. Seul votre compte y a accès.", contrat_vide: "Votre contrat de partenariat n'est pas encore déposé dans votre espace. AB2PRO le mettra en ligne dès sa signature ; en attendant, contactez votre interlocuteur AB2PRO.",
     commande: "Commande", libre: "— sans commande précise —", equipe: "Équipe n°", nom: "NOM", prenom: "Prénom", metier: "Métier", vehicule: "Véhicule", salaire: "Salaire net souhaité (€/h)", tel: "Téléphone", remarques: "Remarques",
     agence: "Agence", qualifie: "Profil qualifié", commentaire: "Commentaire", supprimer: "Supprimer", semaine: "Semaine", mois: "Mois", statut: "Statut", heures: "Heures", taux: "Taux", montant: "Montant HT", total: "Total HT",
     postes: "poste(s)", debut: "début", aucune_commande: "Aucune commande ouverte pour le moment.", envoye: "✓ Envoyé — AB2PRO a été prévenu.", erreur: "Erreur — réessayer.", rien: "Aucune ligne à envoyer (nom, prénom et métier obligatoires).",
@@ -296,7 +327,7 @@ const T = {
     metier_libre: "Autre métier (saisir)…", choisir_metier: "— métier —", mes_factures: "Mes factures", fac_depot_intro: "Déposez ici votre facture du mois (PDF ou image, 10 Mo max) : elle n'est visible que par vous et par AB2PRO.",
     numero_facture: "N° de facture", montant_facture: "Montant HT (€)", fichier: "Fichier", choisir_fichier: "📎 Choisir le fichier…", envoyer_facture: "Envoyer ma facture", aucune_facture: "Aucune facture déposée.",
     depose_le: "Déposée le", fac_envoyee: "✓ Facture envoyée à AB2PRO.", fac_choisir_dabord: "Choisissez d'abord le fichier de la facture.", fac_trop_gros: "Fichier trop volumineux (10 Mo max).", st_recue: "reçue", st_payee: "payée",
-    incompletes: "{n} ligne(s) incomplète(s) (en rouge) — nom, prénom et métier obligatoires.", defiler: "↔ Faites glisser le tableau vers la gauche : métier, agence… sont à droite.",
+    incompletes: "{n} ligne(s) incomplète(s) (en rouge) — nom, prénom et métier obligatoires.",
     proposer_sur: "Proposer une équipe →", sem_en_cours: "en cours", archives: "Semaines passées (archives)", pour_semaine: "Proposition pour la", dec_titre: "Décisions AB2PRO", dec_retenue: "Équipe {n} · semaine {s} : RETENUE — l'agence vous contacte pour la suite.", dec_refusee: "Équipe {n} · semaine {s} : non retenue.", dec_attente: "Équipe {n} · semaine {s} : remise en attente.", dec_vu: "OK, vu", equipe_n: "Équipe {n}", composer_equipe: "+ Composer une autre équipe", supprimer_equipe: "Supprimer l'équipe", ajouter_candidat: "+ Ajouter un candidat (5 max)",
     numero_commande: "N° de commande", commande_libre: "Autre commande : saisir le n°", err_equipe_taille: "Équipe {n} : un seul candidat — une équipe compte au moins 2 candidats. Ajoutez-en un ou supprimez l'équipe.", eq_incompletes: "Équipe {n} : {c} ligne(s) incomplète(s) (en rouge) — nom, prénom et métier obligatoires.", compte_equipe: "{n} candidat(s) sur 5 — minimum 2", envoye_equipes: "✓ Envoyé : {e} — {c} candidat(s). AB2PRO a été prévenu.", err_commande: "commande fermée ou dépubliée depuis l'ouverture de la page : rechargez.", err_numero: "Équipe {n} : saisissez le n° de commande (ou choisissez « sans commande »).", candidats_n: "{n} candidat(s)", equipes_n: "{n} équipe(s)", equipe_vide: "Aucune équipe complète à envoyer.", deja_declares: "{n} déjà déclaré(s) ce mois, ignoré(s)", en_cours: "{n} ligne(s) saisie(s), pas encore déclarée(s)", fac_type: "Format non accepté : PDF, JPG ou PNG uniquement.", trop_de_factures: "5 factures maximum par mois.", montant_invalide: "Montant invalide." },
   en: { titre: "Recruitment partners", t_commandes: "This week's job orders", cmd_intro: "Positions to fill this week. Propose your candidates in the “Propose a team” tab, indicating the targeted order.",
@@ -304,7 +335,8 @@ const T = {
     ajouter_ligne: "+ Add a candidate", envoyer: "Send the proposal", mes_propositions: "My proposals", t_declarer: "Candidates placed this month",
     decl_intro: "Declare here, before the 15th of the following month, each candidate you presented who worked during the month. AB2PRO then fills in the hours worked and invoiced (before the 12th): the validated table is the basis of your invoice.",
     declarer_btn: "Declare", mes_declarations: "My declarations", t_facture: "My invoicing", fac_note: "Only lines validated by AB2PRO that have hours are counted. Upload your invoice below once the table is validated (adv@ab2pro.com for any question about hours).",
-    t_documents: "My documents", doc_intro: "Your partnership contract and AB2PRO operating instructions (housing conditions for temporary workers, etc.).",
+    t_documents: "My documents", doc_intro: "AB2PRO operating instructions shared with all partners (housing conditions for temporary workers, etc.).",
+    t_contrat: "My partnership contract", contrat_intro: "Your AB2PRO partnership contract and its annexes, uploaded by AB2PRO. Only your account can see them.", contrat_vide: "Your partnership contract has not been uploaded to your space yet. AB2PRO will publish it as soon as it is signed; meanwhile, contact your AB2PRO contact person.",
     commande: "Job order", libre: "— no specific order —", equipe: "Team no.", nom: "SURNAME", prenom: "First name", metier: "Trade", vehicule: "Vehicle", salaire: "Expected net wage (€/h)", tel: "Phone", remarques: "Remarks",
     agence: "Agency", qualifie: "Qualified profile", commentaire: "Comment", supprimer: "Delete", semaine: "Week", mois: "Month", statut: "Status", heures: "Hours", taux: "Rate", montant: "Amount excl. VAT", total: "Total excl. VAT",
     postes: "position(s)", debut: "start", aucune_commande: "No open job order at the moment.", envoye: "✓ Sent — AB2PRO has been notified.", erreur: "Error — please retry.", rien: "Nothing to send (surname, first name and trade are required).",
@@ -317,7 +349,7 @@ const T = {
     metier_libre: "Other trade (type it)…", choisir_metier: "— trade —", mes_factures: "My invoices", fac_depot_intro: "Upload your invoice for the month here (PDF or image, 10 MB max): only you and AB2PRO can see it.",
     numero_facture: "Invoice no.", montant_facture: "Amount excl. VAT (€)", fichier: "File", choisir_fichier: "📎 Choose the file…", envoyer_facture: "Send my invoice", aucune_facture: "No invoice uploaded.",
     depose_le: "Uploaded on", fac_envoyee: "✓ Invoice sent to AB2PRO.", fac_choisir_dabord: "Choose the invoice file first.", fac_trop_gros: "File too large (10 MB max).", st_recue: "received", st_payee: "paid",
-    incompletes: "{n} incomplete line(s) (in red) — surname, first name and trade are required.", defiler: "↔ Swipe the table left: trade, agency… are on the right.",
+    incompletes: "{n} incomplete line(s) (in red) — surname, first name and trade are required.",
     proposer_sur: "Propose a team →", sem_en_cours: "current", archives: "Past weeks (archive)", pour_semaine: "Proposal for", dec_titre: "AB2PRO decisions", dec_retenue: "Team {n} · week {s}: SELECTED — the agency will contact you for the next steps.", dec_refusee: "Team {n} · week {s}: not selected.", dec_attente: "Team {n} · week {s}: back to pending.", dec_vu: "OK, seen", equipe_n: "Team {n}", composer_equipe: "+ Build another team", supprimer_equipe: "Remove this team", ajouter_candidat: "+ Add a candidate (max 5)",
     numero_commande: "Job order no.", commande_libre: "Other order: type the number", err_equipe_taille: "Team {n}: only one candidate — a team has at least 2. Add one or remove the team.", eq_incompletes: "Team {n}: {c} incomplete line(s) (in red) — surname, first name and trade are required.", compte_equipe: "{n} of 5 candidates — minimum 2", envoye_equipes: "✓ Sent: {e} — {c} candidate(s). AB2PRO has been notified.", err_commande: "job order closed or unpublished since the page was opened: reload.", err_numero: "Team {n}: type the job order number (or choose “no specific order”).", candidats_n: "{n} candidate(s)", equipes_n: "{n} team(s)", equipe_vide: "No complete team to send.", deja_declares: "{n} already declared this month, skipped", en_cours: "{n} line(s) typed, not declared yet", fac_type: "Format not accepted: PDF, JPG or PNG only.", trop_de_factures: "5 invoices maximum per month.", montant_invalide: "Invalid amount." },
   ro: { titre: "Parteneri recrutare", t_commandes: "Comenzile săptămânii", cmd_intro: "Posturi de ocupat săptămâna aceasta. Propuneți candidații în fila „Propuneți o echipă”, indicând comanda vizată.",
@@ -325,7 +357,8 @@ const T = {
     ajouter_ligne: "+ Adăugați un candidat", envoyer: "Trimiteți propunerea", mes_propositions: "Propunerile mele", t_declarer: "Candidați plasați în luna",
     decl_intro: "Declarați aici, înainte de 15 ale lunii următoare, fiecare candidat prezentat de dvs. care a lucrat în cursul lunii. AB2PRO completează apoi orele lucrate și facturate (înainte de 12): tabelul validat este baza facturii dvs.",
     declarer_btn: "Declarați", mes_declarations: "Declarațiile mele", t_facture: "Facturarea mea", fac_note: "Numai liniile validate de AB2PRO cu ore contează. Depuneți factura mai jos după validarea tabelului (adv@ab2pro.com pentru orice întrebare despre ore).",
-    t_documents: "Documentele mele", doc_intro: "Contractul dvs. de parteneriat și instrucțiunile de funcționare AB2PRO (condiții de cazare a lucrătorilor temporari etc.).",
+    t_documents: "Documentele mele", doc_intro: "Instrucțiuni de funcționare AB2PRO comune tuturor partenerilor (condiții de cazare a lucrătorilor temporari etc.).",
+    t_contrat: "Contractul meu de parteneriat", contrat_intro: "Contractul dvs. de parteneriat AB2PRO și anexele sale, încărcate de AB2PRO. Doar contul dvs. le poate vedea.", contrat_vide: "Contractul dvs. de parteneriat nu a fost încă încărcat în spațiul dvs. AB2PRO îl va publica imediat după semnare; între timp, contactați persoana dvs. de contact AB2PRO.",
     commande: "Comandă", libre: "— fără comandă precisă —", equipe: "Echipa nr.", nom: "NUME", prenom: "Prenume", metier: "Meserie", vehicule: "Vehicul", salaire: "Salariu net dorit (€/h)", tel: "Telefon", remarques: "Observații",
     agence: "Agenție", qualifie: "Profil calificat", commentaire: "Comentariu", supprimer: "Șterge", semaine: "Săptămâna", mois: "Luna", statut: "Stare", heures: "Ore", taux: "Tarif", montant: "Sumă fără TVA", total: "Total fără TVA",
     postes: "post(uri)", debut: "început", aucune_commande: "Nicio comandă deschisă momentan.", envoye: "✓ Trimis — AB2PRO a fost anunțat.", erreur: "Eroare — reîncercați.", rien: "Nimic de trimis (nume, prenume și meserie obligatorii).",
@@ -338,7 +371,7 @@ const T = {
     metier_libre: "Altă meserie (scrieți)…", choisir_metier: "— meserie —", mes_factures: "Facturile mele", fac_depot_intro: "Depuneți aici factura lunii (PDF sau imagine, max. 10 MB): o vedeți doar dvs. și AB2PRO.",
     numero_facture: "Nr. factură", montant_facture: "Sumă fără TVA (€)", fichier: "Fișier", choisir_fichier: "📎 Alegeți fișierul…", envoyer_facture: "Trimiteți factura", aucune_facture: "Nicio factură depusă.",
     depose_le: "Depusă la", fac_envoyee: "✓ Factura a fost trimisă la AB2PRO.", fac_choisir_dabord: "Alegeți mai întâi fișierul facturii.", fac_trop_gros: "Fișier prea mare (max. 10 MB).", st_recue: "primită", st_payee: "plătită",
-    incompletes: "Linii incomplete (cu roșu): {n} — nume, prenume și meserie obligatorii.", defiler: "↔ Glisați tabelul spre stânga: meseria, agenția… sunt în dreapta.",
+    incompletes: "Linii incomplete (cu roșu): {n} — nume, prenume și meserie obligatorii.",
     proposer_sur: "Propuneți o echipă →", sem_en_cours: "în curs", archives: "Săptămâni trecute (arhivă)", pour_semaine: "Propunere pentru", dec_titre: "Decizii AB2PRO", dec_retenue: "Echipa {n} · săptămâna {s}: REȚINUTĂ — agenția vă va contacta pentru pașii următori.", dec_refusee: "Echipa {n} · săptămâna {s}: nu a fost reținută.", dec_attente: "Echipa {n} · săptămâna {s}: repusă în așteptare.", dec_vu: "OK, am văzut", equipe_n: "Echipa {n}", composer_equipe: "+ Compuneți o altă echipă", supprimer_equipe: "Ștergeți echipa", ajouter_candidat: "+ Adăugați un candidat (max. 5)",
     numero_commande: "Nr. comandă", commande_libre: "Altă comandă: scrieți numărul", err_equipe_taille: "Echipa {n}: un singur candidat — o echipă are cel puțin 2 candidați. Adăugați unul sau ștergeți echipa.", eq_incompletes: "Echipa {n}: linii incomplete (cu roșu): {c} — nume, prenume și meserie obligatorii.", compte_equipe: "{n} din 5 candidați — minimum 2", envoye_equipes: "✓ Trimis: {e} — {c} candidați. AB2PRO a fost anunțat.", err_commande: "comandă închisă sau retrasă de la deschiderea paginii: reîncărcați.", err_numero: "Echipa {n}: scrieți numărul comenzii (sau alegeți „fără comandă precisă”).", candidats_n: "Candidați: {n}", equipes_n: "Echipe: {n}", equipe_vide: "Nicio echipă completă de trimis.", deja_declares: "deja declarați luna aceasta, ignorați: {n}", en_cours: "Linii introduse, nedeclarate încă: {n}", fac_type: "Format neacceptat: doar PDF, JPG sau PNG.", trop_de_factures: "Maximum 5 facturi pe lună.", montant_invalide: "Sumă invalidă." },
   hu: { titre: "Toborzó partnerek", t_commandes: "A hét megrendelései", cmd_intro: "Ezen a héten betöltendő állások. Jelöltjeit a „Csapat javaslása” fülön ajánlja, megjelölve a célzott megrendelést.",
@@ -346,7 +379,8 @@ const T = {
     ajouter_ligne: "+ Jelölt hozzáadása", envoyer: "Javaslat küldése", mes_propositions: "Javaslataim", t_declarer: "A hónapban elhelyezett jelöltek",
     decl_intro: "Itt jelentse be a következő hónap 15-e előtt minden jelöltjét, aki a hónapban dolgozott. Az AB2PRO ezután kitölti a ledolgozott és kiszámlázott órákat (12-e előtt): a jóváhagyott táblázat a számlája alapja.",
     declarer_btn: "Bejelentés", mes_declarations: "Bejelentéseim", t_facture: "Számlázásom", fac_note: "Csak az AB2PRO által jóváhagyott, órákkal rendelkező sorok számítanak. Számláját a táblázat jóváhagyása után töltse fel alább (órákkal kapcsolatos kérdések: adv@ab2pro.com).",
-    t_documents: "Dokumentumaim", doc_intro: "Partnerségi szerződése és az AB2PRO működési utasításai (ideiglenes munkavállalók szállásfeltételei stb.).",
+    t_documents: "Dokumentumaim", doc_intro: "Az AB2PRO minden partnerre vonatkozó működési utasításai (ideiglenes munkavállalók szállásfeltételei stb.).",
+    t_contrat: "Partnerségi szerződésem", contrat_intro: "Az Ön AB2PRO partnerségi szerződése és mellékletei, az AB2PRO által feltöltve. Csak az Ön fiókja láthatja őket.", contrat_vide: "Partnerségi szerződése még nincs feltöltve a felületére. Az AB2PRO az aláírás után azonnal közzéteszi; addig forduljon AB2PRO kapcsolattartójához.",
     commande: "Megrendelés", libre: "— nincs konkrét megrendelés —", equipe: "Csapat sz.", nom: "VEZETÉKNÉV", prenom: "Keresztnév", metier: "Szakma", vehicule: "Jármű", salaire: "Kívánt nettó bér (€/óra)", tel: "Telefon", remarques: "Megjegyzések",
     agence: "Iroda", qualifie: "Szakképzett profil", commentaire: "Megjegyzés", supprimer: "Törlés", semaine: "Hét", mois: "Hónap", statut: "Állapot", heures: "Órák", taux: "Díj", montant: "Összeg (nettó)", total: "Összesen (nettó)",
     postes: "állás", debut: "kezdés", aucune_commande: "Jelenleg nincs nyitott megrendelés.", envoye: "✓ Elküldve — az AB2PRO értesítést kapott.", erreur: "Hiba — próbálja újra.", rien: "Nincs küldendő sor (vezetéknév, keresztnév és szakma kötelező).",
@@ -359,7 +393,7 @@ const T = {
     metier_libre: "Egyéb szakma (írja be)…", choisir_metier: "— szakma —", mes_factures: "Számláim", fac_depot_intro: "Töltse fel ide a havi számláját (PDF vagy kép, max. 10 MB): csak Ön és az AB2PRO látja.",
     numero_facture: "Számlaszám", montant_facture: "Összeg (nettó, €)", fichier: "Fájl", choisir_fichier: "📎 Fájl kiválasztása…", envoyer_facture: "Számla küldése", aucune_facture: "Nincs feltöltött számla.",
     depose_le: "Feltöltve", fac_envoyee: "✓ A számlát elküldtük az AB2PRO-nak.", fac_choisir_dabord: "Először válassza ki a számla fájlját.", fac_trop_gros: "A fájl túl nagy (max. 10 MB).", st_recue: "beérkezett", st_payee: "kifizetett",
-    incompletes: "{n} hiányos sor (pirossal) — vezetéknév, keresztnév és szakma kötelező.", defiler: "↔ Húzza balra a táblázatot: a szakma, iroda… jobbra található.",
+    incompletes: "{n} hiányos sor (pirossal) — vezetéknév, keresztnév és szakma kötelező.",
     proposer_sur: "Csapat javaslása →", sem_en_cours: "folyamatban", archives: "Elmúlt hetek (archívum)", pour_semaine: "Javaslat erre a hétre:", dec_titre: "AB2PRO döntések", dec_retenue: "{n}. csapat · {s}. hét: KIVÁLASZTVA — az iroda felveszi Önnel a kapcsolatot.", dec_refusee: "{n}. csapat · {s}. hét: nem került kiválasztásra.", dec_attente: "{n}. csapat · {s}. hét: újra függőben.", dec_vu: "OK, láttam", equipe_n: "{n}. csapat", composer_equipe: "+ Újabb csapat összeállítása", supprimer_equipe: "Csapat törlése", ajouter_candidat: "+ Jelölt hozzáadása (max. 5)",
     numero_commande: "Megrendelés száma", commande_libre: "Más megrendelés: írja be a számát", err_equipe_taille: "{n}. csapat: csak egy jelölt — egy csapat legalább 2 jelöltből áll. Adjon hozzá egyet, vagy törölje a csapatot.", eq_incompletes: "{n}. csapat: {c} hiányos sor (pirossal) — vezetéknév, keresztnév és szakma kötelező.", compte_equipe: "{n} / 5 jelölt — legalább 2", envoye_equipes: "✓ Elküldve: {e} — {c} jelölt. Az AB2PRO értesítést kapott.", err_commande: "a megrendelést az oldal megnyitása óta lezárták vagy visszavonták: töltse be újra.", err_numero: "{n}. csapat: írja be a megrendelés számát (vagy válassza a „nincs konkrét megrendelés” lehetőséget).", candidats_n: "{n} jelölt", equipes_n: "{n} csapat", equipe_vide: "Nincs elküldhető teljes csapat.", deja_declares: "{n} már bejelentve ebben a hónapban, kihagyva", en_cours: "{n} beírt sor, még nincs bejelentve", fac_type: "Nem elfogadott formátum: csak PDF, JPG vagy PNG.", trop_de_factures: "Havonta legfeljebb 5 számla.", montant_invalide: "Érvénytelen összeg." },
 };
@@ -397,7 +431,7 @@ async function init() {
   $("qui").textContent = MOI.prestataire ? MOI.prestataire.societe + " · " + MOI.prestataire.code : "Administration AB2PRO";
   const ongl = MOI.admin
     ? [["adm-commandes", "adm_commandes"], ["adm-propositions", "adm_propositions"], ["adm-declarations", "adm_declarations"], ["adm-prestataires", "adm_prestataires"], ["adm-documents", "adm_documents"]]
-    : [["commandes", "t_commandes"], ["proposer", "t_proposer"], ["declarer", "t_declarer"], ["facture", "t_facture"], ["documents", "t_documents"]];
+    : [["commandes", "t_commandes"], ["proposer", "t_proposer"], ["declarer", "t_declarer"], ["facture", "t_facture"], ["contrat", "t_contrat"], ["documents", "t_documents"]];
   $("tabs").innerHTML = ongl.map(([id, lib], i) => "<button data-o='" + id + "'" + (i === 0 ? " class='on'" : "") + " data-t='" + lib + "'>" + esc(t(lib)) + "</button>").join("");
   $("adm-note").hidden = !MOI.admin;
   document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => montrer(b.dataset.o)));
@@ -458,8 +492,10 @@ function rendreTout() {
   remplirSemainesProp();
   const on = document.querySelector("#tabs button.on"); if (on && on.dataset.o !== "commandes") montrer(on.dataset.o);
   /* documents */
-  $("doc-liste").innerHTML = (MOI.documents || []).map(d =>
-    "<a class='doc' target='_blank' rel='noopener' href='" + esc(d.url) + "'><span class='ic'>📄</span><span><b>" + esc(d.titre) + "</b><br><span class='note'>" + (d.commun ? t("doc_commun") : t("doc_perso")) + " · " + esc(d.langue.toUpperCase()) + "</span></span></a>").join("") || "<div class='note'>" + t("aucun") + "</div>";
+  const rendreDoc = d => "<a class='doc' target='_blank' rel='noopener' href='" + esc(d.url) + "'><span class='ic'>📄</span><span><b>" + esc(d.titre) + "</b><br><span class='note'>" + (d.commun ? t("doc_commun") : t("doc_perso")) + " · " + esc(d.langue.toUpperCase()) + "</span></span></a>";
+  const docs = MOI.documents || [];
+  $("contrat-liste").innerHTML = docs.filter(d => !d.commun).map(rendreDoc).join("") || "<div class='note'>" + t("contrat_vide") + "</div>";
+  $("doc-liste").innerHTML = docs.filter(d => d.commun).map(rendreDoc).join("") || "<div class='note'>" + t("aucun") + "</div>";
   traduire();
 }
 /* ---- décisions AB2PRO non vues : bandeau en tête + pastille sur l'onglet, effacé au clic « OK, vu » ---- */
@@ -488,12 +524,25 @@ function brancherMetier(tr) {
   sel.addEventListener("change", () => { inp.hidden = sel.value !== "__autre"; if (!inp.hidden) inp.focus(); });
 }
 const renumeroter = tbody => Array.from(tbody.children).forEach((tr, i) => { tr.querySelector(".num").textContent = i + 1; });
-const cellule = html => "<td>" + html + "</td>";
+/* cellule de saisie : libellé (affiché sur téléphone, où la ligne devient une carte) + classe de placement (act = bouton ✕, large = pleine largeur) */
+const cellule = (html, lab, cls) => "<td" + (lab ? " data-l=\"" + esc(lab) + "\"" : "") + (cls ? " class='" + cls + "'" : "") + ">" + html + "</td>";
+/* listes en lecture seule : les en-têtes deviennent les libellés des cartes sur téléphone */
+function etiqueter(tbl) {
+  const ths = Array.from(tbl.querySelectorAll("tr:first-child th")).map(h => h.textContent.trim());
+  tbl.querySelectorAll("tr").forEach(tr => { if (tr.querySelector("th")) return; Array.from(tr.children).forEach((td, i) => { if (ths[i]) td.dataset.l = ths[i]; }); });
+}
+const th = (lib, w) => "<th" + (w ? " style='width:" + w + "'" : "") + ">" + lib + "</th>";
+/* changement de langue : les libellés des cartes (téléphone) suivent l'en-tête traduit */
+function etiqueterSaisie(tbl) {
+  const ths = Array.from(tbl.querySelectorAll("thead th")).map(h => h.textContent.trim());
+  tbl.querySelectorAll("tbody tr").forEach(tr => Array.from(tr.children).forEach((td, i) => { if (td.hasAttribute("data-l") && ths[i]) td.dataset.l = ths[i]; }));
+}
 function enteteProp() {
-  document.querySelectorAll("#prop-equipes thead").forEach(th => { th.innerHTML = "<tr><th>#</th><th></th><th>" + t("nom") + "</th><th>" + t("prenom") + "</th><th>" + t("metier") + "</th><th>" + t("vehicule") + "</th><th>" + t("salaire") + "</th><th>" + t("tel") + "</th><th>" + t("remarques") + "</th></tr>"; });
+  document.querySelectorAll("#prop-equipes thead").forEach(el => { el.innerHTML = "<tr>" + th("#", "30px") + th("", "44px") + th(t("nom"), "16%") + th(t("prenom"), "14%") + th(t("metier"), "17%") + th(t("vehicule"), "8%") + th(t("salaire"), "11%") + th(t("tel"), "13%") + th(t("remarques")) + "</tr>"; etiqueterSaisie(el.closest("table")); });
 }
 function enteteDecl() {
-  $("decl-entete").innerHTML = "<tr><th>#</th><th></th><th>" + t("matricule") + "</th><th>" + t("nom") + "</th><th>" + t("prenom") + "</th><th>" + t("metier") + "</th><th>" + t("agence") + "</th><th>" + t("qualifie") + "</th><th>" + t("commentaire") + "</th></tr>";
+  $("decl-entete").innerHTML = "<tr>" + th("#", "30px") + th("", "44px") + th(t("matricule"), "11%") + th(t("nom"), "16%") + th(t("prenom"), "13%") + th(t("metier"), "17%") + th(t("agence"), "15%") + th(t("qualifie"), "8%") + th(t("commentaire")) + "</tr>";
+  etiqueterSaisie($("decl-entete").closest("table"));
 }
 /* une équipe = en-tête (commande choisie dans la liste OU n° saisi, agence) + 2 à 5 candidats */
 const renumeroterEquipes = () => Array.from($("prop-equipes").children).forEach((eq, i) => { eq.querySelector(".num-eq").textContent = t("equipe_n", { n: (typeof EQ_BASE === "number" ? EQ_BASE : 0) + i + 1 }); eq.dataset.eq = (typeof EQ_BASE === "number" ? EQ_BASE : 0) + i + 1; });
@@ -526,14 +575,14 @@ function ajouterLigneProp(eq, v) {
   const tbody = eq.querySelector(".eq-lignes"); if (tbody.children.length >= 5) return null;
   const tr = document.createElement("tr");
   tr.innerHTML = "<td class='num'>" + (tbody.children.length + 1) + "</td>" +
-    cellule("<button class='btn s' data-x title=\"" + esc(t("supprimer")) + "\">✕</button>") +
-    cellule("<input data-k='nom' value=\"" + esc(v.nom || "") + "\" style='text-transform:uppercase; min-width:140px' autocapitalize='characters' enterkeyhint='next'>") +
-    cellule("<input data-k='prenom' value=\"" + esc(v.prenom || "") + "\" style='min-width:120px' autocapitalize='words'>") +
-    cellule(selMetier(v.metier)) +
-    cellule("<label class='cell-chk'><input data-k='vehicule' type='checkbox'" + (v.vehicule ? " checked" : "") + "></label>") +
-    cellule("<input data-k='salaire_net' inputmode='decimal' placeholder='11,50' style='min-width:80px; width:90px'>") +
-    cellule("<input data-k='telephone' inputmode='tel' style='min-width:120px'>") +
-    cellule("<input data-k='remarques' style='min-width:160px'>");
+    cellule("<button class='btn s' data-x title=\"" + esc(t("supprimer")) + "\">✕</button>", "", "act") +
+    cellule("<input data-k='nom' value=\"" + esc(v.nom || "") + "\" style='text-transform:uppercase' autocapitalize='characters' enterkeyhint='next'>", t("nom")) +
+    cellule("<input data-k='prenom' value=\"" + esc(v.prenom || "") + "\" autocapitalize='words'>", t("prenom")) +
+    cellule(selMetier(v.metier), t("metier"), "large") +
+    cellule("<label class='cell-chk'><input data-k='vehicule' type='checkbox'" + (v.vehicule ? " checked" : "") + "><span class='chk-lib'>" + esc(t("vehicule")) + "</span></label>", "") +
+    cellule("<input data-k='salaire_net' inputmode='decimal' placeholder='11,50'>", t("salaire")) +
+    cellule("<input data-k='telephone' inputmode='tel'>", t("tel")) +
+    cellule("<input data-k='remarques'>", t("remarques"), "large");
   tr.querySelector("[data-x]").addEventListener("click", () => { tr.remove(); renumeroter(tbody); majCompte(eq); });
   brancherMetier(tr);
   tbody.appendChild(tr); majCompte(eq);
@@ -618,14 +667,14 @@ function ajouterLigneDecl(v) {
   v = v || {};
   const tr = document.createElement("tr");
   tr.innerHTML = "<td class='num'>" + ($("decl-lignes").children.length + 1) + "</td>" +
-    cellule("<button class='btn s' data-x title=\"" + esc(t("supprimer")) + "\">✕</button>") +
-    cellule("<input data-k='matricule' value=\"" + esc(v.matricule || "") + "\" style='min-width:90px; width:110px; text-transform:uppercase' autocapitalize='characters' enterkeyhint='next'>") +
-    cellule("<input data-k='nom' value=\"" + esc(v.nom || "") + "\" style='text-transform:uppercase; min-width:140px' autocapitalize='characters'>") +
-    cellule("<input data-k='prenom' value=\"" + esc(v.prenom || "") + "\" style='min-width:120px' autocapitalize='words'>") +
-    cellule(selMetier(v.metier)) +
-    cellule("<select data-k='agence'><option value=''>—</option>" + opts(AGENCES, v.agence) + "</select>") +
-    cellule("<label class='cell-chk'><input data-k='qualifie' type='checkbox'" + (v.qualifie ? " checked" : "") + "></label>") +
-    cellule("<input data-k='commentaire' style='min-width:150px'>");
+    cellule("<button class='btn s' data-x title=\"" + esc(t("supprimer")) + "\">✕</button>", "", "act") +
+    cellule("<input data-k='matricule' value=\"" + esc(v.matricule || "") + "\" style='text-transform:uppercase' autocapitalize='characters' enterkeyhint='next'>", t("matricule")) +
+    cellule("<input data-k='nom' value=\"" + esc(v.nom || "") + "\" style='text-transform:uppercase' autocapitalize='characters'>", t("nom")) +
+    cellule("<input data-k='prenom' value=\"" + esc(v.prenom || "") + "\" autocapitalize='words'>", t("prenom")) +
+    cellule(selMetier(v.metier), t("metier"), "large") +
+    cellule("<select data-k='agence'><option value=''>—</option>" + opts(AGENCES, v.agence) + "</select>", t("agence")) +
+    cellule("<label class='cell-chk'><input data-k='qualifie' type='checkbox'" + (v.qualifie ? " checked" : "") + "><span class='chk-lib'>" + esc(t("qualifie")) + "</span></label>", "") +
+    cellule("<input data-k='commentaire'>", t("commentaire"), "large");
   tr.querySelector("[data-x]").addEventListener("click", () => { tr.remove(); renumeroter($("decl-lignes")); });
   brancherMetier(tr);
   $("decl-lignes").appendChild(tr);
@@ -667,6 +716,7 @@ async function chargerDecl() {
     l.map(d => "<tr><td>" + esc(d.matricule || "—") + "</td><td>" + esc(d.nom + " " + d.prenom) + "</td><td>" + esc(d.metier) + "</td><td>" + esc(d.agence) + "</td><td>" + (d.qualifie ? "Q" : "NQ") + "</td><td class='n'>" + (d.heures == null ? "<span class='note'>" + t("a_valider") + "</span>" : esc(d.heures)) + "</td><td>" + tagStatut(d.statut) + "</td><td>" +
       (d.statut === "declaree" ? "<button class='btn s' data-del='" + d.id + "'>" + t("supprimer") + "</button>" : "") + "</td></tr>").join("")
     : "<tr><td class='note'>" + t("aucun") + "</td></tr>";
+  etiqueter($("tbl-decl"));
   $("tbl-decl").querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => { await post("/api/prest/declaration", { id: +b.dataset.del }); chargerDecl(); }));
 }
 /* ---- facturation ---- */
@@ -679,6 +729,7 @@ async function chargerFacture() {
   $("tbl-fac").innerHTML = "<tr><th>" + t("nom") + "</th><th>" + t("metier") + "</th><th>Q</th><th class='n'>" + t("heures") + "</th><th class='n'>" + t("taux") + "</th><th class='n'>" + t("montant") + "</th><th>" + t("statut") + "</th></tr>" +
     (j.lignes.length ? j.lignes.map(l => "<tr><td>" + esc(l.nom + " " + l.prenom) + "</td><td>" + esc(l.metier) + "</td><td>" + (l.qualifie ? "Q" : "NQ") + "</td><td class='n'>" + (l.heures == null ? "—" : N2.format(l.heures)) + "</td><td class='n'>" + N2.format(l.taux) + " €</td><td class='n'>" + N2.format(l.montant) + " €</td><td>" + tagStatut(l.statut) + "</td></tr>").join("") : "<tr><td class='note' colspan='7'>" + t("aucun") + "</td></tr>") +
     "<tr class='tot'><td colspan='5'>" + t("total") + " · " + esc(j.mois) + "</td><td class='n total'>" + N2.format(j.total) + " €</td><td></td></tr>";
+  etiqueter($("tbl-fac")); $("tbl-fac").querySelector("tr.tot td").classList.add("large");
 }
 /* ---- factures déposées par le recruteur (fichier visible par lui et AB2PRO) ---- */
 $("btn-fac-choisir").addEventListener("click", () => $("fac-dep-file").click());
