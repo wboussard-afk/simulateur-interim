@@ -132,8 +132,8 @@ const RATES_2026_AGRI = Object.assign({}, RATES_AGRI, {
   ssDeplafPat: 2.11,      // vieillesse déplafonnée patronale (décret 2025-1446 ; classeur : 2,02)
   cetPat: 0.21,           // CET patronal réel (classeur : 0,14)
   chomagePat: 4.03,       // chômage 4,00 (Unédic, depuis 01/05/2025) + AGS ETT 0,03 (classeur : 4,3)
-  autresPat: 0.30 + 0.10 + 0.016 + 1.30 + 0.68 + 0.42
-  // CSA 0,30 + FNAL <50 0,10 + dialogue social 0,016 + formation ETT 1,30 + apprentissage 0,68 + SST MSA 0,42 — À PERSONNALISER
+  autresPat: 0.30 + 0.10 + 0.016 + 0.55 + 0.68 + 0.42
+  // CSA 0,30 + FNAL <50 0,10 + dialogue social 0,016 + FPC 0,55 (entités PALMA < 11 salariés, direction 09/09/2026 ; ETT ≥ 11 : 1,30) + apprentissage 0,68 + SST MSA 0,42
 });
 
 /* Taux — secteur TARIFAIRE 11/2024 */
@@ -161,8 +161,9 @@ const RATES_2026_TARIFAIRE = Object.assign({}, RATES_TARIFAIRE, {
   chomagePat: 4.03,       // 4,00 + AGS ETT 0,03 (classeur : 4,08 = 4,05 + 0,03)
   mutuelleSal: 0.0874,    // Intérimaires Santé, tarif 01/01/2026 (€/h ; classeur : 0,0661)
   mutuellePat: 0.0874,
-  autresPat: 0.30 + 0.10 + 0.016 + 1.30 + 0.68
-  // CSA + FNAL <50 + dialogue social + formation ETT + apprentissage — À PERSONNALISER (classeur : 3,766)
+  autresPat: 0.30 + 0.10 + 0.016 + 0.55 + 0.68
+  // CSA 0,30 + FNAL <50 0,10 + dialogue social 0,016 + FPC 0,55 (entités PALMA de 2 à 11 salariés, direction 09/09/2026 ; ETT ≥ 11 : 1,30) + apprentissage 0,68
+  // — pas de versement mobilité ni d'effort construction (effectif < 11 / < 50), déduction HS 1,50 €/h (< 20), abondement CET 5 % (classeur : 3,766)
 });
 
 /* ===== Minima BTP officiels — ouvriers, grilles régionales (IDCC 1596 / 1597) =====
