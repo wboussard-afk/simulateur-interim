@@ -504,7 +504,7 @@ table.grille td.neg { color: var(--bad); }
               <option value="11-19">11 à 19 — FNAL 0,10 %, CFP 1 %, HS 1,50 €/h</option>
               <option value="moins11">moins de 11 — FNAL 0,10 %, CFP 0,55 %, HS 1,50 €/h (paramétrage DAF)</option>
             </select></div>
-          <div class="field"><label for="in-vm">Versement mobilité % (zone du chantier)</label><input type="number" id="in-vm" step="0.05" min="0" title="Dû par l'ETT dès qu'elle compte 11 salariés (intérimaires compris) employés au moins 3 mois dans l'année dans la zone, sur toutes les rémunérations des intérimaires qui y travaillent dès le premier jour de mission (D. 2333-91 CGCT ; BOSS Effectif §1040-1060). Taux : celui de la zone où l'intérimaire travaille, à lire sur le simulateur urssaf.fr (Île-de-France 3,20 % ; Rennes, Lyon, Toulouse, Bordeaux ≈ 2 % selon sources non officielles, à confirmer). 0 = hors zone."></div>
+          <div class="field"><label for="in-vm">Versement mobilité % (zone du chantier)</label><input type="number" id="in-vm" step="0.05" min="0" title="Dû par l'ETT dès qu'elle compte 11 salariés (intérimaires compris) employés au moins 3 mois dans l'année dans la zone, sur toutes les rémunérations des intérimaires qui y travaillent dès le premier jour de mission (D. 2333-91 CGCT ; BOSS Effectif §1040-1060). Taux : celui de la zone où l'intérimaire travaille. Le choix de l'agence pré-remplit le taux de la commune de l'agence d'après la table URSSAF en données ouvertes (VM + additionnel + régional, lue le 09/09/2026) ; adapter si le chantier est dans une autre zone. 0 = hors zone."></div>
           <!-- ligne 8 : IFM/CP paiement direct | mise en CET -->
           <div class="span2"><label id="lbl-ifmcp" class="tlabel" style="display:block; margin-bottom:3px">IFM &amp; CP</label>
             <div class="seg" role="group" aria-labelledby="lbl-ifmcp">
@@ -3420,22 +3420,33 @@ document.querySelectorAll("input, select").forEach(el => {
  * RÉELLE routière (ex. Savoie) : corriger alors le champ km à la main. */
 wireAdrAutocomplete("in-adr-dom", "sug-adr-dom");
 wireAdrAutocomplete("in-adr-cha", "sug-adr-cha");
-/* ===== Agences PALMA : taux AT-MP par entité (fournis par la direction, 08/2026).
-   Sélection = remplit in-atmp (modifiable ensuite à la main). ===== */
+/* ===== Agences PALMA : taux AT-MP par entité (direction, 08/2026 et 09/09/2026) et versement mobilité de la commune de l'agence
+   (table URSSAF « Taux VM / VMA / VMRR » en données ouvertes, open.urssaf.fr, lue le 09/09/2026 ; commune = établissement
+   secondaire de chaque société PALMA d'après l'annuaire des entreprises, siège commun 4 rue des Douelles, Bouaye).
+   Sélection = remplit « Tx AT » et « Versement mobilité » (modifiables ensuite : pour un intérimaire, la zone qui compte est
+   celle du CHANTIER, D. 2333-91 CGCT ; le taux de l'agence n'est qu'un défaut). ===== */
 const AGENCES_PALMA = {
-  "PALMA ILE DE FRANCE": 1.25, "PALMA AQUITAINE": 1.92, "PALMA RHONE ALPES": 2.00,
-  "PALMA OCCITANIE": 2.78, "PALMA NORMANDIE": 2.78, "PALMA ALSACE": 1.21,
-  "PALMA HAUTS DE FRANCE": 2.20, "PALMA BRETAGNE": 1.25, "PALMA ATLANTIQUE": 0.63,
-  "PALMA ANJOU": 2.22, "PALMA PROVENCE": 2.78
+  "PALMA ILE DE FRANCE":  { at: 1.25, vm: 3.20, commune: "Clamart (92)" },
+  "PALMA AQUITAINE":      { at: 1.92, vm: 1.25, commune: "Cadaujac (33) : VM 0,60 + additionnel 0,50 + régional 0,15" },
+  "PALMA RHONE ALPES":    { at: 2.00, vm: 2.00, commune: "Cailloux-sur-Fontaines (69)" },
+  "PALMA OCCITANIE":      { at: 2.78, vm: 2.15, commune: "Labège (31) : VM 2,00 + régional 0,15" },
+  "PALMA NORMANDIE":      { at: 2.78, vm: 2.00, commune: "Saint-Martin-du-Vivier (76)" },
+  "PALMA ALSACE":         { at: 1.21, vm: 2.00, commune: "Bischheim (67)" },
+  "PALMA HAUTS DE FRANCE":{ at: 2.20, vm: 2.00, commune: "Villeneuve-d'Ascq (59)" },
+  "PALMA BRETAGNE":       { at: 1.25, vm: 2.15, commune: "Brécé (35) : VM 2,00 + régional 0,15" },
+  "PALMA ATLANTIQUE":     { at: 0.63, vm: 0.00, commune: "Le Bignon (44) : hors zone de versement mobilité" },
+  "PALMA ANJOU":          { at: 2.22, vm: 2.00, commune: "Bouchemaine (49)" },
+  "PALMA PROVENCE":       { at: 2.78, vm: 2.08, commune: "Aix-en-Provence (13) : VM 2,00 + régional 0,08" }
 };
 Object.keys(AGENCES_PALMA).forEach(a => {
   const o = document.createElement("option");
-  o.value = a; o.textContent = a;   // le taux AT est appliqué silencieusement (visible carte Charges)
+  o.value = a; o.textContent = a + " — AT " + N2.format(AGENCES_PALMA[a].at) + " % · VM " + N2.format(AGENCES_PALMA[a].vm) + " %";
+  o.title = AGENCES_PALMA[a].commune;
   $("in-agence").appendChild(o);
 });
 $("in-agence").addEventListener("change", () => {
   const a = $("in-agence").value;
-  if (a && AGENCES_PALMA[a] != null) $("in-atmp").value = AGENCES_PALMA[a];
+  if (a && AGENCES_PALMA[a]) { $("in-atmp").value = AGENCES_PALMA[a].at; $("in-vm").value = AGENCES_PALMA[a].vm; }
   onChange();
 });
 /* Le référentiel de cible (pilotage) et le mode de participation (carte Logement) sont UNE seule
