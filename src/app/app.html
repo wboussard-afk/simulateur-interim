@@ -496,6 +496,15 @@ table.grille td.neg { color: var(--bad); }
           <!-- ligne 7 : taux AT | pas de net attendu -->
           <div class="field"><label for="in-atmp">Tx AT en % (défaut moyen, saisie manuelle)</label><input type="number" id="in-atmp" step="0.01" min="0" title="Taux accident du travail notifié par la CARSAT — pèse directement sur la marge. Défaut : moyenne nationale 2026 (2,08 %)."></div>
           <div class="check-cell"><label class="check" style="margin:0"><input type="checkbox" id="in-nonet"> Pas de tx net attendu</label></div>
+          <!-- ligne 7 bis : effectif de l'entité (sécurité sociale, intérimaires compris) | versement mobilité -->
+          <div class="field"><label for="in-effectif">Effectif de l'entité (sécurité sociale, intérimaires compris)</label>
+            <select id="in-effectif" title="Effectif « sécurité sociale » de l'entité PALMA employeur : permanents + intérimaires, en moyenne mensuelle de l'année précédente (≈ ETP), calculé par l'Urssaf à partir de la DSN et notifié chaque année (L. 130-1 et R. 130-1 II CSS ; BOSS Effectif §310-320 : les intérimaires comptent dans l'effectif de l'ETT, pas de l'utilisateur). Pilote FNAL (0,50 % ≥ 50 / 0,10 %), PEEC 0,45 % (≥ 50), CFP (1 % ≥ 11 / 0,55 %), déduction forfaitaire HS (0,50 €/h ≥ 20 / 1,50 €/h) et le Tdelta de la RGDU. Neutralisation 5 ans possible en cas de franchissement par transfert (BOSS §510-520).">
+              <option value="50plus">50 salariés et plus — FNAL 0,50 %, PEEC 0,45 %, CFP 1 %, HS 0,50 €/h</option>
+              <option value="20-49">20 à 49 — FNAL 0,10 %, pas de PEEC, CFP 1 %, HS 0,50 €/h</option>
+              <option value="11-19">11 à 19 — FNAL 0,10 %, CFP 1 %, HS 1,50 €/h</option>
+              <option value="moins11">moins de 11 — FNAL 0,10 %, CFP 0,55 %, HS 1,50 €/h (paramétrage DAF)</option>
+            </select></div>
+          <div class="field"><label for="in-vm">Versement mobilité % (zone du chantier)</label><input type="number" id="in-vm" step="0.05" min="0" title="Dû par l'ETT dès qu'elle compte 11 salariés (intérimaires compris) employés au moins 3 mois dans l'année dans la zone, sur toutes les rémunérations des intérimaires qui y travaillent dès le premier jour de mission (D. 2333-91 CGCT ; BOSS Effectif §1040-1060). Taux : celui de la zone où l'intérimaire travaille, à lire sur le simulateur urssaf.fr (Île-de-France 3,20 % ; Rennes, Lyon, Toulouse, Bordeaux ≈ 2 % selon sources non officielles, à confirmer). 0 = hors zone."></div>
           <!-- ligne 8 : IFM/CP paiement direct | mise en CET -->
           <div class="span2"><label id="lbl-ifmcp" class="tlabel" style="display:block; margin-bottom:3px">IFM &amp; CP</label>
             <div class="seg" role="group" aria-labelledby="lbl-ifmcp">
@@ -743,7 +752,7 @@ table.grille td.neg { color: var(--bad); }
           <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-pascc" title="Missions ≤ 2 mois : abattement de 766 €/mois (converti en hebdomadaire) sur la base du taux neutre — BOFiP"> Abattement contrat court (766 €)</label></div>
           <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-tauxreduits" title="Taux réduits maladie 7 % / famille 3,45 % sous seuils — supprimés au 01/01/2026 (RGDU) mais maintenus à titre résiduel pour les contrats TO-DE (agricole)"> Taux réduits maladie/famille (TO-DE)</label></div>
         </div>
-        <p class="note">Taux 2026 vérifiés multi-sources le 19/08/2026 (Légifrance · Unédic · LégiSocial). Le taux AT-MP (champ « Mission ») et les « autres contributions » (CSA, FNAL, FPC 0,55 % (entités de moins de 11 salariés), apprentissage…) sont <b>à personnaliser</b> selon votre agence. Prévoyance (comp. IID) : taux de branche du classeur.</p>
+        <p class="note">Taux 2026 vérifiés multi-sources le 19/08/2026 (Légifrance · Unédic · LégiSocial). Le taux AT-MP suit l'agence choisie. Les contributions liées à la taille de l'entité (FNAL 0,50 % / 0,10 %, PEEC 0,45 %, CFP 1 % / 0,55 % + 0,30 % conventionnelle travail temporaire, déduction HS 0,50 / 1,50 €/h, Tdelta RGDU) suivent l'<b>effectif « sécurité sociale »</b> de l'entité, intérimaires compris (BOSS Effectif §310-320) ; le versement mobilité suit la zone du chantier. Prévoyance (comp. IID) : taux de branche du classeur.</p>
         <div class="grid" id="rates-grid"></div>
       </div>
     </details>
@@ -1019,6 +1028,8 @@ function setFormFromInputs() {
   $("in-majonorm").value = inp.majoNormLabel; $("in-majonormq").value = inp.majoNormQty;
   $("in-atmp").value = inp.rates.atPat;
   $("in-agence").value = inp.agence || "";
+  $("in-effectif").value = inp.effectif || "50plus"; $("in-vm").value = inp.vmPct || 0;
+  $("in-rgdufnal").disabled = true; $("in-rgdufnal").title = "Piloté par l'effectif de l'entité (carte Charges).";
   $("in-cetreel").checked = !!inp.cetCoutsReels;
   $("in-cetpire").checked = !!inp.cetPireCas;
   $("in-cetrepos").checked = !!inp.cetRepos; $("in-hsrepos").checked = !!inp.hsRepos;
@@ -1153,6 +1164,8 @@ function readInputsFromForm() {
   for (const [key] of RATE_DEFS) { const el = $("rate-" + key); if (el) inp.rates[key] = num(el); }
   inp.rates.atPat = num($("in-atmp"));
   inp.agence = $("in-agence").value;
+  inp.effectif = $("in-effectif").value || "50plus"; inp.vmPct = num($("in-vm")) || 0;
+  inp.rgdu.fnal050 = inp.effectif === "50plus"; $("in-rgdufnal").checked = inp.rgdu.fnal050;
   inp.cetCoutsReels = $("in-cetreel").checked;
   inp.cetPireCas = $("in-cetpire").checked;
   inp.cetRepos = $("in-cetrepos").checked; inp.hsRepos = $("in-hsrepos").checked;
@@ -1969,6 +1982,8 @@ function renderFact(m) {
   if (inp.remisePct) s += kvRow("Remise fin d'année " + N2.format(inp.remisePct) + " % × CA soumis à cotisations (" + fmtE(m.O42) + ")", "M63", fmtE(-m.O42 * inp.remisePct / 100));
   if (m.recrutCout) s += kvRow("Prestataire recrutement " + N2.format(inp.recrutTarifH) + " € HT × " + N2.format(inp.heures) + " h travaillées (coût interne, non refacturé)", "", fmtE(-m.recrutCout));
   if (m.cetCoutReel > 0.005) s += kvRow("Coûts CET réels — abondement " + N2.format(inp.cetAbondPct) + " %/débloc. + contrat de causerie " + N2.format(inp.cetCauserieH) + " h × " + N2.format(inp.cetDebloc) + " déblocage(s)/an (contrat court dédié, fiche de paie à part, payé non facturé — isole le versement du CET des paies de mission)", "", fmtE(-m.cetCoutReel));
+  { const LIB_EFF = { "50plus": "50 salariés et plus", "20-49": "20 à 49 salariés", "11-19": "11 à 19 salariés", "moins11": "moins de 11 salariés" };
+    s += kvRow("Effectif de l'entité retenu (sécurité sociale, intérimaires compris) — FNAL, PEEC, CFP, déduction HS, Tdelta RGDU", "", (LIB_EFF[inp.effectif] || "50 salariés et plus") + (inp.vmPct ? " · versement mobilité " + N2.format(inp.vmPct) + " % (zone du chantier)" : " · hors zone de versement mobilité")); }
   if (inp.cetPireCas && m.rgduPerte900 > 0.005) s += kvRow("Pire scénario §900 APPLIQUÉ — réduction générale recalculée avec le différé CET réintégré au dernier contrat réel (borne basse prudentielle ; défaut maison = gain préservé par contrat de causerie)", "", fmtE(-m.rgduPerte900));
   if (m.levierCet || m.levierHS) {
     const sans = compute(Object.assign({}, inp, { cetRepos: false, hsRepos: false })).main;
