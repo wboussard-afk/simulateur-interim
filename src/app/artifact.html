@@ -490,6 +490,15 @@ table.grille td.neg { color: var(--bad); }
           <!-- ligne 7 : taux AT | pas de net attendu -->
           <div class="field"><label for="in-atmp">Tx AT en % (défaut moyen, saisie manuelle)</label><input type="number" id="in-atmp" step="0.01" min="0" title="Taux accident du travail notifié par la CARSAT — pèse directement sur la marge. Défaut : moyenne nationale 2026 (2,08 %)."></div>
           <div class="check-cell"><label class="check" style="margin:0"><input type="checkbox" id="in-nonet"> Pas de tx net attendu</label></div>
+          <!-- ligne 7 bis : effectif de l'entité (sécurité sociale, intérimaires compris) | versement mobilité -->
+          <div class="field"><label for="in-effectif">Effectif de l'entité (sécurité sociale, intérimaires compris)</label>
+            <select id="in-effectif" title="Effectif « sécurité sociale » de l'entité PALMA employeur : permanents + intérimaires, en moyenne mensuelle de l'année précédente (≈ ETP), calculé par l'Urssaf à partir de la DSN et notifié chaque année (L. 130-1 et R. 130-1 II CSS ; BOSS Effectif §310-320 : les intérimaires comptent dans l'effectif de l'ETT, pas de l'utilisateur). Pilote FNAL (0,50 % ≥ 50 / 0,10 %), PEEC 0,45 % (≥ 50), CFP (1 % ≥ 11 / 0,55 %), déduction forfaitaire HS (0,50 €/h ≥ 20 / 1,50 €/h) et le Tdelta de la RGDU. Neutralisation 5 ans possible en cas de franchissement par transfert (BOSS §510-520).">
+              <option value="50plus">50 salariés et plus — FNAL 0,50 %, PEEC 0,45 %, CFP 1 %, HS 0,50 €/h</option>
+              <option value="20-49">20 à 49 — FNAL 0,10 %, pas de PEEC, CFP 1 %, HS 0,50 €/h</option>
+              <option value="11-19">11 à 19 — FNAL 0,10 %, CFP 1 %, HS 1,50 €/h</option>
+              <option value="moins11">moins de 11 — FNAL 0,10 %, CFP 0,55 %, HS 1,50 €/h (paramétrage DAF)</option>
+            </select></div>
+          <div class="field"><label for="in-vm">Versement mobilité % (commune du chantier) <span id="vm-src" class="hint" style="display:inline; margin:0; font-weight:400"></span></label><input type="number" id="in-vm" step="0.05" min="0" title="Dû par l'ETT dès qu'elle compte 11 salariés (intérimaires compris) employés au moins 3 mois dans l'année dans la zone, sur toutes les rémunérations des intérimaires qui y travaillent dès le premier jour de mission (D. 2333-91 CGCT ; BOSS Effectif §1040-1060). Taux de la commune où l'intérimaire travaille, lu automatiquement dans la table URSSAF en données ouvertes (VM + additionnel + régional, 20 497 communes, lue le 09/09/2026) dès qu'une adresse de chantier est choisie. Sans adresse : moyenne pondérée par la population du département de la mission, sinon moyenne France. Modifiable à la main."></div>
           <!-- ligne 8 : IFM/CP paiement direct | mise en CET -->
           <div class="span2"><label id="lbl-ifmcp" class="tlabel" style="display:block; margin-bottom:3px">IFM &amp; CP</label>
             <div class="seg" role="group" aria-labelledby="lbl-ifmcp">
@@ -737,25 +746,11 @@ table.grille td.neg { color: var(--bad); }
           <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-pascc" title="Missions ≤ 2 mois : abattement de 766 €/mois (converti en hebdomadaire) sur la base du taux neutre — BOFiP"> Abattement contrat court (766 €)</label></div>
           <div class="field" style="align-self:end"><label class="check" style="margin:0"><input type="checkbox" id="in-tauxreduits" title="Taux réduits maladie 7 % / famille 3,45 % sous seuils — supprimés au 01/01/2026 (RGDU) mais maintenus à titre résiduel pour les contrats TO-DE (agricole)"> Taux réduits maladie/famille (TO-DE)</label></div>
         </div>
-        <p class="note">Taux 2026 vérifiés multi-sources le 19/08/2026 (Légifrance · Unédic · LégiSocial). Le taux AT-MP (champ « Mission ») et les « autres contributions » (CSA, FNAL, formation ETT 1,30 %, apprentissage…) sont <b>à personnaliser</b> selon votre agence. Prévoyance (comp. IID) : taux de branche du classeur.</p>
+        <p class="note">Taux 2026 vérifiés multi-sources le 19/08/2026 (Légifrance · Unédic · LégiSocial). Le taux AT-MP suit l'agence choisie. Les contributions liées à la taille de l'entité (FNAL 0,50 % / 0,10 %, PEEC 0,45 %, CFP 1 % / 0,55 % + 0,30 % conventionnelle travail temporaire, déduction HS 0,50 / 1,50 €/h, Tdelta RGDU) suivent l'<b>effectif « sécurité sociale »</b> de l'entité, intérimaires compris (BOSS Effectif §310-320) ; le versement mobilité suit la zone du chantier. Prévoyance (comp. IID) : taux de branche du classeur.</p>
         <div class="grid" id="rates-grid"></div>
       </div>
     </details>
 
-    <details class="acc aide">
-      <summary>Aide &amp; règles (documentation du classeur)</summary>
-      <div class="card-b">
-        <h3>La règle « tout compris garanti »</h3>
-        <p>Taux horaire : … euros net = (SMIC français + indemnités — fin de mission, congés payés, découchés, repas, voyage détente − acompte) / nombre d'heures travaillées.</p>
-        <h3>Grands déplacements (GD)</h3>
-        <p>Découché : ne jamais dépasser le barème URSSAF de 51,60&nbsp;€ par découché (206,40&nbsp;€ / 4 nuits). Au-delà, passage en prime découché. Le barème diminue après 3 mois de mission sur le même chantier.</p>
-        <p>Participation frais de logement max 170&nbsp;€ (150&nbsp;€ loyer + 25&nbsp;€ franchise de frais / semaine). Remboursement voyage sur justificatifs, max 250&nbsp;€.</p>
-        <h3>Autres règles</h3>
-        <p>Jours fériés payés sur une base de 64&nbsp;€ net/jour. Intempéries payées à partir de la 2ᵉ heure. Mutuelle « Intérimaires Santé » prise en charge au bout de 414&nbsp;h de mission. Prise en charge de 4 à 6&nbsp;% des impôts prélevés à la source. Prime parrainage 75&nbsp;€ (+150&nbsp;h de mission).</p>
-        <h3>Net promis</h3>
-        <p>La paie compense chaque mois la différence avec le net promis (avance sur salaire), reprise ensuite en cas de dépassement.</p>
-      </div>
-    </details>
   </div>
 
   <!-- ================= RESULTS RAIL ================= -->
@@ -979,8 +974,10 @@ const RATES_2026_AGRI = Object.assign({}, RATES_AGRI, {
   ssDeplafPat: 2.11,      // vieillesse déplafonnée patronale (décret 2025-1446 ; classeur : 2,02)
   cetPat: 0.21,           // CET patronal réel (classeur : 0,14)
   chomagePat: 4.03,       // chômage 4,00 (Unédic, depuis 01/05/2025) + AGS ETT 0,03 (classeur : 4,3)
-  autresPat: 0.30 + 0.10 + 0.016 + 1.30 + 0.68 + 0.42
-  // CSA 0,30 + FNAL <50 0,10 + dialogue social 0,016 + formation ETT 1,30 + apprentissage 0,68 + SST MSA 0,42 — À PERSONNALISER
+  autresPat: 0.30 + 0.50 + 0.016 + 1.00 + 0.30 + 0.68 + 0.45 + 0.42
+  // référence ENTITÉ ≥ 50 salariés (effectif sécurité sociale, intérimaires compris — BOSS Effectif §310-320, R. 130-1 II CSS) :
+  // CSA 0,30 + FNAL 0,50 + dialogue social 0,016 + CFP 1,00 (L. 6331-3) + conventionnelle formation TT 0,30 (L. 6331-69, Akto) + apprentissage 0,68 + PEEC 0,45 + SST MSA 0,42
+  // La bande d'effectif choisie (i.effectif) retranche FNAL 0,40 / PEEC 0,45 sous 50 et CFP 0,45 sous 11 ; le versement mobilité (i.vmPct) s'ajoute.
 });
 
 /* Taux — secteur TARIFAIRE 11/2024 */
@@ -1008,8 +1005,10 @@ const RATES_2026_TARIFAIRE = Object.assign({}, RATES_TARIFAIRE, {
   chomagePat: 4.03,       // 4,00 + AGS ETT 0,03 (classeur : 4,08 = 4,05 + 0,03)
   mutuelleSal: 0.0874,    // Intérimaires Santé, tarif 01/01/2026 (€/h ; classeur : 0,0661)
   mutuellePat: 0.0874,
-  autresPat: 0.30 + 0.10 + 0.016 + 1.30 + 0.68
-  // CSA + FNAL <50 + dialogue social + formation ETT + apprentissage — À PERSONNALISER (classeur : 3,766)
+  autresPat: 0.30 + 0.50 + 0.016 + 1.00 + 0.30 + 0.68 + 0.45
+  // référence ENTITÉ ≥ 50 salariés (effectif sécurité sociale, intérimaires compris — BOSS Effectif §310-320, R. 130-1 II CSS) :
+  // CSA 0,30 + FNAL 0,50 + dialogue social 0,016 + CFP 1,00 (L. 6331-3) + conventionnelle formation TT 0,30 (L. 6331-69, Akto) + apprentissage 0,68 + PEEC 0,45 = 3,246
+  // La bande d'effectif choisie (i.effectif) retranche FNAL 0,40 / PEEC 0,45 sous 50 et CFP 0,45 sous 11 ; le versement mobilité (i.vmPct) s'ajoute (classeur : 3,766)
 });
 
 /* ===== Minima BTP officiels — ouvriers, grilles régionales (IDCC 1596 / 1597) =====
@@ -1150,6 +1149,9 @@ function defaultInputs(DB, sector) {
     participationHorsPaie: false, // true = participation logement par PRÉLÈVEMENT BANCAIRE : net de paie non réduit, coût logement toujours amorti
                                   // (le sélecteur de cible du pilotage et ce mode sont SYNCHRONISÉS : AVEC PARTICIPATION = retenue, SANS = prélèvement)
     agence: "",                 // agence PALMA sélectionnée (fixe le taux AT par défaut ; portée dans l'étude de prix)
+    /* effectif : bande d'effectif « sécurité sociale » de l'entité, INTÉRIMAIRES COMPRIS ("50plus" | "20-49" | "11-19" | "moins11"),
+       fixée par l'interface (défaut 50 et plus) ; absente ici pour que les vecteurs de test du classeur restent ceux du classeur */
+    vmPct: 0,                   // versement mobilité, % du brut, taux de la zone où l'intérimaire travaille (D. 2333-91 CGCT) ; 0 = hors zone
     cetCoutsReels: false,       // intégrer les coûts CET maison (abondement + causeries) dans la marge
     cetAbondPct: 5,             // abondement % versé à chaque déblocage (politique maison : 5 %)
     /* leviers d'optimisation (décochés = pratique maison actuelle) — cf. bulletin ACTERIM 07/2026 :
@@ -1294,11 +1296,23 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
    *   loi 2024-1027 — conclusions possibles jusqu'à ~15/11/2028) : idem cdii + AGS taux plein
    *   0,25 % (vs 0,03 % ETT) + PAS de frais de santé de branche + CPF 500 €/an. */
   const modeCDI = i.contrat === "cdii" || i.contrat === "cdie";
-  const R = (i.contrat === "cdie")
+  const R0 = (i.contrat === "cdie")
     ? Object.assign({}, i.rates, {
         chomagePat: (i.rates.chomagePat || 0) + 0.22,
         mutuelleSal: 0, mutuellePat: 0 })
     : i.rates;
+  /* Effectif « sécurité sociale » de l'entité (intérimaires compris — R. 130-1 II CSS, BOSS Effectif §310-320) : les taux de
+   * référence sont ceux d'une entité ≥ 50 ; sous 50 : FNAL 0,10 au lieu de 0,50 et pas de PEEC ; sous 20 : déduction
+   * forfaitaire HS 1,50 €/h au lieu de 0,50 (L. 241-18 / L. 241-18-1, plafond 250 supprimé par la LFSS 2026) ; sous 11 :
+   * CFP 0,55 au lieu de 1 (L. 6331-1). Tdelta de la RGDU suit (0,3821 ≥ 50 / 0,3781 < 50). Versement mobilité ajouté au %.
+   * Sans champ effectif (vecteurs de test du classeur), rien ne change. */
+  let R = R0;
+  if (i.effectif) {
+    const b = i.effectif, petit50 = b !== "50plus", petit20 = b === "11-19" || b === "moins11", petit11 = b === "moins11";
+    const ajust = (petit50 ? -0.40 - 0.45 : 0) + (petit11 ? -0.45 : 0) + (i.vmPct || 0);
+    R = Object.assign({}, R0, { autresPat: (R0.autresPat || 0) + ajust, redPatHSupParH: petit20 ? -1.5 : -0.5 });
+    i = Object.assign({}, i, { rgdu: Object.assign({}, i.rgdu || {}, { fnal050: !petit50 }) });
+  } else if (i.vmPct) R = Object.assign({}, R0, { autresPat: (R0.autresPat || 0) + i.vmPct });
   const S = {};
   const isMain = variant === "main";
   const mode = i.mode;
@@ -1860,7 +1874,7 @@ async function banCandidates(q, limit) {
   }
   return feats.map(f => ({ lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1],
                            label: f.properties.label, ctx: f.properties.context || "",
-                           city: f.properties.city || "" }));
+                           city: f.properties.city || "", citycode: f.properties.citycode || "" }));
 }
 /* même rue, PLUSIEURS villes : une suggestion par ville, puis les variantes */
 async function banDiverseCandidates(q, n) {
@@ -2152,6 +2166,8 @@ function setFormFromInputs() {
   $("in-majonorm").value = inp.majoNormLabel; $("in-majonormq").value = inp.majoNormQty;
   $("in-atmp").value = inp.rates.atPat;
   $("in-agence").value = inp.agence || "";
+  $("in-effectif").value = inp.effectif || "50plus"; $("in-vm").value = inp.vmPct || 0; if (inp.vmPct) $("in-vm").dataset.manuel = "1";
+  $("in-rgdufnal").disabled = true; $("in-rgdufnal").title = "Piloté par l'effectif de l'entité (carte Charges).";
   $("in-cetreel").checked = !!inp.cetCoutsReels;
   $("in-cetpire").checked = !!inp.cetPireCas;
   $("in-cetrepos").checked = !!inp.cetRepos; $("in-hsrepos").checked = !!inp.hsRepos;
@@ -2286,6 +2302,8 @@ function readInputsFromForm() {
   for (const [key] of RATE_DEFS) { const el = $("rate-" + key); if (el) inp.rates[key] = num(el); }
   inp.rates.atPat = num($("in-atmp"));
   inp.agence = $("in-agence").value;
+  inp.effectif = $("in-effectif").value || "50plus"; inp.vmPct = num($("in-vm")) || 0;
+  inp.rgdu.fnal050 = inp.effectif === "50plus"; $("in-rgdufnal").checked = inp.rgdu.fnal050;
   inp.cetCoutsReels = $("in-cetreel").checked;
   inp.cetPireCas = $("in-cetpire").checked;
   inp.cetRepos = $("in-cetrepos").checked; inp.hsRepos = $("in-hsrepos").checked;
@@ -3102,6 +3120,8 @@ function renderFact(m) {
   if (inp.remisePct) s += kvRow("Remise fin d'année " + N2.format(inp.remisePct) + " % × CA soumis à cotisations (" + fmtE(m.O42) + ")", "M63", fmtE(-m.O42 * inp.remisePct / 100));
   if (m.recrutCout) s += kvRow("Prestataire recrutement " + N2.format(inp.recrutTarifH) + " € HT × " + N2.format(inp.heures) + " h travaillées (coût interne, non refacturé)", "", fmtE(-m.recrutCout));
   if (m.cetCoutReel > 0.005) s += kvRow("Coûts CET réels — abondement " + N2.format(inp.cetAbondPct) + " %/débloc. + contrat de causerie " + N2.format(inp.cetCauserieH) + " h × " + N2.format(inp.cetDebloc) + " déblocage(s)/an (contrat court dédié, fiche de paie à part, payé non facturé — isole le versement du CET des paies de mission)", "", fmtE(-m.cetCoutReel));
+  { const LIB_EFF = { "50plus": "50 salariés et plus", "20-49": "20 à 49 salariés", "11-19": "11 à 19 salariés", "moins11": "moins de 11 salariés" };
+    s += kvRow("Effectif de l'entité retenu (sécurité sociale, intérimaires compris) — FNAL, PEEC, CFP, déduction HS, Tdelta RGDU", "", (LIB_EFF[inp.effectif] || "50 salariés et plus") + (inp.vmPct ? " · versement mobilité " + N2.format(inp.vmPct) + " % (" + (VM_SRC || "commune du chantier") + ")" : " · hors zone de versement mobilité")); }
   if (inp.cetPireCas && m.rgduPerte900 > 0.005) s += kvRow("Pire scénario §900 APPLIQUÉ — réduction générale recalculée avec le différé CET réintégré au dernier contrat réel (borne basse prudentielle ; défaut maison = gain préservé par contrat de causerie)", "", fmtE(-m.rgduPerte900));
   if (m.levierCet || m.levierHS) {
     const sans = compute(Object.assign({}, inp, { cetRepos: false, hsRepos: false })).main;
@@ -3394,24 +3414,63 @@ document.querySelectorAll("input, select").forEach(el => {
  * RÉELLE routière (ex. Savoie) : corriger alors le champ km à la main. */
 wireAdrAutocomplete("in-adr-dom", "sug-adr-dom");
 wireAdrAutocomplete("in-adr-cha", "sug-adr-cha");
-/* ===== Agences PALMA : taux AT-MP par entité (fournis par la direction, 08/2026).
-   Sélection = remplit in-atmp (modifiable ensuite à la main). ===== */
+/* ===== Agences PALMA : taux AT-MP par entité (direction, 08/2026 et 09/09/2026). Sélection = remplit « Tx AT ».
+   Le versement mobilité ne dépend PAS de l'agence mais de la commune du chantier (D. 2333-91 CGCT) : voir VM ci-dessous. ===== */
 const AGENCES_PALMA = {
-  "PALMA ILE DE FRANCE": 1.25, "PALMA AQUITAINE": 1.92, "PALMA RHONE ALPES": 2.00,
-  "PALMA OCCITANIE": 2.78, "PALMA NORMANDIE": 2.78, "PALMA ALSACE": 1.21,
-  "PALMA HAUTS DE FRANCE": 2.20, "PALMA BRETAGNE": 1.25, "PALMA ATLANTIQUE": 0.63,
-  "PALMA ANJOU": 2.22, "PALMA PROVENCE": 2.78
+  "PALMA ILE DE FRANCE":  { at: 1.25, vm: 3.20, commune: "Clamart (92)" },
+  "PALMA AQUITAINE":      { at: 1.92, vm: 1.25, commune: "Cadaujac (33) : VM 0,60 + additionnel 0,50 + régional 0,15" },
+  "PALMA RHONE ALPES":    { at: 2.00, vm: 2.00, commune: "Cailloux-sur-Fontaines (69)" },
+  "PALMA OCCITANIE":      { at: 2.78, vm: 2.15, commune: "Labège (31) : VM 2,00 + régional 0,15" },
+  "PALMA NORMANDIE":      { at: 2.78, vm: 2.00, commune: "Saint-Martin-du-Vivier (76)" },
+  "PALMA ALSACE":         { at: 1.21, vm: 2.00, commune: "Bischheim (67)" },
+  "PALMA HAUTS DE FRANCE":{ at: 2.20, vm: 2.00, commune: "Villeneuve-d'Ascq (59)" },
+  "PALMA BRETAGNE":       { at: 1.25, vm: 2.15, commune: "Brécé (35) : VM 2,00 + régional 0,15" },
+  "PALMA ATLANTIQUE":     { at: 0.63, vm: 0.00, commune: "Le Bignon (44) : hors zone de versement mobilité" },
+  "PALMA ANJOU":          { at: 2.22, vm: 2.00, commune: "Bouchemaine (49)" },
+  "PALMA PROVENCE":       { at: 2.78, vm: 2.08, commune: "Aix-en-Provence (13) : VM 2,00 + régional 0,08" }
 };
 Object.keys(AGENCES_PALMA).forEach(a => {
   const o = document.createElement("option");
-  o.value = a; o.textContent = a;   // le taux AT est appliqué silencieusement (visible carte Charges)
+  o.value = a; o.textContent = a + " — AT " + N2.format(AGENCES_PALMA[a].at) + " %";
+  o.title = "Agence : " + AGENCES_PALMA[a].commune.split(" :")[0];
   $("in-agence").appendChild(o);
 });
 $("in-agence").addEventListener("change", () => {
   const a = $("in-agence").value;
-  if (a && AGENCES_PALMA[a] != null) $("in-atmp").value = AGENCES_PALMA[a];
+  if (a && AGENCES_PALMA[a]) $("in-atmp").value = AGENCES_PALMA[a].at;
   onChange();
 });
+/* ===== Versement mobilité par COMMUNE DU CHANTIER (D. 2333-91 CGCT : pour un intérimaire, la zone est celle où il travaille).
+   Table URSSAF open data (vm-communes.json : taux VM + additionnel + régional en vigueur, par code INSEE) ; repli : moyenne
+   pondérée par la population du département de la mission, puis moyenne France. Manuel = saisie conservée jusqu'au prochain
+   choix de chantier ou de département. ===== */
+let VM_TABLE = null, VM_SRC = "";
+fetch("data/vm-communes.json", { cache: "force-cache" }).then(r => r.ok ? r.json() : null).then(t => { VM_TABLE = t; appliquerVM(false); }).catch(() => {});
+function vmPourCode(code) {
+  if (!VM_TABLE || !code) return null;
+  const t = VM_TABLE.taux[code];
+  if (t != null) return t;
+  const arr = { "75056": "75101", "69123": "69381", "13055": "13201" }[code];
+  return arr && VM_TABLE.taux[arr] != null ? VM_TABLE.taux[arr] : 0;   // commune connue sans ligne = hors zone
+}
+function appliquerVM(force) {
+  if (!VM_TABLE) return;
+  const el = $("in-vm"); const ch = ADR_CACHE[$("in-adr-cha").value.trim()];
+  const depCode = ($("in-dept").value || "").split(" ")[0];
+  let val = null, src = "";
+  if (ch && ch.citycode) { const t = vmPourCode(ch.citycode); if (t != null) { val = t; src = "commune du chantier : " + (ch.city || ch.citycode) + " (table URSSAF)"; } }
+  if (val == null && depCode && VM_TABLE.dept[depCode] != null) { val = VM_TABLE.dept[depCode]; src = "moyenne pondérée du département " + depCode + " (sans adresse de chantier)"; }
+  if (val == null) { val = VM_TABLE.france; src = "moyenne France pondérée (ni chantier ni département)"; }
+  if (!force && el.dataset.manuel === "1") { $("vm-src").textContent = "— saisie manuelle"; return; }
+  el.value = val; el.dataset.manuel = ""; VM_SRC = src; $("vm-src").textContent = "— " + src;
+}
+$("in-vm").addEventListener("input", () => { $("in-vm").dataset.manuel = "1"; VM_SRC = "saisie manuelle"; $("vm-src").textContent = "— saisie manuelle"; });
+$("in-adr-cha").addEventListener("change", async () => {
+  const q = $("in-adr-cha").value.trim();
+  if (q && !ADR_CACHE[q]) { try { await geocodeBAN(q); const c = ADR_CACHE[q] || null; if (!c) { const cs = await banCandidates(q, 1); if (cs.length) ADR_CACHE[q] = cs[0]; } } catch (e) {} }
+  appliquerVM(true); onChange();
+});
+$("in-dept").addEventListener("change", () => { appliquerVM(true); onChange(); });
 /* Le référentiel de cible (pilotage) et le mode de participation (carte Logement) sont UNE seule
    notion, synchronisée dans les deux sens : AVEC PARTICIPATION = retenue sur la paie ;
    SANS PARTICIPATION = prélèvement bancaire. */

@@ -113,6 +113,10 @@ if os.path.isdir(os.path.join(base, "auth")):
         os.makedirs(os.path.join(auth_app, "data"), exist_ok=True)
         open(os.path.join(auth_app, "data", "communes-fr.json"), 'w', encoding='utf-8').write(open(communes, encoding='utf-8').read())
         print("auth/assets/app/data/communes-fr.json copié")
+    vm = os.path.join(os.path.dirname(base), "data", "vm-communes.json")
+    if os.path.exists(vm):
+        open(os.path.join(auth_app, "data", "vm-communes.json"), 'w', encoding='utf-8').write(open(vm, encoding='utf-8').read())
+        print("auth/assets/app/data/vm-communes.json copié")
     adt = os.path.join(os.path.dirname(base), "data", "adt-fr.json")
     if os.path.isfile(adt):
         open(os.path.join(auth_app, "data", "adt-fr.json"), 'w', encoding='utf-8').write(open(adt, encoding='utf-8').read())

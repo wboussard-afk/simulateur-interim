@@ -322,8 +322,10 @@ const RATES_2026_AGRI = Object.assign({}, RATES_AGRI, {
   ssDeplafPat: 2.11,      // vieillesse déplafonnée patronale (décret 2025-1446 ; classeur : 2,02)
   cetPat: 0.21,           // CET patronal réel (classeur : 0,14)
   chomagePat: 4.03,       // chômage 4,00 (Unédic, depuis 01/05/2025) + AGS ETT 0,03 (classeur : 4,3)
-  autresPat: 0.30 + 0.10 + 0.016 + 1.30 + 0.68 + 0.42
-  // CSA 0,30 + FNAL <50 0,10 + dialogue social 0,016 + formation ETT 1,30 + apprentissage 0,68 + SST MSA 0,42 — À PERSONNALISER
+  autresPat: 0.30 + 0.50 + 0.016 + 1.00 + 0.30 + 0.68 + 0.45 + 0.42
+  // référence ENTITÉ ≥ 50 salariés (effectif sécurité sociale, intérimaires compris — BOSS Effectif §310-320, R. 130-1 II CSS) :
+  // CSA 0,30 + FNAL 0,50 + dialogue social 0,016 + CFP 1,00 (L. 6331-3) + conventionnelle formation TT 0,30 (L. 6331-69, Akto) + apprentissage 0,68 + PEEC 0,45 + SST MSA 0,42
+  // La bande d'effectif choisie (i.effectif) retranche FNAL 0,40 / PEEC 0,45 sous 50 et CFP 0,45 sous 11 ; le versement mobilité (i.vmPct) s'ajoute.
 });
 
 /* Taux — secteur TARIFAIRE 11/2024 */
@@ -351,8 +353,10 @@ const RATES_2026_TARIFAIRE = Object.assign({}, RATES_TARIFAIRE, {
   chomagePat: 4.03,       // 4,00 + AGS ETT 0,03 (classeur : 4,08 = 4,05 + 0,03)
   mutuelleSal: 0.0874,    // Intérimaires Santé, tarif 01/01/2026 (€/h ; classeur : 0,0661)
   mutuellePat: 0.0874,
-  autresPat: 0.30 + 0.10 + 0.016 + 1.30 + 0.68
-  // CSA + FNAL <50 + dialogue social + formation ETT + apprentissage — À PERSONNALISER (classeur : 3,766)
+  autresPat: 0.30 + 0.50 + 0.016 + 1.00 + 0.30 + 0.68 + 0.45
+  // référence ENTITÉ ≥ 50 salariés (effectif sécurité sociale, intérimaires compris — BOSS Effectif §310-320, R. 130-1 II CSS) :
+  // CSA 0,30 + FNAL 0,50 + dialogue social 0,016 + CFP 1,00 (L. 6331-3) + conventionnelle formation TT 0,30 (L. 6331-69, Akto) + apprentissage 0,68 + PEEC 0,45 = 3,246
+  // La bande d'effectif choisie (i.effectif) retranche FNAL 0,40 / PEEC 0,45 sous 50 et CFP 0,45 sous 11 ; le versement mobilité (i.vmPct) s'ajoute (classeur : 3,766)
 });
 
 /* ===== Minima BTP officiels — ouvriers, grilles régionales (IDCC 1596 / 1597) =====
@@ -493,6 +497,9 @@ function defaultInputs(DB, sector) {
     participationHorsPaie: false, // true = participation logement par PRÉLÈVEMENT BANCAIRE : net de paie non réduit, coût logement toujours amorti
                                   // (le sélecteur de cible du pilotage et ce mode sont SYNCHRONISÉS : AVEC PARTICIPATION = retenue, SANS = prélèvement)
     agence: "",                 // agence PALMA sélectionnée (fixe le taux AT par défaut ; portée dans l'étude de prix)
+    /* effectif : bande d'effectif « sécurité sociale » de l'entité, INTÉRIMAIRES COMPRIS ("50plus" | "20-49" | "11-19" | "moins11"),
+       fixée par l'interface (défaut 50 et plus) ; absente ici pour que les vecteurs de test du classeur restent ceux du classeur */
+    vmPct: 0,                   // versement mobilité, % du brut, taux de la zone où l'intérimaire travaille (D. 2333-91 CGCT) ; 0 = hors zone
     cetCoutsReels: false,       // intégrer les coûts CET maison (abondement + causeries) dans la marge
     cetAbondPct: 5,             // abondement % versé à chaque déblocage (politique maison : 5 %)
     /* leviers d'optimisation (décochés = pratique maison actuelle) — cf. bulletin ACTERIM 07/2026 :
@@ -637,11 +644,23 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
    *   loi 2024-1027 — conclusions possibles jusqu'à ~15/11/2028) : idem cdii + AGS taux plein
    *   0,25 % (vs 0,03 % ETT) + PAS de frais de santé de branche + CPF 500 €/an. */
   const modeCDI = i.contrat === "cdii" || i.contrat === "cdie";
-  const R = (i.contrat === "cdie")
+  const R0 = (i.contrat === "cdie")
     ? Object.assign({}, i.rates, {
         chomagePat: (i.rates.chomagePat || 0) + 0.22,
         mutuelleSal: 0, mutuellePat: 0 })
     : i.rates;
+  /* Effectif « sécurité sociale » de l'entité (intérimaires compris — R. 130-1 II CSS, BOSS Effectif §310-320) : les taux de
+   * référence sont ceux d'une entité ≥ 50 ; sous 50 : FNAL 0,10 au lieu de 0,50 et pas de PEEC ; sous 20 : déduction
+   * forfaitaire HS 1,50 €/h au lieu de 0,50 (L. 241-18 / L. 241-18-1, plafond 250 supprimé par la LFSS 2026) ; sous 11 :
+   * CFP 0,55 au lieu de 1 (L. 6331-1). Tdelta de la RGDU suit (0,3821 ≥ 50 / 0,3781 < 50). Versement mobilité ajouté au %.
+   * Sans champ effectif (vecteurs de test du classeur), rien ne change. */
+  let R = R0;
+  if (i.effectif) {
+    const b = i.effectif, petit50 = b !== "50plus", petit20 = b === "11-19" || b === "moins11", petit11 = b === "moins11";
+    const ajust = (petit50 ? -0.40 - 0.45 : 0) + (petit11 ? -0.45 : 0) + (i.vmPct || 0);
+    R = Object.assign({}, R0, { autresPat: (R0.autresPat || 0) + ajust, redPatHSupParH: petit20 ? -1.5 : -0.5 });
+    i = Object.assign({}, i, { rgdu: Object.assign({}, i.rgdu || {}, { fnal050: !petit50 }) });
+  } else if (i.vmPct) R = Object.assign({}, R0, { autresPat: (R0.autresPat || 0) + i.vmPct });
   const S = {};
   const isMain = variant === "main";
   const mode = i.mode;
@@ -1203,7 +1222,7 @@ async function banCandidates(q, limit) {
   }
   return feats.map(f => ({ lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1],
                            label: f.properties.label, ctx: f.properties.context || "",
-                           city: f.properties.city || "" }));
+                           city: f.properties.city || "", citycode: f.properties.citycode || "" }));
 }
 /* même rue, PLUSIEURS villes : une suggestion par ville, puis les variantes */
 async function banDiverseCandidates(q, n) {

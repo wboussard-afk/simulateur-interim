@@ -189,7 +189,7 @@ async function banCandidates(q, limit) {
   }
   return feats.map(f => ({ lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1],
                            label: f.properties.label, ctx: f.properties.context || "",
-                           city: f.properties.city || "" }));
+                           city: f.properties.city || "", citycode: f.properties.citycode || "" }));
 }
 /* même rue, PLUSIEURS villes : une suggestion par ville, puis les variantes */
 async function banDiverseCandidates(q, n) {

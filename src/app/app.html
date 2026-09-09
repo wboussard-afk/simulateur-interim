@@ -504,7 +504,7 @@ table.grille td.neg { color: var(--bad); }
               <option value="11-19">11 à 19 — FNAL 0,10 %, CFP 1 %, HS 1,50 €/h</option>
               <option value="moins11">moins de 11 — FNAL 0,10 %, CFP 0,55 %, HS 1,50 €/h (paramétrage DAF)</option>
             </select></div>
-          <div class="field"><label for="in-vm">Versement mobilité % (zone du chantier)</label><input type="number" id="in-vm" step="0.05" min="0" title="Dû par l'ETT dès qu'elle compte 11 salariés (intérimaires compris) employés au moins 3 mois dans l'année dans la zone, sur toutes les rémunérations des intérimaires qui y travaillent dès le premier jour de mission (D. 2333-91 CGCT ; BOSS Effectif §1040-1060). Taux : celui de la zone où l'intérimaire travaille. Le choix de l'agence pré-remplit le taux de la commune de l'agence d'après la table URSSAF en données ouvertes (VM + additionnel + régional, lue le 09/09/2026) ; adapter si le chantier est dans une autre zone. 0 = hors zone."></div>
+          <div class="field"><label for="in-vm">Versement mobilité % (commune du chantier) <span id="vm-src" class="hint" style="display:inline; margin:0; font-weight:400"></span></label><input type="number" id="in-vm" step="0.05" min="0" title="Dû par l'ETT dès qu'elle compte 11 salariés (intérimaires compris) employés au moins 3 mois dans l'année dans la zone, sur toutes les rémunérations des intérimaires qui y travaillent dès le premier jour de mission (D. 2333-91 CGCT ; BOSS Effectif §1040-1060). Taux de la commune où l'intérimaire travaille, lu automatiquement dans la table URSSAF en données ouvertes (VM + additionnel + régional, 20 497 communes, lue le 09/09/2026) dès qu'une adresse de chantier est choisie. Sans adresse : moyenne pondérée par la population du département de la mission, sinon moyenne France. Modifiable à la main."></div>
           <!-- ligne 8 : IFM/CP paiement direct | mise en CET -->
           <div class="span2"><label id="lbl-ifmcp" class="tlabel" style="display:block; margin-bottom:3px">IFM &amp; CP</label>
             <div class="seg" role="group" aria-labelledby="lbl-ifmcp">
@@ -1028,7 +1028,7 @@ function setFormFromInputs() {
   $("in-majonorm").value = inp.majoNormLabel; $("in-majonormq").value = inp.majoNormQty;
   $("in-atmp").value = inp.rates.atPat;
   $("in-agence").value = inp.agence || "";
-  $("in-effectif").value = inp.effectif || "50plus"; $("in-vm").value = inp.vmPct || 0;
+  $("in-effectif").value = inp.effectif || "50plus"; $("in-vm").value = inp.vmPct || 0; if (inp.vmPct) $("in-vm").dataset.manuel = "1";
   $("in-rgdufnal").disabled = true; $("in-rgdufnal").title = "Piloté par l'effectif de l'entité (carte Charges).";
   $("in-cetreel").checked = !!inp.cetCoutsReels;
   $("in-cetpire").checked = !!inp.cetPireCas;
@@ -1983,7 +1983,7 @@ function renderFact(m) {
   if (m.recrutCout) s += kvRow("Prestataire recrutement " + N2.format(inp.recrutTarifH) + " € HT × " + N2.format(inp.heures) + " h travaillées (coût interne, non refacturé)", "", fmtE(-m.recrutCout));
   if (m.cetCoutReel > 0.005) s += kvRow("Coûts CET réels — abondement " + N2.format(inp.cetAbondPct) + " %/débloc. + contrat de causerie " + N2.format(inp.cetCauserieH) + " h × " + N2.format(inp.cetDebloc) + " déblocage(s)/an (contrat court dédié, fiche de paie à part, payé non facturé — isole le versement du CET des paies de mission)", "", fmtE(-m.cetCoutReel));
   { const LIB_EFF = { "50plus": "50 salariés et plus", "20-49": "20 à 49 salariés", "11-19": "11 à 19 salariés", "moins11": "moins de 11 salariés" };
-    s += kvRow("Effectif de l'entité retenu (sécurité sociale, intérimaires compris) — FNAL, PEEC, CFP, déduction HS, Tdelta RGDU", "", (LIB_EFF[inp.effectif] || "50 salariés et plus") + (inp.vmPct ? " · versement mobilité " + N2.format(inp.vmPct) + " % (zone du chantier)" : " · hors zone de versement mobilité")); }
+    s += kvRow("Effectif de l'entité retenu (sécurité sociale, intérimaires compris) — FNAL, PEEC, CFP, déduction HS, Tdelta RGDU", "", (LIB_EFF[inp.effectif] || "50 salariés et plus") + (inp.vmPct ? " · versement mobilité " + N2.format(inp.vmPct) + " % (" + (VM_SRC || "commune du chantier") + ")" : " · hors zone de versement mobilité")); }
   if (inp.cetPireCas && m.rgduPerte900 > 0.005) s += kvRow("Pire scénario §900 APPLIQUÉ — réduction générale recalculée avec le différé CET réintégré au dernier contrat réel (borne basse prudentielle ; défaut maison = gain préservé par contrat de causerie)", "", fmtE(-m.rgduPerte900));
   if (m.levierCet || m.levierHS) {
     const sans = compute(Object.assign({}, inp, { cetRepos: false, hsRepos: false })).main;
@@ -2276,11 +2276,8 @@ document.querySelectorAll("input, select").forEach(el => {
  * RÉELLE routière (ex. Savoie) : corriger alors le champ km à la main. */
 wireAdrAutocomplete("in-adr-dom", "sug-adr-dom");
 wireAdrAutocomplete("in-adr-cha", "sug-adr-cha");
-/* ===== Agences PALMA : taux AT-MP par entité (direction, 08/2026 et 09/09/2026) et versement mobilité de la commune de l'agence
-   (table URSSAF « Taux VM / VMA / VMRR » en données ouvertes, open.urssaf.fr, lue le 09/09/2026 ; commune = établissement
-   secondaire de chaque société PALMA d'après l'annuaire des entreprises, siège commun 4 rue des Douelles, Bouaye).
-   Sélection = remplit « Tx AT » et « Versement mobilité » (modifiables ensuite : pour un intérimaire, la zone qui compte est
-   celle du CHANTIER, D. 2333-91 CGCT ; le taux de l'agence n'est qu'un défaut). ===== */
+/* ===== Agences PALMA : taux AT-MP par entité (direction, 08/2026 et 09/09/2026). Sélection = remplit « Tx AT ».
+   Le versement mobilité ne dépend PAS de l'agence mais de la commune du chantier (D. 2333-91 CGCT) : voir VM ci-dessous. ===== */
 const AGENCES_PALMA = {
   "PALMA ILE DE FRANCE":  { at: 1.25, vm: 3.20, commune: "Clamart (92)" },
   "PALMA AQUITAINE":      { at: 1.92, vm: 1.25, commune: "Cadaujac (33) : VM 0,60 + additionnel 0,50 + régional 0,15" },
@@ -2296,15 +2293,46 @@ const AGENCES_PALMA = {
 };
 Object.keys(AGENCES_PALMA).forEach(a => {
   const o = document.createElement("option");
-  o.value = a; o.textContent = a + " — AT " + N2.format(AGENCES_PALMA[a].at) + " % · VM " + N2.format(AGENCES_PALMA[a].vm) + " %";
-  o.title = AGENCES_PALMA[a].commune;
+  o.value = a; o.textContent = a + " — AT " + N2.format(AGENCES_PALMA[a].at) + " %";
+  o.title = "Agence : " + AGENCES_PALMA[a].commune.split(" :")[0];
   $("in-agence").appendChild(o);
 });
 $("in-agence").addEventListener("change", () => {
   const a = $("in-agence").value;
-  if (a && AGENCES_PALMA[a]) { $("in-atmp").value = AGENCES_PALMA[a].at; $("in-vm").value = AGENCES_PALMA[a].vm; }
+  if (a && AGENCES_PALMA[a]) $("in-atmp").value = AGENCES_PALMA[a].at;
   onChange();
 });
+/* ===== Versement mobilité par COMMUNE DU CHANTIER (D. 2333-91 CGCT : pour un intérimaire, la zone est celle où il travaille).
+   Table URSSAF open data (vm-communes.json : taux VM + additionnel + régional en vigueur, par code INSEE) ; repli : moyenne
+   pondérée par la population du département de la mission, puis moyenne France. Manuel = saisie conservée jusqu'au prochain
+   choix de chantier ou de département. ===== */
+let VM_TABLE = null, VM_SRC = "";
+fetch("data/vm-communes.json", { cache: "force-cache" }).then(r => r.ok ? r.json() : null).then(t => { VM_TABLE = t; appliquerVM(false); }).catch(() => {});
+function vmPourCode(code) {
+  if (!VM_TABLE || !code) return null;
+  const t = VM_TABLE.taux[code];
+  if (t != null) return t;
+  const arr = { "75056": "75101", "69123": "69381", "13055": "13201" }[code];
+  return arr && VM_TABLE.taux[arr] != null ? VM_TABLE.taux[arr] : 0;   // commune connue sans ligne = hors zone
+}
+function appliquerVM(force) {
+  if (!VM_TABLE) return;
+  const el = $("in-vm"); const ch = ADR_CACHE[$("in-adr-cha").value.trim()];
+  const depCode = ($("in-dept").value || "").split(" ")[0];
+  let val = null, src = "";
+  if (ch && ch.citycode) { const t = vmPourCode(ch.citycode); if (t != null) { val = t; src = "commune du chantier : " + (ch.city || ch.citycode) + " (table URSSAF)"; } }
+  if (val == null && depCode && VM_TABLE.dept[depCode] != null) { val = VM_TABLE.dept[depCode]; src = "moyenne pondérée du département " + depCode + " (sans adresse de chantier)"; }
+  if (val == null) { val = VM_TABLE.france; src = "moyenne France pondérée (ni chantier ni département)"; }
+  if (!force && el.dataset.manuel === "1") { $("vm-src").textContent = "— saisie manuelle"; return; }
+  el.value = val; el.dataset.manuel = ""; VM_SRC = src; $("vm-src").textContent = "— " + src;
+}
+$("in-vm").addEventListener("input", () => { $("in-vm").dataset.manuel = "1"; VM_SRC = "saisie manuelle"; $("vm-src").textContent = "— saisie manuelle"; });
+$("in-adr-cha").addEventListener("change", async () => {
+  const q = $("in-adr-cha").value.trim();
+  if (q && !ADR_CACHE[q]) { try { await geocodeBAN(q); const c = ADR_CACHE[q] || null; if (!c) { const cs = await banCandidates(q, 1); if (cs.length) ADR_CACHE[q] = cs[0]; } } catch (e) {} }
+  appliquerVM(true); onChange();
+});
+$("in-dept").addEventListener("change", () => { appliquerVM(true); onChange(); });
 /* Le référentiel de cible (pilotage) et le mode de participation (carte Logement) sont UNE seule
    notion, synchronisée dans les deux sens : AVEC PARTICIPATION = retenue sur la paie ;
    SANS PARTICIPATION = prélèvement bancaire. */
