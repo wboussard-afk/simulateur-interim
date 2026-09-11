@@ -1136,15 +1136,17 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     const secsG = sectionsDe(u); const dir = secsG.includes("grille-btp"); const paieOK = dir || secsG.includes("paie-btp");
     if (!paieOK) return json({ erreur: "acces_refuse" }, 403);
     const op = p.slice("/api/grille-btp/".length);
-    const aujourdhui = () => { const d = (typeof parisNow === "function") ? parisNow() : new Date(); return d.toISOString().slice(0, 10); };
+    const aujourdhui = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    const dateISO = s => { if (!/^\d{4}-\d{2}-\d{2}$/.test(s || "")) return false; const d = new Date(s + "T00:00:00Z"); return !isNaN(d) && d.toISOString().slice(0, 10) === s; };
+    const BLOCS_BTP = ["etranger_loge", "etranger_non_loge", "fr_loge", "fr_non_loge"];
     const lireLignes = async id => (await env.DB.prepare("SELECT * FROM grilles_btp_lignes WHERE grille_id = ? ORDER BY region, bloc, net").bind(id).all()).results;
-    const grilleAppl = async date => await env.DB.prepare("SELECT * FROM grilles_btp WHERE statut = 'validee' AND application_du <= ? ORDER BY application_du DESC, version DESC LIMIT 1").bind(date).first();
+    const grilleAppl = async date => await env.DB.prepare("SELECT * FROM grilles_btp WHERE statut = 'validee' AND application_du <= ? ORDER BY application_du DESC, validee_le DESC, version DESC LIMIT 1").bind(date).first();
     const nomU = () => (typeof nomComplet === "function" ? nomComplet(u) : ((u.prenom ? u.prenom + " " : "") + (u.nom || u.email || "")));
     const resume = g => ({ id: g.id, annee: g.annee, version: g.version, libelle: g.libelle, statut: g.statut, application_du: g.application_du, cree_le: g.cree_le, cree_par: g.cree_par, validee_le: g.validee_le, validee_par: g.validee_par });
     const params = g => { try { return JSON.parse(g.params || "{}"); } catch (e) { return {}; } };
     /* ---------- gestionnaires de paie ---------- */
     if (op === "paie/options") {
-      const date = /^\d{4}-\d{2}-\d{2}$/.test(url.searchParams.get("date") || "") ? url.searchParams.get("date") : aujourdhui();
+      const date = dateISO(url.searchParams.get("date")) ? url.searchParams.get("date") : aujourdhui();
       const g = await grilleAppl(date);
       if (!g) return json({ ok: true, date, grille: null, regions: [], profils: [], nets: [], grands_comptes: [], combinaisons: [] });
       const l = await lireLignes(g.id);
@@ -1155,10 +1157,11 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
         combinaisons: l.map(x => ({ region: x.region, bloc: x.bloc, profil: x.profil, net: x.net })) });
     }
     if (op === "paie/ligne") {
-      const date = /^\d{4}-\d{2}-\d{2}$/.test(url.searchParams.get("date") || "") ? url.searchParams.get("date") : aujourdhui();
+      const date = dateISO(url.searchParams.get("date")) ? url.searchParams.get("date") : aujourdhui();
       const g = await grilleAppl(date); if (!g) return json({ erreur: "aucune_grille_applicable" }, 404);
       const region = url.searchParams.get("region") || "", bloc = url.searchParams.get("bloc") || "", profil = url.searchParams.get("profil") || "";
       const net = parseFloat(url.searchParams.get("net")); const gc = url.searchParams.get("gc") === "1";
+      if (!BLOCS_BTP.includes(bloc)) return json({ erreur: "bloc_invalide" }, 400);
       const x = await env.DB.prepare("SELECT * FROM grilles_btp_lignes WHERE grille_id = ? AND region = ? AND bloc = ? AND profil = ? AND ABS(net - ?) < 0.001").bind(g.id, region, bloc, profil, isFinite(net) ? net : -1).first();
       if (!x) return json({ erreur: "combinaison_absente" }, 404);
       await journal(env, req, u, "grille_btp_lecture", region + " · " + bloc + " · " + profil + " · " + net + (gc ? " · grand compte" : ""));
@@ -1183,14 +1186,17 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     if (op === "grille" && req.method !== "POST") {
       const id = parseInt(url.searchParams.get("id") || "0", 10);
       const g = await env.DB.prepare("SELECT * FROM grilles_btp WHERE id = ?").bind(id).first(); if (!g) return json({ erreur: "grille_introuvable" }, 404);
+      await journal(env, req, u, "grille_btp_direction", "#" + g.id + " " + g.annee + " v" + g.version + " (" + g.statut + ")");
       return json({ ok: true, grille: Object.assign(resume(g), { params: params(g) }), lignes: await lireLignes(g.id) });
     }
     if (op === "nouvelle" && req.method === "POST") {
       /* nouvelle version = copie intégrale d'une grille existante, en brouillon */
       const src = await env.DB.prepare("SELECT * FROM grilles_btp WHERE id = ?").bind(corps.source_id | 0).first(); if (!src) return json({ erreur: "source_introuvable" }, 404);
+      if (corps.annee != null && corps.annee !== "" && !/^\d{4}$/.test(String(corps.annee))) return json({ erreur: "annee_invalide" }, 400);
       const annee = parseInt(corps.annee, 10) || src.annee;
       const v = await env.DB.prepare("SELECT COALESCE(MAX(version), 0) + 1 AS v FROM grilles_btp WHERE annee = ?").bind(annee).first();
-      const appl = /^\d{4}-\d{2}-\d{2}$/.test(corps.application_du || "") ? corps.application_du : (annee + "-01-01");
+      if (corps.application_du && !dateISO(corps.application_du)) return json({ erreur: "date_invalide" }, 400);
+      const appl = corps.application_du || aujourdhui();   // jamais « 1er janvier » par défaut : une date passée rendrait la version rétroactive à la validation
       const ins = await env.DB.prepare("INSERT INTO grilles_btp (annee, version, libelle, statut, application_du, params, cree_par) VALUES (?,?,?,'brouillon',?,?,?)")
         .bind(annee, v.v, String(corps.libelle || ("Grille Construction " + annee + " v" + v.v)).slice(0, 120), appl, src.params, nomU()).run();
       const nid = ins.meta.last_row_id;
@@ -1202,50 +1208,77 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       const g = await env.DB.prepare("SELECT * FROM grilles_btp WHERE id = ?").bind(corps.id | 0).first(); if (!g) return json({ erreur: "grille_introuvable" }, 404);
       const champs = [], vals = [];
       if (corps.libelle != null) { champs.push("libelle = ?"); vals.push(String(corps.libelle).slice(0, 120)); }
-      if (corps.application_du != null) { if (!/^\d{4}-\d{2}-\d{2}$/.test(corps.application_du)) return json({ erreur: "date_invalide" }, 400); champs.push("application_du = ?"); vals.push(corps.application_du); }
+      if (corps.application_du != null) { if (g.statut !== "brouillon") return json({ erreur: "grille_non_modifiable" }, 409); if (!dateISO(corps.application_du)) return json({ erreur: "date_invalide" }, 400); champs.push("application_du = ?"); vals.push(corps.application_du); }   // la date pilote la grille lue par la paie : figée avec la validation
       if (corps.params != null) { if (g.statut !== "brouillon") return json({ erreur: "grille_non_modifiable" }, 409); champs.push("params = ?"); vals.push(JSON.stringify(corps.params).slice(0, 200000)); }
       if (!champs.length) return json({ erreur: "rien_a_modifier" }, 400);
       vals.push(g.id); await env.DB.prepare("UPDATE grilles_btp SET " + champs.join(", ") + " WHERE id = ?").bind(...vals).run();
+      await journal(env, req, u, "grille_btp_modif", "#" + g.id + " " + champs.map(c => c.split(" ")[0]).join(", "));
       return json({ ok: true });
     }
     if (op === "ligne" && req.method === "POST") {
       const g = await env.DB.prepare("SELECT * FROM grilles_btp WHERE id = ?").bind(corps.grille_id | 0).first(); if (!g) return json({ erreur: "grille_introuvable" }, 404);
       if (g.statut !== "brouillon") return json({ erreur: "grille_non_modifiable" }, 409);
       const N = v => (v === "" || v == null) ? null : (isFinite(parseFloat(String(v).replace(",", "."))) ? parseFloat(String(v).replace(",", ".")) : null);
-      const blocs = ["etranger_loge", "etranger_non_loge", "fr_loge", "fr_non_loge"]; if (!blocs.includes(corps.bloc)) return json({ erreur: "bloc_invalide" }, 400);
+      if (!BLOCS_BTP.includes(corps.bloc)) return json({ erreur: "bloc_invalide" }, 400);
       const net = N(corps.net); if (net == null) return json({ erreur: "net_invalide" }, 400);
-      if (corps.supprimer) { await env.DB.prepare("DELETE FROM grilles_btp_lignes WHERE grille_id = ? AND region = ? AND bloc = ? AND profil = ? AND ABS(net - ?) < 0.001").bind(g.id, String(corps.region), corps.bloc, String(corps.profil), net).run(); return json({ ok: true }); }
+      if (corps.supprimer) { await env.DB.prepare("DELETE FROM grilles_btp_lignes WHERE grille_id = ? AND region = ? AND bloc = ? AND profil = ? AND ABS(net - ?) < 0.001").bind(g.id, String(corps.region), corps.bloc, String(corps.profil), net).run(); await journal(env, req, u, "grille_btp_ligne", "#" + g.id + " suppression " + corps.region + " · " + corps.bloc + " · " + corps.profil + " · " + net); return json({ ok: true }); }
       await env.DB.prepare("INSERT INTO grilles_btp_lignes (grille_id, region, bloc, profil, net, heures, brut, coefficient, igd, igd_gc, igd_nb, repas_midi, repas_midi_nb, repas_soir, repas_soir_nb, transport, transport_nb, trajet, trajet_nb, participation, marge_pct, calcul) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(grille_id, region, bloc, profil, net) DO UPDATE SET heures = excluded.heures, brut = excluded.brut, coefficient = excluded.coefficient, igd = excluded.igd, igd_gc = excluded.igd_gc, igd_nb = excluded.igd_nb, repas_midi = excluded.repas_midi, repas_midi_nb = excluded.repas_midi_nb, repas_soir = excluded.repas_soir, repas_soir_nb = excluded.repas_soir_nb, transport = excluded.transport, transport_nb = excluded.transport_nb, trajet = excluded.trajet, trajet_nb = excluded.trajet_nb, participation = excluded.participation, marge_pct = excluded.marge_pct, calcul = excluded.calcul")
         .bind(g.id, String(corps.region).slice(0, 60), corps.bloc, String(corps.profil).slice(0, 40), net, N(corps.heures) || 35, N(corps.brut), corps.coefficient == null || corps.coefficient === "" ? null : parseInt(corps.coefficient, 10) || null,
               N(corps.igd), N(corps.igd_gc), N(corps.igd_nb), N(corps.repas_midi), N(corps.repas_midi_nb), N(corps.repas_soir), N(corps.repas_soir_nb), N(corps.transport), N(corps.transport_nb), N(corps.trajet), N(corps.trajet_nb), N(corps.participation), N(corps.marge_pct), corps.calcul ? JSON.stringify(corps.calcul).slice(0, 20000) : null).run();
+      await journal(env, req, u, "grille_btp_ligne", "#" + g.id + " " + corps.region + " · " + corps.bloc + " · " + corps.profil + " · " + net + (corps.marge_pct != null ? " (moteur)" : ""));
       return json({ ok: true });
     }
     if (op === "statut" && req.method === "POST") {
       const g = await env.DB.prepare("SELECT * FROM grilles_btp WHERE id = ?").bind(corps.id | 0).first(); if (!g) return json({ erreur: "grille_introuvable" }, 404);
-      const st = corps.statut;
+      /* machine d'états : brouillon → validée → archivée. L'immuabilité suit l'HISTORIQUE (validee_le), pas le statut courant :
+         une grille validée un jour ne redevient jamais brouillon, même après archivage. */
+      const st = corps.statut; let detail = "";
       if (st === "validee") {
-        if (!g.application_du) return json({ erreur: "date_application_requise" }, 400);
-        await env.DB.prepare("UPDATE grilles_btp SET statut = 'validee', validee_le = datetime('now'), validee_par = ? WHERE id = ?").bind(nomU(), g.id).run();
+        if (g.statut === "archivee" && g.validee_le) {
+          /* restauration d'une grille validée archivée par erreur : la trace de validation d'origine est conservée */
+          await env.DB.prepare("UPDATE grilles_btp SET statut = 'validee' WHERE id = ?").bind(g.id).run(); detail = " (restauration)";
+        } else {
+          if (g.statut !== "brouillon") return json({ erreur: "transition_invalide", de: g.statut }, 409);
+          if (!dateISO(g.application_du)) return json({ erreur: "date_application_requise" }, 400);
+          const nb = await env.DB.prepare("SELECT COUNT(*) AS n FROM grilles_btp_lignes WHERE grille_id = ?").bind(g.id).first();
+          if (!nb || !nb.n) return json({ erreur: "grille_vide" }, 409);
+          const der = await env.DB.prepare("SELECT MAX(application_du) AS m FROM grilles_btp WHERE statut = 'validee' AND id <> ?").bind(g.id).first();
+          if (der && der.m && g.application_du <= der.m) {
+            /* la nouvelle grille serait lue pour des périodes déjà couvertes par une grille validée : confirmation explicite exigée */
+            if (corps.retroactif !== true) return json({ erreur: "date_anterieure", derniere: der.m }, 409);
+            detail = " (correction rétroactive confirmée : dernière grille validée au " + der.m + ")";
+          }
+          await env.DB.prepare("UPDATE grilles_btp SET statut = 'validee', validee_le = datetime('now'), validee_par = ? WHERE id = ? AND statut = 'brouillon'").bind(nomU(), g.id).run();
+        }
       } else if (st === "archivee") {
+        if (g.statut === "archivee") return json({ erreur: "transition_invalide", de: g.statut }, 409);
         await env.DB.prepare("UPDATE grilles_btp SET statut = 'archivee' WHERE id = ?").bind(g.id).run();
       } else if (st === "brouillon") {
-        if (g.statut === "validee") return json({ erreur: "grille_validee_immuable" }, 409);   // une grille validée ne redevient pas modifiable : nouvelle version
+        if (g.validee_le || g.statut !== "archivee") return json({ erreur: "grille_validee_immuable" }, 409);   // seule une grille archivée JAMAIS validée peut être reprise
         await env.DB.prepare("UPDATE grilles_btp SET statut = 'brouillon' WHERE id = ?").bind(g.id).run();
       } else return json({ erreur: "statut_invalide" }, 400);
-      await journal(env, req, u, "grille_btp_statut", "#" + g.id + " → " + st);
+      await journal(env, req, u, "grille_btp_statut", "#" + g.id + " " + g.statut + " → " + st + detail);
       return json({ ok: true });
     }
     if (op === "grands-comptes" && req.method === "POST") {
-      if (corps.supprimer) { await env.DB.prepare("DELETE FROM grands_comptes_btp WHERE id = ?").bind(corps.id | 0).run(); return json({ ok: true }); }
+      if (corps.supprimer) { await env.DB.prepare("DELETE FROM grands_comptes_btp WHERE id = ?").bind(corps.id | 0).run(); await journal(env, req, u, "grille_btp_gc", "suppression #" + (corps.id | 0)); return json({ ok: true }); }
       const client = String(corps.client || "").trim().slice(0, 120); if (!client) return json({ erreur: "client_requis" }, 400);
       if (corps.id) await env.DB.prepare("UPDATE grands_comptes_btp SET client = ?, region = ?, actif = ? WHERE id = ?").bind(client, String(corps.region || "").slice(0, 60), corps.actif === false ? 0 : 1, corps.id | 0).run();
       else await env.DB.prepare("INSERT INTO grands_comptes_btp (client, region, actif) VALUES (?,?,1)").bind(client, String(corps.region || "").slice(0, 60)).run();
+      await journal(env, req, u, "grille_btp_gc", (corps.id ? "#" + (corps.id | 0) + " " : "ajout ") + client + (corps.actif === false ? " (inactif)" : ""));
       return json({ ok: true });
     }
     if (op === "region" && req.method === "POST") {
       const region = String(corps.region || "").trim().toUpperCase().slice(0, 60); if (!region) return json({ erreur: "region_requise" }, 400);
-      if (corps.supprimer) { await env.DB.prepare("DELETE FROM grilles_btp_regions WHERE region = ?").bind(region).run(); return json({ ok: true }); }
-      await env.DB.prepare("INSERT OR REPLACE INTO grilles_btp_regions (region, departements) VALUES (?, ?)").bind(region, String(corps.departements || "").replace(/\s+/g, "").slice(0, 200)).run();
+      if (corps.supprimer) {
+        /* une région référencée par des lignes de grille non archivée ne se supprime pas : la paie ne pourrait plus y accéder */
+        const util = await env.DB.prepare("SELECT COUNT(*) AS n FROM grilles_btp_lignes l JOIN grilles_btp g ON g.id = l.grille_id WHERE l.region = ? AND g.statut <> 'archivee'").bind(region).first();
+        if (util && util.n) return json({ erreur: "region_utilisee", lignes: util.n }, 409);
+        await env.DB.prepare("DELETE FROM grilles_btp_regions WHERE region = ?").bind(region).run(); await journal(env, req, u, "grille_btp_region", "suppression " + region); return json({ ok: true });
+      }
+      const deps = String(corps.departements || "").replace(/\s+/g, "").slice(0, 200);
+      await env.DB.prepare("INSERT OR REPLACE INTO grilles_btp_regions (region, departements) VALUES (?, ?)").bind(region, deps).run();
+      await journal(env, req, u, "grille_btp_region", region + " = " + deps);
       return json({ ok: true });
     }
     return json({ erreur: "operation_inconnue" }, 404);

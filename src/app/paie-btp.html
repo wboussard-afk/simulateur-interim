@@ -97,11 +97,12 @@ async function chargerOptions() {
   OPT = r;
   if (!r.grille) { $("msg").className = "msg err"; $("msg").textContent = "Aucune grille validée applicable au " + dfr(date) + "."; $("in-region").innerHTML = ""; $("in-profil").innerHTML = ""; $("in-net").innerHTML = ""; return; }
   $("msg").className = "msg"; $("msg").textContent = "Grille applicable : " + r.grille.libelle + " (en vigueur depuis le " + dfr(r.grille.application_du) + ").";
-  const rv = $("in-region").value, pv = $("in-profil").value;
+  const rv = $("in-region").value, pv = $("in-profil").value, gv = $("in-gc").value;
   $("in-region").innerHTML = r.regions.map(x => "<option value=\"" + esc(x.region) + "\">" + esc(x.region) + (x.departements ? " — " + esc(x.departements.split(",").join(", ")) : "") + "</option>").join("");
   if (rv) $("in-region").value = rv;
   $("in-profil").innerHTML = r.profils.map(p => "<option>" + esc(p) + "</option>").join(""); if (pv) $("in-profil").value = pv;
-  $("in-gc").innerHTML = "<option value=''>— client standard —</option>" + r.grands_comptes.map(g => "<option value='1'>" + esc(g.client) + (g.region ? " (" + esc(g.region) + ")" : "") + "</option>").join("") + "<option value='1'>Autre client grand compte</option>";
+  $("in-gc").innerHTML = "<option value=''>— client standard —</option>" + r.grands_comptes.map(g => "<option value=\"" + esc(g.client) + "\">" + esc(g.client) + (g.region ? " (" + esc(g.region) + ")" : "") + "</option>").join("") + "<option value='__autre__'>Autre client grand compte</option>";
+  if (gv) $("in-gc").value = gv;   // le client grand compte choisi survit à un changement de date
   majNets();
 }
 function majNets() {

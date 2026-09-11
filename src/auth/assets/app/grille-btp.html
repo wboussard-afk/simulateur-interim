@@ -44,6 +44,7 @@ th { color: var(--muted); font-size: 11px; letter-spacing: .04em; text-transform
 .confid { border: 1px dashed var(--brass); border-radius: 10px; padding: 8px 12px; font-size: 12.5px; color: var(--brass-deep); background: rgba(219,48,63,.06); }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 12px; } @media (max-width: 800px) { .grid3 { grid-template-columns: 1fr; } }
 [hidden] { display: none !important; }
+  tr.ecart td { background: #fff1f0; }  tr.ecart td:nth-child(2) { color: #b42318; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -71,6 +72,7 @@ th { color: var(--muted); font-size: 11px; letter-spacing: .04em; text-transform
     <h2><span id="titre-grille">Grille</span> <select id="sel-region" style="width:auto; margin-left:auto"></select></h2>
     <div class="b">
       <div class="note" id="note-grille"></div>
+      <div id="ctrl-grille" class="msg"></div>
       <div id="blocs" class="blocs" style="margin-top:10px"></div>
       <div class="msg" id="msg-grille"></div>
     </div>
@@ -152,8 +154,10 @@ async function chargerListe() {
   $("tbl-grilles").querySelectorAll("[data-ouvrir]").forEach(b => b.addEventListener("click", () => ouvrir(+b.dataset.ouvrir)));
   $("tbl-grilles").querySelectorAll("[data-copier]").forEach(b => b.addEventListener("click", async () => {
     const src = LISTE.grilles.find(g => g.id === +b.dataset.copier);
-    const annee = prompt("Année de la nouvelle version :", String(src.annee)); if (!annee) return;
-    const appl = prompt("Date d'application (AAAA-MM-JJ) :", annee + "-01-01"); if (!appl) return;
+    const annee = (prompt("Année de la nouvelle version :", String(src.annee)) || "").trim(); if (!annee) return;
+    if (!/^\d{4}$/.test(annee)) { alert("Année invalide : " + annee); return; }
+    const appl = (prompt("Date d'application (AAAA-MM-JJ). Elle doit être postérieure à la dernière grille validée, sauf correction rétroactive confirmée à la validation :", LISTE.aujourdhui || new Date().toISOString().slice(0, 10)) || "").trim(); if (!appl) return;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(appl) || isNaN(Date.parse(appl + "T00:00:00Z"))) { alert("Date invalide : " + appl + " (format attendu AAAA-MM-JJ, ex. 2027-01-01)"); return; }
     const lib = prompt("Libellé :", "Grille Construction " + annee); if (lib == null) return;
     const r = await post("/api/grille-btp/nouvelle", { source_id: src.id, annee: +annee, application_du: appl, libelle: lib });
     if (!r.ok) { alert("Erreur : " + (r.erreur || "?")); return; } await chargerListe(); ouvrir(r.id);
@@ -161,11 +165,18 @@ async function chargerListe() {
   $("tbl-grilles").querySelectorAll("[data-valider]").forEach(b => b.addEventListener("click", async () => {
     const g = LISTE.grilles.find(x => x.id === +b.dataset.valider);
     if (!confirm("Valider la grille " + g.annee + " v" + g.version + " (application le " + dfr(g.application_du) + ") ? Elle deviendra la référence de la paie et ne sera plus modifiable.")) return;
-    const r = await post("/api/grille-btp/statut", { id: g.id, statut: "validee" }); if (!r.ok) { alert("Erreur : " + (r.erreur || "?")); return; } chargerListe();
+    let r = await post("/api/grille-btp/statut", { id: g.id, statut: "validee" });
+    if (!r.ok && r.erreur === "date_anterieure") {
+      if (!confirm("La date d'application (" + dfr(g.application_du) + ") est antérieure ou égale à celle de la dernière grille validée (" + dfr(r.derniere) + ").\n\nValider quand même en CORRECTION RÉTROACTIVE ?\nLa paie lira cette grille pour toutes les dates à partir du " + dfr(g.application_du) + ", y compris les périodes déjà traitées.")) return;
+      r = await post("/api/grille-btp/statut", { id: g.id, statut: "validee", retroactif: true });
+    }
+    if (!r.ok) { alert("Erreur : " + ({ grille_vide: "la grille ne contient aucune ligne", date_application_requise: "date d'application manquante ou invalide", transition_invalide: "cette grille n'est pas en brouillon" }[r.erreur] || r.erreur || "?")); return; }
+    await chargerListe(); if (G && G.id === g.id) ouvrir(g.id, true);
   }));
   $("tbl-grilles").querySelectorAll("[data-archiver]").forEach(b => b.addEventListener("click", async () => {
     if (!confirm("Archiver cette grille ? Elle ne sera plus proposée à la paie.")) return;
-    const r = await post("/api/grille-btp/statut", { id: +b.dataset.archiver, statut: "archivee" }); if (!r.ok) { alert("Erreur : " + (r.erreur || "?")); return; } chargerListe();
+    const id = +b.dataset.archiver; const r = await post("/api/grille-btp/statut", { id, statut: "archivee" }); if (!r.ok) { alert("Erreur : " + (r.erreur || "?")); return; }
+    await chargerListe(); if (G && G.id === id) ouvrir(id, true);
   }));
   rendreGC(); rendreRegions();
   if (!G && LISTE.grilles.length) ouvrir((LISTE.grilles.find(g => g.statut === "validee") || LISTE.grilles[0]).id, true);
@@ -182,6 +193,8 @@ async function ouvrir(id, silencieux) {
 $("sel-region").addEventListener("change", rendreBlocs);
 function rendreBlocs() {
   if (!G) return; const reg = $("sel-region").value; const edit = G.statut === "brouillon";
+  const mins = ((((G.params || {}).minima || {})[reg] || {}).taux) || {};
+  const sousMin = l => l.brut != null && l.coefficient && mins[l.coefficient] != null && l.brut < mins[l.coefficient] - 0.001;
   const cell = (l, k, cls) => edit ? "<input class='" + (cls || "") + "' data-k='" + k + "' value='" + (l[k] == null ? "" : String(l[k]).replace(".", ",")) + "'>" : "<span class='rd'>" + (l[k] == null ? "—" : (typeof l[k] === "number" ? N2.format(l[k]).replace(",00", "") : esc(l[k]))) + "</span>";
   $("blocs").innerHTML = BLOCS.map(([bl, lib, cls]) => {
     const ls = LIGNES.filter(l => l.region === reg && l.bloc === bl).sort((a, b) => a.net - b.net);
@@ -189,11 +202,17 @@ function rendreBlocs() {
     let prof = null;
     for (const l of ls) {
       if (l.profil !== prof) { prof = l.profil; html += "<tr><td class='prof' colspan='16'>" + esc(prof) + "</td></tr>"; }
-      html += "<tr data-id='" + l.id + "' data-bloc='" + bl + "' data-profil=\"" + esc(l.profil) + "\" data-net='" + l.net + "'><td><b>" + N2.format(l.net) + "</b></td><td>" + cell(l, "brut") + "</td><td>" + cell(l, "igd") + "</td><td class='gc'>" + (edit ? cell(l, "igd_gc") : (l.igd_gc != null ? "(" + N2.format(l.igd_gc).replace(",00", "") + " € GC)" : "")) + "</td><td>" + cell(l, "igd_nb") + "</td><td>" + cell(l, "repas_midi") + "</td><td>" + cell(l, "repas_midi_nb") + "</td><td>" + cell(l, "repas_soir") + "</td><td>" + cell(l, "repas_soir_nb") + "</td><td>" + cell(l, "transport") + "</td><td>" + cell(l, "transport_nb") + "</td><td>" + cell(l, "trajet") + "</td><td>" + cell(l, "trajet_nb") + "</td><td>" + cell(l, "coefficient") + "</td><td>" + cell(l, "participation", "l") + "</td><td>" + cell(l, "marge_pct") + "</td></tr>";
+      html += "<tr" + (sousMin(l) ? " class='ecart' title='Brut inférieur au minimum conventionnel du niveau (" + N2.format(mins[l.coefficient]) + " €)'" : "") + " data-id='" + l.id + "' data-bloc='" + bl + "' data-profil=\"" + esc(l.profil) + "\" data-net='" + l.net + "'><td><b>" + N2.format(l.net) + "</b></td><td>" + cell(l, "brut") + "</td><td>" + cell(l, "igd") + "</td><td class='gc'>" + (edit ? cell(l, "igd_gc") : (l.igd_gc != null ? "(" + N2.format(l.igd_gc).replace(",00", "") + " € GC)" : "")) + "</td><td>" + cell(l, "igd_nb") + "</td><td>" + cell(l, "repas_midi") + "</td><td>" + cell(l, "repas_midi_nb") + "</td><td>" + cell(l, "repas_soir") + "</td><td>" + cell(l, "repas_soir_nb") + "</td><td>" + cell(l, "transport") + "</td><td>" + cell(l, "transport_nb") + "</td><td>" + cell(l, "trajet") + "</td><td>" + cell(l, "trajet_nb") + "</td><td>" + cell(l, "coefficient") + "</td><td>" + cell(l, "participation", "l") + "</td><td>" + cell(l, "marge_pct") + "</td></tr>";
     }
     if (!ls.length) html += "<tr><td colspan='16' class='note'>Aucune ligne.</td></tr>";
     return html + "</table></div></div>";
   }).join("");
+  const ecarts = LIGNES.filter(l => l.region === reg && sousMin(l));
+  const libBloc = Object.fromEntries(BLOCS.map(([bl, lib]) => [bl, lib]));
+  $("ctrl-grille").className = "msg " + (ecarts.length ? "err" : "ok");
+  $("ctrl-grille").textContent = !Object.keys(mins).length ? "Contrôle minima : minima conventionnels non renseignés pour cette région (paramètres de la grille)."
+    : ecarts.length ? "Contrôle minima : " + ecarts.length + " ligne(s) avec un brut inférieur au minimum conventionnel du niveau affiché — " + ecarts.map(l => libBloc[l.bloc] + " · " + l.profil + " · net " + N2.format(l.net) + " : brut " + N2.format(l.brut) + " < " + N2.format(mins[l.coefficient]) + " (coef " + l.coefficient + ")").join(" ; ") + "."
+    : "Contrôle minima : tous les bruts de la région respectent le minimum conventionnel de leur niveau.";
   if (edit) $("blocs").querySelectorAll("tr[data-id] input").forEach(inp => inp.addEventListener("change", async () => {
     const tr = inp.closest("tr"); const l = LIGNES.find(x => x.id === +tr.dataset.id); const o = Object.assign({}, l);
     tr.querySelectorAll("input").forEach(i => { o[i.dataset.k] = i.value.trim() === "" ? null : i.value.trim().replace(",", "."); });
@@ -217,8 +236,8 @@ $("btn-gc-ajouter").addEventListener("click", async () => {
 /* ---------- paramètres ---------- */
 function rendreParams() {
   if (!G) return; const P = G.params || {}; const edit = G.statut === "brouillon";
-  $("params-grille").textContent = "— " + G.annee + " v" + G.version + (edit ? "" : " (grille " + ({ validee: "validée", archivee: "archivée" }[G.statut]) + " : seuls le libellé et la date sont modifiables)");
-  $("p-libelle").value = G.libelle || ""; $("p-appl").value = G.application_du || ""; $("p-marge").value = P.marge_cible != null ? P.marge_cible : 20;
+  $("params-grille").textContent = "— " + G.annee + " v" + G.version + (edit ? "" : " (grille " + ({ validee: "validée", archivee: "archivée" }[G.statut]) + " : seul le libellé est modifiable — la date d'application est figée avec la validation)");
+  $("p-libelle").value = G.libelle || ""; $("p-appl").value = G.application_du || ""; $("p-appl").disabled = !edit; $("p-marge").value = P.marge_cible != null ? P.marge_cible : 20;
   const R = P.rubriques || {}; ["igd", "repas_midi_loge", "repas_midi_non_loge", "repas_soir_etranger", "repas_soir_fr", "transport", "trajet"].forEach(k => { $("r-" + k).value = R[k] || ""; $("r-" + k).disabled = !edit; }); $("p-marge").disabled = !edit;
   const M = P.minima || {}; const niv = ["150", "170", "185", "210", "230", "250", "270"];
   $("tbl-minima").innerHTML = "<tr><th>Région</th><th>Application</th>" + niv.map(n => "<th class='n'>" + n + "</th>").join("") + "</tr>" + Object.keys(M).sort().map(r => "<tr><td>" + esc(r) + "</td><td>" + esc(dfr(M[r].application)) + "</td>" + niv.map(n => "<td class='n'>" + (M[r].taux && M[r].taux[n] != null ? N2.format(M[r].taux[n]) : "—") + "</td>").join("") + "</tr>").join("");
@@ -228,7 +247,7 @@ function rendreRegions() {
 }
 $("btn-params").addEventListener("click", async () => {
   if (!G) return;
-  const body = { id: G.id, libelle: $("p-libelle").value, application_du: $("p-appl").value };
+  const body = { id: G.id, libelle: $("p-libelle").value }; if (G.statut === "brouillon") body.application_du = $("p-appl").value;
   if (G.statut === "brouillon") { const P = Object.assign({}, G.params || {}); P.marge_cible = parseFloat($("p-marge").value) || 20; P.rubriques = {}; ["igd", "repas_midi_loge", "repas_midi_non_loge", "repas_soir_etranger", "repas_soir_fr", "transport", "trajet"].forEach(k => { P.rubriques[k] = $("r-" + k).value.trim(); }); body.params = P; }
   const r = await post("/api/grille-btp/grille", body); $("msg-params").className = r.ok ? "msg ok" : "msg err"; $("msg-params").textContent = r.ok ? "Enregistré." : "Erreur : " + (r.erreur || "?");
   if (r.ok) { await chargerListe(); ouvrir(G.id, true); }
