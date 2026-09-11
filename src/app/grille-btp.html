@@ -44,6 +44,13 @@ th { color: var(--muted); font-size: 11px; letter-spacing: .04em; text-transform
 .confid { border: 1px dashed var(--brass); border-radius: 10px; padding: 8px 12px; font-size: 12.5px; color: var(--brass-deep); background: rgba(219,48,63,.06); }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 12px; } @media (max-width: 800px) { .grid3 { grid-template-columns: 1fr; } }
 [hidden] { display: none !important; }
+  .cons-blocs { display: flex; flex-direction: column; gap: 12px; }
+  .cons .niveau { margin: 10px 10px 12px; border-left: 5px solid #29293a; border-radius: 8px; overflow: hidden; background: var(--card); }
+  .cons .niv-t { padding: 7px 12px; font-weight: 800; font-size: 13.5px; color: #fff; background: #29293a; display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; } .cons .niv-t .note { color: rgba(255,255,255,.85); }
+  .cons .niv-ouv { border-left-color: #db303f; } .cons .niv-ouv .niv-t { background: #db303f; }
+  .cons .niv-sup { border-left-color: #47713E; } .cons .niv-sup .niv-t { background: #47713E; }
+  .cons tr.det td { font-size: 12.5px; white-space: normal; padding: 4px 10px 8px; color: var(--brass-deep); background: #fff6f6; border-bottom: 2px solid var(--line); }
+  .cons tr.det.info td { color: var(--ink); background: var(--card2); } .cons tr.det .prop { display: block; margin-top: 2px; color: #1f4f1a; font-weight: 600; }
   .cons table td.n, .cons table th.n { text-align: right; }
   .cons tr.bad td { background: #fff1f0; } .cons tr.warn td { background: #fff8e6; } .cons .al { font-size: 11.5px; color: var(--brass-deep); white-space: normal; max-width: 420px; }
   .cons tr.sc td { background: var(--card2); font-size: 12px; } .cons .sc table { width: auto; } .cons .sc td, .cons .sc th { padding: 2px 8px; border: 0; }
@@ -132,7 +139,7 @@ th { color: var(--muted); font-size: 11px; letter-spacing: .04em; text-transform
         <div><label>Mode de résolution</label><select id="c-mode"><option value="1">1 — indemnités fixées → participation logement résolue</option><option value="2">2 — participation fixée → IGD résolue</option></select></div>
         <div><label>Objectif de marge brute (%)</label><input type="number" step="0.5" id="c-marge"></div>
         <div><label>Participation en mode 2 (€ / semaine, vide = coût du logement)</label><input type="number" step="0.01" id="c-part2"></div>
-        <div><label>IFM + ICCP</label><select id="c-ifm"><option value="1">paiement direct à chaque paie (logique du classeur)</option><option value="0">mise en CET (provision)</option></select></div>
+        <div><label>IFM + ICCP dans le net promis</label><select id="c-ifm"><option value="1">inclus : payés à chaque paie (logique du classeur 2026)</option><option value="0">placés au CET : le salarié touche moins sur la paie (restitution différée)</option></select></div>
         <div><label>Effectif de l'ETT (intérimaires compris)</label><select id="c-effectif"><option value="50plus">50 salariés et plus</option><option value="20-49">20 à 49</option><option value="11-19">11 à 19</option><option value="moins11">moins de 11</option></select></div>
         <div><label>Versement mobilité par défaut (%) — modifiable par région ci-dessous</label><input type="number" step="0.01" id="c-vm"></div>
         <div><label>Taux AT-MP patronal par défaut (%) — le taux notifié varie par agence, modifiable par région</label><input type="number" step="0.01" id="c-at"></div>
@@ -143,9 +150,9 @@ th { color: var(--muted); font-size: 11px; letter-spacing: .04em; text-transform
         <div><label>Scénarios &gt; 35 h : facturation des heures sup</label><select id="c-hsfact"><option value="1">heures sup facturées majorées</option><option value="0">toutes les heures au tarif (grille « par heure travaillée »)</option></select></div>
         <div><label>Plafond de l'IGD résolue en mode 2 (€ / jour, exonération)</label><input type="number" step="0.1" id="c-igdmax"></div>
       </div>
-      <h3 style="font-size:14px; margin:12px 0 6px">Tarifs de facturation par palier de net promis (€ HT / heure travaillée, tout inclus)</h3>
+      <h3 style="font-size:14px; margin:12px 0 6px">Tarif de facturation par niveau (€ HT / heure travaillée, tout inclus)</h3>
       <div class="tbl"><table id="tbl-tarifs"></table></div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px"><button class="btn s" id="btn-tarif-plus">+ palier</button><button class="btn s" id="btn-tarif-grille">Reprendre la grille de facturation BTP</button></div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px"><button class="btn s" id="btn-tarif-grille">Reprendre la grille de facturation BTP (31,50 / 33,50 / 35,50)</button></div>
       <h3 style="font-size:14px; margin:12px 0 6px">Par région : coût du logement (€ / semaine), taux AT-MP (%), versement mobilité (%), majoration logement</h3>
       <p class="note">Vide = valeur par défaut ci-dessus. La majoration s'applique à toute la région (la grille de facturation la définit par secteur : Paris et alentours, Haute-Savoie, saison touristique) : relevez aussi le coût du logement de la région concernée.</p>
       <div class="tbl"><table id="tbl-logement"></table></div>
@@ -274,6 +281,7 @@ $("btn-gc-ajouter").addEventListener("click", async () => {
 /* ---------- construction par le moteur ---------- */
 let CONS = { params: null, resultats: [], grilleId: null, perime: false };
 const EFFECTIFS = ["50plus", "20-49", "11-19", "moins11"];
+const NIV_CLS = { "Aide métier": "niv-aide", "Ouvrier": "niv-ouv", "Profil supérieur": "niv-sup" };
 const fmt = v => (v == null || !isFinite(v)) ? "—" : N2.format(v);
 function consParamsDepuisGrille() {
   const C = Object.assign({}, (G && G.params && G.params.construction) || {});
@@ -291,24 +299,20 @@ function rendreConstruction() {
   $("c-mode").value = String(P.mode); $("c-marge").value = P.marge_cible; $("c-part2").value = P.participation_mode2 != null ? P.participation_mode2 : "";
   $("c-ifm").value = P.ifm_iccp_direct ? "1" : "0"; $("c-effectif").value = EFFECTIFS.includes(P.effectif) ? P.effectif : "50plus"; $("c-vm").value = P.vm.defaut; $("c-at").value = P.at.defaut;
   $("c-logdef").value = P.logement.defaut; $("c-majo").value = P.majoration_logement.montant; $("c-pas").value = P.pas_mode; $("c-dfs").value = P.dfs_pct; $("c-hsfact").value = P.hs_facturees_majorees ? "1" : "0"; $("c-igdmax").value = P.igd_max;
-  rendreTarifs(P.tarifs_paliers);
+  rendreTarifs(P.tarifs_profils);
   const regs = (LISTE.regions || []).map(r => r.region); const majo = P.majoration_logement.regions || [];
   const inp = (attr, r, v, step) => "<input type='number' step='" + step + "' data-" + attr + "=\"" + esc(r) + "\" value='" + (v != null ? v : "") + "'>";
   $("tbl-logement").innerHTML = "<tr><th>Région</th><th>Logement € / sem</th><th>AT-MP %</th><th>VM %</th><th>Majoration</th></tr>" + regs.map(r => "<tr><td>" + esc(r) + "</td><td>" + inp("log", r, P.logement.regions[r], "1") + "</td><td>" + inp("at", r, P.at.regions[r], "0.01") + "</td><td>" + inp("vm", r, P.vm.regions[r], "0.01") + "</td><td><input type='checkbox' data-majo=\"" + esc(r) + "\"" + (majo.includes(r) ? " checked" : "") + "></td></tr>").join("");
 }
-function rendreTarifs(pal) {
-  $("tbl-tarifs").innerHTML = "<tr><th>Net promis de</th><th>à (exclu)</th><th>Tarif € HT / h</th><th>Libellé</th><th>Hors grille</th><th></th></tr>" + pal.map((x, k) => "<tr data-tk='" + k + "'><td><input type='number' step='0.5' data-tf='netMin' value='" + x.netMin + "'></td><td><input type='number' step='0.5' data-tf='netMax' value='" + x.netMax + "'></td><td><input type='number' step='0.5' data-tf='tarif' value='" + x.tarif + "'></td><td><input data-tf='libelle' value=\"" + esc(x.libelle || "") + "\" style='width:260px'></td><td><input type='checkbox' data-tf='hors_grille'" + (x.hors_grille ? " checked" : "") + "></td><td><button class='btn s' data-tsup='" + k + "'>✕</button></td></tr>").join("");
-  $("tbl-tarifs").querySelectorAll("[data-tsup]").forEach(b => b.addEventListener("click", () => { const p = lireTarifsBrut(); p.splice(+b.dataset.tsup, 1); rendreTarifs(p); }));
+function rendreTarifs(tp) {
+  $("tbl-tarifs").innerHTML = "<tr><th>Niveau</th><th>Nets de la grille</th><th>Tarif € HT / h</th></tr>" + GrilleMoteur.PROFILS.map(p => "<tr class='" + NIV_CLS[p] + "'><td><b>" + esc(p) + "</b></td><td class='note'>" + ({ "Aide métier": "11,00 – 11,50", "Ouvrier": "12,00 – 14,50", "Profil supérieur": "15,00 – 16,50" }[p] || "") + "</td><td><input type='number' step='0.5' data-tp=\"" + esc(p) + "\" value='" + (tp[p] != null ? tp[p] : "") + "'></td></tr>").join("");
 }
-function lireTarifsBrut() {   // lignes dans l'ordre affiché, sans filtre ni tri (édition)
-  return [...$("tbl-tarifs").querySelectorAll("tr[data-tk]")].map(tr => { const o = {}; tr.querySelectorAll("[data-tf]").forEach(i => { o[i.dataset.tf] = i.type === "checkbox" ? i.checked : (i.dataset.tf === "libelle" ? i.value : parseFloat(i.value)); }); return o; });
-}
-function lireTarifs() { return lireTarifsBrut().filter(x => x.tarif > 0).sort((a, b) => a.netMin - b.netMin); }
+function lireTarifsProfils() { const o = {}; $("tbl-tarifs").querySelectorAll("input[data-tp]").forEach(i => { if (i.value !== "" && isFinite(parseFloat(i.value))) o[i.dataset.tp] = parseFloat(i.value); }); return o; }
 function lireHypotheses() {
   const P = { mode: parseInt($("c-mode").value, 10) === 2 ? 2 : 1, marge_cible: parseFloat($("c-marge").value) || 20, participation_mode2: $("c-part2").value === "" ? null : parseFloat($("c-part2").value),
     ifm_iccp_direct: $("c-ifm").value === "1", effectif: $("c-effectif").value, pas_mode: $("c-pas").value, dfs_pct: $("c-dfs").value === "" ? null : parseFloat($("c-dfs").value), hs_facturees_majorees: $("c-hsfact").value === "1", igd_max: parseFloat($("c-igdmax").value) || 42.8,
     logement: { defaut: parseFloat($("c-logdef").value) || 180, regions: {} }, at: { defaut: parseFloat($("c-at").value) || 2.08, regions: {} }, vm: { defaut: parseFloat($("c-vm").value) || 0, regions: {} },
-    majoration_logement: { montant: parseFloat($("c-majo").value) || 0, regions: [] }, tarifs_paliers: lireTarifs(), heures: GrilleMoteur.HEURES };
+    majoration_logement: { montant: parseFloat($("c-majo").value) || 0, regions: [] }, tarifs_profils: lireTarifsProfils(), heures: GrilleMoteur.HEURES };
   const lireCol = (attr, dest) => $("tbl-logement").querySelectorAll("input[data-" + attr + "]").forEach(i => { if (i.value !== "" && isFinite(parseFloat(i.value))) dest[i.dataset[attr]] = parseFloat(i.value); });
   lireCol("log", P.logement.regions); lireCol("at", P.at.regions); lireCol("vm", P.vm.regions);
   $("tbl-logement").querySelectorAll("input[data-majo]").forEach(i => { if (i.checked) P.majoration_logement.regions.push(i.dataset.majo); });
@@ -316,13 +320,11 @@ function lireHypotheses() {
 }
 function perimer(motif) { CONS.perime = true; $("btn-cons-reprendre").disabled = true; if (CONS.resultats.length) { $("cons-synthese").textContent = motif + " : recalculer avant de reprendre."; } }
 document.querySelectorAll("[data-onglet='construction'] input, [data-onglet='construction'] select").forEach(el => el.addEventListener("change", () => perimer("Hypothèses modifiées après le calcul")));
-$("btn-tarif-plus").addEventListener("click", () => { const p = lireTarifsBrut(); const last = p[p.length - 1]; if (last && last.netMax >= 99) last.netMax = last.netMin + 1.5; p.push({ netMin: last ? last.netMax : 0, netMax: 99, tarif: last ? (last.tarif || 31.5) + 2 : 31.5, libelle: "", hors_grille: false }); rendreTarifs(p); perimer("Hypothèses modifiées après le calcul"); });
 $("btn-tarif-grille").addEventListener("click", () => {
   const F = LISTE.facturation; if (!F) { alert("Grille de facturation indisponible."); return; }
-  const pal = []; (F.categories || []).forEach((c, ci) => (c.paliers || []).forEach(p => { if (!pal.some(x => x.netMin === p.netMin && x.netMax === p.netMax)) pal.push({ netMin: p.netMin, netMax: p.netMax, tarif: p.tarif, libelle: p.libelle + " (" + (ci === 0 ? "catégorie 1" : "catégorie 2") + ")", hors_grille: false }); }));
-  pal.sort((a, b) => a.netMin - b.netMin);
-  if (pal.length) { pal.unshift({ netMin: 0, netMax: pal[0].netMin, tarif: pal[0].tarif, libelle: "Sous la grille (extension, quotation direction)", hors_grille: true }); const last = pal[pal.length - 1]; pal.push({ netMin: last.netMax, netMax: 99, tarif: last.tarif, libelle: "Au-delà de la grille (extension, quotation direction)", hors_grille: true }); }
-  rendreTarifs(pal); if (F.majorations && F.majorations.logement) $("c-majo").value = F.majorations.logement; perimer("Hypothèses modifiées après le calcul");
+  const tarifs = [...new Set((F.categories || []).flatMap(c => (c.paliers || []).map(p => +p.tarif)))].sort((a, b) => a - b);   // 31,50 / 33,50 / 35,50 → aides métier / ouvriers / profils supérieurs
+  const tp = {}; GrilleMoteur.PROFILS.forEach((p, k) => { tp[p] = tarifs[Math.min(k, tarifs.length - 1)]; });
+  rendreTarifs(tp); if (F.majorations && F.majorations.logement) $("c-majo").value = F.majorations.logement; perimer("Hypothèses modifiées après le calcul");
 });
 function consLigne(l) { return { region: l.region, bloc: l.bloc, profil: l.profil, net: l.net, heures: l.heures, brut: l.brut, coefficient: l.coefficient, igd: l.igd, igd_gc: l.igd_gc, igd_nb: l.igd_nb, repas_midi: l.repas_midi, repas_midi_nb: l.repas_midi_nb, repas_soir: l.repas_soir, repas_soir_nb: l.repas_soir_nb, transport: l.transport, transport_nb: l.transport_nb, trajet: l.trajet, trajet_nb: l.trajet_nb }; }
 async function calculer(toutes) {
@@ -339,29 +341,35 @@ function rendreResultats() {
   const R = CONS.resultats; const P = CONS.params; if (!R.length) { $("cons-resultats").innerHTML = ""; return; }
   const ok = R.filter(r => !r.alertes.some(a => a.type === "donnees")); const marges = ok.map(r => r.marge_pct).filter(v => isFinite(v)); const moy = marges.reduce((s, v) => s + v, 0) / (marges.length || 1);
   const nb = t => R.filter(r => r.alertes.some(a => a.type === t && a.niveau !== "info")).length, nbi = t => R.filter(r => r.alertes.some(a => a.type === t && a.niveau === "info")).length;
-  $("cons-synthese").innerHTML = "<b>" + ok.length + " lignes calculées</b>" + (R.length - ok.length ? " (" + (R.length - ok.length) + " non calculée(s) : brut ou net manquant)" : "") + " · marge brute au tarif de la grille : min <b>" + fmt(marges.length ? Math.min(...marges) : null) + " %</b>, moyenne <b>" + fmt(moy) + " %</b>, max <b>" + fmt(marges.length ? Math.max(...marges) : null) + " %</b> · <b>" + nb("marge") + "</b> sous l'objectif de " + P.marge_cible + " % · " + nb("net") + " déficit(s) de net (> " + N2.format(P.tolerance_net) + " €/h) · " + nbi("net") + " excédent(s) de net (> " + N2.format(P.tolerance_exces) + " €/h) · " + nbi("participation") + " participation(s) au-dessus du coût du logement · " + nb("minima") + " brut(s) sous le minimum conventionnel · " + nbi("tarif") + " net(s) hors grille de facturation.";
-  const regs = [...new Set(R.map(r => r.region))].sort();
-  const hMax = P.heures[P.heures.length - 1];
+  $("cons-synthese").innerHTML = "<b>" + ok.length + " lignes calculées</b>" + (R.length - ok.length ? " (" + (R.length - ok.length) + " non calculée(s) : brut ou net manquant)" : "") + " · marge brute au tarif : min <b>" + fmt(marges.length ? Math.min(...marges) : null) + " %</b>, moyenne <b>" + fmt(moy) + " %</b>, max <b>" + fmt(marges.length ? Math.max(...marges) : null) + " %</b> · <b>" + nb("marge") + "</b> sous l'objectif de " + P.marge_cible + " % · " + nb("net") + " déficit(s) de net (> " + N2.format(P.tolerance_net) + " €/h, " + nbi("proposition") + " proposition(s) repas / transport) · " + nbi("net") + " excédent(s) de net (> " + N2.format(P.tolerance_exces) + " €/h) · " + nbi("participation") + " participation(s) au-dessus du coût du logement · " + nb("minima") + " brut(s) sous le minimum conventionnel.";
+  const regs = [...new Set(R.map(r => r.region))].sort(); const hMax = P.heures[P.heures.length - 1];
   let html = "";
   for (const reg of regs) {
-    html += "<h3 style='font-size:14px; margin:12px 0 6px'>" + esc(reg) + "</h3><div class='blocs'>";
+    html += "<h3 style='font-size:15px; margin:14px 0 6px'>" + esc(reg) + "</h3><div class='cons-blocs'>";
     for (const [bl, lib, cls] of BLOCS) {
-      const rs = R.filter(r => r.region === reg && r.bloc === bl).sort((a, b) => a.net - b.net); if (!rs.length) continue;
-      const loge = GrilleMoteur.LOGE(bl);
-      html += "<div class='bloc " + cls + " cons'><h3>" + esc(lib) + "</h3><div class='tbl'><table><tr><th>Profil</th><th class='n'>Net</th><th class='n'>Brut</th><th class='n'>Coef</th><th class='n'>Tarif</th>" + (loge ? "<th class='n'>" + (P.mode === 2 ? "IGD résolue" : "Particip. / sem") + "</th>" : "") + "<th class='n'>Net atteint</th><th class='n'>Marge " + "35" + " h</th><th class='n'>Tarif pour " + P.marge_cible + " %</th><th class='n'>Marge " + hMax + " h</th>" + (loge ? "<th class='n'>Grand compte</th>" : "") + "<th>Alertes</th></tr>";
-      for (const r of rs) {
-        const grave = r.alertes.some(a => a.niveau !== "info"), info = r.alertes.length > 0; const sc = r.scenarios[r.scenarios.length - 1] || {};
-        const id = [r.region, r.bloc, r.profil, r.net].join("|");
-        html += "<tr class='" + (grave ? "bad" : info ? "warn" : "") + "' data-sc=\"" + esc(id) + "\" title='cliquer : scénarios horaires'><td>" + esc(r.profil) + "</td><td class='n k'>" + fmt(r.net) + "</td><td class='n'>" + fmt(r.brut) + "</td><td class='n'>" + esc(r.coefficient || "—") + "</td><td class='n'>" + fmt(r.tarif) + "</td>" +
-          (loge ? "<td class='n k'>" + (P.mode === 2 ? (r.igd != null ? fmt(r.igd) + " €/j" : "—") : fmt(r.participation) + " €") + "</td>" : "") +
-          "<td class='n'>" + fmt(r.net_atteint) + (r.ecart != null && Math.abs(r.ecart) > P.tolerance_net ? " <span class='note'>(" + (r.ecart > 0 ? "+" : "") + fmt(r.ecart) + ")</span>" : "") + "</td><td class='n k'>" + fmt(r.marge_pct) + " %</td><td class='n'>" + fmt(r.tarif_marge_cible) + "</td><td class='n'>" + (sc.marge_pct != null ? fmt(sc.marge_pct) + " %" : "—") + "</td>" +
-          (loge ? "<td class='n'>" + (r.grand_compte ? "net " + fmt(r.grand_compte.net_meme_participation) + " / marge " + fmt(r.grand_compte.marge_meme_participation) + " %" : "—") + "</td>" : "") +
-          "<td class='al'>" + esc(r.alertes.map(a => a.texte).join(" · ")) + "</td></tr>";
-        html += "<tr class='sc' data-scid=\"" + esc(id) + "\" hidden><td colspan='13'><div class='sc'><table><tr><th>Heures travaillées</th>" + r.scenarios.map(s => "<th class='n'>" + s.heures + " h</th>").join("") + "</tr><tr><td>Heures facturées</td>" + r.scenarios.map(s => "<td class='n'>" + fmt(s.heures_facturees) + "</td>").join("") + "</tr><tr><td>Net versé / h</td>" + r.scenarios.map(s => "<td class='n'>" + fmt(s.net) + "</td>").join("") + "</tr><tr><td>Marge brute</td>" + r.scenarios.map(s => "<td class='n'>" + fmt(s.marge_pct) + " %</td>").join("") + "</tr><tr><td>CA semaine</td>" + r.scenarios.map(s => "<td class='n'>" + fmt(s.ca) + "</td>").join("") + "</tr><tr><td>Coût semaine</td>" + r.scenarios.map(s => "<td class='n'>" + fmt(s.cout) + "</td>").join("") + "</tr></table>" +
-          "<div class='note'>" + (loge ? (P.mode === 2 ? "participation fixée " + fmt(r.participation) + " € / semaine, IGD résolue " + fmt(r.igd) + " € / jour × " + (r.igd_nb || "—") : "participation logement résolue " + fmt(r.participation) + " € / semaine (coût du logement " + fmt(r.logement) + " €)") + " · " : "") + "CA " + r.heures + " h " + fmt(r.ca) + " € · coût complet " + fmt(r.cout) + " € · brut semaine " + fmt(r.brut_semaine) + " € · net versé semaine " + fmt(r.net_semaine) + " € · retenue à la source " + fmt(r.pas) + " €" + (r.ajustement ? " · ajustement nécessaire " + fmt(r.ajustement) + " € / semaine" : "") +
-          (r.grand_compte ? "<br>Grand compte (IGD " + fmt(r.grand_compte.igd) + " €) : à participation identique le salarié touche " + fmt(r.grand_compte.net_meme_participation) + " € / h (marge " + fmt(r.grand_compte.marge_meme_participation) + " %) ; pour tenir le net cible, participation " + fmt(r.grand_compte.participation_pour_net) + " € / semaine (marge " + fmt(r.grand_compte.marge_pour_net) + " %)." : "") + "</div></div></td></tr>";
+      const rb = R.filter(r => r.region === reg && r.bloc === bl); if (!rb.length) continue;
+      html += "<div class='bloc " + cls + " cons'><h3>" + esc(lib) + "</h3>";
+      const profils = GrilleMoteur.PROFILS.concat([...new Set(rb.map(r => r.profil))].filter(p => !GrilleMoteur.PROFILS.includes(p)));
+      for (const prof of profils) {
+        const rs = rb.filter(r => r.profil === prof).sort((a, b) => a.net - b.net); if (!rs.length) continue;
+        const loge = rs.some(r => r.loge); const tarif = rs[0].tarif;
+        html += "<div class='niveau " + (NIV_CLS[prof] || "") + "'><div class='niv-t'>" + esc(prof) + " <span class='note'>tarif " + fmt(tarif) + " € HT / h" + (loge ? " · logé par AB Service" : " · non logé") + "</span></div><div class='tbl'><table>" +
+          "<tr><th class='n'>Net cible</th><th class='n'>Brut</th><th class='n'>Coef</th><th>Indemnités de la ligne</th>" + (loge ? "<th class='n'>" + (P.mode === 2 ? "IGD résolue" : "Particip. / sem") + "</th>" : "") + "<th class='n'>Net atteint</th><th class='n'>Marge " + rs[0].heures + " h</th><th class='n'>Tarif pour " + P.marge_cible + " %</th><th class='n'>Marge " + hMax + " h</th>" + (loge ? "<th class='n'>Grand compte</th>" : "") + "</tr>";
+        for (const r of rs) {
+          const grave = r.alertes.some(a => a.niveau !== "info"); const sc = r.scenarios[r.scenarios.length - 1] || {}; const id = [r.region, r.bloc, r.profil, r.net].join("|");
+          html += "<tr class='" + (grave ? "bad" : "") + "' data-sc=\"" + esc(id) + "\" title='cliquer : scénarios horaires'><td class='n k'>" + fmt(r.net) + "</td><td class='n'>" + fmt(r.brut) + "</td><td class='n'>" + esc(r.coefficient || "—") + "</td><td>" + esc(r.indemnites || "") + "</td>" +
+            (loge ? "<td class='n k'>" + (r.loge ? (P.mode === 2 ? (r.igd != null ? fmt(r.igd) + " €/j" : "—") : fmt(r.participation) + " €") : "—") + "</td>" : "") +
+            "<td class='n'>" + fmt(r.net_atteint) + (r.ecart != null && Math.abs(r.ecart) > P.tolerance_net ? " <span class='note'>(" + (r.ecart > 0 ? "+" : "") + fmt(r.ecart) + ")</span>" : "") + "</td><td class='n k'>" + fmt(r.marge_pct) + " %</td><td class='n'>" + fmt(r.tarif_marge_cible) + "</td><td class='n'>" + (sc.marge_pct != null ? fmt(sc.marge_pct) + " %" : "—") + "</td>" +
+            (loge ? "<td class='n'>" + (r.grand_compte ? "net " + fmt(r.grand_compte.net_meme_participation) + " / " + fmt(r.grand_compte.marge_meme_participation) + " %" : "—") + "</td>" : "") + "</tr>";
+          const graves = r.alertes.filter(a => a.niveau !== "info" && a.type !== "net"), netA = r.alertes.find(a => a.type === "net" && a.niveau !== "info"), infos = r.alertes.filter(a => a.niveau === "info" && a.type !== "proposition");
+          if (graves.length || netA || infos.length || r.proposition) html += "<tr class='det" + (graves.length || netA ? "" : " info") + "'><td colspan='12'>" + esc([...(netA ? [netA] : []), ...graves].map(a => a.texte).join(" · ")) + (r.proposition ? "<span class='prop'>" + esc(r.proposition.texte) + "</span>" : "") + (infos.length ? "<span class='note' style='display:block'>" + esc(infos.map(a => a.texte).join(" · ")) + "</span>" : "") + "</td></tr>";
+          html += "<tr class='sc' data-scid=\"" + esc(id) + "\" hidden><td colspan='12'><div class='sc'><table><tr><th>Heures travaillées</th>" + r.scenarios.map(s => "<th class='n'>" + s.heures + " h</th>").join("") + "</tr><tr><td>Heures facturées</td>" + r.scenarios.map(s => "<td class='n'>" + fmt(s.heures_facturees) + "</td>").join("") + "</tr><tr><td>Net versé / h</td>" + r.scenarios.map(s => "<td class='n'>" + fmt(s.net) + "</td>").join("") + "</tr><tr><td>Marge brute</td>" + r.scenarios.map(s => "<td class='n'>" + fmt(s.marge_pct) + " %</td>").join("") + "</tr><tr><td>CA semaine</td>" + r.scenarios.map(s => "<td class='n'>" + fmt(s.ca) + "</td>").join("") + "</tr><tr><td>Coût semaine</td>" + r.scenarios.map(s => "<td class='n'>" + fmt(s.cout) + "</td>").join("") + "</tr></table>" +
+            "<div class='note'>" + (r.loge ? (P.mode === 2 ? "participation fixée " + fmt(r.participation) + " € / semaine, IGD résolue " + fmt(r.igd) + " € / jour × " + (r.igd_nb || "—") : "participation logement résolue " + fmt(r.participation) + " € / semaine (coût du logement " + fmt(r.logement) + " €)") + " · " : "") + "CA " + r.heures + " h " + fmt(r.ca) + " € · coût complet " + fmt(r.cout) + " € · brut semaine " + fmt(r.brut_semaine) + " € · net versé semaine " + fmt(r.net_semaine) + " € · retenue à la source " + fmt(r.pas) + " €" + (GrilleMoteur.ETRANGER(r.bloc) ? " · résident étranger : CSG/CRDS exonérées, maladie 5,5 %, retenue 182 A" : "") +
+            (r.grand_compte ? "<br>Grand compte (IGD " + fmt(r.grand_compte.igd) + " €) : à participation identique le salarié touche " + fmt(r.grand_compte.net_meme_participation) + " € / h (marge " + fmt(r.grand_compte.marge_meme_participation) + " %) ; pour tenir le net cible, participation " + fmt(r.grand_compte.participation_pour_net) + " € / semaine (marge " + fmt(r.grand_compte.marge_pour_net) + " %)." : "") + "</div></div></td></tr>";
+        }
+        html += "</table></div></div>";
       }
-      html += "</table></div></div>";
+      html += "</div>";
     }
     html += "</div>";
   }
@@ -380,7 +388,7 @@ $("btn-cons-hyp").addEventListener("click", async () => {
 $("btn-cons-reprendre").addEventListener("click", async () => {
   if (!G || G.statut !== "brouillon" || !CONS.resultats.length || CONS.perime) return;
   const P = CONS.params; const lignes = CONS.resultats.map(r => { const v = GrilleMoteur.versLigne(r, P); return v ? Object.assign({ region: r.region, bloc: r.bloc, profil: r.profil, net: r.net }, v) : null; }).filter(Boolean);
-  const nonLog = CONS.resultats.filter(r => !GrilleMoteur.LOGE(r.bloc)).length;
+  const nonLog = CONS.resultats.filter(r => !r.loge).length;
   if (!confirm("Reprendre " + lignes.length + " ligne(s) calculées dans le brouillon ?\n" + (P.mode === 2 ? "Blocs logés : participation fixée, IGD résolue (et nombre de jours) écrites sur la ligne. " : "Blocs logés : participation résolue écrite sur la ligne. ") + (nonLog ? nonLog + " ligne(s) non logée(s) : net vérifié, aucune participation. " : "") + "Marge, détail du calcul et hypothèses utilisées sont enregistrés avec chaque ligne.")) return;
   const r = await post("/api/grille-btp/lignes", { grille_id: G.id, lignes, construction: GrilleMoteur.hypotheses(P) }).catch(() => ({ erreur: "serveur" }));
   $("msg-cons").className = r.ok ? "msg ok" : "msg err"; $("msg-cons").textContent = r.ok ? r.modifiees + " ligne(s) mises à jour dans le brouillon" + (r.ignorees ? " (" + r.ignorees + " ignorée(s))" : "") + "." : (r.erreur === "lot_partiel" ? "Échec en cours de reprise : " + r.modifiees + " ligne(s) mises à jour avant l'erreur — rechargez la grille et recommencez." : "Erreur : " + (r.erreur || "?"));
