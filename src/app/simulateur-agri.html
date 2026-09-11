@@ -2388,6 +2388,12 @@ function render(r) {
     }
     $("leviers-out").innerHTML = txt;
   }
+  /* versement mobilité approché (moyenne département / France) : impact de l'incertitude sur le taux de marge =
+     écart absolu moyen des taux (pondéré population) × brut / CA — un point de VM vaut brut/CA point de marge */
+  if (VM_BANDE && m.O60 > 0 && m.F42 > 0) {
+    const ptParPoint = m.F42 / m.O60;   // points de marge par point de VM
+    $("vm-src").textContent = "— " + VM_SRC + " · selon la commune : de " + N2.format(VM_BANDE.p10) + " à " + N2.format(VM_BANDE.p90) + " %, soit en moyenne ± " + N2.format(VM_BANDE.mad * ptParPoint) + " pt de marge (1 pt de VM = " + N2.format(ptParPoint) + " pt de marge)";
+  }
   $("pilot-part").disabled = false;   /* levier toujours disponible (rôle plancher en mode SANS participation) */
   /* premier remplissage (avant régul) — le bloc cascade REFINE ensuite avec le net atteint (avances incluses),
      pour que la carte Logement et le panneau « Contrôle du net » racontent la MÊME histoire */
@@ -3127,7 +3133,7 @@ function renderFact(m) {
   if (m.recrutCout) s += kvRow("Prestataire recrutement " + N2.format(inp.recrutTarifH) + " € HT × " + N2.format(inp.heures) + " h travaillées (coût interne, non refacturé)", "", fmtE(-m.recrutCout));
   if (m.cetCoutReel > 0.005) s += kvRow("Coûts CET réels — abondement " + N2.format(inp.cetAbondPct) + " %/débloc. + contrat de causerie " + N2.format(inp.cetCauserieH) + " h × " + N2.format(inp.cetDebloc) + " déblocage(s)/an (contrat court dédié, fiche de paie à part, payé non facturé — isole le versement du CET des paies de mission)", "", fmtE(-m.cetCoutReel));
   { const LIB_EFF = { "50plus": "50 salariés et plus", "20-49": "20 à 49 salariés", "11-19": "11 à 19 salariés", "moins11": "moins de 11 salariés" };
-    s += kvRow("Effectif de l'entité retenu (sécurité sociale, intérimaires compris) — FNAL, PEEC, CFP, déduction HS, Tdelta RGDU", "", (LIB_EFF[inp.effectif] || "50 salariés et plus") + (inp.vmPct ? " · versement mobilité " + N2.format(inp.vmPct) + " % (" + (VM_SRC || "commune du chantier") + ")" : " · hors zone de versement mobilité")); }
+    s += kvRow("Effectif de l'entité retenu (sécurité sociale, intérimaires compris) — FNAL, PEEC, CFP, déduction HS, Tdelta RGDU", "", (LIB_EFF[inp.effectif] || "50 salariés et plus") + (inp.vmPct ? " · versement mobilité " + N2.format(inp.vmPct) + " % (" + (VM_SRC || "commune du chantier") + (VM_BANDE && m.O60 > 0 ? ", selon la commune de " + N2.format(VM_BANDE.p10) + " à " + N2.format(VM_BANDE.p90) + " % soit ± " + N2.format(VM_BANDE.mad * m.F42 / m.O60) + " pt de marge" : "") + ")" : " · hors zone de versement mobilité")); }
   if (inp.cetPireCas && m.rgduPerte900 > 0.005) s += kvRow("Pire scénario §900 APPLIQUÉ — réduction générale recalculée avec le différé CET réintégré au dernier contrat réel (borne basse prudentielle ; défaut maison = gain préservé par contrat de causerie)", "", fmtE(-m.rgduPerte900));
   if (m.levierCet || m.levierHS) {
     const sans = compute(Object.assign({}, inp, { cetRepos: false, hsRepos: false })).main;
@@ -3450,8 +3456,14 @@ $("in-agence").addEventListener("change", () => {
    Table URSSAF open data (vm-communes.json : taux VM + additionnel + régional en vigueur, par code INSEE) ; repli : moyenne
    pondérée par la population du département de la mission, puis moyenne France. Manuel = saisie conservée jusqu'au prochain
    choix de chantier ou de département. ===== */
-let VM_TABLE = null, VM_SRC = "";
-fetch("data/vm-communes.json", { cache: "force-cache" }).then(r => r.ok ? r.json() : null).then(t => { VM_TABLE = t; appliquerVM(false); }).catch(() => {});
+let VM_TABLE = null, VM_SRC = "", VM_BANDE = null;   /* VM_BANDE : dispersion des taux quand on utilise une moyenne (p10, p90, mad) */
+/* URL versionnée : un navigateur qui garde l'ancienne table (format sans déciles) ne doit pas la réutiliser */
+fetch("data/vm-communes.json?v=2026-09-10b").then(r => r.ok ? r.json() : null).then(t => {
+  if (!t) return;
+  const normer = st => (typeof st === "number" ? { m: st, p10: st, p90: st, mad: 0 } : st);   // tolère l'ancien format (nombre seul)
+  t.france = normer(t.france); Object.keys(t.dept || {}).forEach(k => { t.dept[k] = normer(t.dept[k]); });
+  VM_TABLE = t; appliquerVM(false);
+}).catch(() => {});
 function vmPourCode(code) {
   if (!VM_TABLE || !code) return null;
   const t = VM_TABLE.taux[code];
@@ -3464,13 +3476,15 @@ function appliquerVM(force) {
   const el = $("in-vm"); const ch = ADR_CACHE[$("in-adr-cha").value.trim()];
   const depCode = ($("in-dept").value || "").split(" ")[0];
   let val = null, src = "";
+  let bande = null;
   if (ch && ch.citycode) { const t = vmPourCode(ch.citycode); if (t != null) { val = t; src = "commune du chantier : " + (ch.city || ch.citycode) + " (table URSSAF)"; } }
-  if (val == null && depCode && VM_TABLE.dept[depCode] != null) { val = VM_TABLE.dept[depCode]; src = "moyenne pondérée du département " + depCode + " (sans adresse de chantier)"; }
-  if (val == null) { val = VM_TABLE.france; src = "moyenne France pondérée (ni chantier ni département)"; }
+  if (val == null && depCode && VM_TABLE.dept[depCode]) { const st = VM_TABLE.dept[depCode]; val = st.m; bande = st; src = "moyenne pondérée du département " + depCode + " (sans adresse de chantier)"; }
+  if (val == null) { const st = VM_TABLE.france; val = st.m; bande = st; src = "moyenne France pondérée (ni chantier ni département)"; }
+  VM_BANDE = bande;
   if (!force && el.dataset.manuel === "1") { $("vm-src").textContent = "— saisie manuelle"; return; }
   el.value = val; el.dataset.manuel = ""; VM_SRC = src; $("vm-src").textContent = "— " + src;
 }
-$("in-vm").addEventListener("input", () => { $("in-vm").dataset.manuel = "1"; VM_SRC = "saisie manuelle"; $("vm-src").textContent = "— saisie manuelle"; });
+$("in-vm").addEventListener("input", () => { $("in-vm").dataset.manuel = "1"; VM_SRC = "saisie manuelle"; VM_BANDE = null; $("vm-src").textContent = "— saisie manuelle"; });
 $("in-adr-cha").addEventListener("change", async () => {
   const q = $("in-adr-cha").value.trim();
   if (q && !ADR_CACHE[q]) { try { await geocodeBAN(q); const c = ADR_CACHE[q] || null; if (!c) { const cs = await banCandidates(q, 1); if (cs.length) ADR_CACHE[q] = cs[0]; } } catch (e) {} }

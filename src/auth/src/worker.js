@@ -16,7 +16,7 @@ const estSuper = x => !!x && x.role === "super_admin";
 /* Accès par section : l'admin choisit les applications visibles par chaque utilisateur.
  * utilisateurs.sections = NULL → accès à tout (héritage) ; sinon tableau JSON de slugs.
  * Les admins et super admins voient toujours tout. */
-const SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe", "logements", "prestataires", "salaires-btp", "tarifs-btp", "notes"];
+const SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe", "logements", "prestataires", "salaires-btp", "tarifs-btp", "notes", "grille-btp", "paie-btp"];
 
 /* Adresse de réponse des communications EXTERNES d'AB Service (réservations
  * DATAtourisme, etc.) — domaine dédié actif depuis le 03/09/2026 (Email Routing
@@ -1127,6 +1127,130 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
   }
 
   /* -- évaluation & salaire net BTP : droits et documents ; grille de facturation réservée à « tarifs-btp » -- */
+  /* ===== Grille de rémunération Construction ===================================================================
+   * grille-btp = Direction (construction, contrôle, validation, historique, grands comptes, paramètres)
+   * paie-btp   = gestionnaires de paie : mini-simulateur en LECTURE SEULE de la grille validée applicable à une date
+   * (jamais de marge, de coût ni d'hypothèse côté paie). Une grille validée n'est jamais modifiée : nouvelle version. */
+  if (p.startsWith("/api/grille-btp/")) {
+    if (!u) return json({ erreur: "non_connecte" }, 401);
+    const secsG = sectionsDe(u); const dir = secsG.includes("grille-btp"); const paieOK = dir || secsG.includes("paie-btp");
+    if (!paieOK) return json({ erreur: "acces_refuse" }, 403);
+    const op = p.slice("/api/grille-btp/".length);
+    const aujourdhui = () => { const d = (typeof parisNow === "function") ? parisNow() : new Date(); return d.toISOString().slice(0, 10); };
+    const lireLignes = async id => (await env.DB.prepare("SELECT * FROM grilles_btp_lignes WHERE grille_id = ? ORDER BY region, bloc, net").bind(id).all()).results;
+    const grilleAppl = async date => await env.DB.prepare("SELECT * FROM grilles_btp WHERE statut = 'validee' AND application_du <= ? ORDER BY application_du DESC, version DESC LIMIT 1").bind(date).first();
+    const nomU = () => (typeof nomComplet === "function" ? nomComplet(u) : ((u.prenom ? u.prenom + " " : "") + (u.nom || u.email || "")));
+    const resume = g => ({ id: g.id, annee: g.annee, version: g.version, libelle: g.libelle, statut: g.statut, application_du: g.application_du, cree_le: g.cree_le, cree_par: g.cree_par, validee_le: g.validee_le, validee_par: g.validee_par });
+    const params = g => { try { return JSON.parse(g.params || "{}"); } catch (e) { return {}; } };
+    /* ---------- gestionnaires de paie ---------- */
+    if (op === "paie/options") {
+      const date = /^\d{4}-\d{2}-\d{2}$/.test(url.searchParams.get("date") || "") ? url.searchParams.get("date") : aujourdhui();
+      const g = await grilleAppl(date);
+      if (!g) return json({ ok: true, date, grille: null, regions: [], profils: [], nets: [], grands_comptes: [], combinaisons: [] });
+      const l = await lireLignes(g.id);
+      const regs = (await env.DB.prepare("SELECT region, departements FROM grilles_btp_regions ORDER BY region").all()).results;
+      const gcs = (await env.DB.prepare("SELECT client, region FROM grands_comptes_btp WHERE actif = 1 ORDER BY client").all()).results;
+      return json({ ok: true, date, grille: resume(g), rubriques: params(g).rubriques || {}, regions: regs, grands_comptes: gcs,
+        profils: [...new Set(l.map(x => x.profil))], nets: [...new Set(l.map(x => x.net))].sort((a, b) => a - b),
+        combinaisons: l.map(x => ({ region: x.region, bloc: x.bloc, profil: x.profil, net: x.net })) });
+    }
+    if (op === "paie/ligne") {
+      const date = /^\d{4}-\d{2}-\d{2}$/.test(url.searchParams.get("date") || "") ? url.searchParams.get("date") : aujourdhui();
+      const g = await grilleAppl(date); if (!g) return json({ erreur: "aucune_grille_applicable" }, 404);
+      const region = url.searchParams.get("region") || "", bloc = url.searchParams.get("bloc") || "", profil = url.searchParams.get("profil") || "";
+      const net = parseFloat(url.searchParams.get("net")); const gc = url.searchParams.get("gc") === "1";
+      const x = await env.DB.prepare("SELECT * FROM grilles_btp_lignes WHERE grille_id = ? AND region = ? AND bloc = ? AND profil = ? AND ABS(net - ?) < 0.001").bind(g.id, region, bloc, profil, isFinite(net) ? net : -1).first();
+      if (!x) return json({ erreur: "combinaison_absente" }, 404);
+      await journal(env, req, u, "grille_btp_lecture", region + " · " + bloc + " · " + profil + " · " + net + (gc ? " · grand compte" : ""));
+      const r = params(g).rubriques || {}; const rub = [];
+      const push = (code, lib, montant, nb, extra) => { if (montant != null && montant > 0) rub.push(Object.assign({ code: code || "", libelle: lib, montant, nb: nb || null }, extra || {})); };
+      const gcApplique = gc && x.igd_gc != null;
+      push(r.igd, "IGD (indemnité de grand déplacement)", gcApplique ? x.igd_gc : x.igd, x.igd_nb, gcApplique ? { grand_compte: true } : null);
+      push(bloc.endsWith("_loge") ? r.repas_midi_loge : r.repas_midi_non_loge, "Repas midi", x.repas_midi, x.repas_midi_nb);
+      push(bloc.startsWith("fr") ? r.repas_soir_fr : r.repas_soir_etranger, "Repas soir", x.repas_soir, x.repas_soir_nb);
+      push(r.transport, "Transport", x.transport, x.transport_nb);
+      push(r.trajet, "Trajet", x.trajet, x.trajet_nb);
+      return json({ ok: true, date, grille: resume(g), ligne: { region, bloc, profil, net: x.net, heures: x.heures, brut: x.brut, coefficient: x.coefficient, participation: x.participation }, rubriques: rub, grand_compte: gcApplique });
+    }
+    /* ---------- Direction ---------- */
+    if (!dir) return json({ erreur: "reserve_direction" }, 403);
+    if (op === "liste") {
+      const gs = (await env.DB.prepare("SELECT g.*, (SELECT COUNT(*) FROM grilles_btp_lignes l WHERE l.grille_id = g.id) AS nb_lignes FROM grilles_btp g ORDER BY annee DESC, version DESC").all()).results;
+      const regs = (await env.DB.prepare("SELECT region, departements FROM grilles_btp_regions ORDER BY region").all()).results;
+      const gcs = (await env.DB.prepare("SELECT * FROM grands_comptes_btp ORDER BY actif DESC, client").all()).results;
+      return json({ ok: true, grilles: gs.map(g => Object.assign(resume(g), { nb_lignes: g.nb_lignes, params: params(g) })), regions: regs, grands_comptes: gcs, aujourdhui: aujourdhui() });
+    }
+    if (op === "grille" && req.method !== "POST") {
+      const id = parseInt(url.searchParams.get("id") || "0", 10);
+      const g = await env.DB.prepare("SELECT * FROM grilles_btp WHERE id = ?").bind(id).first(); if (!g) return json({ erreur: "grille_introuvable" }, 404);
+      return json({ ok: true, grille: Object.assign(resume(g), { params: params(g) }), lignes: await lireLignes(g.id) });
+    }
+    if (op === "nouvelle" && req.method === "POST") {
+      /* nouvelle version = copie intégrale d'une grille existante, en brouillon */
+      const src = await env.DB.prepare("SELECT * FROM grilles_btp WHERE id = ?").bind(corps.source_id | 0).first(); if (!src) return json({ erreur: "source_introuvable" }, 404);
+      const annee = parseInt(corps.annee, 10) || src.annee;
+      const v = await env.DB.prepare("SELECT COALESCE(MAX(version), 0) + 1 AS v FROM grilles_btp WHERE annee = ?").bind(annee).first();
+      const appl = /^\d{4}-\d{2}-\d{2}$/.test(corps.application_du || "") ? corps.application_du : (annee + "-01-01");
+      const ins = await env.DB.prepare("INSERT INTO grilles_btp (annee, version, libelle, statut, application_du, params, cree_par) VALUES (?,?,?,'brouillon',?,?,?)")
+        .bind(annee, v.v, String(corps.libelle || ("Grille Construction " + annee + " v" + v.v)).slice(0, 120), appl, src.params, nomU()).run();
+      const nid = ins.meta.last_row_id;
+      await env.DB.prepare("INSERT INTO grilles_btp_lignes (grille_id, region, bloc, profil, net, heures, brut, coefficient, igd, igd_gc, igd_nb, repas_midi, repas_midi_nb, repas_soir, repas_soir_nb, transport, transport_nb, trajet, trajet_nb, participation, marge_pct, calcul) SELECT ?, region, bloc, profil, net, heures, brut, coefficient, igd, igd_gc, igd_nb, repas_midi, repas_midi_nb, repas_soir, repas_soir_nb, transport, transport_nb, trajet, trajet_nb, participation, marge_pct, calcul FROM grilles_btp_lignes WHERE grille_id = ?").bind(nid, src.id).run();
+      await journal(env, req, u, "grille_btp_nouvelle", "v" + v.v + " " + annee + " depuis #" + src.id);
+      return json({ ok: true, id: nid, version: v.v });
+    }
+    if (op === "grille" && req.method === "POST") {
+      const g = await env.DB.prepare("SELECT * FROM grilles_btp WHERE id = ?").bind(corps.id | 0).first(); if (!g) return json({ erreur: "grille_introuvable" }, 404);
+      const champs = [], vals = [];
+      if (corps.libelle != null) { champs.push("libelle = ?"); vals.push(String(corps.libelle).slice(0, 120)); }
+      if (corps.application_du != null) { if (!/^\d{4}-\d{2}-\d{2}$/.test(corps.application_du)) return json({ erreur: "date_invalide" }, 400); champs.push("application_du = ?"); vals.push(corps.application_du); }
+      if (corps.params != null) { if (g.statut !== "brouillon") return json({ erreur: "grille_non_modifiable" }, 409); champs.push("params = ?"); vals.push(JSON.stringify(corps.params).slice(0, 200000)); }
+      if (!champs.length) return json({ erreur: "rien_a_modifier" }, 400);
+      vals.push(g.id); await env.DB.prepare("UPDATE grilles_btp SET " + champs.join(", ") + " WHERE id = ?").bind(...vals).run();
+      return json({ ok: true });
+    }
+    if (op === "ligne" && req.method === "POST") {
+      const g = await env.DB.prepare("SELECT * FROM grilles_btp WHERE id = ?").bind(corps.grille_id | 0).first(); if (!g) return json({ erreur: "grille_introuvable" }, 404);
+      if (g.statut !== "brouillon") return json({ erreur: "grille_non_modifiable" }, 409);
+      const N = v => (v === "" || v == null) ? null : (isFinite(parseFloat(String(v).replace(",", "."))) ? parseFloat(String(v).replace(",", ".")) : null);
+      const blocs = ["etranger_loge", "etranger_non_loge", "fr_loge", "fr_non_loge"]; if (!blocs.includes(corps.bloc)) return json({ erreur: "bloc_invalide" }, 400);
+      const net = N(corps.net); if (net == null) return json({ erreur: "net_invalide" }, 400);
+      if (corps.supprimer) { await env.DB.prepare("DELETE FROM grilles_btp_lignes WHERE grille_id = ? AND region = ? AND bloc = ? AND profil = ? AND ABS(net - ?) < 0.001").bind(g.id, String(corps.region), corps.bloc, String(corps.profil), net).run(); return json({ ok: true }); }
+      await env.DB.prepare("INSERT INTO grilles_btp_lignes (grille_id, region, bloc, profil, net, heures, brut, coefficient, igd, igd_gc, igd_nb, repas_midi, repas_midi_nb, repas_soir, repas_soir_nb, transport, transport_nb, trajet, trajet_nb, participation, marge_pct, calcul) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(grille_id, region, bloc, profil, net) DO UPDATE SET heures = excluded.heures, brut = excluded.brut, coefficient = excluded.coefficient, igd = excluded.igd, igd_gc = excluded.igd_gc, igd_nb = excluded.igd_nb, repas_midi = excluded.repas_midi, repas_midi_nb = excluded.repas_midi_nb, repas_soir = excluded.repas_soir, repas_soir_nb = excluded.repas_soir_nb, transport = excluded.transport, transport_nb = excluded.transport_nb, trajet = excluded.trajet, trajet_nb = excluded.trajet_nb, participation = excluded.participation, marge_pct = excluded.marge_pct, calcul = excluded.calcul")
+        .bind(g.id, String(corps.region).slice(0, 60), corps.bloc, String(corps.profil).slice(0, 40), net, N(corps.heures) || 35, N(corps.brut), corps.coefficient == null || corps.coefficient === "" ? null : parseInt(corps.coefficient, 10) || null,
+              N(corps.igd), N(corps.igd_gc), N(corps.igd_nb), N(corps.repas_midi), N(corps.repas_midi_nb), N(corps.repas_soir), N(corps.repas_soir_nb), N(corps.transport), N(corps.transport_nb), N(corps.trajet), N(corps.trajet_nb), N(corps.participation), N(corps.marge_pct), corps.calcul ? JSON.stringify(corps.calcul).slice(0, 20000) : null).run();
+      return json({ ok: true });
+    }
+    if (op === "statut" && req.method === "POST") {
+      const g = await env.DB.prepare("SELECT * FROM grilles_btp WHERE id = ?").bind(corps.id | 0).first(); if (!g) return json({ erreur: "grille_introuvable" }, 404);
+      const st = corps.statut;
+      if (st === "validee") {
+        if (!g.application_du) return json({ erreur: "date_application_requise" }, 400);
+        await env.DB.prepare("UPDATE grilles_btp SET statut = 'validee', validee_le = datetime('now'), validee_par = ? WHERE id = ?").bind(nomU(), g.id).run();
+      } else if (st === "archivee") {
+        await env.DB.prepare("UPDATE grilles_btp SET statut = 'archivee' WHERE id = ?").bind(g.id).run();
+      } else if (st === "brouillon") {
+        if (g.statut === "validee") return json({ erreur: "grille_validee_immuable" }, 409);   // une grille validée ne redevient pas modifiable : nouvelle version
+        await env.DB.prepare("UPDATE grilles_btp SET statut = 'brouillon' WHERE id = ?").bind(g.id).run();
+      } else return json({ erreur: "statut_invalide" }, 400);
+      await journal(env, req, u, "grille_btp_statut", "#" + g.id + " → " + st);
+      return json({ ok: true });
+    }
+    if (op === "grands-comptes" && req.method === "POST") {
+      if (corps.supprimer) { await env.DB.prepare("DELETE FROM grands_comptes_btp WHERE id = ?").bind(corps.id | 0).run(); return json({ ok: true }); }
+      const client = String(corps.client || "").trim().slice(0, 120); if (!client) return json({ erreur: "client_requis" }, 400);
+      if (corps.id) await env.DB.prepare("UPDATE grands_comptes_btp SET client = ?, region = ?, actif = ? WHERE id = ?").bind(client, String(corps.region || "").slice(0, 60), corps.actif === false ? 0 : 1, corps.id | 0).run();
+      else await env.DB.prepare("INSERT INTO grands_comptes_btp (client, region, actif) VALUES (?,?,1)").bind(client, String(corps.region || "").slice(0, 60)).run();
+      return json({ ok: true });
+    }
+    if (op === "region" && req.method === "POST") {
+      const region = String(corps.region || "").trim().toUpperCase().slice(0, 60); if (!region) return json({ erreur: "region_requise" }, 400);
+      if (corps.supprimer) { await env.DB.prepare("DELETE FROM grilles_btp_regions WHERE region = ?").bind(region).run(); return json({ ok: true }); }
+      await env.DB.prepare("INSERT OR REPLACE INTO grilles_btp_regions (region, departements) VALUES (?, ?)").bind(region, String(corps.departements || "").replace(/\s+/g, "").slice(0, 200)).run();
+      return json({ ok: true });
+    }
+    return json({ erreur: "operation_inconnue" }, 404);
+  }
+
   if (p === "/api/salaires-btp") {
     if (!u) return json({ erreur: "non_connecte" }, 401);
     const secs = sectionsDe(u);

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<title>Paie Construction — AB2Pro</title>
+<style>
+/* ===== Mini-simulateur des gestionnaires de paie : lecture seule de la grille Construction VALIDÉE applicable à une date.
+   Aucune marge, aucun coût, aucune hypothèse : uniquement la rémunération et les rubriques à appliquer. ===== */
+:root { --paper:#f4f4f5; --card:#FFFFFF; --card2:#ececef; --ink:#29293b; --muted:#5f5f74; --line:#d9d9e0; --line-soft:#e8e8ee; --brass:#db303f; --brass-deep:#681316; --good:#47713E; --good-soft:rgba(71,113,62,.12); --warn:#93660F; --warn-soft:#F1E6C8; --navy:#29293a;
+  --shadow:0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper:#1b1b25; --card:#232330; --card2:#2c2c3b; --ink:#ececf1; --muted:#a2a2b5; --line:#3b3b4d; --line-soft:#2f2f3e; --brass:#e85160; --brass-deep:#f0929c; --good:#93BD82; --warn:#D9B45E; --warn-soft:#383018; --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3); } }
+:root[data-theme="dark"] { --paper:#1b1b25; --card:#232330; --card2:#2c2c3b; --ink:#ececf1; --muted:#a2a2b5; --line:#3b3b4d; --line-soft:#2f2f3e; --brass:#e85160; --brass-deep:#f0929c; --good:#93BD82; --warn:#D9B45E; --warn-soft:#383018; --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3); }
+* { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.45 "Segoe UI", system-ui, sans-serif; }
+h1, h2, h3 { font-family: "Poppins", "Segoe UI", system-ui, sans-serif; }
+header { background: var(--card); border-bottom: 1px solid var(--line); padding: 12px 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+header h1 { margin: 0; font-size: 19px; } header h1 b { color: var(--brass); } header .qui { color: var(--muted); font-size: 12.5px; margin-left: auto; }
+.wrap { max-width: 900px; margin: 0 auto; padding: 14px 12px 80px; display: flex; flex-direction: column; gap: 12px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+.card h2 { font-size: 16px; margin: 0; padding: 11px 14px; border-bottom: 1px solid var(--line-soft); } .card .b { padding: 12px 14px 14px; }
+.note { font-size: 13px; color: var(--muted); }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; } @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+label { display: block; font-size: 12px; color: var(--muted); font-weight: 700; margin: 0 0 3px; }
+input, select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--card2); color: var(--ink); font: inherit; font-size: 16px; }
+.radios { display: flex; gap: 8px; flex-wrap: wrap; } .radios label { flex: 1 1 160px; margin: 0; border: 1px solid var(--line); border-radius: 9px; padding: 9px 10px; background: var(--card2); cursor: pointer; font-weight: 600; color: var(--ink); font-size: 14px; display: flex; gap: 8px; align-items: center; }
+.radios label.on { border-color: var(--brass); background: var(--good-soft); } .radios input { width: 18px; height: 18px; padding: 0; margin: 0; }
+.btn { border: 1px solid var(--line); background: var(--card2); color: var(--ink); border-radius: 9px; padding: 10px 14px; font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer; }
+.btn.p { background: var(--brass); border-color: var(--brass); color: #fff; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; } td, th { padding: 8px 8px; border-bottom: 1px solid var(--line-soft); text-align: left; vertical-align: top; }
+th { color: var(--muted); font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; } td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.code { display: inline-block; font-weight: 800; color: #fff; background: var(--navy); border-radius: 6px; padding: 1px 8px; font-size: 12.5px; }
+.big { font: 800 24px/1.1 "Poppins", sans-serif; color: var(--brass-deep); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.kpi { border: 1px solid var(--line-soft); border-radius: 10px; padding: 10px 12px; background: var(--paper); } .kpi .k { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.gc { color: #ea0029; font-weight: 800; }
+.msg { font-size: 13.5px; margin-top: 8px; } .msg.err { color: var(--brass-deep); }
+[hidden] { display: none !important; }
+@media print { header, #form, .btn, .note-form { display: none !important; } body { background: #fff; } .card { box-shadow: none; } }
+</style>
+</head>
+<body>
+<header><h1><b>AB2Pro</b> — Paie Construction</h1><span class="qui" id="qui"></span></header>
+<div class="wrap">
+  <section class="card" id="form">
+    <h2>Situation de l'intérimaire</h2>
+    <div class="b">
+      <div class="note note-form" id="intro">La grille validée par la direction s'applique telle quelle : choisissez la situation, le résultat donne le taux horaire et les rubriques à saisir. Aucun calcul à faire.</div>
+      <div class="grid" style="margin-top:10px">
+        <div><label for="in-date">Situation au</label><input type="date" id="in-date"></div>
+        <div><label for="in-region">Région du chantier</label><select id="in-region"></select></div>
+        <div><label for="in-profil">Profil</label><select id="in-profil"></select></div>
+        <div><label for="in-net">Salaire net horaire</label><select id="in-net"></select></div>
+        <div><label>Situation fiscale</label><div class="radios"><label class="on"><input type="radio" name="fiscal" value="etranger" checked> Résident fiscal étranger</label><label><input type="radio" name="fiscal" value="fr"> Résident fiscal français</label></div></div>
+        <div><label>Logement</label><div class="radios"><label class="on"><input type="radio" name="logement" value="loge" checked> Logé par AB Service</label><label><input type="radio" name="logement" value="non_loge"> Non logé par AB Service</label></div></div>
+        <div style="grid-column:1/-1"><label for="in-gc">Client grand compte</label><select id="in-gc"><option value="">— client standard —</option></select></div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px"><button class="btn p" id="btn-afficher">Afficher</button><button class="btn" id="btn-imprimer" hidden>🖨 Imprimer</button></div>
+      <div class="msg" id="msg"></div>
+    </div>
+  </section>
+
+  <section class="card" id="resultat" hidden>
+    <h2>Rémunération applicable <span class="note" id="res-grille" style="font-weight:400"></span></h2>
+    <div class="b">
+      <div class="note" id="res-situation" style="margin-bottom:10px"></div>
+      <div class="kpis">
+        <div class="kpi"><span class="k">Taux horaire brut</span><br><span class="big" id="res-brut">—</span></div>
+        <div class="kpi"><span class="k">Niveau / coefficient BTP</span><br><span class="big" id="res-coef">—</span></div>
+        <div class="kpi"><span class="k">Net horaire cible</span><br><span class="big" id="res-net">—</span></div>
+        <div class="kpi" id="kpi-part" hidden><span class="k">Participation logement / semaine</span><br><span class="big" id="res-part">—</span></div>
+      </div>
+      <h3 style="font-size:15px; margin:14px 0 6px">Rubriques à appliquer</h3>
+      <table><thead><tr><th>Code</th><th>Rubrique</th><th class="n">Montant</th><th class="n">Nombre / semaine</th></tr></thead><tbody id="res-rub"></tbody></table>
+      <div class="note" id="res-gc" style="margin-top:8px" hidden></div>
+      <div class="note" style="margin-top:10px">Les codes sont ceux des rubriques de paie internes. Grille validée par la direction ; en cas de doute sur une situation absente de la grille, ne pas extrapoler : demander à la direction.</div>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const N2 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const dfr = iso => /^\d{4}-\d{2}-\d{2}$/.test(iso || "") ? iso.split("-").reverse().join("/") : (iso || "");
+const aujourdhui = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+let OPT = null;
+const radio = n => document.querySelector("input[name='" + n + "']:checked").value;
+const bloc = () => radio("fiscal") + "_" + radio("logement");
+document.querySelectorAll(".radios input").forEach(r => r.addEventListener("change", () => { r.closest(".radios").querySelectorAll("label").forEach(l => l.classList.toggle("on", l.querySelector("input").checked)); majNets(); }));
+async function chargerOptions() {
+  const date = $("in-date").value || aujourdhui();
+  const r = await fetch("/api/grille-btp/paie/options?date=" + encodeURIComponent(date)).then(x => x.ok ? x.json() : null).catch(() => null);
+  if (!r || !r.ok) { $("msg").className = "msg err"; $("msg").textContent = "Accès refusé ou service indisponible."; return; }
+  OPT = r;
+  if (!r.grille) { $("msg").className = "msg err"; $("msg").textContent = "Aucune grille validée applicable au " + dfr(date) + "."; $("in-region").innerHTML = ""; $("in-profil").innerHTML = ""; $("in-net").innerHTML = ""; return; }
+  $("msg").className = "msg"; $("msg").textContent = "Grille applicable : " + r.grille.libelle + " (en vigueur depuis le " + dfr(r.grille.application_du) + ").";
+  const rv = $("in-region").value, pv = $("in-profil").value;
+  $("in-region").innerHTML = r.regions.map(x => "<option value=\"" + esc(x.region) + "\">" + esc(x.region) + (x.departements ? " — " + esc(x.departements.split(",").join(", ")) : "") + "</option>").join("");
+  if (rv) $("in-region").value = rv;
+  $("in-profil").innerHTML = r.profils.map(p => "<option>" + esc(p) + "</option>").join(""); if (pv) $("in-profil").value = pv;
+  $("in-gc").innerHTML = "<option value=''>— client standard —</option>" + r.grands_comptes.map(g => "<option value='1'>" + esc(g.client) + (g.region ? " (" + esc(g.region) + ")" : "") + "</option>").join("") + "<option value='1'>Autre client grand compte</option>";
+  majNets();
+}
+function majNets() {
+  if (!OPT || !OPT.grille) return;
+  const reg = $("in-region").value, pr = $("in-profil").value, bl = bloc(); const v = $("in-net").value;
+  const nets = [...new Set(OPT.combinaisons.filter(c => c.region === reg && c.bloc === bl && c.profil === pr).map(c => c.net))].sort((a, b) => a - b);
+  $("in-net").innerHTML = nets.length ? nets.map(n => "<option value='" + n + "'>" + N2.format(n) + " € net / h</option>").join("") : "<option value=''>— aucune ligne pour ce profil dans cette situation —</option>";
+  if (v && nets.includes(parseFloat(v))) $("in-net").value = v;
+}
+$("in-date").addEventListener("change", chargerOptions); $("in-region").addEventListener("change", majNets); $("in-profil").addEventListener("change", majNets);
+$("btn-afficher").addEventListener("click", async () => {
+  const net = $("in-net").value; if (!net) { $("msg").className = "msg err"; $("msg").textContent = "Choisissez un salaire net disponible pour cette situation."; return; }
+  const q = new URLSearchParams({ date: $("in-date").value || aujourdhui(), region: $("in-region").value, bloc: bloc(), profil: $("in-profil").value, net, gc: $("in-gc").value ? "1" : "0" });
+  const r = await fetch("/api/grille-btp/paie/ligne?" + q.toString()).then(x => x.json()).catch(() => ({ erreur: "serveur" }));
+  if (!r.ok) { $("msg").className = "msg err"; $("msg").textContent = r.erreur === "combinaison_absente" ? "Cette situation n'est pas dans la grille : demander à la direction." : "Erreur : " + (r.erreur || "?"); $("resultat").hidden = true; return; }
+  $("msg").textContent = "";
+  const l = r.ligne; const libBloc = { etranger_loge: "résident fiscal étranger, logé par AB Service", etranger_non_loge: "résident fiscal étranger, non logé", fr_loge: "résident fiscal français, logé par AB Service", fr_non_loge: "résident fiscal français, non logé" }[l.bloc] || l.bloc;
+  $("res-grille").textContent = "— " + r.grille.libelle + ", au " + dfr(r.date);
+  $("res-situation").innerHTML = "<b>" + esc(l.region) + "</b> · " + esc(l.profil) + " · " + esc(libBloc) + ($("in-gc").value ? " · client grand compte (" + esc($("in-gc").selectedOptions[0].textContent) + ")" : "") + " · base " + N2.format(l.heures) + " h / semaine";
+  $("res-brut").textContent = l.brut != null ? N2.format(l.brut) + " €" : "—"; $("res-coef").textContent = l.coefficient ? String(l.coefficient) : "—"; $("res-net").textContent = N2.format(l.net) + " €";
+  $("kpi-part").hidden = l.participation == null; $("res-part").textContent = l.participation != null ? N2.format(l.participation) + " €" : "—";
+  $("res-rub").innerHTML = r.rubriques.length ? r.rubriques.map(x => "<tr><td>" + (x.code ? "<span class='code'>" + esc(x.code) + "</span>" : "") + "</td><td>" + esc(x.libelle) + (x.grand_compte ? " <span class='gc'>(valeur Grand Compte)</span>" : "") + "</td><td class='n'>" + N2.format(x.montant) + " €</td><td class='n'>" + (x.nb != null ? N2.format(x.nb).replace(",00", "") : "—") + "</td></tr>").join("") : "<tr><td colspan='4' class='note'>Aucune rubrique complémentaire : salaire de base seul.</td></tr>";
+  $("res-gc").hidden = !($("in-gc").value && !r.grand_compte); $("res-gc").textContent = "Client grand compte, mais aucune valeur spécifique pour cette situation : la valeur standard s'applique.";
+  $("resultat").hidden = false; $("btn-imprimer").hidden = false;
+});
+$("btn-imprimer").addEventListener("click", () => window.print());
+(async () => {
+  try { const moi = await fetch("/api/moi").then(r => r.ok ? r.json() : null); if (moi) $("qui").textContent = (moi.nom_complet || moi.nom || moi.email) + (moi.fonction ? " · " + moi.fonction : ""); } catch (e) {}
+  $("in-date").value = aujourdhui(); chargerOptions();
+})();
+</script>
+</body>
+</html>

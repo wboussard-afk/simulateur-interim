@@ -7,3 +7,4 @@ src/auth/assets/app/data/prestataires/
 src/auth/assets/app/data/salaires-btp/
 src/auth/assets/app/data/tarifs-btp/
 src/auth/assets/app/data/notes/
+src/auth/data_grille_btp_*.sql

@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<title>Grille Construction — AB2Pro</title>
+<style>
+/* ===== Espace Direction : grille annuelle de rémunération Construction — versions, contrôle, validation, grands comptes,
+   paramètres. Présentation calquée sur le classeur : par région, quatre blocs (fiscalité × logement), lignes par net cible. ===== */
+:root { --paper:#f4f4f5; --card:#FFFFFF; --card2:#ececef; --ink:#29293b; --muted:#5f5f74; --line:#d9d9e0; --line-soft:#e8e8ee; --brass:#db303f; --brass-deep:#681316; --good:#47713E; --good-soft:rgba(71,113,62,.12); --warn:#93660F; --warn-soft:#F1E6C8; --navy:#29293a; --bleu:#dfe9f7; --orange:#fbe3d8;
+  --shadow:0 1px 2px rgba(60,50,20,.06), 0 4px 14px rgba(60,50,20,.07); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper:#1b1b25; --card:#232330; --card2:#2c2c3b; --ink:#ececf1; --muted:#a2a2b5; --line:#3b3b4d; --line-soft:#2f2f3e; --brass:#e85160; --brass-deep:#f0929c; --good:#93BD82; --warn:#D9B45E; --warn-soft:#383018; --bleu:#233047; --orange:#43302a; --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3); } }
+:root[data-theme="dark"] { --paper:#1b1b25; --card:#232330; --card2:#2c2c3b; --ink:#ececf1; --muted:#a2a2b5; --line:#3b3b4d; --line-soft:#2f2f3e; --brass:#e85160; --brass-deep:#f0929c; --good:#93BD82; --warn:#D9B45E; --warn-soft:#383018; --bleu:#233047; --orange:#43302a; --shadow:0 1px 2px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.3); }
+* { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font: 14.5px/1.45 "Segoe UI", system-ui, sans-serif; }
+h1, h2, h3 { font-family: "Poppins", "Segoe UI", system-ui, sans-serif; }
+header { background: var(--card); border-bottom: 1px solid var(--line); padding: 12px 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+header h1 { margin: 0; font-size: 19px; } header h1 b { color: var(--brass); } header .qui { color: var(--muted); font-size: 12.5px; margin-left: auto; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px 0; }
+.tabs button { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 10px; padding: 9px 13px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.tabs button.on { background: var(--brass); border-color: var(--brass); color: #fff; }
+.wrap { max-width: 1500px; margin: 0 auto; padding: 12px 12px 80px; display: flex; flex-direction: column; gap: 12px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+.card h2 { font-size: 16px; margin: 0; padding: 11px 14px; border-bottom: 1px solid var(--line-soft); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .card .b { padding: 12px 14px 14px; }
+.note { font-size: 13px; color: var(--muted); }
+label { display: block; font-size: 12px; color: var(--muted); font-weight: 700; margin: 0 0 3px; }
+input, select, textarea { width: 100%; padding: 8px 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--card2); color: var(--ink); font: inherit; font-size: 14px; }
+.btn { border: 1px solid var(--line); background: var(--card2); color: var(--ink); border-radius: 9px; padding: 8px 12px; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+.btn.p { background: var(--brass); border-color: var(--brass); color: #fff; } .btn.s { padding: 5px 9px; font-size: 12.5px; }
+.tbl { width: 100%; overflow-x: auto; } table { width: 100%; border-collapse: collapse; font-size: 13px; }
+td, th { padding: 5px 6px; border-bottom: 1px solid var(--line-soft); text-align: left; vertical-align: middle; white-space: nowrap; }
+th { color: var(--muted); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; } td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+.tag { display: inline-block; border-radius: 10px; padding: 1px 8px; font-size: 11.5px; font-weight: 700; background: var(--warn-soft); color: var(--warn); }
+.tag.ok { background: var(--good-soft); color: var(--good); } .tag.arch { background: var(--card2); color: var(--muted); }
+/* blocs de la grille : orange = logé (comme le classeur), bleu = non logé */
+.blocs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } @media (max-width: 1100px) { .blocs { grid-template-columns: 1fr; } }
+.bloc { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.bloc h3 { margin: 0; padding: 8px 12px; font-size: 13.5px; } .bloc.loge h3 { background: var(--orange); } .bloc.nonloge h3 { background: var(--bleu); }
+.bloc table { font-size: 12.5px; } .bloc td.prof { background: var(--card2); font-weight: 800; }
+.bloc input { padding: 4px 5px; font-size: 12.5px; width: 62px; border-radius: 6px; } .bloc input.l { width: 72px; }
+.gc { color: #ea0029; font-weight: 800; } .rd { font-size: 12.5px; }
+.msg { font-size: 13px; margin-top: 8px; min-height: 18px; } .msg.err { color: var(--brass-deep); } .msg.ok { color: var(--good); }
+.confid { border: 1px dashed var(--brass); border-radius: 10px; padding: 8px 12px; font-size: 12.5px; color: var(--brass-deep); background: rgba(219,48,63,.06); }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 12px; } @media (max-width: 800px) { .grid3 { grid-template-columns: 1fr; } }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header><h1><b>AB2Pro</b> — Grille Construction <span class="note">(direction)</span></h1><span class="qui" id="qui"></span></header>
+<div class="tabs" id="tabs">
+  <button data-o="grilles" class="on">Grilles &amp; versions</button>
+  <button data-o="grille">Grille par région</button>
+  <button data-o="gc">Grands comptes</button>
+  <button data-o="params">Paramètres</button>
+  <button data-o="construction">Construction (moteur)</button>
+</div>
+<div class="wrap">
+  <div class="confid">Espace réservé à la direction : marges, coûts, hypothèses et arbitrages ne sont jamais visibles des gestionnaires de paie, qui n'ont que le mini-simulateur « Paie Construction » alimenté par la grille validée.</div>
+
+  <section class="card" data-onglet="grilles">
+    <h2>Grilles par année et version</h2>
+    <div class="b">
+      <div class="note">Une grille validée ne se modifie plus : créer une nouvelle version (copie), la travailler en brouillon, puis la valider avec sa date d'application. La paie lit la grille validée la plus récente dont la date d'application est atteinte.</div>
+      <div class="tbl" style="margin-top:8px"><table id="tbl-grilles"></table></div>
+      <div class="msg" id="msg-grilles"></div>
+    </div>
+  </section>
+
+  <section class="card" data-onglet="grille" hidden>
+    <h2><span id="titre-grille">Grille</span> <select id="sel-region" style="width:auto; margin-left:auto"></select></h2>
+    <div class="b">
+      <div class="note" id="note-grille"></div>
+      <div id="blocs" class="blocs" style="margin-top:10px"></div>
+      <div class="msg" id="msg-grille"></div>
+    </div>
+  </section>
+
+  <section class="card" data-onglet="gc" hidden>
+    <h2>Clients grands comptes</h2>
+    <div class="b">
+      <div class="note">Un client grand compte reçoit l'IGD « Grand Compte » (valeur rouge de la grille) là où elle est définie ; sinon la valeur standard. La liste alimente le sélecteur du mini-simulateur paie.</div>
+      <div class="tbl" style="margin-top:8px"><table id="tbl-gc"></table></div>
+      <div class="grid3" style="margin-top:10px">
+        <div><label>Client</label><input id="gc-client" placeholder="Nom du client"></div>
+        <div><label>Région</label><select id="gc-region"></select></div>
+        <div style="align-self:end"><button class="btn p" id="btn-gc-ajouter">+ Ajouter</button></div>
+      </div>
+      <div class="msg" id="msg-gc"></div>
+    </div>
+  </section>
+
+  <section class="card" data-onglet="params" hidden>
+    <h2>Paramètres de la grille <span class="note" id="params-grille" style="font-weight:400"></span></h2>
+    <div class="b">
+      <div class="grid3">
+        <div><label>Libellé</label><input id="p-libelle"></div>
+        <div><label>Date d'application</label><input type="date" id="p-appl"></div>
+        <div><label>Objectif de marge brute (%)</label><input type="number" step="0.5" id="p-marge"></div>
+      </div>
+      <h3 style="font-size:14px; margin:14px 0 6px">Codes des rubriques de paie</h3>
+      <div class="grid3">
+        <div><label>IGD</label><input id="r-igd"></div>
+        <div><label>Repas midi (logé)</label><input id="r-repas_midi_loge"></div>
+        <div><label>Repas midi (non logé)</label><input id="r-repas_midi_non_loge"></div>
+        <div><label>Repas soir (résident étranger)</label><input id="r-repas_soir_etranger"></div>
+        <div><label>Repas soir (résident français)</label><input id="r-repas_soir_fr"></div>
+        <div><label>Transport</label><input id="r-transport"></div>
+        <div><label>Trajet</label><input id="r-trajet"></div>
+      </div>
+      <h3 style="font-size:14px; margin:14px 0 6px">Minima régionaux retenus (référence de la grille)</h3>
+      <div class="tbl"><table id="tbl-minima"></table></div>
+      <h3 style="font-size:14px; margin:14px 0 6px">Régions et départements</h3>
+      <div class="tbl"><table id="tbl-regions"></table></div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px"><button class="btn p" id="btn-params">Enregistrer les paramètres</button></div>
+      <div class="msg" id="msg-params"></div>
+    </div>
+  </section>
+
+  <section class="card" data-onglet="construction" hidden>
+    <h2>Construction par le moteur du simulateur</h2>
+    <div class="b">
+      <p>Cette phase branche le moteur du simulateur existant derrière la grille : région, profil, net cible, heures de 35 à 43, situation fiscale et logement, objectif de marge, puis résolution automatique de la participation logement (mode 1, indemnités définies) ou des indemnités (mode 2, participation définie), avec comparaison des neuf scénarios horaires et reprise des résultats dans la grille en brouillon.</p>
+      <p class="note">En attendant, la grille 2026 importée du classeur de la direction est la référence validée ; la paie la lit déjà. Trois paramètres sont à fixer par la direction avant de brancher le moteur : le tarif de facturation retenu par profil et par situation (grille de facturation BTP), le coût hebdomadaire du logement AB Service par région, et la définition exacte du net cible (avant ou après retenue de la participation).</p>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const N2 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const dfr = iso => /^\d{4}-\d{2}-\d{2}$/.test(iso || "") ? iso.split("-").reverse().join("/") : (iso || "");
+const get = u => fetch(u).then(r => r.json());
+const post = (u, b) => fetch(u, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(b) }).then(r => r.json());
+let LISTE = null, G = null, LIGNES = [];
+const BLOCS = [["etranger_loge", "Résident fiscal étranger — logé par AB Service", "loge"], ["etranger_non_loge", "Résident fiscal étranger — non logé (base 35 h)", "nonloge"], ["fr_loge", "Résident fiscal français — logé par AB Service", "loge"], ["fr_non_loge", "Résident fiscal français — non logé (base 35 h)", "nonloge"]];
+const PROFILS = ["Aide métier", "Ouvrier", "Profil supérieur"];
+function montrer(id) { document.querySelectorAll("[data-onglet]").forEach(s => { s.hidden = s.dataset.onglet !== id; }); document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.o === id)); }
+document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => montrer(b.dataset.o)));
+const tagStatut = s => "<span class='tag" + (s === "validee" ? " ok" : s === "archivee" ? " arch" : "") + "'>" + ({ brouillon: "brouillon", validee: "validée", archivee: "archivée" }[s] || s) + "</span>";
+
+/* ---------- grilles ---------- */
+async function chargerListe() {
+  LISTE = await get("/api/grille-btp/liste").catch(() => null);
+  if (!LISTE || !LISTE.ok) { $("msg-grilles").className = "msg err"; $("msg-grilles").textContent = "Accès réservé à la direction."; return; }
+  $("tbl-grilles").innerHTML = "<tr><th>Année</th><th>Version</th><th>Libellé</th><th>Statut</th><th>Application</th><th class='n'>Lignes</th><th>Créée</th><th>Validée</th><th></th></tr>" +
+    LISTE.grilles.map(g => "<tr><td>" + g.annee + "</td><td>v" + g.version + "</td><td>" + esc(g.libelle) + "</td><td>" + tagStatut(g.statut) + "</td><td>" + esc(dfr(g.application_du)) + "</td><td class='n'>" + g.nb_lignes + "</td><td>" + esc((g.cree_le || "").slice(0, 10).split("-").reverse().join("/")) + " " + esc(g.cree_par) + "</td><td>" + (g.validee_le ? esc(g.validee_le.slice(0, 10).split("-").reverse().join("/")) + " " + esc(g.validee_par || "") : "—") + "</td><td>" +
+      "<button class='btn s' data-ouvrir='" + g.id + "'>Ouvrir</button> <button class='btn s' data-copier='" + g.id + "'>Nouvelle version</button>" +
+      (g.statut === "brouillon" ? " <button class='btn s p' data-valider='" + g.id + "'>Valider</button>" : "") + (g.statut !== "archivee" ? " <button class='btn s' data-archiver='" + g.id + "'>Archiver</button>" : "") + "</td></tr>").join("");
+  $("tbl-grilles").querySelectorAll("[data-ouvrir]").forEach(b => b.addEventListener("click", () => ouvrir(+b.dataset.ouvrir)));
+  $("tbl-grilles").querySelectorAll("[data-copier]").forEach(b => b.addEventListener("click", async () => {
+    const src = LISTE.grilles.find(g => g.id === +b.dataset.copier);
+    const annee = prompt("Année de la nouvelle version :", String(src.annee)); if (!annee) return;
+    const appl = prompt("Date d'application (AAAA-MM-JJ) :", annee + "-01-01"); if (!appl) return;
+    const lib = prompt("Libellé :", "Grille Construction " + annee); if (lib == null) return;
+    const r = await post("/api/grille-btp/nouvelle", { source_id: src.id, annee: +annee, application_du: appl, libelle: lib });
+    if (!r.ok) { alert("Erreur : " + (r.erreur || "?")); return; } await chargerListe(); ouvrir(r.id);
+  }));
+  $("tbl-grilles").querySelectorAll("[data-valider]").forEach(b => b.addEventListener("click", async () => {
+    const g = LISTE.grilles.find(x => x.id === +b.dataset.valider);
+    if (!confirm("Valider la grille " + g.annee + " v" + g.version + " (application le " + dfr(g.application_du) + ") ? Elle deviendra la référence de la paie et ne sera plus modifiable.")) return;
+    const r = await post("/api/grille-btp/statut", { id: g.id, statut: "validee" }); if (!r.ok) { alert("Erreur : " + (r.erreur || "?")); return; } chargerListe();
+  }));
+  $("tbl-grilles").querySelectorAll("[data-archiver]").forEach(b => b.addEventListener("click", async () => {
+    if (!confirm("Archiver cette grille ? Elle ne sera plus proposée à la paie.")) return;
+    const r = await post("/api/grille-btp/statut", { id: +b.dataset.archiver, statut: "archivee" }); if (!r.ok) { alert("Erreur : " + (r.erreur || "?")); return; } chargerListe();
+  }));
+  rendreGC(); rendreRegions();
+  if (!G && LISTE.grilles.length) ouvrir((LISTE.grilles.find(g => g.statut === "validee") || LISTE.grilles[0]).id, true);
+}
+async function ouvrir(id, silencieux) {
+  const r = await get("/api/grille-btp/grille?id=" + id).catch(() => null); if (!r || !r.ok) { alert("Grille introuvable."); return; }
+  G = r.grille; LIGNES = r.lignes;
+  $("titre-grille").textContent = "Grille " + G.annee + " v" + G.version + " — " + G.libelle + (G.statut === "brouillon" ? " (brouillon, modifiable)" : G.statut === "validee" ? " (validée, lecture seule)" : " (archivée)");
+  const regions = [...new Set(LIGNES.map(l => l.region))].sort(); const rv = $("sel-region").value;
+  $("sel-region").innerHTML = regions.map(x => "<option>" + esc(x) + "</option>").join(""); if (rv && regions.includes(rv)) $("sel-region").value = rv;
+  $("note-grille").textContent = G.statut === "brouillon" ? "Modifiez les cellules : chaque changement est enregistré aussitôt. IGD Grand Compte = valeur spécifique appliquée aux clients grands comptes (vide = valeur standard)." : "Grille " + ({ validee: "validée", archivee: "archivée" }[G.statut]) + " : lecture seule. Pour la faire évoluer, créez une nouvelle version depuis l'onglet Grilles.";
+  rendreParams(); rendreBlocs(); if (!silencieux) montrer("grille");
+}
+$("sel-region").addEventListener("change", rendreBlocs);
+function rendreBlocs() {
+  if (!G) return; const reg = $("sel-region").value; const edit = G.statut === "brouillon";
+  const cell = (l, k, cls) => edit ? "<input class='" + (cls || "") + "' data-k='" + k + "' value='" + (l[k] == null ? "" : String(l[k]).replace(".", ",")) + "'>" : "<span class='rd'>" + (l[k] == null ? "—" : (typeof l[k] === "number" ? N2.format(l[k]).replace(",00", "") : esc(l[k]))) + "</span>";
+  $("blocs").innerHTML = BLOCS.map(([bl, lib, cls]) => {
+    const ls = LIGNES.filter(l => l.region === reg && l.bloc === bl).sort((a, b) => a.net - b.net);
+    let html = "<div class='bloc " + cls + "'><h3>" + esc(lib) + "</h3><div class='tbl'><table><tr><th>Net</th><th>Brut</th><th>IGD</th><th>IGD GC</th><th>Nb</th><th>Repas midi</th><th>Nb</th><th>Repas soir</th><th>Nb</th><th>Transport</th><th>Nb</th><th>Trajet</th><th>Nb</th><th>Coef</th><th>Particip.</th><th>Marge %</th></tr>";
+    let prof = null;
+    for (const l of ls) {
+      if (l.profil !== prof) { prof = l.profil; html += "<tr><td class='prof' colspan='16'>" + esc(prof) + "</td></tr>"; }
+      html += "<tr data-id='" + l.id + "' data-bloc='" + bl + "' data-profil=\"" + esc(l.profil) + "\" data-net='" + l.net + "'><td><b>" + N2.format(l.net) + "</b></td><td>" + cell(l, "brut") + "</td><td>" + cell(l, "igd") + "</td><td class='gc'>" + (edit ? cell(l, "igd_gc") : (l.igd_gc != null ? "(" + N2.format(l.igd_gc).replace(",00", "") + " € GC)" : "")) + "</td><td>" + cell(l, "igd_nb") + "</td><td>" + cell(l, "repas_midi") + "</td><td>" + cell(l, "repas_midi_nb") + "</td><td>" + cell(l, "repas_soir") + "</td><td>" + cell(l, "repas_soir_nb") + "</td><td>" + cell(l, "transport") + "</td><td>" + cell(l, "transport_nb") + "</td><td>" + cell(l, "trajet") + "</td><td>" + cell(l, "trajet_nb") + "</td><td>" + cell(l, "coefficient") + "</td><td>" + cell(l, "participation", "l") + "</td><td>" + cell(l, "marge_pct") + "</td></tr>";
+    }
+    if (!ls.length) html += "<tr><td colspan='16' class='note'>Aucune ligne.</td></tr>";
+    return html + "</table></div></div>";
+  }).join("");
+  if (edit) $("blocs").querySelectorAll("tr[data-id] input").forEach(inp => inp.addEventListener("change", async () => {
+    const tr = inp.closest("tr"); const l = LIGNES.find(x => x.id === +tr.dataset.id); const o = Object.assign({}, l);
+    tr.querySelectorAll("input").forEach(i => { o[i.dataset.k] = i.value.trim() === "" ? null : i.value.trim().replace(",", "."); });
+    const r = await post("/api/grille-btp/ligne", Object.assign({ grille_id: G.id, region: l.region, bloc: l.bloc, profil: l.profil, net: l.net }, o)).catch(() => ({ erreur: "serveur" }));
+    $("msg-grille").className = r.ok ? "msg ok" : "msg err"; $("msg-grille").textContent = r.ok ? "Enregistré." : "Erreur : " + (r.erreur || "?");
+    if (r.ok) { Object.keys(o).forEach(k => { if (k !== "id") l[k] = o[k] == null ? null : (isFinite(parseFloat(o[k])) ? parseFloat(o[k]) : o[k]); }); }
+  }));
+}
+/* ---------- grands comptes ---------- */
+function rendreGC() {
+  const gcs = LISTE.grands_comptes || [];
+  $("tbl-gc").innerHTML = "<tr><th>Client</th><th>Région</th><th>Actif</th><th></th></tr>" + (gcs.map(g => "<tr><td>" + esc(g.client) + "</td><td>" + esc(g.region) + "</td><td>" + (g.actif ? "oui" : "non") + "</td><td><button class='btn s' data-actif='" + g.id + "'>" + (g.actif ? "Désactiver" : "Réactiver") + "</button> <button class='btn s' data-suppr='" + g.id + "'>Supprimer</button></td></tr>").join("") || "<tr><td class='note' colspan='4'>Aucun client grand compte.</td></tr>");
+  const regs = (LISTE.regions || []).map(r => r.region); $("gc-region").innerHTML = "<option value=''>—</option>" + regs.map(r => "<option>" + esc(r) + "</option>").join("");
+  $("tbl-gc").querySelectorAll("[data-actif]").forEach(b => b.addEventListener("click", async () => { const g = gcs.find(x => x.id === +b.dataset.actif); await post("/api/grille-btp/grands-comptes", { id: g.id, client: g.client, region: g.region, actif: !g.actif }); chargerListe(); }));
+  $("tbl-gc").querySelectorAll("[data-suppr]").forEach(b => b.addEventListener("click", async () => { if (!confirm("Supprimer ce client de la liste ?")) return; await post("/api/grille-btp/grands-comptes", { id: +b.dataset.suppr, supprimer: true }); chargerListe(); }));
+}
+$("btn-gc-ajouter").addEventListener("click", async () => {
+  const client = $("gc-client").value.trim(); if (!client) { $("msg-gc").className = "msg err"; $("msg-gc").textContent = "Nom du client requis."; return; }
+  const r = await post("/api/grille-btp/grands-comptes", { client, region: $("gc-region").value }); $("msg-gc").className = r.ok ? "msg ok" : "msg err"; $("msg-gc").textContent = r.ok ? "Ajouté." : "Erreur : " + (r.erreur || "?"); if (r.ok) { $("gc-client").value = ""; chargerListe(); }
+});
+/* ---------- paramètres ---------- */
+function rendreParams() {
+  if (!G) return; const P = G.params || {}; const edit = G.statut === "brouillon";
+  $("params-grille").textContent = "— " + G.annee + " v" + G.version + (edit ? "" : " (grille " + ({ validee: "validée", archivee: "archivée" }[G.statut]) + " : seuls le libellé et la date sont modifiables)");
+  $("p-libelle").value = G.libelle || ""; $("p-appl").value = G.application_du || ""; $("p-marge").value = P.marge_cible != null ? P.marge_cible : 20;
+  const R = P.rubriques || {}; ["igd", "repas_midi_loge", "repas_midi_non_loge", "repas_soir_etranger", "repas_soir_fr", "transport", "trajet"].forEach(k => { $("r-" + k).value = R[k] || ""; $("r-" + k).disabled = !edit; }); $("p-marge").disabled = !edit;
+  const M = P.minima || {}; const niv = ["150", "170", "185", "210", "230", "250", "270"];
+  $("tbl-minima").innerHTML = "<tr><th>Région</th><th>Application</th>" + niv.map(n => "<th class='n'>" + n + "</th>").join("") + "</tr>" + Object.keys(M).sort().map(r => "<tr><td>" + esc(r) + "</td><td>" + esc(dfr(M[r].application)) + "</td>" + niv.map(n => "<td class='n'>" + (M[r].taux && M[r].taux[n] != null ? N2.format(M[r].taux[n]) : "—") + "</td>").join("") + "</tr>").join("");
+}
+function rendreRegions() {
+  $("tbl-regions").innerHTML = "<tr><th>Région</th><th>Départements</th></tr>" + (LISTE.regions || []).map(r => "<tr><td>" + esc(r.region) + "</td><td>" + esc(r.departements.split(",").join(", ")) + "</td></tr>").join("");
+}
+$("btn-params").addEventListener("click", async () => {
+  if (!G) return;
+  const body = { id: G.id, libelle: $("p-libelle").value, application_du: $("p-appl").value };
+  if (G.statut === "brouillon") { const P = Object.assign({}, G.params || {}); P.marge_cible = parseFloat($("p-marge").value) || 20; P.rubriques = {}; ["igd", "repas_midi_loge", "repas_midi_non_loge", "repas_soir_etranger", "repas_soir_fr", "transport", "trajet"].forEach(k => { P.rubriques[k] = $("r-" + k).value.trim(); }); body.params = P; }
+  const r = await post("/api/grille-btp/grille", body); $("msg-params").className = r.ok ? "msg ok" : "msg err"; $("msg-params").textContent = r.ok ? "Enregistré." : "Erreur : " + (r.erreur || "?");
+  if (r.ok) { await chargerListe(); ouvrir(G.id, true); }
+});
+(async () => {
+  try { const moi = await fetch("/api/moi").then(r => r.ok ? r.json() : null); if (moi) $("qui").textContent = (moi.nom_complet || moi.nom || moi.email) + (moi.fonction ? " · " + moi.fonction : ""); } catch (e) {}
+  chargerListe();
+})();
+</script>
+</body>
+</html>

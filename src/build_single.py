@@ -95,7 +95,7 @@ if os.path.isdir(os.path.join(base, "auth")):
                                ("salaires-europe-final.html", "salaires-europe.html"),
                                ("recherche-logements.html", "logements.html"),
                                ("prestataires.html", "prestataires.html"),
-                               ("salaires-btp.html", "salaires-btp.html"), ("notes.html", "notes.html")]:
+                               ("salaires-btp.html", "salaires-btp.html"), ("notes.html", "notes.html"), ("grille-btp.html", "grille-btp.html"), ("paie-btp.html", "paie-btp.html")]:
         data = open(base + r"\app" + "\\" + src_name, encoding='utf-8').read()
         open(os.path.join(auth_app, dst_name), 'w', encoding='utf-8').write(data)
     # barèmes BTP rechargés à l'exécution par le simulateur (fetch relatif "data/btp-baremes.json") :
