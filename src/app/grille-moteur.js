@@ -139,6 +139,7 @@
     const loge = estLoge(l), etr = ETRANGER(l.bloc); const brut = +l.brut;
     const tarif = opts.tarif || tarifPour(P, l);
     const igd = opts.igd != null ? +opts.igd : igdDe(P, l);
+    const la = Object.assign({}, l); ["repas_midi", "repas_midi_nb", "repas_soir", "repas_soir_nb", "transport", "transport_nb"].forEach(k => { if (opts[k] !== undefined) la[k] = opts[k]; });
     return Object.assign({}, base, {
       mode: loge ? "SIMULATEUR BTP GRAND D" : "SIMULATEUR BTP PETIT D", branche: "btp", client: "Grille " + l.region,
       thBrut: brut, netAttendu: null, heures: +heures, jours: 5, attestation: etr,
@@ -146,7 +147,7 @@
       heuresFactNormal: +heures,                        // offre BTP : toutes les heures facturées au tarif jusqu'à 43 h
       logement: true, logementHeures: 43, logementHoraire: (loge ? P.logement : 0) / 43, coutLogementFacture: 0,
       coeff: tarif / brut, effectif: P.effectif, vmPct: P.vm_pct,
-      indemnites: indemnitesDe(l, igd, opts.igd_nb), primes: primesDe(base, l), participationLibre: -(opts.participation > 0 ? +opts.participation : 0),
+      indemnites: indemnitesDe(la, igd, opts.igd_nb), primes: primesDe(base, l), participationLibre: -(opts.participation > 0 ? +opts.participation : 0),
       rates: Object.assign({}, base.rates, { atPat: atPour(P, l.region) })
     });
   }
@@ -163,10 +164,36 @@
     const n0 = r0.F90, pn = (r1.F90 - n0) / x1;
     const xMax = mode === "igd" ? P.igd_max : Infinity;
     const borne = x => Math.max(0, Math.min(xMax, x));
-    let xN = pn !== 0 ? (l.net * h - n0) / pn : 0; let xn = borne(xN); let rn = calc(entrees(P, l, h, at(xn)));
-    for (let k = 0; k < 3 && xn === xN && Math.abs(rn.F90 - l.net * h) > 0.01; k++) { xN = xn + (l.net * h - rn.F90) / pn; xn = borne(xN); rn = calc(entrees(P, l, h, at(xn))); }
+    let xN = pn !== 0 ? (l.net * h - n0) / pn : 0; let xn = borne(xN); let opts = at(xn); let rn = calc(entrees(P, l, h, opts));
+    for (let k = 0; k < 3 && xn === xN && Math.abs(rn.F90 - l.net * h) > 0.01; k++) { xN = xn + (l.net * h - rn.F90) / pn; xn = borne(xN); opts = at(xn); rn = calc(entrees(P, l, h, opts)); }
+    const reduit = {};
+    if (mode === "igd" && xN < -1e-9) {
+      /* IGD déjà à zéro et net encore au-dessus du promis : on réduit les repas (soir puis midi), jamais de net au-dessus du net promis */
+      for (const k of ["repas_soir", "repas_midi"]) {
+        const exces = rn.F90 - l.net * h; if (exces <= 0.01) break;
+        const nbk = q(l[k + "_nb"], 5), v = l[k] > 0 ? +l[k] : 0; if (!(v > 0)) continue;
+        const nv = Math.max(0, r2(v - exces / nbk)); opts = Object.assign({}, opts, { [k]: nv, [k + "_nb"]: nbk }); reduit[k] = nv; rn = calc(entrees(P, l, h, opts));
+      }
+    }
     const m = mesure(rn);
-    return Object.assign({ heures: h, levier: r2(xn), plafonne: xN > xMax + 1e-9, nul: xN < -1e-9, ecart: r2(m.net - l.net), tarif_marge_cible: tarifPourMarge(entrees(P, l, h, at(xn)), P.marge_cible, +l.brut) }, m);
+    return Object.assign({ heures: h, levier: r2(xn), plafonne: xN > xMax + 1e-9, nul: xN < -1e-9, reduit, ecart: r2(m.net - l.net), tarif_marge_cible: tarifPourMarge(entrees(P, l, h, opts), P.marge_cible, +l.brut) }, m);
+  }
+  /* Ligne NON LOGÉE : les indemnités sont le levier — panier de chantier (≤ plafond URSSAF) puis transport petit déplacement par tranche
+     kilométrique, dimensionnés pour tenir le net promis SANS JAMAIS le dépasser ; le reste (déficit) est signalé. */
+  function ajusterNonLoge(P, l, h) {
+    const nb = 5; const r0 = calc(entrees(P, l, h, { repas_midi: 0, repas_midi_nb: nb, transport: 0, transport_nb: nb }));
+    const besoin = l.net * h - r0.F90;                                   // € / semaine à apporter par les indemnités
+    let repas = 0, transport = 0, trop = false, deficit = 0;
+    if (besoin > 0.005) {
+      const rr = calc(entrees(P, l, h, { repas_midi: 1, repas_midi_nb: nb, transport: 0, transport_nb: nb })); const pente = (rr.F90 - r0.F90) / nb;   // net apporté par 1 € / jour d'indemnité (non soumise : ≈ 1)
+      const parJour = besoin / nb / (pente || 1);
+      repas = r2(Math.min(REPAS_CHANTIER, parJour));
+      const resteJour = parJour - repas;
+      if (resteJour > 0.005) { const z = ZONES_PD.filter(z => z.value <= resteJour + 1e-9).pop(); transport = z ? z.value : 0; }
+    } else trop = true;
+    const rn = calc(entrees(P, l, h, { repas_midi: repas, repas_midi_nb: nb, transport, transport_nb: nb })); const m = mesure(rn);
+    deficit = r2(Math.max(0, l.net * h - rn.F90));
+    return Object.assign({ heures: h, repas_midi: repas, repas_midi_nb: nb, transport, transport_nb: nb, trop, deficit, ecart: r2(m.net - l.net), tarif_marge_cible: tarifPourMarge(entrees(P, l, h, { repas_midi: repas, repas_midi_nb: nb, transport, transport_nb: nb }), P.marge_cible, +l.brut) }, m);
   }
   /* Ligne non logée sous le net promis : indemnités exonérées aux plafonds URSSAF (panier de chantier, puis transport par tranche km), par jour et par semaine de 5 jours. */
   function proposer(P, l, h) {
@@ -209,16 +236,19 @@
       res.net_atteint = s35.net; res.ecart = s35.ecart; res.marge_pct = s35.marge_pct; res.ca = s35.ca; res.tarif_marge_cible = s35.tarif_marge_cible;
       const lib = P.mode === "igd" ? "IGD" : "participation", unite = P.mode === "igd" ? " € / jour" : " € / semaine";
       if (s35.plafonne) al(res, "igd", "net promis inatteignable sous le plafond d'IGD " + eur(P.igd_max) + " € / jour : net " + eur(s35.net) + " au lieu de " + eur(res.net));
-      else if (s35.nul) al(res, "net", "net promis dépassé même sans " + lib + " : " + eur(s35.net) + " € / h (indemnités au-delà du besoin)", "info");
+      else if (s35.nul && P.mode === "igd") { const rd = Object.keys(s35.reduit || {}); if (rd.length) al(res, "net", "IGD à zéro : repas réduits pour ne pas dépasser le net promis (" + rd.map(k => (k === "repas_soir" ? "repas soir " : "repas midi ") + eur(s35.reduit[k]) + " €").join(", ") + ")", "info"); if (s35.ecart > P.tolerance_net) al(res, "net", "net " + eur(s35.net) + " > net promis même sans IGD ni repas : brut trop élevé pour ce net promis"); }
+      else if (s35.nul) al(res, "net", "net " + eur(s35.net) + " > net promis même sans participation : brut ou indemnités trop élevés pour ce net promis");
       if (s35.marge_pct < P.marge_cible - 0.05) al(res, "marge", "marge " + s35.marge_pct.toFixed(1) + " % < objectif " + P.marge_cible + " % avec " + lib + " " + eur(s35.levier) + unite + " (tarif nécessaire " + (s35.tarif_marge_cible != null ? eur(s35.tarif_marge_cible) + " € / h" : "—") + ")");
       if (P.mode === "participation" && s35.levier > P.logement + 0.005) al(res, "participation", "participation " + eur(s35.levier) + " € > coût du logement " + eur(P.logement) + " €", "info");
     } else {
-      for (const h of P.heures) { const r = calc(entrees(P, l, h)); res.scenarios.push(Object.assign({ heures: h, tarif_marge_cible: tarifPourMarge(entrees(P, l, h), P.marge_cible, brut) }, mesure(r))); }
+      for (const h of P.heures) res.scenarios.push(ajusterNonLoge(P, l, h));
       const s35 = res.scenarios.find(s => s.heures === 35) || res.scenarios[0];
-      res.net_atteint = s35.net; res.ecart = r2(s35.net - res.net); res.marge_pct = s35.marge_pct; res.ca = s35.ca; res.tarif_marge_cible = s35.tarif_marge_cible;
-      res.retenu = { participation: null, igd: null, net: s35.net, marge_pct: s35.marge_pct, base: "verif" };
-      if (res.ecart < -P.tolerance_net) { al(res, "net", "net atteint " + eur(s35.net) + " < net promis : il manque " + eur(-res.ecart * 35) + " € / semaine"); res.proposition = proposer(P, l, 35); if (res.proposition) al(res, "proposition", res.proposition.texte, "info"); }
-      else if (res.ecart > 0.60) al(res, "net", "net atteint " + eur(s35.net) + " > net promis de " + eur(res.ecart) + " € / h", "info");
+      res.net_atteint = s35.net; res.ecart = s35.ecart; res.marge_pct = s35.marge_pct; res.ca = s35.ca; res.tarif_marge_cible = s35.tarif_marge_cible;
+      res.retenu = { participation: null, igd: null, repas_midi: s35.repas_midi, repas_midi_nb: s35.repas_midi_nb, transport: s35.transport, transport_nb: s35.transport_nb, net: s35.net, marge_pct: s35.marge_pct, base: "indemnites" };
+      const ind = "panier " + eur(s35.repas_midi) + " € × 5" + (s35.transport > 0 ? " + transport " + eur(s35.transport) + " € × 5" : "");
+      if (s35.trop) al(res, "net", "net " + eur(s35.net) + " > net promis même sans aucune indemnité : brut trop élevé pour ce net promis (minimum conventionnel)");
+      else if (s35.deficit > 0.5) al(res, "net", "indemnités au maximum (" + ind + ") : il manque encore " + eur(s35.deficit) + " € / semaine pour le net promis");
+      else if (Math.abs(s35.ecart) > 0.005) al(res, "info", "indemnités ajustées sur le net promis : " + ind + " (tranche de transport inférieure au besoin, écart " + eur(s35.ecart) + " € / h)", "info");
       if (s35.marge_pct < P.marge_cible - 0.05) al(res, "marge", "marge " + s35.marge_pct.toFixed(1) + " % < objectif " + P.marge_cible + " % (tarif nécessaire " + (s35.tarif_marge_cible != null ? eur(s35.tarif_marge_cible) + " € / h" : "—") + ")");
     }
     return res;
@@ -229,11 +259,14 @@
   function versLigne(res, P) {
     if (res.alertes.some(a => a.type === "donnees") || res.client === "gc") return null;
     const loge = !!res.loge; const r = res.retenu || {};
+    const s35 = res.scenarios.find(s => s.heures === 35) || res.scenarios[0] || {}; const rd = s35.reduit || {};
     return { participation: loge ? r.participation : null, marge_pct: r.marge_pct,
              igd: (loge && res.mode === "igd" && r.igd != null) ? r.igd : undefined, igd_nb: (loge && res.mode === "igd" && r.igd_nb != null) ? r.igd_nb : undefined,
+             repas_midi: !loge ? r.repas_midi : (rd.repas_midi !== undefined ? rd.repas_midi : undefined), repas_midi_nb: !loge ? r.repas_midi_nb : undefined,
+             transport: !loge ? r.transport : undefined, transport_nb: !loge ? r.transport_nb : undefined, repas_soir: rd.repas_soir !== undefined ? rd.repas_soir : undefined,
              calcul: { mode: res.mode, loge, client: res.client, tarif: res.tarif, agence: res.agence, at_pct: res.at_pct, logement: res.logement, retenu: r, net_atteint: res.net_atteint, ecart: res.ecart, tarif_marge_cible: res.tarif_marge_cible,
                        scenarios: res.scenarios, alertes: res.alertes, proposition: res.proposition || null, hypotheses: P ? hypotheses(P) : null } };
   }
   return { HEURES, BLOCS, PROFILS, LOGE, ETRANGER, estLoge, AGENCES, AT_DEFAUT, agencePour, atPour, PARAMS_DEFAUT, DFS_BTP, dfsPour, SMIC, REPAS_CHANTIER, ZONES_PD,
-           paramsComplets, palierPour, tarifPour, indemnitesTexte, indemnitesDe, primesDe, entrees, levier, proposer, tarifPourMarge, construireLigne, construire, versLigne, hypotheses };
+           paramsComplets, palierPour, tarifPour, indemnitesTexte, indemnitesDe, primesDe, entrees, levier, ajusterNonLoge, proposer, tarifPourMarge, construireLigne, construire, versLigne, hypotheses };
 });

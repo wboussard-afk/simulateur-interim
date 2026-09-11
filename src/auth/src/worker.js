@@ -1267,12 +1267,12 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       if (items.length > 1000) return json({ erreur: "trop_de_lignes", max: 1000 }, 413);
       if (corps.construction != null && (typeof corps.construction !== "object" || Array.isArray(corps.construction))) return json({ erreur: "hypotheses_invalides" }, 400);
       const N = v => (v === "" || v == null) ? null : (isFinite(parseFloat(String(v).replace(",", "."))) ? parseFloat(String(v).replace(",", ".")) : null);
-      const st = env.DB.prepare("UPDATE grilles_btp_lignes SET participation = ?, marge_pct = ?, calcul = ?, igd = COALESCE(?, igd), igd_nb = COALESCE(?, igd_nb) WHERE grille_id = ? AND region = ? AND bloc = ? AND profil = ? AND ABS(net - ?) < 0.001 AND EXISTS (SELECT 1 FROM grilles_btp WHERE id = ? AND statut = 'brouillon')");
+      const st = env.DB.prepare("UPDATE grilles_btp_lignes SET participation = ?, marge_pct = ?, calcul = ?, igd = COALESCE(?, igd), igd_nb = COALESCE(?, igd_nb), repas_midi = COALESCE(?, repas_midi), repas_midi_nb = COALESCE(?, repas_midi_nb), repas_soir = COALESCE(?, repas_soir), transport = COALESCE(?, transport), transport_nb = COALESCE(?, transport_nb) WHERE grille_id = ? AND region = ? AND bloc = ? AND profil = ? AND ABS(net - ?) < 0.001 AND EXISTS (SELECT 1 FROM grilles_btp WHERE id = ? AND statut = 'brouillon')");
       const lots = []; let ignorees = 0;
       for (const it of items) {
         if (!it || !BLOCS_BTP.includes(it.bloc) || N(it.net) == null || (it.calcul && Array.isArray(it.calcul.alertes) && it.calcul.alertes.some(a => a && a.type === "donnees"))) { ignorees++; continue; }
         const calcul = it.calcul ? JSON.stringify(it.calcul) : null; if (calcul && calcul.length > 20000) { ignorees++; continue; }
-        lots.push(st.bind(N(it.participation), N(it.marge_pct), calcul, N(it.igd), N(it.igd_nb), g.id, String(it.region).slice(0, 60), it.bloc, String(it.profil).slice(0, 40), N(it.net), g.id));
+        lots.push(st.bind(N(it.participation), N(it.marge_pct), calcul, N(it.igd), N(it.igd_nb), N(it.repas_midi), N(it.repas_midi_nb), N(it.repas_soir), N(it.transport), N(it.transport_nb), g.id, String(it.region).slice(0, 60), it.bloc, String(it.profil).slice(0, 40), N(it.net), g.id));
       }
       let modifiees = 0;
       try {
