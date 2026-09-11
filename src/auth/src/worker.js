@@ -16,6 +16,31 @@ const estSuper = x => !!x && x.role === "super_admin";
 /* Accès par section : l'admin choisit les applications visibles par chaque utilisateur.
  * utilisateurs.sections = NULL → accès à tout (héritage) ; sinon tableau JSON de slugs.
  * Les admins et super admins voient toujours tout. */
+/* grille BTP « offre taux de facturation horaire tout inclus » — version 11-2025, document confidentiel
+   (page Évaluation & salaire net BTP pour les responsables ayant la section tarifs-btp ; hypothèses de construction de la grille Construction) */
+const GRILLE_FACTU_BTP = {
+        version: "11-2025", devise: "€ HT / heure travaillée, tout inclus (logement compris)",
+        categories: [
+          { nom: "Catégorie 1 — Ouvriers BTP", metiers: ["Façadiers - Poseurs ITE", "Plaquistes", "Ravaleurs", "Poseurs panneaux solaires", "Peintres intérieur", "Électriciens", "Enduiseurs - Projeté", "Poseurs d'armatures métalliques", "Plombiers - Chauffagistes", "Monteurs de gaines", "Bardeurs", "Maçons traditionnels", "Menuisiers bois / alu", "Étancheurs", "Soliers", "Carreleurs", "Maçons coffreurs bancheurs", "Charpentiers", "Couvreurs"],
+            paliers: [{ netMin: 12.00, netMax: 14.50, tarif: 31.50, libelle: "Ouvrier BTP" }, { netMin: 14.50, netMax: 16.00, tarif: 33.50, libelle: "Profil supérieur" }] },
+          { nom: "Catégorie 2 — Métiers industriels", metiers: ["Soudeurs", "Tuyauteurs", "Peintres industriels", "Sableurs", "Serruriers - Chaudronniers"],
+            paliers: [{ netMin: 14.50, netMax: 16.00, tarif: 33.50, libelle: "Ouvrier qualifié" }, { netMin: 16.00, netMax: 17.00, tarif: 35.50, libelle: "Profil supérieur" }] },
+        ],
+        majorations: { logement: 2.50, libelle_logement: "+ 2,50 € HT par heure travaillée à la facturation si l'intérimaire est logé sur un secteur majoré (Paris & alentours, Haute-Savoie & Pays de Gex, saison touristique) ou en cas de difficulté logistique", propre_logement: "KO + 1 €" },
+        mention_attestation: "Attestation fiscale non-résident obligatoire (le net promis suppose l'exonération CSG/CRDS).",
+        heures_mois: 169, heures_an: 1607,
+        regles: [
+          "Justificatif de domicile et/ou attestation fiscale OBLIGATOIRE pour les non-résidents (le net promis suppose l'exonération CSG/CRDS).",
+          "Intérimaire avec son propre logement : KO + 1 €.",
+          "Majoration OBLIGATOIRE logement Paris & alentours / Haute-Savoie & Pays de Gex / saison touristique / difficulté logistique : + 2,50 € HT par heure travaillée.",
+          "Aucun rabais du tarif si le client fournit le logement : le logement doit nous être facturé par le client via AB SERVICE KFT sur une base horaire de 2,50 € par heure travaillée.",
+          "Toute demande hors grille doit faire l'objet d'une quotation par la direction avec un tarif client spécifique.",
+        ],
+        exemples: [
+          { metier: "Plombier - chauffagiste", net: 13.50, tarif: 31.50, commentaire: "profil ouvrier BTP, attestation fiscale non-résident" },
+          { metier: "Plombier - chauffagiste", net: 15.00, tarif: 33.50, commentaire: "profil supérieur : le tarif suit, sinon la marge s'effondre" },
+        ],
+};
 const SECTIONS_APPS = ["simulateur", "paie", "conventions", "salaires-europe", "logements", "prestataires", "salaires-btp", "tarifs-btp", "notes", "grille-btp", "paie-btp"];
 
 /* Adresse de réponse des communications EXTERNES d'AB Service (réservations
@@ -1181,7 +1206,7 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       const gs = (await env.DB.prepare("SELECT g.*, (SELECT COUNT(*) FROM grilles_btp_lignes l WHERE l.grille_id = g.id) AS nb_lignes FROM grilles_btp g ORDER BY annee DESC, version DESC").all()).results;
       const regs = (await env.DB.prepare("SELECT region, departements FROM grilles_btp_regions ORDER BY region").all()).results;
       const gcs = (await env.DB.prepare("SELECT * FROM grands_comptes_btp ORDER BY actif DESC, client").all()).results;
-      return json({ ok: true, grilles: gs.map(g => Object.assign(resume(g), { nb_lignes: g.nb_lignes, params: params(g) })), regions: regs, grands_comptes: gcs, aujourdhui: aujourdhui() });
+      return json({ ok: true, grilles: gs.map(g => Object.assign(resume(g), { nb_lignes: g.nb_lignes, params: params(g) })), regions: regs, grands_comptes: gcs, aujourdhui: aujourdhui(), facturation: GRILLE_FACTU_BTP });
     }
     if (op === "grille" && req.method !== "POST") {
       const id = parseInt(url.searchParams.get("id") || "0", 10);
@@ -1227,6 +1252,25 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
               N(corps.igd), N(corps.igd_gc), N(corps.igd_nb), N(corps.repas_midi), N(corps.repas_midi_nb), N(corps.repas_soir), N(corps.repas_soir_nb), N(corps.transport), N(corps.transport_nb), N(corps.trajet), N(corps.trajet_nb), N(corps.participation), N(corps.marge_pct), corps.calcul ? JSON.stringify(corps.calcul).slice(0, 20000) : null).run();
       await journal(env, req, u, "grille_btp_ligne", "#" + g.id + " " + corps.region + " · " + corps.bloc + " · " + corps.profil + " · " + net + (corps.marge_pct != null ? " (moteur)" : ""));
       return json({ ok: true });
+    }
+    if (op === "lignes" && req.method === "POST") {
+      /* reprise des résultats du moteur dans le brouillon : mise à jour des seuls champs calculés, par lot */
+      const g = await env.DB.prepare("SELECT * FROM grilles_btp WHERE id = ?").bind(corps.grille_id | 0).first(); if (!g) return json({ erreur: "grille_introuvable" }, 404);
+      if (g.statut !== "brouillon") return json({ erreur: "grille_non_modifiable" }, 409);
+      const items = Array.isArray(corps.lignes) ? corps.lignes.slice(0, 1000) : [];
+      if (!items.length) return json({ erreur: "lignes_requises" }, 400);
+      const N = v => (v === "" || v == null) ? null : (isFinite(parseFloat(String(v).replace(",", "."))) ? parseFloat(String(v).replace(",", ".")) : null);
+      const st = env.DB.prepare("UPDATE grilles_btp_lignes SET participation = ?, marge_pct = ?, calcul = ?, igd = COALESCE(?, igd) WHERE grille_id = ? AND region = ? AND bloc = ? AND profil = ? AND ABS(net - ?) < 0.001");
+      const lots = [];
+      for (const it of items) {
+        if (!BLOCS_BTP.includes(it.bloc) || N(it.net) == null) continue;
+        lots.push(st.bind(N(it.participation), N(it.marge_pct), it.calcul ? JSON.stringify(it.calcul).slice(0, 20000) : null, N(it.igd), g.id, String(it.region).slice(0, 60), it.bloc, String(it.profil).slice(0, 40), N(it.net)));
+      }
+      let modifiees = 0;
+      for (let k = 0; k < lots.length; k += 50) { const rs = await env.DB.batch(lots.slice(k, k + 50)); rs.forEach(r => { modifiees += (r.meta && r.meta.changes) || 0; }); }
+      if (corps.construction != null) await env.DB.prepare("UPDATE grilles_btp SET params = ? WHERE id = ?").bind(JSON.stringify(Object.assign(params(g), { construction: corps.construction })).slice(0, 200000), g.id).run();
+      await journal(env, req, u, "grille_btp_moteur", "#" + g.id + " " + modifiees + " ligne(s) reprises du moteur" + (corps.construction ? " (hypothèses enregistrées)" : ""));
+      return json({ ok: true, modifiees, ignorees: items.length - lots.length });
     }
     if (op === "statut" && req.method === "POST") {
       const g = await env.DB.prepare("SELECT * FROM grilles_btp WHERE id = ?").bind(corps.id | 0).first(); if (!g) return json({ erreur: "grille_introuvable" }, 404);
@@ -1291,29 +1335,7 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
     const rep = { ok: true, facturation: secs.includes("tarifs-btp") };  /* documents PDF retirés le 08/09/2026 : tout est repris dans l'application */
     if (rep.facturation) {
       /* grille BTP offre taux de facturation horaire tout inclus — version 11-2025, document confidentiel */
-      rep.grille = {
-        version: "11-2025", devise: "€ HT / heure travaillée, tout inclus (logement compris)",
-        categories: [
-          { nom: "Catégorie 1 — Ouvriers BTP", metiers: ["Façadiers - Poseurs ITE", "Plaquistes", "Ravaleurs", "Poseurs panneaux solaires", "Peintres intérieur", "Électriciens", "Enduiseurs - Projeté", "Poseurs d'armatures métalliques", "Plombiers - Chauffagistes", "Monteurs de gaines", "Bardeurs", "Maçons traditionnels", "Menuisiers bois / alu", "Étancheurs", "Soliers", "Carreleurs", "Maçons coffreurs bancheurs", "Charpentiers", "Couvreurs"],
-            paliers: [{ netMin: 12.00, netMax: 14.50, tarif: 31.50, libelle: "Ouvrier BTP" }, { netMin: 14.50, netMax: 16.00, tarif: 33.50, libelle: "Profil supérieur" }] },
-          { nom: "Catégorie 2 — Métiers industriels", metiers: ["Soudeurs", "Tuyauteurs", "Peintres industriels", "Sableurs", "Serruriers - Chaudronniers"],
-            paliers: [{ netMin: 14.50, netMax: 16.00, tarif: 33.50, libelle: "Ouvrier qualifié" }, { netMin: 16.00, netMax: 17.00, tarif: 35.50, libelle: "Profil supérieur" }] },
-        ],
-        majorations: { logement: 2.50, libelle_logement: "+ 2,50 € HT par heure travaillée à la facturation si l'intérimaire est logé sur un secteur majoré (Paris & alentours, Haute-Savoie & Pays de Gex, saison touristique) ou en cas de difficulté logistique", propre_logement: "KO + 1 €" },
-        mention_attestation: "Attestation fiscale non-résident obligatoire (le net promis suppose l'exonération CSG/CRDS).",
-        heures_mois: 169, heures_an: 1607,
-        regles: [
-          "Justificatif de domicile et/ou attestation fiscale OBLIGATOIRE pour les non-résidents (le net promis suppose l'exonération CSG/CRDS).",
-          "Intérimaire avec son propre logement : KO + 1 €.",
-          "Majoration OBLIGATOIRE logement Paris & alentours / Haute-Savoie & Pays de Gex / saison touristique / difficulté logistique : + 2,50 € HT par heure travaillée.",
-          "Aucun rabais du tarif si le client fournit le logement : le logement doit nous être facturé par le client via AB SERVICE KFT sur une base horaire de 2,50 € par heure travaillée.",
-          "Toute demande hors grille doit faire l'objet d'une quotation par la direction avec un tarif client spécifique.",
-        ],
-        exemples: [
-          { metier: "Plombier - chauffagiste", net: 13.50, tarif: 31.50, commentaire: "profil ouvrier BTP, attestation fiscale non-résident" },
-          { metier: "Plombier - chauffagiste", net: 15.00, tarif: 33.50, commentaire: "profil supérieur : le tarif suit, sinon la marge s'effondre" },
-        ],
-      };
+      rep.grille = GRILLE_FACTU_BTP;
     }
     return json(rep);
   }

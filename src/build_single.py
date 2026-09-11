@@ -97,6 +97,13 @@ if os.path.isdir(os.path.join(base, "auth")):
                                ("prestataires.html", "prestataires.html"),
                                ("salaires-btp.html", "salaires-btp.html"), ("notes.html", "notes.html"), ("grille-btp.html", "grille-btp.html"), ("paie-btp.html", "paie-btp.html")]:
         data = open(base + r"\app" + "\\" + src_name, encoding='utf-8').read()
+        if src_name == "grille-btp.html":
+            # espace Direction : moteur du simulateur (db.js + engine.js) et module de construction inlinés
+            gm = open(base + r"\app\grille-moteur.js", encoding='utf-8').read()
+            data = data.replace('<script src="db.js?r1"></script>', '<script>\n' + db_ship + '</script>')
+            data = data.replace('<script src="engine.js?r1"></script>', '<script>\n' + eng + '</script>')
+            data = data.replace('<script src="grille-moteur.js?r1"></script>', '<script>\n' + gm + '</script>')
+            assert 'src="db.js' not in data and 'src="engine.js' not in data and 'src="grille-moteur.js' not in data
         open(os.path.join(auth_app, dst_name), 'w', encoding='utf-8').write(data)
     # barèmes BTP rechargés à l'exécution par le simulateur (fetch relatif "data/btp-baremes.json") :
     # canonique = <racine du dépôt>/data/btp-baremes.json (historique versionné) ; secours = app/data/

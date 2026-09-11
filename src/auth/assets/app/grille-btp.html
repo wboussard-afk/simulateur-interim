@@ -44,6 +44,10 @@ th { color: var(--muted); font-size: 11px; letter-spacing: .04em; text-transform
 .confid { border: 1px dashed var(--brass); border-radius: 10px; padding: 8px 12px; font-size: 12.5px; color: var(--brass-deep); background: rgba(219,48,63,.06); }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 12px; } @media (max-width: 800px) { .grid3 { grid-template-columns: 1fr; } }
 [hidden] { display: none !important; }
+  .cons table td.n, .cons table th.n { text-align: right; }
+  .cons tr.bad td { background: #fff1f0; } .cons tr.warn td { background: #fff8e6; } .cons .al { font-size: 11.5px; color: var(--brass-deep); white-space: normal; max-width: 420px; }
+  .cons tr.sc td { background: var(--card2); font-size: 12px; } .cons .sc table { width: auto; } .cons .sc td, .cons .sc th { padding: 2px 8px; border: 0; }
+  .cons .k { font-weight: 800; } #tbl-tarifs input, #tbl-logement input[type=number] { width: 90px; padding: 4px 6px; font-size: 12.5px; }
   tr.ecart td { background: #fff1f0; }  tr.ecart td:nth-child(2) { color: #b42318; font-weight: 600; }
 </style>
 </head>
@@ -120,14 +124,1245 @@ th { color: var(--muted); font-size: 11px; letter-spacing: .04em; text-transform
   </section>
 
   <section class="card" data-onglet="construction" hidden>
-    <h2>Construction par le moteur du simulateur</h2>
+    <h2>Construction par le moteur du simulateur <span class="note" id="cons-grille" style="font-weight:400"></span></h2>
     <div class="b">
-      <p>Cette phase branche le moteur du simulateur existant derrière la grille : région, profil, net cible, heures de 35 à 43, situation fiscale et logement, objectif de marge, puis résolution automatique de la participation logement (mode 1, indemnités définies) ou des indemnités (mode 2, participation définie), avec comparaison des neuf scénarios horaires et reprise des résultats dans la grille en brouillon.</p>
-      <p class="note">En attendant, la grille 2026 importée du classeur de la direction est la référence validée ; la paie la lit déjà. Trois paramètres sont à fixer par la direction avant de brancher le moteur : le tarif de facturation retenu par profil et par situation (grille de facturation BTP), le coût hebdomadaire du logement AB Service par région, et la définition exacte du net cible (avant ou après retenue de la participation).</p>
+      <p class="note">Le moteur du simulateur recalcule chaque ligne de la grille : brut et coefficient de la ligne, indemnités de la ligne, situation fiscale (résident étranger = attestation), logement AB Service, tarif de la grille de facturation, effectif et versement mobilité. <b>Mode 1</b> : les indemnités sont celles de la ligne, la <b>participation logement</b> est résolue pour atteindre le net cible. <b>Mode 2</b> : la participation est fixée (coût du logement par défaut), c'est l'<b>IGD</b> qui est résolue. Les lignes non logées n'ont pas de participation : le moteur vérifie le net atteint. Pour chaque ligne : marge brute au tarif de la grille, tarif nécessaire pour l'objectif de marge, scénarios de 35 à 43 h, variante Grand Compte.</p>
+      <h3 style="font-size:14px; margin:12px 0 6px">Hypothèses</h3>
+      <div class="grid3">
+        <div><label>Mode de résolution</label><select id="c-mode"><option value="1">1 — indemnités fixées → participation logement résolue</option><option value="2">2 — participation fixée → IGD résolue</option></select></div>
+        <div><label>Objectif de marge brute (%)</label><input type="number" step="0.5" id="c-marge"></div>
+        <div><label>Participation en mode 2 (€ / semaine, vide = coût du logement)</label><input type="number" step="0.01" id="c-part2"></div>
+        <div><label>IFM + ICCP</label><select id="c-ifm"><option value="1">paiement direct à chaque paie (logique du classeur)</option><option value="0">mise en CET (provision)</option></select></div>
+        <div><label>Effectif de l'ETT (intérimaires compris)</label><select id="c-effectif"><option value="50plus">50 salariés et plus</option><option value="20-49">20 à 49</option><option value="11-19">11 à 19</option><option value="moins11">moins de 11</option></select></div>
+        <div><label>Versement mobilité moyen (%)</label><input type="number" step="0.01" id="c-vm"></div>
+        <div><label>Coût du logement par défaut (€ / semaine)</label><input type="number" step="1" id="c-logdef"></div>
+        <div><label>Base horaire du logement dans le moteur (h)</label><input type="number" step="1" id="c-logh"></div>
+        <div><label>Majoration logement facturée (€ HT / h, secteurs cochés)</label><input type="number" step="0.5" id="c-majo"></div>
+      </div>
+      <h3 style="font-size:14px; margin:12px 0 6px">Tarifs de facturation par palier de net promis (€ HT / heure travaillée, tout inclus)</h3>
+      <div class="tbl"><table id="tbl-tarifs"></table></div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px"><button class="btn s" id="btn-tarif-plus">+ palier</button><button class="btn s" id="btn-tarif-grille">Reprendre la grille de facturation BTP</button></div>
+      <h3 style="font-size:14px; margin:12px 0 6px">Logement par région (€ / semaine) et secteurs à majoration</h3>
+      <div class="tbl"><table id="tbl-logement"></table></div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px">
+        <button class="btn" id="btn-cons-region">Calculer la région affichée</button>
+        <button class="btn p" id="btn-cons-tout">Calculer toute la grille</button>
+        <button class="btn" id="btn-cons-hyp">Enregistrer les hypothèses</button>
+        <button class="btn" id="btn-cons-reprendre" disabled>Reprendre les résultats dans le brouillon</button>
+      </div>
+      <div class="msg" id="msg-cons"></div>
+      <div id="cons-synthese" class="note" style="margin-top:8px"></div>
+      <div id="cons-resultats" style="margin-top:10px"></div>
     </div>
   </section>
 </div>
 
+<script>
+// généré par build_db_js.py — tables extraites des classeurs AGRI / TARIFAIRE (identiques)
+var DB = {"zonesKmPD": [{"label": "5 km et 10 km", "value": 3}, {"label": "10 km et 20 km", "value": 6.1}, {"label": "20 km et 30 km", "value": 9.1}, {"label": "30 km et 40 km", "value": 12.1}, {"label": "40 km et 50 km", "value": 15.2}, {"label": "50 km et 60 km", "value": 18.2}, {"label": "60 km et 70 km", "value": 21.2}, {"label": "70 km et 80 km", "value": 24.2}, {"label": "80 km et 90 km", "value": 27.3}, {"label": "90 km et 100 km", "value": 30.3}, {"label": "100 km et 110 km", "value": 33.3}, {"label": "110 km et 120 km", "value": 36.4}, {"label": "120 km et 130 km", "value": 39.4}, {"label": "130 km et 140 km", "value": 42.4}, {"label": "140 km et 150 km", "value": 45.5}, {"label": "150 km et 160 km", "value": 48.5}, {"label": "160 km et 170 km", "value": 51.5}, {"label": "170 km et 180 km", "value": 54.5}, {"label": "180 km et 190 km", "value": 57.6}, {"label": "190 km et 200 km", "value": 60.6}, {"label": "PAS DE TRANSPORT PD", "value": 0}], "majoNuit": [{"label": "MAJO DE NUIT 10%", "mult": 0.1, "raw": null}, {"label": "MAJO DE NUIT 15%", "mult": 0.15, "raw": null}, {"label": "MAJO DE NUIT 20%", "mult": 0.2, "raw": null}, {"label": "MAJO DE NUIT 25%", "mult": 0.25, "raw": null}, {"label": "MAJO DE NUIT 28%", "mult": 0.28, "raw": null}, {"label": "MAJO DE NUIT 30%", "mult": 0.3, "raw": null}, {"label": "MAJO DE NUIT 35%", "mult": 0.35, "raw": null}, {"label": "MAJO DE NUIT 40%", "mult": 0.4, "raw": null}, {"label": "MAJO DE NUIT 45%", "mult": 0.45, "raw": null}], "heuresSup": [{"label": "HEURES SUPPLEMENTAIRES 0%", "mult": 1.0, "raw": null}, {"label": "HEURES SUPPLEMENTAIRES 10%", "mult": 1.1, "raw": null}, {"label": "HEURES SUPPLEMENTAIRES 15%", "mult": 1.15, "raw": null}, {"label": "HEURES SUPPLEMENTAIRES 20%", "mult": 1.2, "raw": null}, {"label": "HEURES SUPPLEMENTAIRES 25%", "mult": 1.25, "raw": null}, {"label": "HEURES SUPPLEMENTAIRES 30%", "mult": 1.3, "raw": null}, {"label": "HEURES SUPPLEMENTAIRES 35%", "mult": 1.35, "raw": null}, {"label": "HEURES SUPPLEMENTAIRES 40%", "mult": 1.4, "raw": null}, {"label": "HEURES SUPPLEMENTAIRES 45%", "mult": 1.45, "raw": null}], "majoDimanche": [{"label": "MAJO DIMANCHE 10 %", "mult": 0.1, "raw": null}, {"label": "MAJO DIMANCHE 15 %", "mult": 0.15, "raw": null}, {"label": "MAJO DIMANCHE 20 %", "mult": 0.2, "raw": null}, {"label": "MAJO DIMANCHE 25 %", "mult": 0.25, "raw": null}, {"label": "MAJO DIMANCHE 30 %", "mult": 0.3, "raw": null}, {"label": "MAJO DIMANCHE 35 %", "mult": 0.35, "raw": null}, {"label": "MAJO DIMANCHE 40 %", "mult": 0.4, "raw": null}, {"label": "MAJO DIMANCHE 45 %", "mult": 0.45, "raw": null}, {"label": "MAJO DIMANCHE 50 %", "mult": 0.5, "raw": null}, {"label": "MAJO DIMANCHE 55 %", "mult": 0.55, "raw": null}, {"label": "MAJO DIMANCHE 60 %", "mult": 0.6, "raw": null}, {"label": "MAJO DIMANCHE 65 %", "mult": 0.65, "raw": null}, {"label": "MAJO DIMANCHE 70 %", "mult": 0.7, "raw": null}, {"label": "MAJO DIMANCHE 75 %", "mult": 0.75, "raw": null}, {"label": "MAJO DIMANCHE 80 %", "mult": 0.8, "raw": null}, {"label": "MAJO DIMANCHE 85 %", "mult": 0.85, "raw": null}, {"label": "MAJO DIMANCHE 90 %", "mult": 0.9, "raw": null}, {"label": "MAJO DIMANCHE 95 %", "mult": 0.95, "raw": null}, {"label": "MAJO DIMANCHE 100 %", "mult": 1.0, "raw": null}], "majoFerie": [{"label": "MAJO FERIE 10 %", "mult": 0.1, "raw": null}, {"label": "MAJO FERIE 15 %", "mult": 0.15, "raw": null}, {"label": "MAJO FERIE 20 %", "mult": 0.2, "raw": null}, {"label": "MAJO FERIE 25 %", "mult": 0.25, "raw": null}, {"label": "MAJO FERIE 30 %", "mult": 0.3, "raw": null}, {"label": "MAJO FERIE 35 %", "mult": 0.35, "raw": null}, {"label": "MAJO FERIE 40 %", "mult": 0.4, "raw": null}, {"label": "MAJO FERIE 45 %", "mult": 0.45, "raw": null}, {"label": "MAJO FERIE 50 %", "mult": 0.5, "raw": null}, {"label": "MAJO FERIE 55 %", "mult": 0.55, "raw": null}, {"label": "MAJO FERIE 60 %", "mult": 0.6, "raw": null}, {"label": "MAJO FERIE 65 %", "mult": 0.65, "raw": null}, {"label": "MAJO FERIE 70 %", "mult": 0.7, "raw": null}, {"label": "MAJO FERIE 75 %", "mult": 0.75, "raw": null}, {"label": "MAJO FERIE 80 %", "mult": 0.8, "raw": null}, {"label": "MAJO FERIE 85 %", "mult": 0.85, "raw": null}, {"label": "MAJO FERIE 90 %", "mult": 0.9, "raw": null}, {"label": "MAJO FERIE 95 %", "mult": 0.95, "raw": null}, {"label": "MAJO FERIE 100 %", "mult": 1.0, "raw": null}], "majoNormales": [{"label": "MAJO NORMALES 10 %", "mult": 0.1, "raw": null}, {"label": "MAJO NORMALES 15 %", "mult": 0.15, "raw": null}, {"label": "MAJO NORMALES 20 %", "mult": 0.2, "raw": null}, {"label": "MAJO NORMALES 25 %", "mult": 0.25, "raw": null}, {"label": "MAJO NORMALES 30 %", "mult": 0.3, "raw": null}, {"label": "MAJO NORMALES 35 %", "mult": 0.35, "raw": null}, {"label": "MAJO NORMALES 40 %", "mult": 0.4, "raw": null}, {"label": "MAJO NORMALES 45 %", "mult": 0.45, "raw": null}, {"label": "MAJO NORMALES 50 %", "mult": 0.5, "raw": null}, {"label": "MAJO NORMALES 55 %", "mult": 0.55, "raw": null}, {"label": "MAJO NORMALES 60 %", "mult": 0.6, "raw": null}, {"label": "MAJO NORMALES 65 %", "mult": 0.65, "raw": null}, {"label": "MAJO NORMALES 70 %", "mult": 0.7, "raw": null}, {"label": "MAJO NORMALES 75 %", "mult": 0.75, "raw": null}, {"label": "MAJO NORMALES 80 %", "mult": 0.8, "raw": null}, {"label": "MAJO NORMALES 85 %", "mult": 0.85, "raw": null}, {"label": "MAJO NORMALES 90 %", "mult": 0.9, "raw": null}, {"label": "MAJO NORMALES 95 %", "mult": 0.95, "raw": null}, {"label": "MAJO NORMALES 100 %", "mult": 1.0, "raw": null}], "departments": [{"dept": "01 Ain", "region": "Auvergne-Rhône-Alpes / RA", "panier": 10.2, "panierNonSoumis": 9.5, "panierSoumis": 0.6999999999999993, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.98246192391376, "N3P1": 12.33289378255423, "N3P2": 13.41524362101932, "N4P1": 14.493637502472474, "N4P2": 15.574009362431598, "AUTRE": 10.57}, "transport": [0.76, 2.63, 5.53, 9.25, 12.99, 16.7], "trajet": [0.52, 1.24, 2.45, 3.71, 4.91, 6.32]}, {"dept": "02 Aisne", "region": "Hauts-de-France / PICARDIE", "panier": 12, "panierNonSoumis": 9.5, "panierSoumis": 2.5, "rates": {"N1P1": 10.604931759741545, "N1P2": 10.84321223709369, "N2": 11.149205511966771, "N3P1": 11.79138920023736, "N3P2": 12.70383068503989, "N4P1": 13.708841563921672, "N4P2": 14.76877431265247, "AUTRE": 10.57}, "transport": [2.28, 2.28, 5.42, 8.38, 11, 14.07], "trajet": [1.45, 1.45, 2.9, 4.35, 5.81, 7.26]}, {"dept": "03 Allier", "region": "Auvergne-Rhône-Alpes / AUVERGNE", "panier": 10.11, "panierNonSoumis": 9.5, "panierSoumis": 0.6099999999999994, "rates": {"N1P1": 10.584558581130086, "N1P2": 10.610008571240193, "N2": 11.365464495285819, "N3P1": 12.767257862464563, "N3P2": 13.711347003362564, "N4P1": 14.706336124480783, "N4P2": 15.624447814333754, "AUTRE": 10.57}, "transport": [0.75, 1.72, 5.07, 7.99, 11.07, 13.97], "trajet": [0.64, 1.38, 2.71, 3.93, 4.98, 6.51]}, {"dept": "04 Alpes-de-Haute-Provence", "region": "Provence-Alpes-Côte d'Azur", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.294916595239666, "N3P1": 12.610272301707655, "N3P2": 13.662556866882046, "N4P1": 14.71484143205644, "N4P2": 15.767125997230831, "AUTRE": 10.57}, "transport": [3.14, 3.14, 5.52, 7.42, 9.69, 12.62], "trajet": [2.03, 2.03, 3.23, 4.35, 5.77, 6.85]}, {"dept": "05 Hautes-Alpes", "region": "Provence-Alpes-Côte d'Azur", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.294916595239666, "N3P1": 12.610272301707655, "N3P2": 13.662556866882046, "N4P1": 14.71484143205644, "N4P2": 15.767125997230831, "AUTRE": 10.57}, "transport": [3.14, 3.14, 5.52, 7.42, 9.69, 12.62], "trajet": [2.03, 2.03, 3.23, 4.35, 5.77, 6.85]}, {"dept": "06 Alpes-Maritimes", "region": "Provence-Alpes-Côte d'Azur", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.294916595239666, "N3P1": 12.610272301707655, "N3P2": 13.662556866882046, "N4P1": 14.71484143205644, "N4P2": 15.767125997230831, "AUTRE": 10.57}, "transport": [3.14, 3.14, 5.52, 7.42, 9.69, 12.62], "trajet": [2.03, 2.03, 3.23, 4.35, 5.77, 6.85]}, {"dept": "07 Ardèche", "region": "Auvergne-Rhône-Alpes / RA", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.98246192391376, "N3P1": 12.33289378255423, "N3P2": 13.41524362101932, "N4P1": 14.493637502472474, "N4P2": 15.574009362431598, "AUTRE": 10.57}, "transport": [1.64, 2.79, 5.54, 8.86, 12.45, 15.86], "trajet": [0.71, 1.28, 2.79, 4.07, 5.54, 6.79]}, {"dept": "08 Ardennes", "region": "Grand-Est / CHAMPAGNE ARDENNE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}, "transport": [1.64, 2.3, 4.13, 6.59, 8.48, 10.63], "trajet": [1.22, 1.79, 2.99, 4.31, 5.39, 7.83]}, {"dept": "09 Ariège", "region": "Occitanie / MP", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}, "transport": [1.84, 2.93, 5.91, 8.81, 11.69, 14.82], "trajet": [1.37, 1.93, 4.1, 5.23, 6.95, 8.83]}, {"dept": "10 Aube", "region": "Grand-Est / CHAMPAGNE ARDENNE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}, "transport": [1.64, 2.3, 4.13, 6.59, 8.48, 10.63], "trajet": [1.22, 1.79, 2.99, 4.31, 5.39, 7.83]}, {"dept": "11 Aude", "region": "Occitanie / L ROUSSILLON", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}, "transport": [2.18, 2.58, 5.13, 7.84, 10.65, 13.53], "trajet": [1.65, 1.77, 3.46, 4.57, 6, 7.51]}, {"dept": "12 Aveyron", "region": "Occitanie / MP", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}, "transport": [1.84, 2.93, 5.91, 8.81, 11.69, 14.82], "trajet": [1.37, 1.93, 4.1, 5.23, 6.95, 8.83]}, {"dept": "13 Bouches-du-Rhône", "region": "Provence-Alpes-Côte d'Azur", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.294916595239666, "N3P1": 12.610272301707655, "N3P2": 13.662556866882046, "N4P1": 14.71484143205644, "N4P2": 15.767125997230831, "AUTRE": 10.57}, "transport": [3.14, 3.14, 5.52, 7.42, 9.69, 12.62], "trajet": [2.03, 2.03, 3.23, 4.35, 5.77, 6.85]}, {"dept": "14 Calvados", "region": "Normandie / BASSE", "panier": 10.15, "panierNonSoumis": 9.5, "panierSoumis": 0.6500000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.7589503527395, "N3P1": 11.862200830750973, "N3P2": 12.745631964132658, "N4P1": 13.775565372189625, "N4P2": 14.668424869783085, "AUTRE": 10.57}, "transport": [2.59, 2.59, 5.71, 8.57, 12.01, 15.43], "trajet": [1.63, 1.63, 3.26, 4.88, 6.48, 8.15]}, {"dept": "15 Cantal", "region": "Auvergne-Rhône-Alpes / AUVERGNE", "panier": 10.11, "panierNonSoumis": 9.5, "panierSoumis": 0.6099999999999994, "rates": {"N1P1": 10.584558581130086, "N1P2": 10.610008571240193, "N2": 11.365464495285819, "N3P1": 12.767257862464563, "N3P2": 13.711347003362564, "N4P1": 14.706336124480783, "N4P2": 15.624447814333754, "AUTRE": 10.57}, "transport": [0.75, 1.72, 5.07, 7.99, 11.07, 13.97], "trajet": [0.64, 1.38, 2.71, 3.93, 4.98, 6.51]}, {"dept": "16 Charente", "region": "Nouvelle-Aquitaine / POITOU C", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}, "transport": [0.85, 2.23, 4.85, 8.05, 11.3, 14.52], "trajet": [0.72, 1.62, 3.33, 4.74, 6.16, 7.61]}, {"dept": "17 Charente-Maritime", "region": "Nouvelle-Aquitaine / POITOU C", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}, "transport": [0.85, 2.23, 4.85, 8.05, 11.3, 14.52], "trajet": [0.72, 1.62, 3.33, 4.74, 6.16, 7.61]}, {"dept": "18 Cher", "region": "Centre-Val de Loire", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.73, "N2": 11.26, "N3P1": 12.14, "N3P2": 12.84, "N4P1": 13.55, "N4P2": 14.25, "AUTRE": 10.57}, "transport": [0.51, 3.63, 7.64, 11.29, 15.64, 20.01], "trajet": [0.4, 2.5, 4.09, 5.02, 6.3, 7.86]}, {"dept": "19 Corrèze", "region": "Nouvelle-Aquitaine / LIMOUSIN", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}, "transport": [0.85, 2.23, 4.85, 8.05, 11.3, 14.52], "trajet": [0.72, 1.62, 3.33, 4.74, 6.16, 7.61]}, {"dept": "2A Corse-du-Sud", "region": "Corse", "panier": 9.5, "panierNonSoumis": 9.5, "panierSoumis": 0, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.29, "N3P1": 12.61, "N3P2": 13.66, "N4P1": 14.71, "N4P2": 15.77, "AUTRE": 10.57}, "transport": [null, null, null, null, null, null], "trajet": [null, null, null, null, null, null]}, {"dept": "2B Haute-Corse", "region": "Corse", "panier": 9.5, "panierNonSoumis": 9.5, "panierSoumis": 0, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.29, "N3P1": 12.61, "N3P2": 13.66, "N4P1": 14.71, "N4P2": 15.77, "AUTRE": 10.57}, "transport": [null, null, null, null, null, null], "trajet": [null, null, null, null, null, null]}, {"dept": "21 Côte-d'Or", "region": "Bourgogne-Franche-Comté / BOURGOGNE", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.5756, "N2": 11.1888, "N3P1": 12.2107, "N3P2": 13.0283, "N4P1": 13.8458, "N4P2": 14.6634, "AUTRE": 10.57}, "transport": [2.4, 2.4, 5.05, 8.21, 10.58, 13.15], "trajet": [1.49, 1.6, 3.06, 4.26, 5.98, 7.05]}, {"dept": "22 Côtes-d'Armor", "region": "Bretagne", "panier": 10.6, "panierNonSoumis": 9.5, "panierSoumis": 1.0999999999999996, "rates": {"N1P1": 10.63, "N1P2": 10.78, "N2": 11.13, "N3P1": 12.39, "N3P2": 13.4, "N4P1": 14.41, "N4P2": 15.41, "AUTRE": 10.57}, "transport": [0.51, 2.56, 5.11, 7.02, 9, 10.96], "trajet": [0.46, 1.49, 2.06, 3.07, 4.31, 5.15]}, {"dept": "23 Creuse", "region": "Nouvelle-Aquitaine / LIMOUSIN", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}, "transport": [0.85, 2.23, 4.85, 8.05, 11.3, 14.52], "trajet": [0.72, 1.62, 3.33, 4.74, 6.16, 7.61]}, {"dept": "24 Dordogne", "region": "Nouvelle-Aquitaine / AQUITAINE", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}, "transport": [0.85, 2.23, 4.85, 8.05, 11.3, 14.52], "trajet": [0.72, 1.62, 3.33, 4.74, 6.16, 7.61]}, {"dept": "25 Doubs", "region": "Bourgogne-Franche-Comté / FC", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.5756, "N2": 11.1888, "N3P1": 12.2107, "N3P2": 13.0283, "N4P1": 13.8458, "N4P2": 14.6634, "AUTRE": 10.57}, "transport": [2.4, 2.4, 5.05, 8.21, 10.58, 13.15], "trajet": [1.49, 1.6, 3.06, 4.26, 5.98, 7.05]}, {"dept": "26 Drôme", "region": "Auvergne-Rhône-Alpes / RA", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.98246192391376, "N3P1": 12.33289378255423, "N3P2": 13.41524362101932, "N4P1": 14.493637502472474, "N4P2": 15.574009362431598, "AUTRE": 10.57}, "transport": [1.64, 2.79, 5.54, 8.86, 12.45, 15.86], "trajet": [0.71, 1.28, 2.79, 4.07, 5.54, 6.79]}, {"dept": "27 Eure", "region": "Normandie / HAUTE", "panier": 10.15, "panierNonSoumis": 9.5, "panierSoumis": 0.6500000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.76, "N3P1": 11.86, "N3P2": 12.74, "N4P1": 13.77, "N4P2": 14.67, "AUTRE": 10.57}, "transport": [2.24, 2.59, 5.71, 8.57, 12.01, 15.43], "trajet": [1.24, 1.41, 2.71, 4.04, 5.4, 6.89]}, {"dept": "28 Eure-et-Loir", "region": "Centre-Val de Loire", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.73, "N2": 11.26, "N3P1": 12.14, "N3P2": 12.84, "N4P1": 13.55, "N4P2": 14.25, "AUTRE": 10.57}, "transport": [0.51, 3.63, 7.64, 11.29, 15.64, 20.01], "trajet": [0.4, 2.5, 4.09, 5.02, 6.3, 7.86]}, {"dept": "29 Finistère", "region": "Bretagne", "panier": 10.6, "panierNonSoumis": 9.5, "panierSoumis": 1.0999999999999996, "rates": {"N1P1": 10.63, "N1P2": 10.78, "N2": 11.13, "N3P1": 12.39, "N3P2": 13.4, "N4P1": 14.41, "N4P2": 15.41, "AUTRE": 10.57}, "transport": [0.51, 2.56, 5.11, 7.02, 9, 10.96], "trajet": [0.46, 1.49, 2.06, 3.07, 4.31, 5.15]}, {"dept": "30 Gard", "region": "Occitanie / L ROUSSILLON", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}, "transport": [2.18, 2.58, 5.13, 7.84, 10.65, 13.53], "trajet": [1.65, 1.77, 3.46, 4.57, 6, 7.51]}, {"dept": "31 Haute-Garonne", "region": "Occitanie / MP", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}, "transport": [1.84, 2.93, 5.91, 8.81, 11.69, 14.82], "trajet": [1.37, 1.93, 4.1, 5.23, 6.95, 8.83]}, {"dept": "32 Gers", "region": "Occitanie / MP", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.772202808729478, "N3P1": 11.448012131601503, "N3P2": 12.394013318388607, "N4P1": 13.374497263796401, "N4P2": 14.408584426715898, "AUTRE": 10.57}, "transport": [1.84, 2.93, 5.91, 8.81, 11.69, 14.82], "trajet": [1.37, 1.93, 4.1, 5.23, 6.95, 8.83]}, {"dept": "33 Gironde", "region": "Nouvelle-Aquitaine / AQUITAINE", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}, "transport": [0.85, 2.23, 4.85, 8.05, 11.3, 14.52], "trajet": [0.72, 1.62, 3.33, 4.74, 6.16, 7.61]}, {"dept": "34 Hérault", "region": "Occitanie / L ROUSSILLON", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}, "transport": [2.18, 2.58, 5.13, 7.84, 10.65, 13.53], "trajet": [1.65, 1.77, 3.46, 4.57, 6, 7.51]}, {"dept": "35 Ille-et-Vilaine", "region": "Bretagne", "panier": 10.6, "panierNonSoumis": 9.5, "panierSoumis": 1.0999999999999996, "rates": {"N1P1": 10.63, "N1P2": 10.78, "N2": 11.13, "N3P1": 12.39, "N3P2": 13.4, "N4P1": 14.41, "N4P2": 15.41, "AUTRE": 10.57}, "transport": [0.51, 2.56, 5.11, 7.02, 9, 10.96], "trajet": [0.46, 1.49, 2.06, 3.07, 4.31, 5.15]}, {"dept": "36 Indre", "region": "Centre-Val de Loire", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.73, "N2": 11.26, "N3P1": 12.14, "N3P2": 12.84, "N4P1": 13.55, "N4P2": 14.25, "AUTRE": 10.57}, "transport": [0.51, 3.63, 7.64, 11.29, 15.64, 20.01], "trajet": [0.4, 2.5, 4.09, 5.02, 6.3, 7.86]}, {"dept": "37 Indre-et-Loire", "region": "Centre-Val de Loire", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.73, "N2": 11.26, "N3P1": 12.14, "N3P2": 12.84, "N4P1": 13.55, "N4P2": 14.25, "AUTRE": 10.57}, "transport": [0.51, 3.63, 7.64, 11.29, 15.64, 20.01], "trajet": [0.4, 2.5, 4.09, 5.02, 6.3, 7.86]}, {"dept": "38 Isère", "region": "Auvergne-Rhône-Alpes / RA", "panier": 10.3, "panierNonSoumis": 9.5, "panierSoumis": 0.8000000000000007, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.98246192391376, "N3P1": 12.33289378255423, "N3P2": 13.41524362101932, "N4P1": 14.493637502472474, "N4P2": 15.574009362431598, "AUTRE": 10.57}, "transport": [1.01, 3.06, 6.01, 9.83, 13.62, 17.17], "trajet": [0.65, 1.87, 3.45, 5.33, 7.21, 8.99]}, {"dept": "39 Jura", "region": "Bourgogne-Franche-Comté / FC", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.5756, "N2": 11.1888, "N3P1": 12.2107, "N3P2": 13.0283, "N4P1": 13.8458, "N4P2": 14.6634, "AUTRE": 10.57}, "transport": [2.4, 2.4, 5.05, 8.21, 10.58, 13.15], "trajet": [1.49, 1.6, 3.06, 4.26, 5.98, 7.05]}, {"dept": "40 Landes", "region": "Nouvelle-Aquitaine / AQUITAINE", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}, "transport": [0.85, 2.23, 4.85, 8.05, 11.3, 14.52], "trajet": [0.72, 1.62, 3.33, 4.74, 6.16, 7.61]}, {"dept": "41 Loir-et-Cher", "region": "Centre-Val de Loire", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.73, "N2": 11.26, "N3P1": 12.14, "N3P2": 12.84, "N4P1": 13.55, "N4P2": 14.25, "AUTRE": 10.57}, "transport": [0.51, 3.63, 7.64, 11.29, 15.64, 20.01], "trajet": [0.4, 2.5, 4.09, 5.02, 6.3, 7.86]}, {"dept": "42 Loire", "region": "Auvergne-Rhône-Alpes / RA", "panier": 10.35, "panierNonSoumis": 9.5, "panierSoumis": 0.8499999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.98246192391376, "N3P1": 12.33289378255423, "N3P2": 13.41524362101932, "N4P1": 14.493637502472474, "N4P2": 15.574009362431598, "AUTRE": 10.57}, "transport": [2.95, 2.95, 5.99, 9.75, 13.7, 17.84], "trajet": [1.46, 1.46, 2.99, 4.45, 6.02, 7.76]}, {"dept": "43 Haute-Loire", "region": "Auvergne-Rhône-Alpes / AUVERGNE", "panier": 10.11, "panierNonSoumis": 9.5, "panierSoumis": 0.6099999999999994, "rates": {"N1P1": 10.584558581130086, "N1P2": 10.610008571240193, "N2": 11.365464495285819, "N3P1": 12.767257862464563, "N3P2": 13.711347003362564, "N4P1": 14.706336124480783, "N4P2": 15.624447814333754, "AUTRE": 10.57}, "transport": [0.75, 1.72, 5.07, 7.99, 11.07, 13.97], "trajet": [0.64, 1.38, 2.71, 3.93, 4.98, 6.51]}, {"dept": "44 Loire-Atlantique", "region": "Pays de la Loire", "panier": 9.5, "panierNonSoumis": 9.5, "panierSoumis": 0, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.85, "N3P1": 12.14, "N3P2": 13.2, "N4P1": 14.25, "N4P2": 15.31, "AUTRE": 10.57}, "transport": [0.77, 0.98, 3.81, 7.2, 11.02, 16.4], "trajet": [0.48, 0.67, 1.9, 4.08, 5.12, 6.11]}, {"dept": "45 Loiret", "region": "Centre-Val de Loire", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.73, "N2": 11.26, "N3P1": 12.14, "N3P2": 12.84, "N4P1": 13.55, "N4P2": 14.25, "AUTRE": 10.57}, "transport": [0.51, 3.63, 7.64, 11.29, 15.64, 20.01], "trajet": [0.4, 2.5, 4.09, 5.02, 6.3, 7.86]}, {"dept": "46 Lot", "region": "Occitanie / MP", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}, "transport": [1.84, 2.93, 5.91, 8.81, 11.69, 14.82], "trajet": [1.37, 1.93, 4.1, 5.23, 6.95, 8.83]}, {"dept": "47 Lot-et-Garonne", "region": "Nouvelle-Aquitaine / AQUITAINE", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}, "transport": [0.85, 2.23, 4.85, 8.05, 11.3, 14.52], "trajet": [0.72, 1.62, 3.33, 4.74, 6.16, 7.61]}, {"dept": "48 Lozère", "region": "Occitanie / L ROUSSILLON", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}, "transport": [2.18, 2.58, 5.13, 7.84, 10.65, 13.53], "trajet": [1.65, 1.77, 3.46, 4.57, 6, 7.51]}, {"dept": "49 Maine-et-Loire", "region": "Pays de la Loire", "panier": 9.5, "panierNonSoumis": 9.5, "panierSoumis": 0, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.85, "N3P1": 12.14, "N3P2": 13.2, "N4P1": 14.25, "N4P2": 15.31, "AUTRE": 10.57}, "transport": [0.77, 0.98, 3.81, 7.2, 11.02, 16.4], "trajet": [0.48, 0.67, 1.9, 4.08, 5.12, 6.11]}, {"dept": "50 Manche", "region": "Normandie / BASSE", "panier": 10.15, "panierNonSoumis": 9.5, "panierSoumis": 0.6500000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.76, "N3P1": 11.86, "N3P2": 12.74, "N4P1": 13.77, "N4P2": 14.67, "AUTRE": 10.57}, "transport": [2.59, 2.59, 5.71, 8.57, 12.01, 15.43], "trajet": [1.63, 1.63, 3.26, 4.88, 6.48, 8.15]}, {"dept": "51 Marne", "region": "Grand-Est / CHAMPAGNE ARDENNE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}, "transport": [1.64, 2.3, 4.13, 6.59, 8.48, 10.63], "trajet": [1.22, 1.79, 2.99, 4.31, 5.39, 7.83]}, {"dept": "52 Haute-Marne", "region": "Grand-Est / CHAMPAGNE ARDENNE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}, "transport": [1.64, 2.3, 4.13, 6.59, 8.48, 10.63], "trajet": [1.22, 1.79, 2.99, 4.31, 5.39, 7.83]}, {"dept": "53 Mayenne", "region": "Pays de la Loire", "panier": 9.5, "panierNonSoumis": 9.5, "panierSoumis": 0, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.85, "N3P1": 12.14, "N3P2": 13.2, "N4P1": 14.25, "N4P2": 15.31, "AUTRE": 10.57}, "transport": [0.77, 0.98, 3.81, 7.2, 11.02, 16.4], "trajet": [0.48, 0.67, 1.9, 4.08, 5.12, 6.11]}, {"dept": "54 Meurthe-et-Moselle", "region": "Grand-Est / LORRAINE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}, "transport": [2.11, 2.11, 4.37, 7.05, 10.63, 12.39], "trajet": [1.35, 1.35, 2.74, 4.06, 5.45, 6.86]}, {"dept": "55 Meuse", "region": "Grand-Est / LORRAINE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}, "transport": [2.11, 2.11, 4.37, 7.05, 10.63, 12.39], "trajet": [1.35, 1.35, 2.74, 4.06, 5.45, 6.86]}, {"dept": "56 Morbihan", "region": "Bretagne", "panier": 10.6, "panierNonSoumis": 9.5, "panierSoumis": 1.0999999999999996, "rates": {"N1P1": 10.63, "N1P2": 10.78, "N2": 11.13, "N3P1": 12.39, "N3P2": 13.4, "N4P1": 14.41, "N4P2": 15.41, "AUTRE": 10.57}, "transport": [0.51, 2.56, 5.11, 7.02, 9, 10.96], "trajet": [0.46, 1.49, 2.06, 3.07, 4.31, 5.15]}, {"dept": "57 Moselle", "region": "Grand-Est / LORRAINE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}, "transport": [2.11, 2.11, 4.37, 7.05, 10.63, 12.39], "trajet": [1.35, 1.35, 2.74, 4.06, 5.45, 6.86]}, {"dept": "58 Nièvre", "region": "Bourgogne-Franche-Comté / BOURGOGNE", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.5756, "N2": 11.1888, "N3P1": 12.2107, "N3P2": 13.0283, "N4P1": 13.8458, "N4P2": 14.6634, "AUTRE": 10.57}, "transport": [2.4, 2.4, 5.05, 8.21, 10.58, 13.15], "trajet": [1.49, 1.6, 3.06, 4.26, 5.98, 7.05]}, {"dept": "59 Nord", "region": "Hauts-de-France / NPDC", "panier": 12, "panierNonSoumis": 9.5, "panierSoumis": 2.5, "rates": {"N1P1": 10.604931759741545, "N1P2": 10.84321223709369, "N2": 11.149205511966771, "N3P1": 11.79138920023736, "N3P2": 12.70383068503989, "N4P1": 13.708841563921672, "N4P2": 14.76877431265247, "AUTRE": 10.57}, "transport": [2.28, 2.28, 5.42, 8.38, 11, 14.07], "trajet": [1.45, 1.45, 2.9, 4.35, 5.81, 7.26]}, {"dept": "60 Oise", "region": "Hauts-de-France / PICARDIE", "panier": 12, "panierNonSoumis": 9.5, "panierSoumis": 2.5, "rates": {"N1P1": 10.604931759741545, "N1P2": 10.84321223709369, "N2": 11.149205511966771, "N3P1": 11.79138920023736, "N3P2": 12.70383068503989, "N4P1": 13.708841563921672, "N4P2": 14.76877431265247, "AUTRE": 10.57}, "transport": [2.28, 2.28, 5.42, 8.38, 11, 14.07], "trajet": [1.45, 1.45, 2.9, 4.35, 5.81, 7.26]}, {"dept": "61 Orne", "region": "Normandie / BASSE", "panier": 10.15, "panierNonSoumis": 9.5, "panierSoumis": 0.6500000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.76, "N3P1": 11.86, "N3P2": 12.74, "N4P1": 13.77, "N4P2": 14.67, "AUTRE": 10.57}, "transport": [2.59, 2.59, 5.71, 8.57, 12.01, 15.43], "trajet": [1.63, 1.63, 3.26, 4.88, 6.48, 8.15]}, {"dept": "62 Pas-de-Calais", "region": "Hauts-de-France / NPDC", "panier": 12, "panierNonSoumis": 9.5, "panierSoumis": 2.5, "rates": {"N1P1": 10.604931759741545, "N1P2": 10.84321223709369, "N2": 11.149205511966771, "N3P1": 11.79138920023736, "N3P2": 12.70383068503989, "N4P1": 13.708841563921672, "N4P2": 14.76877431265247, "AUTRE": 10.57}, "transport": [2.28, 2.28, 5.42, 8.38, 11, 14.07], "trajet": [1.45, 1.45, 2.9, 4.35, 5.81, 7.26]}, {"dept": "63 Puy-de-Dôme", "region": "Auvergne-Rhône-Alpes / AUVERGNE", "panier": 10.11, "panierNonSoumis": 9.5, "panierSoumis": 0.6099999999999994, "rates": {"N1P1": 10.584558581130086, "N1P2": 10.610008571240193, "N2": 11.365464495285819, "N3P1": 12.767257862464563, "N3P2": 13.711347003362564, "N4P1": 14.706336124480783, "N4P2": 15.624447814333754, "AUTRE": 10.57}, "transport": [0.75, 1.72, 5.07, 7.99, 11.07, 13.97], "trajet": [0.64, 1.38, 2.71, 3.93, 4.98, 6.51]}, {"dept": "64 Pyrénées-Atlantiques", "region": "Nouvelle-Aquitaine / AQUITAINE", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}, "transport": [0.85, 2.23, 4.85, 8.05, 11.3, 14.52], "trajet": [0.72, 1.62, 3.33, 4.74, 6.16, 7.61]}, {"dept": "65 Hautes-Pyrénées", "region": "Occitanie / MP", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.010021757763568, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}, "transport": [1.84, 2.93, 5.91, 8.81, 11.69, 14.82], "trajet": [1.37, 1.93, 4.1, 5.23, 6.95, 8.83]}, {"dept": "66 Pyrénées-Orientales", "region": "Occitanie / L ROUSSILLON", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}, "transport": [2.18, 2.58, 5.13, 7.84, 10.65, 13.53], "trajet": [1.65, 1.77, 3.46, 4.57, 6, 7.51]}, {"dept": "67 Bas-Rhin", "region": "Grand-Est / ALSACE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}, "transport": [2.32, 2.32, 3.1, 4.23, 5.8, 7.01], "trajet": [1.53, 1.53, 2.82, 3.84, 5.25, 3.67]}, {"dept": "68 Haut-Rhin", "region": "Grand-Est / ALSACE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}, "transport": [2.32, 2.32, 3.1, 4.23, 5.8, 7.01], "trajet": [1.53, 1.53, 2.82, 3.84, 5.25, 3.67]}, {"dept": "69 Rhône", "region": "Auvergne-Rhône-Alpes / RA", "panier": 10.6, "panierNonSoumis": 9.5, "panierSoumis": 1.0999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.98246192391376, "N3P1": 12.33289378255423, "N3P2": 13.41524362101932, "N4P1": 14.493637502472474, "N4P2": 15.574009362431598, "AUTRE": 10.57}, "transport": [3.41, 4.19, 7.75, 11.87, 16.33, 20.54], "trajet": [0.95, 1.57, 2.91, 4.19, 5.47, 6.67]}, {"dept": "70 Haute-Saône", "region": "Bourgogne-Franche-Comté / FC", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.5756, "N2": 11.1888, "N3P1": 12.2107, "N3P2": 13.0283, "N4P1": 13.8458, "N4P2": 14.6634, "AUTRE": 10.57}, "transport": [2.4, 2.4, 5.05, 8.21, 10.58, 13.15], "trajet": [1.49, 1.6, 3.06, 4.26, 5.98, 7.05]}, {"dept": "71 Saône-et-Loire", "region": "Bourgogne-Franche-Comté / BOURGOGNE", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.5756, "N2": 11.1888, "N3P1": 12.2107, "N3P2": 13.0283, "N4P1": 13.8458, "N4P2": 14.6634, "AUTRE": 10.57}, "transport": [2.4, 2.4, 5.05, 8.21, 10.58, 13.15], "trajet": [1.49, 1.6, 3.06, 4.26, 5.98, 7.05]}, {"dept": "72 Sarthe", "region": "Pays de la Loire", "panier": 9.5, "panierNonSoumis": 9.5, "panierSoumis": 0, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.85, "N3P1": 12.14, "N3P2": 13.2, "N4P1": 14.25, "N4P2": 15.31, "AUTRE": 10.57}, "transport": [0.77, 0.98, 3.81, 7.2, 11.02, 16.4], "trajet": [0.48, 0.67, 1.9, 4.08, 5.12, 6.11]}, {"dept": "73 Savoie", "region": "Auvergne-Rhône-Alpes / RA", "panier": 9.7, "panierNonSoumis": 9.5, "panierSoumis": 0.1999999999999993, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.04, "N3P1": 12.4, "N3P2": 13.48, "N4P1": 14.57, "N4P2": 15.65, "AUTRE": 10.57}, "transport": [4, 4, 8, 12, 16, 20], "trajet": [1.9, 1.9, 3.7, 5.7, 7.4, 9.3]}, {"dept": "74 Haute-Savoie", "region": "Auvergne-Rhône-Alpes / RA", "panier": 10.81, "panierNonSoumis": 9.5, "panierSoumis": 1.3100000000000005, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 10.944814399683525, "N3P2": 11.821718203995518, "N4P1": 12.922792905650427, "N4P2": 13.812883233335532, "AUTRE": 10.57}, "transport": [1.68, 2.5, 5.8, 9.15, 12.68, 16.05], "trajet": [0.87, 1.44, 2.86, 4.21, 5.46, 6.98]}, {"dept": "75 Paris", "region": "Île-de-France", "panier": 10.3, "panierNonSoumis": 9.5, "panierSoumis": 0.8000000000000007, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.779982857519617, "N3P1": 11.736005802070284, "N3P2": 12.659062438188172, "N4P1": 13.450253840574934, "N4P2": 14.73593986945342, "AUTRE": 10.57}, "transport": [2, 2, 3.51, 5.53, 6.49, 7.74], "trajet": [2.22, 2.22, 3.26, 5.09, 6.13, 7.53]}, {"dept": "76 Seine-Maritime", "region": "Normandie / HAUTE", "panier": 10.15, "panierNonSoumis": 9.5, "panierSoumis": 0.6500000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.76, "N3P1": 11.86, "N3P2": 12.74, "N4P1": 13.77, "N4P2": 14.67, "AUTRE": 10.57}, "transport": [2.24, 2.59, 5.71, 8.57, 12.01, 15.43], "trajet": [1.24, 1.41, 2.71, 4.04, 5.4, 6.89]}, {"dept": "77 Seine-et-Marne", "region": "Île-de-France", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.91, "N3P1": 11.82, "N3P2": 12.75, "N4P1": 13.55, "N4P2": 14.85, "AUTRE": 10.57}, "transport": [2.22, 2.22, 2.9, 4.55, 5.75, 7.45], "trajet": [2.22, 2.22, 3.1, 4.7, 5.4, 6.85]}, {"dept": "78 Yvelines", "region": "Île-de-France", "panier": 10.3, "panierNonSoumis": 9.5, "panierSoumis": 0.8000000000000007, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.779982857519617, "N3P1": 11.736005802070284, "N3P2": 12.659062438188172, "N4P1": 13.450253840574934, "N4P2": 14.73593986945342, "AUTRE": 10.57}, "transport": [2, 2, 3.51, 5.53, 6.49, 7.74], "trajet": [2.22, 2.22, 3.26, 5.09, 6.13, 7.53]}, {"dept": "79 Deux-Sèvres", "region": "Nouvelle-Aquitaine / POITOU C", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}, "transport": [0.85, 2.23, 4.85, 8.05, 11.3, 14.52], "trajet": [0.72, 1.62, 3.33, 4.74, 6.16, 7.61]}, {"dept": "80 Somme", "region": "Hauts-de-France / PICARDIE", "panier": 12, "panierNonSoumis": 9.5, "panierSoumis": 2.5, "rates": {"N1P1": 10.604931759741545, "N1P2": 10.84321223709369, "N2": 11.149205511966771, "N3P1": 11.79138920023736, "N3P2": 12.70383068503989, "N4P1": 13.708841563921672, "N4P2": 14.76877431265247, "AUTRE": 10.57}, "transport": [2.28, 2.28, 5.42, 8.38, 11, 14.07], "trajet": [1.45, 1.45, 2.9, 4.35, 5.81, 7.26]}, {"dept": "81 Tarn", "region": "Occitanie / MP", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}, "transport": [1.84, 2.93, 5.91, 8.81, 11.69, 14.82], "trajet": [1.37, 1.93, 4.1, 5.23, 6.95, 8.83]}, {"dept": "82 Tarn-et-Garonne", "region": "Occitanie / MP", "panier": 10.4, "panierNonSoumis": 9.5, "panierSoumis": 0.9000000000000004, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.01, "N3P1": 12.06, "N3P2": 13.01, "N4P1": 13.9, "N4P2": 14.87, "AUTRE": 10.57}, "transport": [1.84, 2.93, 5.91, 8.81, 11.69, 14.82], "trajet": [1.37, 1.93, 4.1, 5.23, 6.95, 8.83]}, {"dept": "83 Var", "region": "Provence-Alpes-Côte d'Azur", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.294916595239666, "N3P1": 12.610272301707655, "N3P2": 13.662556866882046, "N4P1": 14.71484143205644, "N4P2": 15.767125997230831, "AUTRE": 10.57}, "transport": [3.14, 3.14, 5.52, 7.42, 9.69, 12.62], "trajet": [2.03, 2.03, 3.23, 4.35, 5.77, 6.85]}, {"dept": "84 Vaucluse", "region": "Provence-Alpes-Côte d'Azur", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.294916595239666, "N3P1": 12.610272301707655, "N3P2": 13.662556866882046, "N4P1": 14.71484143205644, "N4P2": 15.767125997230831, "AUTRE": 10.57}, "transport": [3.14, 3.14, 5.52, 7.42, 9.69, 12.62], "trajet": [2.03, 2.03, 3.23, 4.35, 5.77, 6.85]}, {"dept": "85 Vendée", "region": "Pays de la Loire", "panier": 9.5, "panierNonSoumis": 9.5, "panierSoumis": 0, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.85, "N3P1": 12.14, "N3P2": 13.2, "N4P1": 14.25, "N4P2": 15.31, "AUTRE": 10.57}, "transport": [0.77, 0.98, 3.81, 7.2, 11.02, 16.4], "trajet": [0.48, 0.67, 1.9, 4.08, 5.12, 6.11]}, {"dept": "86 Vienne", "region": "Nouvelle-Aquitaine / POITOU C", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}, "transport": [0.85, 2.23, 4.85, 8.05, 11.3, 14.52], "trajet": [0.72, 1.62, 3.33, 4.74, 6.16, 7.61]}, {"dept": "87 Haute-Vienne", "region": "Nouvelle-Aquitaine / LIMOUSIN", "panier": 10.5, "panierNonSoumis": 9.5, "panierSoumis": 1, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 11.13, "N3P1": 12.17, "N3P2": 13.07, "N4P1": 14.16, "N4P2": 15.03, "AUTRE": 10.57}, "transport": [0.85, 2.23, 4.85, 8.05, 11.3, 14.52], "trajet": [0.72, 1.62, 3.33, 4.74, 6.16, 7.61]}, {"dept": "88 Vosges", "region": "Grand-Est / LORRAINE", "panier": 10, "panierNonSoumis": 9.5, "panierSoumis": 0.5, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.57, "N3P1": 11.614294191336455, "N3P2": 12.508736071734688, "N4P1": 13.436803586734358, "N4P2": 14.406738313443663, "AUTRE": 10.57}, "transport": [2.11, 2.11, 4.37, 7.05, 10.63, 12.39], "trajet": [1.35, 1.35, 2.74, 4.06, 5.45, 6.86]}, {"dept": "89 Yonne", "region": "Bourgogne-Franche-Comté / BOURGOGNE", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.5756, "N2": 11.1888, "N3P1": 12.2107, "N3P2": 13.0283, "N4P1": 13.8458, "N4P2": 14.6634, "AUTRE": 10.57}, "transport": [2.4, 2.4, 5.05, 8.21, 10.58, 13.15], "trajet": [1.49, 1.6, 3.06, 4.26, 5.98, 7.05]}, {"dept": "90 Territoire de Belfort", "region": "Bourgogne-Franche-Comté / FC", "panier": 10.1, "panierNonSoumis": 9.5, "panierSoumis": 0.5999999999999996, "rates": {"N1P1": 10.57, "N1P2": 10.5756, "N2": 11.1888, "N3P1": 12.2107, "N3P2": 13.0283, "N4P1": 13.8458, "N4P2": 14.6634, "AUTRE": 10.57}, "transport": [2.4, 2.4, 5.05, 8.21, 10.58, 13.15], "trajet": [1.49, 1.6, 3.06, 4.26, 5.98, 7.05]}, {"dept": "91 Essonne", "region": "Île-de-France", "panier": 10.3, "panierNonSoumis": 9.5, "panierSoumis": 0.8000000000000007, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.779982857519617, "N3P1": 11.736005802070284, "N3P2": 12.659062438188172, "N4P1": 13.450253840574934, "N4P2": 14.73593986945342, "AUTRE": 10.57}, "transport": [2, 2, 3.51, 5.53, 6.49, 7.74], "trajet": [2.22, 2.22, 3.26, 5.09, 6.13, 7.53]}, {"dept": "92 Hauts-de-Seine", "region": "Île-de-France", "panier": 10.3, "panierNonSoumis": 9.5, "panierSoumis": 0.8000000000000007, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.779982857519617, "N3P1": 11.736005802070284, "N3P2": 12.659062438188172, "N4P1": 13.450253840574934, "N4P2": 14.73593986945342, "AUTRE": 10.57}, "transport": [2, 2, 3.51, 5.53, 6.49, 7.74], "trajet": [2.22, 2.22, 3.26, 5.09, 6.13, 7.53]}, {"dept": "93 Seine-Saint-Denis", "region": "Île-de-France", "panier": 10.3, "panierNonSoumis": 9.5, "panierSoumis": 0.8000000000000007, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.779982857519617, "N3P1": 11.736005802070284, "N3P2": 12.659062438188172, "N4P1": 13.450253840574934, "N4P2": 14.73593986945342, "AUTRE": 10.57}, "transport": [2, 2, 3.51, 5.53, 6.49, 7.74], "trajet": [2.22, 2.22, 3.26, 5.09, 6.13, 7.53]}, {"dept": "94 Val-de-Marne", "region": "Île-de-France", "panier": 10.3, "panierNonSoumis": 9.5, "panierSoumis": 0.8000000000000007, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.779982857519617, "N3P1": 11.736005802070284, "N3P2": 12.659062438188172, "N4P1": 13.450253840574934, "N4P2": 14.73593986945342, "AUTRE": 10.57}, "transport": [2, 2, 3.51, 5.53, 6.49, 7.74], "trajet": [2.22, 2.22, 3.26, 5.09, 6.13, 7.53]}, {"dept": "95 Val-d'Oise", "region": "Île-de-France", "panier": 10.3, "panierNonSoumis": 9.5, "panierSoumis": 0.8000000000000007, "rates": {"N1P1": 10.57, "N1P2": 10.57, "N2": 10.779982857519617, "N3P1": 11.736005802070284, "N3P2": 12.659062438188172, "N4P1": 13.450253840574934, "N4P2": 14.73593986945342, "AUTRE": 10.57}, "transport": [2, 2, 3.51, 5.53, 6.49, 7.74], "trajet": [2.22, 2.22, 3.26, 5.09, 6.13, 7.53]}], "logement": [{"dept": "01", "costPerHour": 5.795888500561165}, {"dept": "02", "costPerHour": 4.878385829714292}, {"dept": "03", "costPerHour": 5.585315829904213}, {"dept": "04", "costPerHour": 3.57136428260902}, {"dept": "05", "costPerHour": 3.394079733058977}, {"dept": "06", "costPerHour": 3.92075094219065}, {"dept": "07", "costPerHour": 4.297609924977712}, {"dept": "08", "costPerHour": 3.7961520917107587}, {"dept": "09", "costPerHour": 3.2160884466209634}, {"dept": "10", "costPerHour": 3.3566986960658505}, {"dept": "11", "costPerHour": 5.4170892569651485}, {"dept": "12", "costPerHour": 4.3729874368785575}, {"dept": "13", "costPerHour": 6.285313799867605}, {"dept": "14", "costPerHour": 5.130031477655958}, {"dept": "15", "costPerHour": 4.649481536960597}, {"dept": "16", "costPerHour": 7.557788548133048}, {"dept": "17", "costPerHour": 6.24450766410553}, {"dept": "18", "costPerHour": 5.0280515731941895}, {"dept": "19", "costPerHour": 8.638118900376272}, {"dept": "20", "costPerHour": 3.2618270294809317}, {"dept": "21", "costPerHour": 5.186630404636091}, {"dept": "22", "costPerHour": 3.916761154023778}, {"dept": "23", "costPerHour": 4.583893525533148}, {"dept": "24", "costPerHour": 4.481546663221038}, {"dept": "25", "costPerHour": 4.501733611903312}, {"dept": "26", "costPerHour": 4.6034236804556725}, {"dept": "27", "costPerHour": 4.203308073307403}, {"dept": "28", "costPerHour": 6.30178569228717}, {"dept": "29", "costPerHour": 4.013238819016334}, {"dept": "30", "costPerHour": 3.9563319492313944}, {"dept": "31", "costPerHour": 8.644241858781541}, {"dept": "32", "costPerHour": 2.6653344666118035}, {"dept": "33", "costPerHour": 4.564611917538078}, {"dept": "34", "costPerHour": 4.736134693470107}, {"dept": "35", "costPerHour": 3.561109354400128}, {"dept": "36", "costPerHour": 5.744447824935295}, {"dept": "37", "costPerHour": 4.426209418166419}, {"dept": "38", "costPerHour": 4.391420370454298}, {"dept": "39", "costPerHour": 5.36914347728995}, {"dept": "40", "costPerHour": 4.4902574910077275}, {"dept": "41", "costPerHour": 4.8813072294687}, {"dept": "42", "costPerHour": 4.891839975295181}, {"dept": "43", "costPerHour": 4.747882170542636}, {"dept": "44", "costPerHour": 4.560631863934719}, {"dept": "45", "costPerHour": 4.273514241994955}, {"dept": "46", "costPerHour": 5.32503059769777}, {"dept": "47", "costPerHour": 3.5761161147826894}, {"dept": "49", "costPerHour": 5.211198005892021}, {"dept": "50", "costPerHour": 3.9964551510043504}, {"dept": "51", "costPerHour": 6.113608456976273}, {"dept": "52", "costPerHour": 5.084178780132994}, {"dept": "53", "costPerHour": 4.249845834224279}, {"dept": "54", "costPerHour": 7.075483290994444}, {"dept": "55", "costPerHour": 6.177694503852751}, {"dept": "56", "costPerHour": 3.9106649515191645}, {"dept": "57", "costPerHour": 5.081309404443686}, {"dept": "58", "costPerHour": 4.381954570052255}, {"dept": "59", "costPerHour": 4.930054159749711}, {"dept": "60", "costPerHour": 5.822528137165652}, {"dept": "61", "costPerHour": 4.283567796446958}, {"dept": "62", "costPerHour": 7.38518798830347}, {"dept": "63", "costPerHour": 4.74880950436815}, {"dept": "64", "costPerHour": 4.652487987021713}, {"dept": "65", "costPerHour": 5.018635994892752}, {"dept": "66", "costPerHour": 4.3096427252823135}, {"dept": "67", "costPerHour": 4.592073672112334}, {"dept": "68", "costPerHour": 6.499407920328064}, {"dept": "69", "costPerHour": 5.292704660161336}, {"dept": "70", "costPerHour": 4.502215611036732}, {"dept": "71", "costPerHour": 5.125781437878925}, {"dept": "72", "costPerHour": 4.129666899698017}, {"dept": "73", "costPerHour": 2.934243073761926}, {"dept": "74", "costPerHour": 5.349241680937941}, {"dept": "75", "costPerHour": 6.379795005228747}, {"dept": "76", "costPerHour": 4.307614814068635}, {"dept": "77", "costPerHour": 4.62731845005259}, {"dept": "78", "costPerHour": 5.621896985629258}, {"dept": "79", "costPerHour": 4.250941534159147}, {"dept": "80", "costPerHour": 4.7351233625970535}, {"dept": "81", "costPerHour": 3.797842003543695}, {"dept": "82", "costPerHour": 2.466377012074881}, {"dept": "83", "costPerHour": 4.021701467669915}, {"dept": "84", "costPerHour": 5.150464587945683}, {"dept": "85", "costPerHour": 4.49748261694792}, {"dept": "86", "costPerHour": 5.121720214504284}, {"dept": "87", "costPerHour": 5.520490304577609}, {"dept": "88", "costPerHour": 7.039604254088634}, {"dept": "89", "costPerHour": 5.438920735722149}, {"dept": "91", "costPerHour": 5.184565709130246}, {"dept": "92", "costPerHour": 6.255946589912801}, {"dept": "94", "costPerHour": 3.23407818619677}, {"dept": "95", "costPerHour": 4.681268572809363}, {"dept": "MOYENNE NAT", "costPerHour": 3.331616567565655}, {"dept": "0.8", "costPerHour": 0.8}, {"dept": "0.9", "costPerHour": 0.9}, {"dept": "1", "costPerHour": 1}, {"dept": "1.1", "costPerHour": 1.1}, {"dept": "1.2", "costPerHour": 1.2}, {"dept": "1.3", "costPerHour": 1.3}, {"dept": "1.4", "costPerHour": 1.4}, {"dept": "1.5", "costPerHour": 1.5}, {"dept": "1.6", "costPerHour": 1.6}, {"dept": "1.7", "costPerHour": 1.7}, {"dept": "1.8", "costPerHour": 1.8}, {"dept": "1.9", "costPerHour": 1.9}, {"dept": "2", "costPerHour": 2}, {"dept": "2.1", "costPerHour": 2.1}, {"dept": "2.2", "costPerHour": 2.2}, {"dept": "2.3", "costPerHour": 2.3}, {"dept": "2.4", "costPerHour": 2.4}, {"dept": "2.5", "costPerHour": 2.5}, {"dept": "2.6", "costPerHour": 2.6}, {"dept": "2.7", "costPerHour": 2.7}, {"dept": "2.8", "costPerHour": 2.8}, {"dept": "2.9", "costPerHour": 2.9}, {"dept": "3", "costPerHour": 3}, {"dept": "3.1", "costPerHour": 3.1}, {"dept": "3.2", "costPerHour": 3.2}, {"dept": "3.3", "costPerHour": 3.3}, {"dept": "3.4", "costPerHour": 3.4}, {"dept": "3.5", "costPerHour": 3.5}, {"dept": "3.6", "costPerHour": 3.6}, {"dept": "3.7", "costPerHour": 3.7}, {"dept": "3.8", "costPerHour": 3.8}, {"dept": "3.9", "costPerHour": 3.9}, {"dept": "4", "costPerHour": 4}, {"dept": "4.1", "costPerHour": 4.1}, {"dept": "4.2", "costPerHour": 4.2}, {"dept": "4.3", "costPerHour": 4.3}, {"dept": "4.4", "costPerHour": 4.4}, {"dept": "4.5", "costPerHour": 4.5}, {"dept": "4.6", "costPerHour": 4.6}, {"dept": "4.7", "costPerHour": 4.7}, {"dept": "4.8", "costPerHour": 4.8}, {"dept": "4.9", "costPerHour": 4.9}, {"dept": "5", "costPerHour": 5}, {"dept": "5.1", "costPerHour": 5.1}, {"dept": "5.2", "costPerHour": 5.2}, {"dept": "5.3", "costPerHour": 5.3}, {"dept": "5.4", "costPerHour": 5.4}, {"dept": "5.5", "costPerHour": 5.5}, {"dept": "5.6", "costPerHour": 5.6}, {"dept": "5.7", "costPerHour": 5.7}, {"dept": "5.8", "costPerHour": 5.8}, {"dept": "5.9", "costPerHour": 5.9}, {"dept": "6", "costPerHour": 6}, {"dept": "6.1", "costPerHour": 6.1}, {"dept": "6.2", "costPerHour": 6.2}, {"dept": "6.3", "costPerHour": null}, {"dept": "6.4", "costPerHour": 6.4}, {"dept": "6.5", "costPerHour": 6.5}, {"dept": "6.6", "costPerHour": 6.6}, {"dept": "6.7", "costPerHour": 6.7}, {"dept": "6.8", "costPerHour": 6.8}, {"dept": "6.9", "costPerHour": 6.9}, {"dept": "7", "costPerHour": 7}, {"dept": "7.1", "costPerHour": 7.1}, {"dept": "7.2", "costPerHour": 7.2}, {"dept": "7.3", "costPerHour": 7.3}, {"dept": "7.4", "costPerHour": 7.4}, {"dept": "7.5", "costPerHour": 7.5}, {"dept": "7.6", "costPerHour": 7.6}, {"dept": "7.7", "costPerHour": 7.7}, {"dept": "7.8", "costPerHour": 7.8}, {"dept": "7.89999999999999", "costPerHour": 7.89999999999999}, {"dept": "7.99999999999999", "costPerHour": 7.99999999999999}, {"dept": "8.09999999999999", "costPerHour": 8.09999999999999}, {"dept": "8.19999999999999", "costPerHour": 8.19999999999999}]};
+var GOLDEN_TARIFAIRE = {"inputs": {"D3": "SIMULATEUR INDUSTRIE", "D8": " ", "D11": 11.88, "D12": 9, "F11": "NON", "F12": "NON", "F13": "OUI", "H11": "OUI", "H12": 3.5, "I12": 3.5, "H13": 7.3, "I13": 20.7, "D16": 5, "D17": 43, "D18": 0, "D19": 0, "D20": 0, "D21": "NON", "F16": "PAS DE TRANSPORT PD", "F17": 0, "F18": null, "F19": -80, "F21": null, "H16": 1.78, "H21": 0, "D30": 0, "C25": "MAJO DIMANCHE 80 %", "C26": "MAJO FERIE 100 %", "C27": "MAJO DE NUIT 10%", "C28": "HEURES SUPPLEMENTAIRES 25%", "C30": "MAJO NORMALES 50 %", "C52": "PARTICIPATION LIBRE", "D37": 5, "E37": 0, "D38": 0, "E38": 0, "D39": 0, "E39": 0, "D40": 0, "E40": 0, "D41": 0, "E41": 0, "D44": 0, "E44": 0, "D47": 0, "E47": 0, "D48": 0, "E48": 0, "E50": 0, "L14": 22.6, "L17": 15, "L18": "OUI", "L19": "OUI", "L20": "OUI", "L21": "OUI", "L22": "NON", "L24": 35, "M52": 0, "L52": 35, "M54": "NON", "M63": 0, "N27": 1.9, "M47": 1, "M48": 1}, "golden": {"F42": 534.6, "F32": 0, "F33": 0, "D32": 534.6, "D33": 534.6, "F59": -80, "F88": 81.70516400000001, "H88": 31.435090399999922, "H83": 165.56546160000008, "F89": 368.96273571200004, "F90": 368.96273571200004, "F91": 387, "F92": 150.5, "F93": 799.3207903999999, "F94": 817.3580546879998, "F43": 3.9321002879999947, "F14": 336.40833599999996, "O42": 951.5880000000002, "O60": 951.5880000000002, "O61": 152.26720960000034, "O62": 22.1299534883721, "O64": 152.26720960000034, "H14": 21.146400000000003, "H17": 16.001379756785532, "D14": 8.580528737488374, "D15": 10.51073252490977, "E15": 10.51073252490977, "D24": 35, "D28": 8, "D29": 0, "F24": 415.8, "E25": 9.504000000000001, "E26": 11.88, "E27": 1.1880000000000002, "E28": 14.850000000000001, "E29": 17.82, "E30": 5.94, "D107": 644, "D108": 1238.3999999999999, "D109": 1733.7599999999998, "D98": 0.2815451851851853, "D100": 0.2815451851851853, "D101": 481.14000000000004, "D102": 534.6, "H62": 37.422000000000004, "H63": 2.6302320000000003, "H64": 0.769824, "H66": 0, "H67": 2.3135000000000003, "F67": 2.3135000000000003, "H68": 16.038, "H69": 45.70830000000001, "H70": 10.79892, "H71": 32.12946, "H74": 18.4437, "H75": 21.811680000000003, "H77": 20.133036, "H78": 0.8019, "I17": 9.720087052379819, "I22": 9.720087052379819, "H22": 16.001379756785532, "D13": 387, "F22": 387, "O52": 0, "L52": 35, "F52": -80, "D104": 165.56546160000008, "D105": 215.2351000800001, "E104": 165.56546160000008, "D62": 534.6, "D63": 534.6, "F62": 29.403000000000002, "F63": 2.961684, "F65": 0, "F66": 0, "F69": 36.8874, "F70": 2.1384000000000003, "F71": 21.43746, "F76": -13.436280000000002, "F79": 0, "F80": 0, "F81": 0}, "golden_hidden": {"F42": 646.8660000000001, "F32": 53.46000000000001, "F33": 58.80600000000001, "D32": 534.6, "D33": 588.0600000000001, "F88": 102.26585714000001, "H88": 141.72681802, "H83": 99.82623420000003, "F89": 451.9614985711201, "F91": 451.9614985711201, "F93": 859.0928180200001, "D62": 646.8660000000001, "D101": 582.1794000000001, "D102": 646.8660000000001, "D14": 10.51073252490977, "D15": 10.51073252490977, "H17": 9.720087052379819, "I17": 9.720087052379819, "F43": 13.836273428880007, "D104": 99.82623420000003, "E104": 99.82623420000003, "O60": 951.5880000000002, "O64": 92.4951819800001, "O65": 92.4951819800001, "F92": 150.5, "F67": 2.3135000000000003, "H67": 2.3135000000000003}};
+if (typeof module !== 'undefined') module.exports = { DB: DB, GOLDEN_NEW: GOLDEN_NEW, GOLDEN_V1: GOLDEN_V1, GOLDEN_TARIFAIRE: GOLDEN_TARIFAIRE };
+</script>
+<script>
+/* ============================================================
+ * Moteur de calcul — portage fidèle de deux classeurs :
+ *  - secteur "agri"      : 20250902_SIMULATEUR AGRI.xlsm (MSA, exonération TO-DE)
+ *  - secteur "tarifaire" : SIMULATEUR_TARIFAIRE_11_2024.xlsm (Industrie/BTP, allègement Fillon)
+ * Feuilles portées : SIMULATOR, "NE PAS TOUCHER NI REGARDER" (scénario
+ * IFM+ICCP forcés), SIMULATEUR TODE (agri).
+ * Les clés des objets résultats reprennent les adresses de cellules Excel
+ * (F42, H88, O64...) pour permettre la vérification contre les classeurs.
+ * ============================================================ */
+"use strict";
+
+const OUI = s => String(s == null ? "" : s).trim().toUpperCase() === "OUI";
+
+/* Constantes communes figées dans les classeurs */
+const CONST = {
+  SMIC: 11.88,            // SMIC horaire (TO-DE, Fillon, assiette mini)
+  SMIC_FIGE: 11.52,       // "Figé au 31/12/2023" — plafonds 2,5 / 3,5 SMIC (D108/D109)
+  ICCP_TAUX: 0.10,        // E33
+  IFM_TAUX: 0.10,         // E32
+  FILLON_T: 0.3194        // D98
+};
+
+/* Valeurs officielles vérifiées multi-sources (URSSAF + BOSS + presse paie
+ * concordants) le 19/08/2026 — utilisées comme DÉFAUTS de l'interface.
+ * Les barèmes repas/nuitée n'ont pas d'API : gardés ici, surveillés par la
+ * vérification programmée de janvier/juillet. SMIC et plafond SS sont en plus
+ * actualisés en direct via OpenFisca à chaque ouverture. */
+const BAKED_OFFICIAL = {
+  asOf: "2026-08-19",
+  smic: { value: 12.31, date: "2026-06-01" },            // SMIC horaire brut en vigueur
+  minimumGaranti: { value: 4.35, date: "2026-06-01" },   // MG — revalorisé avec le SMIC (avantage nourriture HCR : 1 MG/repas ; source service-public/URSSAF)
+  pss: { value: 4005, date: "2026-01-01" },              // plafond SS mensuel
+  repasLieuTravail: { value: 7.50, date: "2026-01-01" }, // panier (barème repas PD)
+  repasHorsLocaux: { value: 10.40, date: "2026-01-01" },
+  repasRestaurant: { value: 21.40, date: "2026-01-01" }, // barème repas GD
+  nuiteeGDParis: { value: 76.60, date: "2026-01-01" },
+  nuiteeGDProvince: { value: 56.80, date: "2026-01-01" },
+  /* grand déplacement par durée (URSSAF/BOSS 2026 : plein / −15 % du 4ᵉ au 24ᵉ mois / −30 % au-delà) */
+  nuiteeGDParisPeriodes: [76.60, 65.10, 53.60],
+  nuiteeGDProvincePeriodes: [56.80, 48.30, 39.80],
+  zonesBTPInchangees: true // 3,00/6,10/9,10/12,10/15,20 — identiques au classeur, confirmé BOSS 30/04/2026
+};
+
+/* RGDU 2026 (réduction générale dégressive unique, remplace Fillon au 01/01/2026)
+ * Coefficient = Tmin + Tdelta × [½ × (plafond × SMIC réf / rémunération − 1)]^P,
+ * plafonné à Tmin+Tdelta, nul dès `plafond` SMIC, arrondi à 4 décimales.
+ * Paramètres du décret tels que codifiés par OpenFisca France (DINUM),
+ * `allegement_general.ensemble_des_entreprises`, valeurs au 01/01/2026 —
+ * actualisables en direct par l'application : */
+const RGDU_DEFAULTS = {
+  smicRef: 12.02,         // SMIC horaire au 01/01/2026 (figé pour l'année RGDU)
+  tmin: 0.02,             // t_min
+  tdeltaPetite: 0.3781,   // t_delta_petites_entreprises (< 50 salariés) → Tmax 0,3981
+  tdeltaGrande: 0.3821,   // t_delta_grandes_entreprises (≥ 50 salariés) → Tmax 0,4021
+  p: 1.75,                // puissance
+  plafondSmic: 3,         // plafond (nul dès 3 SMIC)
+  interimMajoration: 1.1  // CONFIRMÉ : art. D.241-10 III CSS (b = 1,1, intérimaires hors CDI-I ; Légifrance)
+};
+
+/* Grille du taux neutre du prélèvement à la source (BOFiP BOI-BAREME-000037-20260407,
+ * mensuel métropole, en vigueur depuis le 01/05/2026). Le moteur convertit les
+ * limites en hebdomadaire (× 12/52). Au-delà de la dernière tranche modélisée,
+ * le taux 9,9 % est conservé avec un indicateur `pasHorsGrille`. */
+const PAS_GRILLE_2026 = [
+  [1635, 0], [1698, 0.5], [1807, 1.3], [1928, 2.1], [2060, 2.9],
+  [2170, 3.5], [2315, 4.1], [2738, 5.3], [3135, 7.5], [3571, 9.9]
+];
+const PAS_ABAT_CONTRAT_COURT = 766; // €/mois — CDD/missions ≤ 2 mois (BOI-IR-PAS-20-20-30-10 §230/260, au 01/06/2026)
+
+/* Retenue à la source des NON-RÉSIDENTS fiscaux (art. 182 A CGI), barème 2026
+ * (LF 2026, +0,9 % — BOFiP ACTU-2026-00021) : base = net imposable × 0,9
+ * (déduction forfaitaire 10 %), puis 0 % / 12 % / 20 % par tranches annuelles.
+ * Proratisation journalière : limite annuelle / 312 (convention du classeur,
+ * qui utilisait 55 €/j ≈ 17 121/312 pour 2025). La formule linéaire du classeur
+ * était ce même barème limité à la tranche 12 %. */
+const RASNR_2026 = { t1Annuel: 17275, t2Annuel: 50122, tauxMid: 0.12, tauxHaut: 0.20, joursAnnee: 312 };
+
+/* Panier de cotisations exonérées TO-DE (MSA) :
+ * [maladie, CSA, vieillesse plaf., vieillesse déplaf., AT éligible, famille, FNAL, chômage] + [retraite T1, CEG] */
+const TODE_RATES_CLASSEUR = { msa: [7, 0.3, 8.55, 2.02, 0.46, 3.45, 0.1, 4.05], retraite: [4.72, 1.29] };
+const TODE_RATES_2026 = { msa: [7, 0.3, 8.55, 2.11, 0.49, 3.45, 0.1, 4.00], retraite: [4.72, 1.29] };
+// 2026 (décret 2025-1446 + Unédic) : vieillesse déplaf. 2,02→2,11 ; AT éligible 0,46→0,49 ; chômage 4,05→4,00.
+// Les taux réduits maladie 7 % / famille 3,45 % restent applicables « à titre résiduel » aux contrats TO-DE.
+
+/* Divergences constatées entre sources lors de la vérification du 19/08/2026 —
+ * affichées à l'utilisateur pour contrôle manuel (la source officielle prime) : */
+const BAKED_CONTRADICTIONS = [
+  "Vieillesse déplafonnée patronale : <b>2,11 %</b> retenu (Légifrance, décret 2025-1446) — PayFit affichait encore 2,02 % (page non à jour).",
+  "Grille du taux neutre PAS janv.–avril 2026 : bornes fiche-paie.fr ≠ BOFiP. Retenu : <b>BOFiP</b> (grille de mai 2026 appliquée).",
+  "Majoration RGDU intérim ×1,1 : <b>confirmée</b> (art. D.241-10 III, Légifrance) — la documentation Sage évoquait sa suppression (état antérieur du projet de réforme)."
+];
+
+/* Taux de cotisations par défaut — secteur AGRI (E = salarial, G = patronal) */
+const RATES_AGRI = {
+  maladieSal: 5.5,        // E62 (si attestation fiscale = OUI)
+  compIIDT1Sal: 0.5,      // E63
+  compIIDT1Pat: 0.5,      // G63
+  nonCsgT1Pat: 0,         // G64 (ligne absente du classeur agri)
+  compIIDT2Sal: 0.3366,   // E65
+  compIIDT2Pat: 0.2473,   // G65
+  nonCsgT2Sal: 0,         // E66 (ligne absente)
+  nonCsgT2Pat: 0,         // G66 (ligne absente)
+  mutuelleSal: 0,         // E67 — % du plafond (D107)
+  mutuellePat: 0,         // G67
+  atPat: 2.2,             // G68
+  ssPlafSal: 6.9,         // E69
+  ssPlafPat: 8.55,        // G69
+  ssDeplafSal: 0.4,       // E70
+  ssDeplafPat: 2.02,      // G70
+  compT1Sal: 4.01,        // E71
+  compT1Pat: 6.01,        // G71
+  compT2Sal: 9.72,        // E72
+  compT2Pat: 14.57,       // G72
+  cetSal: 0.14,           // E73
+  cetPat: 0.14,           // G73
+  chomagePat: 4.3,        // G75
+  redSalHSup: 11.31,      // E76
+  autresSal: 0.01,        // E77
+  autresPat: 0.3 + 0.016 + 0.1 + 0.55 + 0.68 + 1 + 0.42 + 0.05 + 0.01 + 0.04 + 0.2, // G77
+  statutairesPat: 0,      // G78
+  csgDedSal: 6.8,         // E79 (si attestation fiscale = NON)
+  csgNonDedSal: 2.9,      // E80
+  csgNonDedHSSal: 9.7,    // E81
+  redPatHSupParH: -1.5    // G82 (€ par heure sup)
+};
+
+/* Taux 2026 vérifiés multi-sources (Légifrance / Unédic / LégiSocial concordants,
+ * 19/08/2026) — DÉFAUTS de l'interface. Les taux de branche/prévoyance et le taux
+ * AT restent « à personnaliser » (spécifiques à l'entreprise). */
+const RATES_2026_AGRI = Object.assign({}, RATES_AGRI, {
+  atPat: 2.08,            // taux AT-MP net moyen national 2026 (arrêté 30/12/2025) — À PERSONNALISER
+  ssDeplafPat: 2.11,      // vieillesse déplafonnée patronale (décret 2025-1446 ; classeur : 2,02)
+  cetPat: 0.21,           // CET patronal réel (classeur : 0,14)
+  chomagePat: 4.03,       // chômage 4,00 (Unédic, depuis 01/05/2025) + AGS ETT 0,03 (classeur : 4,3)
+  autresPat: 0.30 + 0.50 + 0.016 + 1.00 + 0.30 + 0.68 + 0.45 + 0.42
+  // référence ENTITÉ ≥ 50 salariés (effectif sécurité sociale, intérimaires compris — BOSS Effectif §310-320, R. 130-1 II CSS) :
+  // CSA 0,30 + FNAL 0,50 + dialogue social 0,016 + CFP 1,00 (L. 6331-3) + conventionnelle formation TT 0,30 (L. 6331-69, Akto) + apprentissage 0,68 + PEEC 0,45 + SST MSA 0,42
+  // La bande d'effectif choisie (i.effectif) retranche FNAL 0,40 / PEEC 0,45 sous 50 et CFP 0,45 sous 11 ; le versement mobilité (i.vmPct) s'ajoute.
+});
+
+/* Taux — secteur TARIFAIRE 11/2024 */
+const RATES_TARIFAIRE = Object.assign({}, RATES_AGRI, {
+  compIIDT1Sal: 0.554,    // E63
+  compIIDT1Pat: 0.492,    // G63
+  nonCsgT1Pat: 0.144,     // G64 (Comp. IID NON CSG T1, patronale)
+  compIIDT2Sal: 0.469,    // E65
+  compIIDT2Pat: 0.408,    // G65
+  nonCsgT2Sal: 0,         // E66 (vide dans le classeur)
+  nonCsgT2Pat: 0.133,     // G66
+  mutuelleSal: 0.0661,    // E67 — € PAR HEURE (base D24)
+  mutuellePat: 0.0661,    // G67
+  atPat: 3,               // G68
+  chomagePat: 4.08,       // G75
+  autresSal: 0,           // E77 absent du classeur tarifaire
+  autresPat: 3.766,       // G77
+  statutairesPat: 0.15    // G78
+});
+
+const RATES_2026_TARIFAIRE = Object.assign({}, RATES_TARIFAIRE, {
+  atPat: 2.08,            // moyenne nationale 2026 — À PERSONNALISER
+  ssDeplafPat: 2.11,      // décret 2025-1446 (classeur : 2,02)
+  cetPat: 0.21,           // classeur : 0,14
+  chomagePat: 4.03,       // 4,00 + AGS ETT 0,03 (classeur : 4,08 = 4,05 + 0,03)
+  mutuelleSal: 0.0874,    // Intérimaires Santé, tarif 01/01/2026 (€/h ; classeur : 0,0661)
+  mutuellePat: 0.0874,
+  autresPat: 0.30 + 0.50 + 0.016 + 1.00 + 0.30 + 0.68 + 0.45
+  // référence ENTITÉ ≥ 50 salariés (effectif sécurité sociale, intérimaires compris — BOSS Effectif §310-320, R. 130-1 II CSS) :
+  // CSA 0,30 + FNAL 0,50 + dialogue social 0,016 + CFP 1,00 (L. 6331-3) + conventionnelle formation TT 0,30 (L. 6331-69, Akto) + apprentissage 0,68 + PEEC 0,45 = 3,246
+  // La bande d'effectif choisie (i.effectif) retranche FNAL 0,40 / PEEC 0,45 sous 50 et CFP 0,45 sous 11 ; le versement mobilité (i.vmPct) s'ajoute (classeur : 3,766)
+});
+
+/* ===== Minima BTP officiels — ouvriers, grilles régionales (IDCC 1596 / 1597) =====
+ * Source : code.travail.gouv.fr (Code du travail numérique, ministère du Travail),
+ * pages « Quel est le salaire minimum ? » des CC 1596 (≤ 10 salariés) et 1597 (> 10),
+ * relevées le 20/08/2026 — site « Mis à jour le 01/06/2026 ».
+ * Montants MENSUELS bruts base 35 h ; horaire = mensuel ÷ 151,6667.
+ * Le site applique déjà le plancher SMIC mensuel (astérisque) sur les bas coefficients. */
+var BTP_MINIMA = {
+  sources: ["https://code.travail.gouv.fr/contribution/1596-quel-est-le-salaire-minimum",
+            "https://code.travail.gouv.fr/contribution/1597-quel-est-le-salaire-minimum"],
+  releveLe: "2026-08-20", siteMajLe: "01/06/2026", diviseurHoraire: 151.6667,
+  accords: {
+    BRETAGNE: "accord du 3/12/2024 (au 1/1/2025)", GRANDEST: "accord du 16/1/2025 (au 1/3/2025)",
+    HAUTSDEFRANCE: "accord du 25/11/2024", ILEDEFRANCE: "accord du 7/11/2024",
+    PAYSDELALOIRE: "accord du 10/10/2023", PROVENCEALPESCOTEDAZUR: "accord du 30/9/2024 (au 1/11/2024)",
+    NOUVELLEAQUITAINE: "accord régional du 22/10/2025"
+  },
+  regions: {
+    AUVERGNERHONEALPES:    { cc1596: {150:1867.02,170:1867.02,185:1909,   210:2099.14,230:2277.47,250:2449.27,270:2597.13},
+                             cc1597: {150:1867.02,170:1867.02,185:1909,   210:2099.14,230:2277.47,250:2449.27,270:2597.13} },
+    BOURGOGNEFRANCHECOMTE: { cc1596: {150:1867.02,170:1867.02,185:1874,   210:2051,   230:2193,   250:2335,   270:2477},
+                             cc1597: {150:1867.02,170:1867.02,185:1874,   210:2051,   230:2193,   250:2335,   270:2477} },
+    BRETAGNE:              { cc1596: {150:1867.02,170:1868.17,185:1917.7, 210:2064.78,230:2234.67,250:2404.54,270:2574.41},
+                             cc1597: {150:1867.02,170:1868.17,185:1917.7, 210:2064.78,230:2234.67,250:2404.54,270:2574.41} },
+    CENTREVALDELOIRE:      { cc1596: {150:1867.02,170:1867.02,185:1907,   210:2056,   230:2175,   250:2293,   270:2412},
+                             cc1597: {150:1867.02,170:1867.02,185:1898,   210:2045,   230:2165,   250:2283,   270:2400} },
+    CORSE:                 { cc1596: {150:1867.02,170:1867.02,185:1932.59,210:2100.92,230:2274.76,250:2448.6, 270:2622.44},
+                             cc1597: {150:1867.02,170:1867.02,185:1932.59,210:2100.92,230:2274.76,250:2448.6, 270:2622.44} },
+    GRANDEST:              { cc1596: {150:1867.02,170:1867.02,185:1896.79,210:2101.77,230:2237.79,250:2394.78,270:2578.38},
+                             cc1597: {150:1867.02,170:1867.02,185:1896.79,210:2101.77,230:2237.79,250:2394.78,270:2578.38} },
+    HAUTSDEFRANCE:         { cc1596: {150:1867.02,170:1867.02,185:1955,   210:2111,   230:2269,   250:2469,   270:2650},
+                             cc1597: {150:1867.02,170:1867.02,185:1955,   210:2111,   230:2269,   250:2469,   270:2650} },
+    ILEDEFRANCE:           { cc1596: {150:1867.02,170:1867.02,185:1899,   210:2038,   230:2164,   250:2292,   270:2510},
+                             cc1597: {150:1867.02,170:1867.02,185:1899,   210:2038,   230:2164,   250:2292,   270:2510} },
+    NORMANDIE:             { cc1596: {150:1867.02,170:1867.02,185:1884.22,210:2065.63,230:2210.88,250:2380.23,270:2527.04},
+                             cc1597: {150:1867.02,170:1867.02,185:1884.22,210:2065.63,230:2210.88,250:2380.23,270:2527.04} },
+    NOUVELLEAQUITAINE:     { cc1596: {150:1867.02,170:1867.02,185:1912.56,210:2073.33,230:2229.55,250:2399.42,270:2560.19},
+                             cc1597: {150:1867.02,170:1867.02,185:1912.56,210:2073.33,230:2229.55,250:2399.42,270:2560.19} },
+    OCCITANIE:             { cc1596: {150:1867.02,170:1867.02,185:1902.53,210:2084.9, 230:2248.73,250:2380.1, 270:2547.01},
+                             cc1597: {150:1867.02,170:1867.02,185:1902.53,210:2084.9, 230:2248.73,250:2380.1, 270:2547.01} },
+    PAYSDELALOIRE:         { cc1596: {150:1867.02,170:1867.02,185:1867.02,210:2064.23,230:2244.72,250:2425.2, 270:2607.21},
+                             cc1597: {150:1867.02,170:1867.02,185:1867.02,210:2064.23,230:2244.72,250:2425.2, 270:2607.21} },
+    PROVENCEALPESCOTEDAZUR:{ cc1596: {150:1867.02,170:1868.43,185:1975.12,210:2170.8, 230:2340.59,250:2510.38,270:2680.18},
+                             cc1597: {150:1867.02,170:1868.43,185:1975.12,210:2170.8, 230:2340.59,250:2510.38,270:2680.18} }
+  }
+};
+var NIVEAU_COEF_BTP = { N1P1: 150, N1P2: 170, N2: 185, N3P1: 210, N3P2: 230, N4P1: 250, N4P2: 270 };
+function normRegionBTP(s) {
+  return (s || "").split("/")[0].normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/[^A-Z]/g, "");
+}
+function btpMinimaRegion(label) { return BTP_MINIMA.regions[normRegionBTP(label)] || null; }
+function btpMinimaHoraire(label, niveau, cc) {
+  const r = btpMinimaRegion(label), coef = NIVEAU_COEF_BTP[niveau];
+  const m = r && coef ? (r[cc || "cc1596"] || {})[coef] : null;
+  return m ? Math.round(m / BTP_MINIMA.diviseurHoraire * 100) / 100 : null;
+}
+
+/* Configuration par secteur */
+const SECTORS = {
+  agri: {
+    label: "Agricole — MSA · TO-DE",
+    rates: RATES_2026_AGRI,
+    ratesClasseur: RATES_AGRI,
+    plafondSSMois: 3925,        // D107 = 3925/30*jours
+    retenueJour: 55,            // F43
+    dfsFactor: 0.8,             // D101 = brut × 0,8 (abattement DFS 20 %)
+    dfsOnMain: false,           // D62 SIMULATOR = F42 (abattement sur feuille cachée seulement)
+    exo: "tode",                // H83
+    mutuelleMode: "pctPlafond", // F67 = D107 × taux/100
+    ifmMode: "input",           // D32 = saisie (feuille cachée uniquement)
+    iccpMode: "rows",           // D33 = somme des lignes de paie
+    ifmMainToggle: false,       // pas de ligne IFM sur SIMULATOR
+    netSubT2Main: true,         // F89 SIMULATOR soustrait F65+F72+F73 (+F77)
+    o52Mode: "flat",            // O52 SIMULATOR = M52 ; caché = 0
+    logementMode: "hebdo",      // F92 = coût hebdo
+    targetCell: "O66",          // M14 = O66 − L14 (taux hors logement)
+    baremePD: 7.4, baremeGD: 21.1,
+    f77Cross: true,             // caché F77 = SIMULATOR!F77
+    hiddenLinkedRates: ["compIIDT1Sal", "compIIDT1Pat", "compIIDT2Sal", "compIIDT2Pat",
+                        "mutuelleSal", "mutuellePat", "atPat", "chomagePat", "autresSal", "autresPat"],
+    modes: ["SIMULATEUR MSA", "SIMULATEUR AGRICOLE", "SIMULATEUR INDUSTRIE",
+            "SIMULATEUR BTP GRAND D", "SIMULATEUR BTP PETIT D"]
+  },
+  tarifaire: {
+    label: "Tarifaire — Industrie · BTP",
+    rates: RATES_2026_TARIFAIRE,
+    ratesClasseur: RATES_TARIFAIRE,
+    plafondSSMois: 3864,        // D107 = 3864/30*jours (2024)
+    retenueJour: 54,            // F43
+    dfsFactor: 0.9,             // D101 = brut × 0,9 (abattement DFS 10 %)
+    dfsOnMain: true,            // D62 = IF(INDUSTRIE, F42, max(D101, D102)) sur les DEUX feuilles
+    exo: "fillon",              // H83 = IF(BTP GD, MIN(D105,E105), D104)
+    mutuelleMode: "perHour",    // F67 = D24 × taux (€/h, sans /100)
+    ifmMode: "rows",            // D32 = Σ lignes de paie (SIMULATOR sans F30, caché avec F30)
+    iccpMode: "ifm",            // D33 = D32 + F32
+    ifmMainToggle: true,        // F11 = choix utilisateur sur SIMULATOR
+    netSubT2Main: false,        // F89 ne soustrait ni F65/F72/F73 ni F77
+    o52Mode: "hours",           // O52 = L52 × M52, L52 = IF(logement, min(D17,35), 0)
+    logementMode: "horaire",    // F92 = coût €/h × heures logement (43 dans le classeur)
+    targetCell: "O62",          // M14 = O62 − L14 (taux global avec logement)
+    baremePD: 7.3, baremeGD: 20.7,
+    f77Cross: false,            // pas de F77 dans ce classeur
+    hiddenLinkedRates: [],      // tous les taux de la feuille cachée sont des littéraux
+    modes: ["SIMULATEUR INDUSTRIE", "SIMULATEUR BTP GRAND D", "SIMULATEUR BTP PETIT D"]
+  }
+};
+
+/* Valeurs par défaut des entrées = état de chaque classeur */
+function defaultInputs(DB, sector) {
+  sector = sector || "agri";
+  const cfg = SECTORS[sector];
+  const common = {
+    sector: sector,
+    client: "",
+    dept: "",
+    thBrut: BAKED_OFFICIAL.smic.value,  // D11 — prérempli au SMIC en vigueur, PLANCHER automatique (jamais en dessous)
+    attestation: true,          // F13
+    logement: true,             // H11
+    redevanceClient: 0,         // H21
+    baremeRepasPD: BAKED_OFFICIAL.repasLieuTravail.value, // H13 — 2026 (classeur : 7,40/7,30)
+    baremeRepasGD: BAKED_OFFICIAL.repasRestaurant.value,  // I13 — 2026 (classeur : 21,10/20,70)
+    jours: 0,                   // D16 — zéro à l'ouverture
+    hNuit: 0, hDim: 0, hFerie: 0,
+    anRepasConsomme: false,     // D21
+    zonePD: "PAS DE TRANSPORT PD",
+    repasClient: 0, transpClient: 0, anRepasClient: 0,
+    majoFerieLabel: "MAJO FERIE 100 %",
+    majoNuitLabel: "MAJO DE NUIT 10%",
+    hSupLabel: "HEURES SUPPLEMENTAIRES 25%",
+    majoNormQty: 0,
+    ticketsQty: 0, ticketsVal: 0,
+    indemDecoucheRate: 0,       // E50
+    participationChoice: "PARTICIPATION LIBRE",
+    retraitANRepas: false,      // M54
+    remisePct: 0,               // M63
+    recrutTarifH: 0,            // prestataire externe de recrutement — € HT par heure travaillée (0,50-1,30 constatés ; 0 = aucun)
+    participationHorsPaie: false, // true = participation logement par PRÉLÈVEMENT BANCAIRE : net de paie non réduit, coût logement toujours amorti
+                                  // (le sélecteur de cible du pilotage et ce mode sont SYNCHRONISÉS : AVEC PARTICIPATION = retenue, SANS = prélèvement)
+    agence: "",                 // agence PALMA sélectionnée (fixe le taux AT par défaut ; portée dans l'étude de prix)
+    /* effectif : bande d'effectif « sécurité sociale » de l'entité, INTÉRIMAIRES COMPRIS ("50plus" | "20-49" | "11-19" | "moins11"),
+       fixée par l'interface (défaut 50 et plus) ; absente ici pour que les vecteurs de test du classeur restent ceux du classeur */
+    vmPct: 0,                   // versement mobilité, % du brut, taux de la zone où l'intérimaire travaille (D. 2333-91 CGCT) ; 0 = hors zone
+    cetCoutsReels: false,       // intégrer les coûts CET maison (abondement + causeries) dans la marge
+    cetAbondPct: 5,             // abondement % versé à chaque déblocage (politique maison : 5 %)
+    /* leviers d'optimisation (décochés = pratique maison actuelle) — cf. bulletin ACTERIM 07/2026 :
+       cetRepos = IFM/ICCP placés au CET et restitués en HEURES DE REPOS payées au taux de base (ces heures
+       entrent dans le SMIC de référence → la réduction générale s'applique au différé au lieu des 45 % provisionnés) ;
+       hsRepos = la majoration des heures sup (argent sans heure) est placée au CET et restituée en heures. */
+    cetRepos: false,
+    hsRepos: false,
+    cetDebloc: 3,               // déblocages CET par an (fonctionnement normal : 3)
+    cetCauserieH: 1.5,          // heures de causerie par déblocage, payées NON facturées (contrat : 1 h 50)
+    refactDim: true, refactFerie: true, refactNuit: true,
+    annualisation: false,
+    heuresFactNormal: null,     // L24 — null = auto min(35 ; heures)
+    contrat: "ctt",             // "ctt" | "saisonnier" (mêmes coûts, atouts opérationnels) | "cdii" | "cdie"
+    tauxOccupation: 100,        // % heures en mission / heures payées (CDI-I/CDI-E : provision d'intermission)
+    offreExpr: "coef",          // expression de l'offre dans l'étude : "coef" (coefficient) ou "taux" (taux global facturé) — affichage seul
+    cibleMargePct: 0,           // L17 — 0 : le pilotage affiche le seuil de rentabilité
+    logementHeures: 43,         // multiplicateur F92 (classeur tarifaire : ×43 en dur)
+    exoFormule: "rgdu",         // RGDU 2026 (le Fillon du classeur ne sert plus qu'au mode « constantes du classeur »)
+    gdDuree: 0,                 // référence GD : 0 = 3 premiers mois, 1 = 4ᵉ-24ᵉ (−15 %), 2 = au-delà (−30 %)
+    gdLieu: "province",         // référence GD : "province" ou "paris" (92/93/94)
+    rgdu: { smicRef: RGDU_DEFAULTS.smicRef, fnal050: false, interim: true },
+    smicClasseur: BAKED_OFFICIAL.smic.value, // SMIC des formules (Fillon, TO-DE, assiette mini) — défaut = droit courant ; classeur : 11,88
+    plafondSSMois: BAKED_OFFICIAL.pss.value, // plafond SS mensuel (D107) — défaut = droit courant ; classeur : 3925/3864
+    todeSeuilTot: 1.25,         // seuil TO-DE exonération intégrale (× SMIC)
+    todeSeuilMax: 1.6,          // seuil TO-DE maximal (× SMIC)
+    todeRates: TODE_RATES_2026, // panier de cotisations exonérées TO-DE
+    /* taux réduits maladie 7 % / famille 3,45 % : supprimés au 01/01/2026 (RGDU),
+     * mais maintenus « à titre résiduel » pour les contrats TO-DE (agri) */
+    tauxReduits: sector === "agri",
+    pasMode: "grille",          // retenue à la source : grille BOFiP 2026 ("classeur" = formule linéaire du classeur)
+    pasContratCourt: true,      // abattement contrats courts 766 €/mois (missions ≤ 2 mois)
+    gdAvanceAuto: false,        // conversion classeur avance -> repas GD/transport refacturés : désactivée (true = Excel)
+    adrDomicile: "",            // adresse domicile / siège social (UI : distance orthodromique)
+    adrChantier: "",            // adresse du chantier (BTP uniquement)
+    distAller: 0,               // km aller simple à vol d'oiseau (zones BTP)
+    distReelAR: 0,              // km RÉELS routiers aller-retour (tranche URSSAF transport)
+    rates: Object.assign({}, cfg.rates),
+    ratesBase: Object.assign({}, cfg.rates) // littéraux de la feuille cachée (non liés aux éditions)
+  };
+  if (sector === "agri") {
+    return Object.assign(common, {
+      mode: "SIMULATEUR MSA",   // D3
+      netAttendu: null,         // D12 — vide à l'ouverture
+      ifm: false,               // (pas de ligne IFM sur SIMULATOR agri)
+      iccp: true,               // F12
+      logementHebdo: 0,         // H12 (€ / semaine) — défaut 0 : pas de logement tant que rien n'est saisi
+      logementHoraire: 0,
+      heures: 0,                // D17 — zéro à l'ouverture
+      coeff: 0,                 // H16 — zéro à l'ouverture (seuil de rentabilité affiché en aide)
+      coeffHDN: 1.4,            // N27
+      majoDimLabel: "MAJO DIMANCHE 10 %",
+      majoNormLabel: "MAJO NORMALES 40 %",
+      baseIFM: 0,               // D32 (saisie, scénario IFM)
+      /* fc = coefficient de facturation par ligne : null/"coef" = coefficient de la
+       * mission (via le réglage global « primes refacturées »), 0 = non facturée,
+       * toute autre valeur = coefficient spécifique. Indemnités : défaut 1. */
+      primes: [ {q:0, r:0, name:"Prime 1", fc:null}, {q:0, r:0, name:"Prime 2", fc:null}, {q:0, r:0, name:"Prime 3", fc:null},
+                {q:0, r:0, name:"Prime 4", fc:null}, {q:0, r:0, name:"Prime 5", fc:null} ],
+      indemnites: [ {q:0, r:0, name:"Indemnité 1", fc:0}, {q:0, r:0, name:"Indemnité 2", fc:0},   // défaut 0 (23/08/2026) : pratique maison —
+                    {q:0, r:0, name:"Indemnité 3", fc:0}, {q:0, r:0, name:"Indemnité 4", fc:0} ], // les indemnités d'ajustement du net ne sont pas refacturées
+      participationLibre: 0,    // F19 — défaut 0 (aucune retenue)
+      coutLogementFacture: 0,   // M52 (€ / semaine) — défaut 0
+      refactPrimes: true,       // L18
+      cibleTauxFact: 0          // L14 — zéro à l'ouverture
+    });
+  }
+  return Object.assign(common, {
+    mode: "SIMULATEUR INDUSTRIE", // D3
+    branche: "industrie",       // UI : "btp" | "industrie" (affiliation CPAM, RGDU pour les deux)
+    niveauQualif: "N1P1",       // référence grille BTP (niveau de qualification affiché)
+    netAttendu: null,           // D12 — vide à l'ouverture
+    ifm: false,                 // F11
+    iccp: false,                // F12
+    logementHebdo: 0,
+    logementHoraire: 0,         // I12/H12 (€ / heure) — défaut 0 ; le département préremplit sur sélection
+    heures: 0,                  // D17 — zéro à l'ouverture
+    coeff: 0,                   // H16 — zéro à l'ouverture (seuil de rentabilité affiché en aide)
+    coeffHDN: 1.9,              // N27
+    majoDimLabel: "MAJO DIMANCHE 80 %",
+    majoNormLabel: "MAJO NORMALES 50 %",
+    baseIFM: 0,
+    primes: [ {q:0, r:0, name:"Prime 1", fc:null}, {q:0, r:0, name:"Prime 2", fc:null}, {q:0, r:0, name:"Prime 3", fc:null},
+              {q:0, r:0, name:"Prime 4", fc:null}, {q:0, r:0, name:"Prime 5", fc:null} ],
+    indemnites: [ {q:0, r:0, name:"Indemnité 1", fc:0}, {q:0, r:0, name:"Indemnité 2", fc:0},   // défaut 0 (23/08/2026) : pratique maison —
+                  {q:0, r:0, name:"Indemnité 3", fc:0}, {q:0, r:0, name:"Indemnité 4", fc:0} ], // les indemnités d'ajustement du net ne sont pas refacturées
+    participationLibre: 0,      // F19 — défaut 0 (aucune retenue)
+    coutLogementFacture: 0,     // M52 (€ / heure facturé)
+    refactPrimes: true,         // L18
+    cibleTauxFact: 0            // L14 — zéro à l'ouverture
+  });
+}
+
+function lookupMult(table, label) {
+  const row = table.find(r => r.label === label);
+  return row ? (row.mult != null ? row.mult : row.raw) : 0;
+}
+function lookupValue(table, label) {
+  const row = table.find(r => r.label === label);
+  return row ? row.value : 0;
+}
+
+/* TO-DE (exonération travailleurs occasionnels / demandeurs d'emploi — agri)
+ * seuils 1,25 / 1,6 SMIC (OpenFisca : agricole.tode.plafond_exoneration_integrale / plafond) */
+function computeTODE(hours, brut, brutHorsHS, smic, seuilTot, seuilMax, basket) {
+  const B1 = smic || CONST.SMIC, B2 = hours;
+  const B3 = B1 * B2 * (seuilTot || 1.25);
+  const B4 = B1 * B2 * (seuilMax || 1.6);
+  const B8 = brutHorsHS < B3 ? "TOTALE" : (brutHorsHS > B3 && brutHorsHS < B4 ? "PARTIELLE" : "NON");
+  const bk = basket || TODE_RATES_2026;
+  const msa = bk.msa.reduce((s, t) => s + brut * t / 100, 0);
+  const retraite = bk.retraite.reduce((s, t) => s + brut * t / 100, 0);
+  let B21 = 0, B22 = 0, B23 = 0, B24 = 0;
+  if (B8 === "TOTALE") { B21 = msa; B22 = retraite; }
+  if (B8 === "PARTIELLE") {
+    const k = (1.6 * B2 * B1 / brutHorsHS) - 1;
+    B23 = (1.25 * msa / 0.35) * k;
+    B24 = (1.25 * retraite / 0.35) * k;
+  }
+  return { seuilTotale: B3, seuilMax: B4, eligibilite: B8, msa, retraite,
+           B21, B22, B23, B24, total: B21 + B22 + B23 + B24 };
+}
+
+/* Calcule une feuille complète.
+ * variant: 'main' (SIMULATOR) ou 'hidden' (feuille cachée, IFM+ICCP forcés).
+ * hiddenAvance: {F55,F56} de la feuille cachée (pour F49/F51 de la principale).
+ * f77Override: secteur agri — le caché reprend F77 de la principale. */
+function computeSheet(i, variant, hiddenAvance, f77Override) {
+  const cfg = SECTORS[i.sector || "agri"];
+  /* CONTRATS (recherche vérifiée 01/09/2026, sources officielles + KALI authentique) :
+   * "ctt" (défaut) : régime standard.
+   * "saisonnier" : modélisé AVEC accord d'entreprise écartant l'IFM (L.1251-33 : un accord
+   *   collectif étendu de la branche TT OU un accord d'entreprise/établissement peut écarter
+   *   l'IFM pour les emplois à caractère saisonnier — décision direction 01/09/2026 : régler
+   *   le simulateur comme si l'accord était conclu, pour DÉMONTRER le gain de marge et le
+   *   faire signer). ICCP CONSERVÉE (L.1251-19, toujours due) — ce qui maintient la majoration
+   *   RGDU ×1,1 (D.241-10 CSS : conditionnée à l'ICCP, pas à l'IFM). Sans accord signé, les
+   *   coûts réels restent ceux du CTT standard.
+   * "cdii" (CDI intérimaire, L.1251-58-1 s.) : ni IFM ni ICCP (L.1251-58-4) → provision CP de
+   *   droit commun 1/10 ; RGDU SANS ×1,1 (D.241-10 CSS : b=1,1 réservé aux salariés dus ICCP).
+   * "cdie" (CDI temps partagé aux fins d'employabilité, art. 115 loi 2018-771 relancé par la
+   *   loi 2024-1027 — conclusions possibles jusqu'à ~15/11/2028) : idem cdii + AGS taux plein
+   *   0,25 % (vs 0,03 % ETT) + PAS de frais de santé de branche + CPF 500 €/an. */
+  const modeCDI = i.contrat === "cdii" || i.contrat === "cdie";
+  const R0 = (i.contrat === "cdie")
+    ? Object.assign({}, i.rates, {
+        chomagePat: (i.rates.chomagePat || 0) + 0.22,
+        mutuelleSal: 0, mutuellePat: 0 })
+    : i.rates;
+  /* Effectif « sécurité sociale » de l'entité (intérimaires compris — R. 130-1 II CSS, BOSS Effectif §310-320) : les taux de
+   * référence sont ceux d'une entité ≥ 50 ; sous 50 : FNAL 0,10 au lieu de 0,50 et pas de PEEC ; sous 20 : déduction
+   * forfaitaire HS 1,50 €/h au lieu de 0,50 (L. 241-18 / L. 241-18-1, plafond 250 supprimé par la LFSS 2026) ; sous 11 :
+   * CFP 0,55 au lieu de 1 (L. 6331-1). Tdelta de la RGDU suit (0,3821 ≥ 50 / 0,3781 < 50). Versement mobilité ajouté au %.
+   * Sans champ effectif (vecteurs de test du classeur), rien ne change. */
+  let R = R0;
+  if (i.effectif) {
+    const b = i.effectif, petit50 = b !== "50plus", petit20 = b === "11-19" || b === "moins11", petit11 = b === "moins11";
+    const ajust = (petit50 ? -0.40 - 0.45 : 0) + (petit11 ? -0.45 : 0) + (i.vmPct || 0);
+    R = Object.assign({}, R0, { autresPat: (R0.autresPat || 0) + ajust, redPatHSupParH: petit20 ? -1.5 : -0.5 });
+    i = Object.assign({}, i, { rgdu: Object.assign({}, i.rgdu || {}, { fnal050: !petit50 }) });
+  } else if (i.vmPct) R = Object.assign({}, R0, { autresPat: (R0.autresPat || 0) + i.vmPct });
+  const S = {};
+  const isMain = variant === "main";
+  const mode = i.mode;
+  const netNull = (i.netAttendu == null);
+
+  /* --- Heures et majorations (lignes 24-31) --- */
+  S.D24 = (i.heures <= 35) ? i.heures : 35;
+  S.E24 = i.thBrut;
+  S.F24 = S.D24 * S.E24;
+  S.D25 = i.hDim;   S.E25 = i.thBrut * lookupMult(DB.majoDimanche, i.majoDimLabel);   S.F25 = S.D25 * S.E25;
+  S.D26 = i.hFerie; S.E26 = i.thBrut * lookupMult(DB.majoFerie, i.majoFerieLabel);    S.F26 = S.D26 * S.E26;
+  S.D27 = i.hNuit;  S.E27 = i.thBrut * lookupMult(DB.majoNuit, i.majoNuitLabel);      S.F27 = S.D27 * S.E27;
+  S.D28 = (i.heures >= 36) ? (i.heures < 44 ? i.heures - 35 : 8) : 0;
+  S.E28 = i.thBrut * lookupMult(DB.heuresSup, i.hSupLabel);
+  S.F28 = S.D28 * S.E28;
+  S.D29 = (i.heures >= 44) ? (i.heures < 48 ? i.heures - 43 : i.heures - S.D28 - S.D24) : 0;
+  S.E29 = S.E24 * 1.5;
+  S.F29 = S.D29 * S.E29;
+  S.D30 = i.majoNormQty; S.E30 = i.thBrut * lookupMult(DB.majoNormales, i.majoNormLabel); S.F30 = S.D30 * S.E30;
+  S.D31 = i.heures;
+
+  /* --- Barème zone km / repas --- */
+  S.H18 = lookupValue(DB.zonesKmPD, i.zonePD);
+  S.E45 = (i.transpClient < S.H18) ? i.transpClient : S.H18;
+  S.E46 = (i.repasClient > i.baremeRepasPD) ? i.baremeRepasPD : i.repasClient;
+  S.D45 = i.jours; S.F45 = S.D45 * S.E45;
+  S.D46 = i.jours; S.F46 = S.D46 * S.E46;
+
+  /* --- Primes au-delà des plafonds & AN repas (lignes 34-36) --- */
+  S.D34 = S.D46; S.E34 = i.repasClient - S.E46;  S.F34 = S.D34 * S.E34;
+  S.D35 = S.D45; S.E35 = i.transpClient - S.E45; S.F35 = S.D35 * S.E35;
+  S.D36 = i.jours; S.E36 = i.anRepasClient;      S.F36 = S.D36 * S.E36;
+
+  /* --- Primes 1-5 (lignes 37-41) --- */
+  for (let k = 0; k < 5; k++) {
+    S["F" + (37 + k)] = i.primes[k].q * i.primes[k].r;
+  }
+
+  /* --- IFM (ligne 32) & ICCP (ligne 33) --- */
+  const rowsSum = S.F24 + S.F25 + S.F26 + S.F27 + S.F28 + S.F29 + S.F30 +
+                  S.F34 + S.F35 + S.F36 + S.F37 + S.F38 + S.F39 + S.F40 + S.F41;
+  if (cfg.ifmMode === "input") {
+    S.D32 = i.baseIFM || 0;                       // agri : saisie
+  } else {
+    // tarifaire : SIMULATOR = Σ lignes SANS F30 ; caché = Σ lignes AVEC F30
+    S.D32 = rowsSum - (isMain ? S.F30 : 0);
+  }
+  if (modeCDI && isMain) {
+    /* CDI-I / CDI-E : ni IFM ni ICCP — provision CONGÉS PAYÉS de droit commun (1/10 du brut,
+       L.3141-24), lissée en coût hebdo chargé sur la même assiette (versée à la prise des CP).
+       Le garde (F32+F33)>0 -> D85=0 éteint de lui-même la provision CET (sans objet en CDI). */
+    S.F32 = 0;
+    S.D33 = S.D32;
+    S.F33 = S.D33 * CONST.ICCP_TAUX;
+  } else {
+    /* saisonnier : IFM écartée par accord d'entreprise (L.1251-33) dans TOUTES les
+       variantes (main, cachée, scénario IFM+ICCP) ; l'ICCP reste due — sans cascade
+       puisque l'IFM n'existe plus dans l'assiette */
+    const ifmWaived = i.contrat === "saisonnier";
+    const ifmOn = ifmWaived ? false : (isMain ? (cfg.ifmMainToggle ? i.ifm : false) : true);  // caché : F11='OUI'
+    S.F32 = ifmOn ? S.D32 * CONST.IFM_TAUX : 0;
+    S.D33 = (cfg.iccpMode === "ifm") ? S.D32 + S.F32 : rowsSum;
+    const iccpOn = isMain ? i.iccp : true;          // caché : F12='OUI' (inchangé — l'ICCP reste due en saisonnier)
+    S.F33 = iccpOn ? S.D33 * CONST.ICCP_TAUX : 0;
+  }
+
+  /* --- TOTAL BRUT (F42 = SUM F24:F41) --- */
+  S.F42 = rowsSum + S.F32 + S.F33;
+
+  /* --- Plafonds (lignes 107-109) --- */
+  const SMIC_C = i.smicClasseur || CONST.SMIC;   // SMIC des formules du classeur
+  S.D107 = (i.plafondSSMois || cfg.plafondSSMois) / 30 * i.jours;
+  S.D108 = CONST.SMIC_FIGE * S.D31 * 2.5;
+  S.D109 = CONST.SMIC_FIGE * S.D31 * 3.5;
+
+  /* --- Assiette de cotisations (D62) --- */
+  S.D101 = S.F42 * cfg.dfsFactor;
+  S.D102 = (S.D24 * SMIC_C) + (S.D29 * SMIC_C * 1.5) +
+           (S.D28 * SMIC_C * (S.E24 ? S.E28 / S.E24 : 0)) + S.F32 + S.F33;
+  const dfsApplies = isMain ? cfg.dfsOnMain : true;
+  if (!dfsApplies) {
+    S.D62 = S.F42;
+  } else {
+    S.D62 = (mode === "SIMULATEUR INDUSTRIE") ? S.F42 : Math.max(S.D101, S.D102);
+  }
+
+  /* --- Cotisations (lignes 62-82) : F = salarial, H = patronal --- */
+  const att = i.attestation; // F13
+  S.F62 = att ? S.D62 * R.maladieSal / 100 : 0;
+  /* maladie patronale : taux réduit 7 % supprimé au 01/01/2026 (RGDU) sauf
+   * résiduel TO-DE — piloté par i.tauxReduits (classeur : seuil 2,5 SMIC figé) */
+  S.G62 = (i.tauxReduits === false) ? 13 : ((S.D62 <= S.D108) ? 7 : 13);
+  S.H62 = S.D62 * S.G62 / 100;
+  S.D63 = Math.min(S.D62, S.D107);
+  S.F63 = S.D63 * R.compIIDT1Sal / 100;  S.H63 = S.D63 * R.compIIDT1Pat / 100;
+  S.D64 = S.D63;                                        // ligne 64 (tarifaire) : patronale seule
+  S.H64 = S.D64 * R.nonCsgT1Pat / 100;
+  S.D65 = S.D62 - S.D63;
+  S.F65 = S.D65 * R.compIIDT2Sal / 100;  S.H65 = S.D65 * R.compIIDT2Pat / 100;
+  S.D66 = S.D65;                                        // ligne 66 (tarifaire)
+  S.F66 = S.D66 * R.nonCsgT2Sal / 100;   S.H66 = S.D66 * R.nonCsgT2Pat / 100;
+  if (cfg.mutuelleMode === "pctPlafond") {
+    S.D67 = S.D107;
+    S.F67 = S.D67 * R.mutuelleSal / 100;   S.H67 = S.D67 * R.mutuellePat / 100;
+  } else {
+    S.D67 = S.D24;                                      // tarifaire : € par heure normale
+    S.F67 = S.D67 * R.mutuelleSal;         S.H67 = S.D67 * R.mutuellePat;
+  }
+  S.H68 = S.D62 * R.atPat / 100;
+  /* ligne 69 : base D63 (plafonnée) sur SIMULATOR, D62 (non plafonnée) sur la feuille cachée */
+  S.D69 = isMain ? S.D63 : S.D62;
+  S.F69 = S.D69 * R.ssPlafSal / 100;     S.H69 = S.D69 * R.ssPlafPat / 100;
+  S.F70 = S.D62 * R.ssDeplafSal / 100;   S.H70 = S.D62 * R.ssDeplafPat / 100;
+  S.F71 = S.D63 * R.compT1Sal / 100;     S.H71 = S.D63 * R.compT1Pat / 100;
+  S.D72 = S.D62 - S.D63;
+  S.F72 = S.D72 * R.compT2Sal / 100;     S.H72 = S.D72 * R.compT2Pat / 100;
+  S.D73 = (S.D72 > 0) ? S.D62 : 0;
+  S.F73 = S.D73 * R.cetSal / 100;        S.H73 = S.D73 * R.cetPat / 100;
+  S.G74 = (i.tauxReduits === false) ? 5.25 : ((S.D62 <= S.D109) ? 3.45 : 5.25);
+  S.H74 = S.D62 * S.G74 / 100;
+  S.H75 = S.D62 * R.chomagePat / 100;
+  S.D76 = S.F42 ? (S.F28 + S.F29) * (S.D62 / S.F42) : 0;
+  S.F76 = -S.D76 * R.redSalHSup / 100;
+  S.F77 = (f77Override != null) ? f77Override : S.D62 * R.autresSal / 100;
+  S.H77 = S.D62 * R.autresPat / 100;
+  S.H78 = S.D62 * R.statutairesPat / 100;
+  S.D79 = ((S.F42 - S.F29 - S.F28) * 0.9825) + S.H67 + S.H63 + S.H65;
+  S.F79 = att ? 0 : S.D79 * R.csgDedSal / 100;
+  S.F80 = att ? 0 : S.D79 * R.csgNonDedSal / 100;
+  S.D81 = (S.F28 + S.F29) * 0.9825;
+  S.F81 = att ? 0 : S.D81 * R.csgNonDedHSSal / 100;
+  S.D82 = S.D28 + S.D29;
+  S.H82 = S.D82 * R.redPatHSupParH;
+
+  /* --- Tickets restaurant (ligne 44) --- */
+  S.F44 = -(i.ticketsQty * i.ticketsVal * 0.4);
+  S.H44 = i.ticketsQty * i.ticketsVal * 0.6;
+
+  /* --- Fillon (lignes 97-105) --- */
+  S.D98 = S.F42 ? (CONST.FILLON_T / 0.6) * ((1.6 * (SMIC_C * S.D31) / S.F42) - 1) : 0;
+  S.D99 = Math.min(S.D98, CONST.FILLON_T);
+  S.D100 = Math.max(S.D99, 0);
+  S.E98 = S.D62 ? (CONST.FILLON_T / 0.6) * ((1.6 * (SMIC_C * S.D31) / S.D62) - 1) : 0;
+  S.E99 = Math.min(S.E98, CONST.FILLON_T);
+  S.E100 = Math.max(S.E99, 0);
+  S.D104 = (S.D100 * S.F42) * 1.1;
+  S.E104 = (S.E100 * S.D62) * 1.1;
+  S.D105 = S.D104 * 1.3;
+  S.E105 = S.E104;
+
+  /* --- RGDU 2026 (calculée dans tous les cas, à titre de comparaison) ---
+   * Proratisation hebdomadaire cohérente avec la convention Fillon du classeur :
+   * paramètre SMIC = SMIC réf × heures travaillées (D31, heures sup incluses). */
+  /* Leviers « heures de repos CET » : le différé (D85, calculé ici par anticipation) et/ou la majoration des
+   * heures sup sont restitués en heures payées au taux de base → ils comptent dans le SMIC de référence.
+   * majHS = part majoration des lignes 28/29 (heures sup 25 % et 50 %). */
+  S.majHS = Math.max(0, S.F28 - S.D28 * i.thBrut) + Math.max(0, S.F29 - S.D29 * i.thBrut);
+  const d85Anticipe = (S.F32 + S.F33) > 0 ? 0 : S.D32 * (i.contrat === "saisonnier" ? 0.10 : 0.21);
+  /* leviers actifs seulement sous réduction générale (sans objet en TO-DE agricole ou en Fillon « constantes du classeur ») */
+  const rgduActif = cfg.exo !== "tode" && i.exoFormule === "rgdu" && i.thBrut > 0;
+  S.levierCet = !!i.cetRepos && !modeCDI && d85Anticipe > 0 && rgduActif;
+  S.levierHS = !!i.hsRepos && S.majHS > 0 && rgduActif;
+  S.hReposCet = S.levierCet ? d85Anticipe / i.thBrut : 0;
+  S.hReposHS = S.levierHS ? S.majHS / i.thBrut : 0;
+  S.remRG = S.F42 + (S.levierCet ? d85Anticipe : 0);
+  S.heuresRG = S.D31 + S.hReposCet + S.hReposHS;
+  {
+    const rg = i.rgdu || {};
+    const smicParam = (rg.smicRef || RGDU_DEFAULTS.smicRef) * S.heuresRG;
+    const tdelta = rg.fnal050 ? (rg.tdeltaGrande || RGDU_DEFAULTS.tdeltaGrande)
+                              : (rg.tdeltaPetite || RGDU_DEFAULTS.tdeltaPetite);
+    const tmin = (rg.tmin != null) ? rg.tmin : RGDU_DEFAULTS.tmin;
+    const p = rg.p || RGDU_DEFAULTS.p;
+    const plaf = rg.plafondSmic || RGDU_DEFAULTS.plafondSmic;
+    let coeff = 0;
+    if (S.remRG > 0 && S.remRG < plaf * smicParam) {
+      const t = Math.min(1, 0.5 * (plaf * smicParam / S.remRG - 1));
+      coeff = tmin + tdelta * Math.pow(t, p);
+      coeff = Math.round(Math.min(coeff, tmin + tdelta) * 10000) / 10000;
+    }
+    S.rgduCoeff = coeff;
+    S.rgduAmount = coeff * S.remRG * ((rg.interim === false || modeCDI) ? 1 : RGDU_DEFAULTS.interimMajoration);
+  }
+
+  /* --- Exonération (H83) : TO-DE (agri) ou allègement Fillon / RGDU (tarifaire) --- */
+  S.tode = computeTODE(S.D24, S.F42, S.F42 - S.F28 - S.F29, SMIC_C, i.todeSeuilTot, i.todeSeuilMax, i.todeRates);
+  if (cfg.exo === "tode") {
+    S.H83 = S.tode.total;
+  } else {
+    S.H83_fillon = (mode === "SIMULATEUR BTP GRAND D") ? Math.min(S.D105, S.E105) : S.D104;
+    /* RGDU : l'imputation est PLAFONNÉE aux cotisations dues du panier éligible
+     * (imputation ligne à ligne — BOSS ; décret 2025-1446 : part AT imputable
+     * 0,49 % en 2026 ; FNAL 0,10/0,50 % ; CSA 0,30 %). Sans ce plafond, la
+     * majoration intérim ×1,1 « sur-réduisait » près du SMIC (réduction
+     * supérieure aux cotisations réellement dues). */
+    S.rgduPanier = S.H62 + S.H69 + S.H70 + S.H71 + S.H74 + S.H75 +
+                   S.D62 * (0.0049 + 0.003 + ((i.rgdu && i.rgdu.fnal050) ? 0.005 : 0.001));
+    if (S.levierCet && S.F42 > 0) S.rgduPanier *= S.remRG / S.F42;   /* les cotisations dues croissent avec le différé */
+    S.H83 = (i.exoFormule === "rgdu") ? Math.min(S.rgduAmount, S.rgduPanier) : S.H83_fillon;
+  }
+
+  /* --- Provision CET (ligne 85) --- */
+  /* provision CET : 21 % (IFM 10 % + ICCP 11 % en cascade) — saisonnier sous accord :
+     l'IFM n'existe plus, seule l'ICCP (10 %, sans cascade) peut partir au CET */
+  S.D85 = (S.F32 + S.F33) > 0 ? 0 : S.D32 * (i.contrat === "saisonnier" ? 0.10 : 0.21);
+  /* taux patronal brut (avant réduction) de l'assiette principale — sert au différé restitué en heures */
+  /* (H82 = déduction forfaitaire patronale par heure sup : liée aux heures sup, pas aux heures de repos → exclue) */
+  S.tauxPatBrut = S.F42 > 0 ? (S.H62 + S.H63 + S.H64 + S.H65 + S.H66 + S.H67 + S.H68 + S.H69 + S.H70 + S.H71 +
+                               S.H72 + S.H73 + S.H74 + S.H75 + S.H77 + S.H78) / S.F42 : 0;
+  S.H85 = S.D85 * (S.levierCet ? S.tauxPatBrut : 0.45);
+
+  /* --- Pire scénario §900 (BOSS Allègements généraux) --- */
+  /* Lecture défavorable du rattachement : le différé CET monétisé est réintégré dans
+   * la rémunération de la DERNIÈRE MISSION RÉELLE (SMIC de référence inchangé) → le
+   * coefficient chute et rogne le gain du stockage. Défaut maison = gain préservé
+   * (déblocage isolé par contrat de causerie, doctrine avocat TT) ; l'option
+   * cetPireCas applique cette borne basse à l'étude. Toujours calculé pour affichage. */
+  S.rgduPerte900 = 0; S.rgduReduc900 = null;
+  /* Sous le levier « heures de repos CET », la borne basse §900 garde tout son sens : c'est le cas où l'URSSAF
+   * n'admet PAS les heures de repos dans le SMIC de référence (différé réintégré, heures de repos écartées). */
+  if (S.D85 > 0 && i.exoFormule === "rgdu" && cfg.exo !== "tode" && !modeCDI && S.rgduAmount > 0 && S.F42 > 0) {
+    const rg = i.rgdu || {};
+    const smicParam = (rg.smicRef || RGDU_DEFAULTS.smicRef) * S.D31;
+    const tdelta = rg.fnal050 ? (rg.tdeltaGrande || RGDU_DEFAULTS.tdeltaGrande)
+                              : (rg.tdeltaPetite || RGDU_DEFAULTS.tdeltaPetite);
+    const tmin = (rg.tmin != null) ? rg.tmin : RGDU_DEFAULTS.tmin;
+    const p = rg.p || RGDU_DEFAULTS.p;
+    const plaf = rg.plafondSmic || RGDU_DEFAULTS.plafondSmic;
+    const remuPire = S.F42 + S.D85;
+    let coeffPire = 0;
+    if (remuPire < plaf * smicParam) {
+      const t = Math.min(1, 0.5 * (plaf * smicParam / remuPire - 1));
+      coeffPire = tmin + tdelta * Math.pow(t, p);
+      coeffPire = Math.round(Math.min(coeffPire, tmin + tdelta) * 10000) / 10000;
+    }
+    const maj = (rg.interim === false) ? 1 : RGDU_DEFAULTS.interimMajoration;
+    /* panier proportionné à l'assiette gonflée (les cotisations dues croissent avec elle) */
+    const panierPire = S.rgduPanier * (remuPire / S.remRG);   /* rgduPanier est déjà à l'échelle de remRG sous levier */
+    S.rgduReduc900 = Math.min(coeffPire * remuPire * maj, panierPire);
+    S.rgduPerte900 = Math.max(0, S.H83 - S.rgduReduc900);
+    if (i.cetPireCas) S.H83 = S.rgduReduc900;
+  }
+  /* Coûts CET réels (politique maison, OPTION — décochée = classeur d'origine) :
+     abondement versé à chaque déblocage (régime permanent : X % du flux hebdo provisionné,
+     le nombre de déblocages ne change pas le total d'abondement, seulement les causeries)
+     + causeries payées NON FACTURÉES (nbDéblocages × heures × taux brut, ramenées à la semaine).
+     Les deux sont chargés au taux des charges décalées du classeur (H85/D85 = 45 %). */
+  S.cetAbondCout = 0; S.cetCauserieCout = 0;
+  if (i.cetCoutsReels && S.D85 > 0) {
+    S.cetAbondCout = (i.cetAbondPct || 0) / 100 * S.D85 * 1.45;
+    S.cetCauserieCout = S.levierCet ? 0 : ((i.cetDebloc || 0) * (i.cetCauserieH || 0) / 52) * i.thBrut * 1.45;
+  }
+  S.cetCoutReel = S.cetAbondCout + S.cetCauserieCout;
+
+  /* --- Totaux cotisations (ligne 88) ---
+   * agri : F88 inclut F77 ; tarifaire : pas de F77 (taux 0 → terme nul). */
+  S.F88 = S.F62 + S.F63 + S.F67 + S.F69 + S.F70 + S.F71 + S.F76 +
+          S.F79 + S.F80 + S.F81 + S.F65 + S.F66 + S.F72 + S.F73 + S.F77;
+  S.H88 = (S.H62 + S.H63 + S.H64 + S.H65 + S.H66 + S.H67 + S.H68 + S.H69 + S.H70 + S.H71 +
+           S.H72 + S.H73 + S.H74 + S.H75 + S.H77 + S.H78 + S.H82) - S.H83 + S.H44;
+
+  /* --- Net imposable & retenue à la source (F14, F43) --- */
+  S.F14 = S.F42 + S.H67 + S.F80 + S.F81 - S.F88 - S.F28 - S.F29;
+  /* Retenue à la source — DEUX régimes selon la résidence fiscale (case attestation) :
+   * - "classeur" : formule linéaire du classeur ((F14 × 0,9) − retenueJour × j) × 12 % pour tous ;
+   * - sinon, NON-RÉSIDENT (attestation = OUI) : barème 182 A CGI 2026 par tranches
+   *   (0 / 12 / 20 %) sur F14 × 0,9, seuils annuels proratisés par jour travaillé ;
+   * - RÉSIDENT français (attestation = NON) : grille du taux neutre PAS BOFiP
+   *   (mensuel × 12/52), abattement contrats courts optionnel. */
+  if (i.pasMode === "classeur") {
+    S.F43 = ((S.F14 * 0.9) - (cfg.retenueJour * i.jours)) * 0.12;
+    S.pasHorsGrille = false;
+    S.pasRegime = "classeur";
+  } else if (att) {
+    const base = Math.max(0, S.F14 * 0.9);
+    const l1 = RASNR_2026.t1Annuel / RASNR_2026.joursAnnee * i.jours;
+    const l2 = RASNR_2026.t2Annuel / RASNR_2026.joursAnnee * i.jours;
+    S.F43 = Math.max(0, Math.min(base, l2) - l1) * RASNR_2026.tauxMid +
+            Math.max(0, base - l2) * RASNR_2026.tauxHaut;
+    S.pasHorsGrille = false;
+    S.pasRegime = "182A";
+  } else {
+    const w = 12 / 52;
+    const base = Math.max(0, S.F14 - (i.pasContratCourt === false ? 0 : PAS_ABAT_CONTRAT_COURT * w));
+    let rate = PAS_GRILLE_2026[PAS_GRILLE_2026.length - 1][1];
+    S.pasHorsGrille = true;
+    for (const [lim, r] of PAS_GRILLE_2026) {
+      if (base < lim * w) { rate = r; S.pasHorsGrille = false; break; }
+    }
+    S.F43 = base * rate / 100;
+    S.pasRegime = "pas";
+  }
+
+  /* --- Indemnités (lignes 47-51) --- */
+  /* indemnités non soumises : lignes 1-2 = F47/F48 du classeur ; les lignes 3-4
+   * (extension web) suivent le modèle de la ligne 48 dans tous les totaux */
+  S.FI = i.indemnites.map(p => p.q * p.r);
+  S.F47 = S.FI[0]; S.F48 = S.FI[1];
+  S.FIextra = (S.FI[2] || 0) + (S.FI[3] || 0);
+  S.D49 = (mode === "SIMULATEUR BTP GRAND D") ? i.jours : 0;
+  S.D50 = (mode === "SIMULATEUR BTP GRAND D") ? i.jours - 1 : 0;
+  S.F50 = S.D50 * i.indemDecoucheRate;
+  S.D51 = (mode === "SIMULATEUR INDUSTRIE") ? i.jours : 0;
+
+  /* --- Logement (F92) --- */
+  if (cfg.logementMode === "hebdo") {
+    S.H12 = i.logementHebdo;
+    S.F92 = i.logement ? S.H12 : 0;
+  } else {
+    S.H12 = i.logementHoraire;                    // € / heure (LOGEMT)
+    S.F92 = i.logement ? S.H12 * i.logementHeures : 0;   // classeur : × 43 en dur
+  }
+
+  /* --- Participation (F52-F54) --- */
+  const partMap = {
+    "PARTICIPATION FORFAIT": -25,
+    "PARTICIPATION FACTURE": -S.F92,
+    "PARTICIPATION ANNULATION GD": -S.F50,
+    "PARTICIPATION LIBRE": i.participationLibre
+  };
+  S.F52 = partMap[i.participationChoice] != null ? partMap[i.participationChoice] : 0;
+  S.F53 = (S.F52 === 0) ? -i.redevanceClient : 0;
+  S.F54 = i.anRepasConsomme ? -S.F36 : 0;
+
+  /* --- Net attendu (D13, F22) --- */
+  S.D13 = netNull ? null : i.netAttendu * S.D31;
+  S.F22 = netNull ? 0 : (i.netAttendu * i.heures) + (S.F27 * 0.85);
+
+  /* --- TOTAL NET AVANT REGUL (F89) — sans F49/F51 ---
+   * agri SIMULATOR : soustrait aussi F65+F72+F73 et F77 ; caché : F77 seul.
+   * tarifaire : aucune de ces soustractions. */
+  /* participation hors paie (prélèvement bancaire) : F52 sort de la chaîne du NET
+     mais reste dans le coût total F93 (la rentabilité est identique dans les deux modes) */
+  S.F89 = S.F42 - S.F43 + S.F45 + S.F46 + S.F47 + S.F48 + S.FIextra + (i.participationHorsPaie ? 0 : S.F52) -
+          S.F62 - S.F63 - S.F67 - S.F69 - S.F70 - S.F71 - S.F76 -
+          S.F79 - S.F80 - S.F81 + S.F53 + S.F54 + S.F50 + S.F44 -
+          (cfg.f77Cross ? S.F77 : 0) -
+          (isMain && cfg.netSubT2Main ? (S.F65 + S.F72 + S.F73) : 0);
+
+  /* --- Avances sur salaire (F55/F56) --- */
+  S.F55 = netNull ? 0 : Math.max(0, S.D13 - S.F89);
+  S.F56 = (!netNull && S.F22 > S.D13 && S.F89 < S.F22) ? S.F22 - S.F89 : 0;
+
+  /* --- F49 / F51 (la feuille principale utilise les avances du caché) ---
+   * Mécanisme du classeur : l'avance vers le net attendu est convertie en indemnités
+   * « repas GD » (BTP GD, F49 — refacturées au client en O49) ou « transport »
+   * (industrie, F51). SUPPRIMÉ par défaut le 20/08/2026 à la demande de l'utilisateur
+   * (la participation logement faisait grimper le CA via cette conversion) : les
+   * avances sont financées par le CET, rien n'est refacturé. gdAvanceAuto=true
+   * (goldens/classeur) rétablit le comportement Excel à l'identique. */
+  const av = isMain ? hiddenAvance : { F55: S.F55, F56: S.F56 };
+  const maxAv = i.gdAvanceAuto === true ? Math.max(av.F55, av.F56) : 0;
+  S.F49 = (maxAv > i.baremeRepasGD * S.D49) ? i.baremeRepasGD * S.D49 : maxAv;
+  S.E49 = S.D49 === 0 ? 0 : S.F49 / S.D49;
+  S.F51 = (maxAv > S.H18 * S.D51) ? S.H18 * S.D51 : maxAv;
+
+  /* --- F90, F57/F58, F91 ---
+   * SIMULATOR!F90 n'inclut PAS F44 (tickets restaurant) alors que F89 l'inclut ;
+   * la feuille cachée conserve F44 dans les deux (vrai dans les deux classeurs). */
+  S.F90 = S.F89 + S.F51 + S.F49 - (isMain ? S.F44 : 0);
+  /* les deux lectures du net, quel que soit le mode de participation :
+     F90ApresLog = net une fois le logement payé ; F90HorsLog = net sans la participation */
+  S.F90ApresLog = S.F90 + (i.participationHorsPaie ? S.F52 : 0);
+  S.F90HorsLog = S.F90 - (i.participationHorsPaie ? 0 : S.F52);
+  S.F57 = netNull ? 0 : Math.max(0, S.D13 - S.F90);
+  S.F58 = (!netNull && S.F22 > S.D13 && S.F90 < S.F22) ? S.F22 - S.F90 : 0;
+  S.F91 = S.F90 + Math.max(S.F57, S.F58);
+  S.G55 = (S.F57 >= 0) ? 0 : S.F55;
+  S.G56 = (S.F58 >= 0) ? 0 : S.F56;
+  S.G57 = (S.F58 > S.F57) ? 0 : S.F57;
+  S.G58 = (S.F58 > 0) ? S.F58 : 0;
+
+  /* --- TOTAL NET (F59) & coûts globaux (F93/F94) --- */
+  S.F59 = S.F44 + S.F45 + S.F46 + S.F47 + S.F48 + S.FIextra + S.F49 + S.F50 + S.F51 + S.F52 + S.F53 + S.F54;
+  S.F93 = S.F42 + S.H88 + S.F45 + S.F46 + S.F47 + S.F48 + S.FIextra + S.F92 + S.F52 +
+          S.D85 + S.H85 + S.F53 + S.F54 + S.F51 + S.F49 + S.F50 + S.F44;
+  S.F94 = S.F93 + S.G55 + S.G56 + S.G57 + S.G58;
+
+  /* --- Nets par heure (D14/D15) --- */
+  S.D14 = S.F89 / S.D31;
+  S.D15 = S.F91 / S.D31;
+
+  /* --- FACTURATION (colonnes K-P) --- */
+  S.H16 = i.coeff;
+  S.H14 = i.thBrut * i.coeff;
+  S.L24 = i.heuresFactNormal == null ? Math.min(35, i.heures || 0) : i.heuresFactNormal;
+  S.O24 = S.L24 * S.H14;                          P(S, 24);
+  S.L25 = i.refactDim ? S.D25 : 0;   S.O25 = S.L25 * S.E25 * i.coeff;  P(S, 25);
+  S.L26 = i.refactFerie ? S.D26 : 0; S.O26 = S.L26 * S.E26 * i.coeff;  P(S, 26);
+  S.L27 = i.refactNuit ? S.D27 : 0;
+  S.O27 = S.L27 * S.E27 * i.coeff;
+  S.P27 = S.L27 * S.E27 * i.coeffHDN;
+  /* L29 : IFS(D17<44→0 ; D17=L24→0 ; L24>=43→D17-L24 ; L24<43→D17-43) */
+  S.L29 = (i.heures < 44) ? 0 : (i.heures === S.L24 ? 0 : (S.L24 >= 43 ? i.heures - S.L24 : i.heures - 43));
+  S.L28 = i.annualisation ? 0 : (i.heures > S.L24 ? i.heures - S.L24 - S.L29 : 0);
+  S.O28 = S.L28 * S.E28 * i.coeff;  P(S, 28);
+  S.O29 = S.L29 * S.E29 * i.coeff;  P(S, 29);
+  S.L30 = S.D30;  S.O30 = S.L30 * S.E30 * i.coeff;  P(S, 30);
+  S.M34 = i.refactPrimes ? i.coeff : 0;
+  S.L34 = S.F34; S.O34 = S.L34 * S.M34; P(S, 34);
+  S.L35 = S.F35; S.O35 = S.L35 * S.M34; P(S, 35);
+  S.L36 = S.F36; S.O36 = S.L36 * S.M34; P(S, 36);
+  /* primes 1-5 : coefficient de facturation par ligne (null/"coef" = M34) */
+  const fcPrime = fc => (fc == null || fc === "" || fc === "coef" || isNaN(Number(fc))) ? S.M34 : Number(fc);
+  const fcIndem = fc => (fc == null || fc === "" || isNaN(Number(fc))) ? 1 : Number(fc);
+  for (let k = 0; k < 5; k++) {
+    const r = 37 + k;
+    S["L" + r] = S["F" + r];
+    S["O" + r] = S["F" + r] * fcPrime(i.primes[k].fc);
+    P(S, r);
+  }
+  S.O45 = S.F45 * 1;              P(S, 45);
+  S.O46 = S.F46 * 1;              P(S, 46);
+  S.O47 = S.F47 * fcIndem(i.indemnites[0].fc); P(S, 47);
+  S.O48 = S.F48 * fcIndem(i.indemnites[1].fc); P(S, 48);
+  S.OI3 = (S.FI[2] || 0) * fcIndem(i.indemnites[2] ? i.indemnites[2].fc : 1); S.PI3 = S.OI3;
+  S.OI4 = (S.FI[3] || 0) * fcIndem(i.indemnites[3] ? i.indemnites[3].fc : 1); S.PI4 = S.OI4;
+  S.O49 = S.F49 * 1;              P(S, 49);
+  S.O50 = S.F50 * 1;              P(S, 50);
+  if (cfg.o52Mode === "flat") {
+    S.L52 = 0;
+    S.O52 = isMain ? i.coutLogementFacture : 0;   // agri : M52 € / semaine (caché : 0)
+  } else {
+    S.L52 = i.logement ? Math.min(i.heures, 35) : 0;   // tarifaire : heures × € / h
+    S.O52 = S.L52 * i.coutLogementFacture;
+  }
+  S.P52 = S.O52;
+  S.O54 = i.retraitANRepas ? S.F54 : 0;  P(S, 54);
+
+  const oRows = [24, 25, 26, 27, 28, 29, 30, 34, 35, 36, 37, 38, 39, 40, 41];
+  S.O42 = oRows.reduce((s, r) => s + S["O" + r], 0);
+  S.P42 = oRows.reduce((s, r) => s + S["P" + r], 0);
+  const extra = [45, 46, 47, 48, 49, 50, 52, 54];
+  S.O60 = S.O42 + extra.reduce((s, r) => s + S["O" + r], 0) + S.OI3 + S.OI4;
+  S.P60 = S.P42 + extra.reduce((s, r) => s + S["P" + r], 0) + S.PI3 + S.PI4;
+  S.O58 = S.O60 - S.O52;
+  S.P58 = S.P60 - S.P52;
+  /* Prestataire externe de recrutement : € HT × heures travaillées, en déduction directe de la marge
+     (coût interne agence — n'apparaît jamais dans l'étude de prix client). */
+  S.recrutCout = (i.recrutTarifH || 0) * (i.heures || 0);
+  /* CDI-I / CDI-E : provision d'INTERMISSION lissée sur les heures facturées —
+   * (1/τ − 1) × coût salarial chargé de la semaine type (τ = taux d'occupation).
+   * Approximation MAJORANTE : en intermission la garantie est la GMMR (CDI-I,
+   * plancher SMIC×151,67 — L.1251-58-3) ou le dernier taux de base (CDI-E), sans
+   * IFM/HS/indemnités. CDI-E : + abondement CPF 500 €/an (~9,62 €/sem, art. 115). */
+  S.cdiIntermCout = 0; S.cdieFormationCout = 0;
+  if (modeCDI) {
+    const tau = Math.min(100, Math.max(1, i.tauxOccupation == null ? 100 : i.tauxOccupation)) / 100;
+    S.cdiIntermCout = (1 / tau - 1) * (S.F42 + S.H88);
+    if (i.contrat === "cdie") S.cdieFormationCout = 500 / 52;
+  }
+  S.O61 = S.O60 - S.F93 - S.recrutCout - (S.cetCoutReel || 0) - S.cdiIntermCout - S.cdieFormationCout;
+  S.P61 = S.P60 - S.F93 - S.recrutCout - (S.cetCoutReel || 0) - S.cdiIntermCout - S.cdieFormationCout;
+  S.O62 = i.heures ? S.O60 / i.heures : 0;
+  S.P62 = i.heures ? S.P60 / i.heures : 0;
+  S.O63 = S.O60 - (S.O42 * i.remisePct / 100);
+  S.P63 = S.P60 - (S.P42 * i.remisePct / 100);
+  S.O64 = S.O61 - (S.O42 * i.remisePct / 100);
+  S.P64 = S.P61 - (i.remisePct * S.P42 / 100);
+  if (isMain) {
+    S.O65 = S.O60 ? S.F92 / S.O60 : 0;
+    S.P65 = S.P60 ? S.F92 / S.P60 : 0;
+  } else {
+    const g = S.G55 + S.G56 + S.G57 + S.G58;
+    S.O65 = S.O64 - g;
+    S.P65 = S.P64 - g;
+  }
+  S.O66 = i.heures ? S.O58 / i.heures : 0;
+  S.P66 = i.heures ? S.P58 / i.heures : 0;
+  S.H17 = S.O60 ? S.O64 / S.O60 * 100 : 0;
+  S.H22 = S.P60 ? S.P64 / S.P60 * 100 : 0;
+  return S;
+}
+
+function P(S, row) { S["P" + row] = S["O" + row]; }
+
+/* Calcul complet : feuille cachée d'abord, puis feuille principale. */
+function compute(i) {
+  const cfg = SECTORS[i.sector || "agri"];
+  const pre = computeSheet(i, "main", { F55: 0, F56: 0 });
+  // littéraux de la feuille cachée : millésime des défauts (ratesBase), pas les éditions utilisateur
+  const hiddenRates = Object.assign({}, i.ratesBase || cfg.rates);
+  for (const k of cfg.hiddenLinkedRates) hiddenRates[k] = i.rates[k];
+  const hidden = computeSheet(Object.assign({}, i, { rates: hiddenRates }), "hidden", null,
+                              cfg.f77Cross ? pre.F77 : null);
+  const main = computeSheet(i, "main", { F55: hidden.F55, F56: hidden.F56 });
+  main.D15 = hidden.F91 / hidden.D31;   // SIMULATOR!D15 = caché D15
+  main.E15 = hidden.F89 / hidden.D31;   // SIMULATOR!E15 = caché D14
+  // Excel : F15 = E15 − D12 donne #VALEUR! quand D12 = "pas de net attendu" → null ici
+  main.F15 = (i.netAttendu == null) ? null : main.E15 - i.netAttendu;
+  hidden.I17 = hidden.O60 ? hidden.O65 / hidden.O60 * 100 : 0;
+  hidden.I22 = hidden.P60 ? hidden.P65 / hidden.P60 * 100 : 0;
+  main.I17 = hidden.I17;
+  main.I22 = hidden.I22;
+  main.I57 = hidden.G55 + hidden.G56 + hidden.G57 + hidden.G58;
+  main.M14 = (cfg.targetCell === "O62" ? main.O62 : main.O66) - i.cibleTauxFact;
+  main.M17 = main.H17 - i.cibleMargePct;
+  return { main, hidden };
+}
+
+/* --- Recherche de coefficient (résolution directe, amélioration vs Excel) --- */
+function solveCoeff(i, evalFn, target, lo, hi) {
+  lo = lo == null ? 0.01 : lo; hi = hi == null ? 10 : hi;
+  const f = c => evalFn(compute(Object.assign({}, i, { coeff: c }))) - target;
+  let flo = f(lo), fhi = f(hi);
+  if (isNaN(flo) || isNaN(fhi) || flo * fhi > 0) return null;
+  for (let k = 0; k < 80; k++) {
+    const mid = (lo + hi) / 2, fm = f(mid);
+    if (Math.abs(fm) < 1e-10) return mid;
+    if (flo * fm <= 0) { hi = mid; fhi = fm; } else { lo = mid; flo = fm; }
+  }
+  return (lo + hi) / 2;
+}
+function coeffPourTauxFact(i, tauxCible)  { return solveCoeff(i, r => r.main.O66, tauxCible); }
+function coeffPourTauxFactAvecLogement(i, tauxCible) { return solveCoeff(i, r => r.main.O62, tauxCible); }
+function coeffPourMarge(i, margeCiblePct) { return solveCoeff(i, r => r.main.H17, margeCiblePct); }
+/* cible de taux du secteur : O66 (agri, hors logement) ou O62 (tarifaire, global) */
+function coeffPourTauxSecteur(i, tauxCible) {
+  return SECTORS[i.sector || "agri"].targetCell === "O62"
+    ? coeffPourTauxFactAvecLogement(i, tauxCible) : coeffPourTauxFact(i, tauxCible);
+}
+
+if (typeof module !== "undefined") {
+  module.exports = { compute, computeSheet, computeTODE, defaultInputs, SECTORS, CONST, RGDU_DEFAULTS, BAKED_OFFICIAL,
+                     RATES_2026_AGRI, RATES_2026_TARIFAIRE, TODE_RATES_CLASSEUR, TODE_RATES_2026,
+                     PAS_GRILLE_2026, PAS_ABAT_CONTRAT_COURT, RASNR_2026, BAKED_CONTRADICTIONS,
+                     RATES_AGRI, RATES_TARIFAIRE,
+                     coeffPourTauxFact, coeffPourMarge, coeffPourTauxFactAvecLogement,
+                     coeffPourTauxSecteur, solveCoeff };
+}
+</script>
+<script>
+/* ============================================================================================
+   Grille Construction — construction des lignes par le MOTEUR du simulateur (phase 2).
+   Module partagé : inliné dans grille-btp.html par build_single.py (après db.js et engine.js),
+   chargé tel quel dans node pour les tests. Aucune dépendance au DOM.
+
+   Logique métier (retro-ingénierie du classeur 2026 validée le 11/09/2026 avec le moteur) :
+   - le NET CIBLE d'une ligne est le net horaire VERSÉ : salaire net (IFM + ICCP en paiement direct)
+     + indemnités non soumises (IGD, repas, transport, trajet) − participation logement retenue,
+     le tout divisé par les heures payées ;
+   - blocs NON LOGÉS : pas de participation ; le net dépend du brut, du coefficient et des indemnités ;
+   - blocs LOGÉS : le brut reste au minimum du niveau, la PARTICIPATION LOGEMENT est l'outil de
+     régulation (mode 1 : indemnités fixées → participation résolue) ; en mode 2 la participation est
+     fixée (coût du logement par défaut) et c'est l'IGD qui est résolue ;
+   - la marge brute est celle du moteur (CA facturé au tarif de la grille de facturation − coût complet).
+   ============================================================================================ */
+(function (root, factory) {
+  if (typeof module !== "undefined" && module.exports) {
+    const path = require("path"); const dbm = require(path.join(__dirname, "db.js")); if (typeof global.DB === "undefined") global.DB = dbm.DB;
+    module.exports = factory(require(path.join(__dirname, "engine.js")), dbm.DB);
+  } else root.GrilleMoteur = factory({ compute, defaultInputs, coeffPourMarge, solveCoeff, SECTORS }, DB);
+})(typeof self !== "undefined" ? self : this, function (E, DB) {
+  "use strict";
+  const HEURES = [35, 36, 37, 38, 39, 40, 41, 42, 43];
+  const BLOCS = ["etranger_loge", "etranger_non_loge", "fr_loge", "fr_non_loge"];
+  const LOGE = b => b === "etranger_loge" || b === "fr_loge";
+  const ETRANGER = b => String(b).indexOf("etranger") === 0;
+  const r2 = v => Math.round(v * 100) / 100;
+
+  /* Paramètres de construction (stockés dans params.construction de la grille ; tout est modifiable par la direction). */
+  const PARAMS_DEFAUT = {
+    mode: 1,                                   // 1 = indemnités fixées → participation résolue ; 2 = participation fixée → IGD résolue
+    marge_cible: 20,                           // % de marge brute visé (paramètre direction)
+    /* grille de facturation BTP (offre « taux horaire tout inclus », version 11-2025) : tarif par palier de net promis */
+    tarifs_paliers: [
+      { netMin: 0, netMax: 14.5, tarif: 31.5, libelle: "Ouvrier BTP" },
+      { netMin: 14.5, netMax: 16, tarif: 33.5, libelle: "Profil supérieur" },
+      { netMin: 16, netMax: 99, tarif: 35.5, libelle: "Profil supérieur (au-delà de 16 € : palier catégorie 2)" }
+    ],
+    majoration_logement: { montant: 2.5, regions: [] },   // + € HT / h facturés quand l'intérimaire est logé sur un secteur majoré (régions cochées)
+    logement: { defaut: 180, regions: {} },    // coût hebdomadaire du logement AB Service (€ / semaine), par région
+    logement_heures: 43,                       // base horaire du coût de logement dans le moteur (classeur : 43 h)
+    participation_mode2: null,                 // € / semaine retenus en mode 2 (null = coût du logement de la région)
+    ifm_iccp_direct: true,                     // IFM + ICCP payés chaque paie (le classeur raisonne ainsi) ; false = mise en CET
+    effectif: "50plus",                        // bande d'effectif de l'ETT (intérimaires comptés — BOSS)
+    vm_pct: 1.35,                              // versement mobilité moyen (grille nationale : moyenne France pondérée)
+    heures: HEURES,                            // scénarios horaires comparés
+    tolerance_net: 0.10                        // € / h : écart admis entre le net atteint et le net cible (arrondis du classeur)
+  };
+  function paramsComplets(P) {
+    const p = Object.assign({}, PARAMS_DEFAUT, P || {});
+    p.tarifs_paliers = (P && P.tarifs_paliers && P.tarifs_paliers.length) ? P.tarifs_paliers.map(x => ({ netMin: +x.netMin || 0, netMax: +x.netMax || 99, tarif: +x.tarif || 0, libelle: x.libelle || "" })).filter(x => x.tarif > 0) : PARAMS_DEFAUT.tarifs_paliers.slice();
+    p.majoration_logement = Object.assign({ montant: 2.5, regions: [] }, (P && P.majoration_logement) || {});
+    p.logement = Object.assign({ defaut: 180, regions: {} }, (P && P.logement) || {});
+    p.heures = (p.heures && p.heures.length) ? p.heures.map(Number).filter(h => h >= 35 && h <= 48) : HEURES.slice();
+    return p;
+  }
+  /* tarif de la grille de facturation pour un net promis (palier netMin ≤ net < netMax ; dernier palier inclusif),
+     + majoration logement si l'intérimaire est logé dans une région à secteur majoré. */
+  function tarifPour(P, l) {
+    const pal = P.tarifs_paliers; const net = +l.net; let t = null;
+    for (const x of pal) if (net >= x.netMin && (net < x.netMax || x === pal[pal.length - 1])) { t = x.tarif; break; }
+    if (t == null) t = net < pal[0].netMin ? pal[0].tarif : pal[pal.length - 1].tarif;
+    const M = P.majoration_logement || {};
+    if (LOGE(l.bloc) && M.montant > 0 && (M.regions || []).indexOf(l.region) >= 0) t += +M.montant;
+    return r2(t);
+  }
+  function logementPour(P, region) {
+    const v = (P.logement.regions || {})[region];
+    return (v != null && v !== "" && isFinite(+v)) ? +v : (P.logement.defaut != null ? +P.logement.defaut : 180);
+  }
+  /* Les 4 lignes d'indemnités du moteur : IGD, repas midi, repas soir, transport (+ trajet, cumulé sur la même ligne).
+     fc = 0 : non refacturées (le tarif horaire de la grille est un prix tout compris). */
+  function indemnitesDe(l, igdValeur) {
+    const q = (n, d) => (n != null && +n > 0) ? +n : d;
+    const igd = igdValeur != null ? +igdValeur : (l.igd != null ? +l.igd : 0);
+    const transportSem = (l.transport ? +l.transport * q(l.transport_nb, 5) : 0) + (l.trajet ? +l.trajet * q(l.trajet_nb, 5) : 0);
+    return [
+      { q: igd > 0 ? q(l.igd_nb, 5) : 0, r: igd > 0 ? igd : 0, name: "IGD", fc: 0 },
+      { q: l.repas_midi > 0 ? q(l.repas_midi_nb, 5) : 0, r: l.repas_midi > 0 ? +l.repas_midi : 0, name: "Repas midi", fc: 0 },
+      { q: l.repas_soir > 0 ? q(l.repas_soir_nb, 5) : 0, r: l.repas_soir > 0 ? +l.repas_soir : 0, name: "Repas soir", fc: 0 },
+      { q: transportSem > 0 ? 1 : 0, r: r2(transportSem), name: "Transport / trajet", fc: 0 }
+    ];
+  }
+  /* Entrées du moteur pour une ligne de grille et un nombre d'heures. */
+  function entrees(P, l, heures, opts) {
+    const base = E.defaultInputs(DB, "tarifaire");
+    const loge = LOGE(l.bloc), etr = ETRANGER(l.bloc); const brut = +l.brut;
+    const tarif = (opts && opts.tarif) || tarifPour(P, l);
+    const logHebdo = loge ? logementPour(P, l.region) : 0; const lh = +P.logement_heures || 43;
+    return Object.assign({}, base, {
+      mode: loge ? "SIMULATEUR BTP GRAND D" : "SIMULATEUR BTP PETIT D", branche: "btp", client: "Grille " + l.region,
+      thBrut: brut, netAttendu: null, heures: +heures, jours: 5, attestation: etr,
+      ifm: P.ifm_iccp_direct !== false, iccp: P.ifm_iccp_direct !== false,
+      logement: true, logementHeures: lh, logementHoraire: logHebdo / lh, coutLogementFacture: 0,
+      coeff: tarif / brut, effectif: P.effectif || "50plus", vmPct: +P.vm_pct || 0,
+      indemnites: indemnitesDe(l, opts && opts.igd), participationLibre: -(opts && opts.participation > 0 ? +opts.participation : 0)
+    });
+  }
+  const netH = r => r.D31 ? r.F90 / r.D31 : 0;
+  const calc = i => E.compute(i).main;
+  /* participation (€ / semaine, ≥ 0) telle que le net versé = net cible ; F90 est linéaire en participation, une
+     itération de sécurité corrige toute non-linéarité résiduelle (retenue à la source, plafonds). */
+  function resoudreParticipation(P, l, opts) {
+    let part = 0, r = calc(entrees(P, l, 35, Object.assign({}, opts, { participation: 0 })));
+    for (let k = 0; k < 6; k++) {
+      const delta = r.F90 - l.net * r.D31;          // excédent de net sur la cible (semaine)
+      const np = Math.max(0, part + delta);
+      if (Math.abs(np - part) < 0.005 && k > 0) break;
+      part = np; r = calc(entrees(P, l, 35, Object.assign({}, opts, { participation: part })));
+      if (part === 0 && delta < 0) break;            // net inatteignable par la participation (déjà nulle)
+    }
+    return { participation: r2(part), r };
+  }
+  /* IGD (€ / jour, nb jours de la ligne) telle que le net versé = net cible, participation fixée (mode 2). */
+  function resoudreIGD(P, l, participation, opts) {
+    const nb = (l.igd_nb != null && +l.igd_nb > 0) ? +l.igd_nb : 5;
+    let igd = l.igd != null ? +l.igd : 0, r = calc(entrees(P, l, 35, Object.assign({}, opts, { participation, igd })));
+    for (let k = 0; k < 6; k++) {
+      const delta = l.net * r.D31 - r.F90;           // manque de net (semaine) → à couvrir par l'IGD
+      const ni = Math.max(0, igd + delta / nb);
+      if (Math.abs(ni - igd) < 0.005 && k > 0) break;
+      igd = ni; r = calc(entrees(P, l, 35, Object.assign({}, opts, { participation, igd })));
+      if (igd === 0 && delta < 0) break;
+    }
+    return { igd: r2(igd), r };
+  }
+  /* tarif horaire nécessaire pour la marge cible : le CA est linéaire en coefficient (2 évaluations), le coût n'en dépend pas. */
+  function tarifPourMarge(i, margePct, brut) {
+    const a = calc(Object.assign({}, i, { coeff: 1 })), b = calc(Object.assign({}, i, { coeff: 2 }));
+    const pente = b.O60 - a.O60; if (!(pente > 0) || margePct >= 100) return null;
+    const cout = a.O60 - a.O64;                      // coût complet (indépendant du coefficient)
+    const caCible = cout / (1 - margePct / 100);
+    const c = 1 + (caCible - a.O60) / pente; const v = c * brut;
+    return isFinite(v) && v > 0 ? r2(v) : null;
+  }
+  /* Construction d'une ligne : résolution à 35 h, puis scénarios horaires à participation / IGD figées. */
+  function construireLigne(P0, l, minima) {
+    const P = paramsComplets(P0); const loge = LOGE(l.bloc); const brut = +l.brut;
+    const res = { region: l.region, bloc: l.bloc, profil: l.profil, net: +l.net, brut, coefficient: l.coefficient, mode: P.mode, tarif: tarifPour(P, l),
+                  logement: loge ? logementPour(P, l.region) : 0, participation: 0, igd: l.igd != null ? +l.igd : null, alertes: [], scenarios: [] };
+    if (!(brut > 0) || !(l.net > 0)) { res.alertes.push({ type: "donnees", texte: "brut ou net manquant" }); return res; }
+    let base, r;
+    if (P.mode === 2 && loge) {
+      const part = P.participation_mode2 != null && P.participation_mode2 !== "" ? +P.participation_mode2 : res.logement;
+      const s = resoudreIGD(P, l, part); res.participation = r2(part); res.igd = s.igd; r = s.r; base = { participation: part, igd: s.igd };
+      if (l.igd != null && Math.abs(s.igd - +l.igd) > 0.5) res.alertes.push({ type: "igd", texte: "IGD résolue " + s.igd.toFixed(2) + " € / jour (classeur : " + (+l.igd).toFixed(2) + ")" });
+    } else if (loge) {
+      const s = resoudreParticipation(P, l); res.participation = s.participation; r = s.r; base = { participation: s.participation };
+      if (res.participation > res.logement + 0.005) res.alertes.push({ type: "participation", texte: "participation " + res.participation.toFixed(2) + " € > coût du logement " + res.logement.toFixed(2) + " € (+" + (res.participation - res.logement).toFixed(2) + ")" });
+    } else {
+      r = calc(entrees(P, l, 35)); base = {};
+    }
+    res.net_atteint = r2(netH(r)); res.ecart = r2(res.net_atteint - res.net);
+    if (Math.abs(res.ecart) > P.tolerance_net) {
+      if (res.ecart < 0) {
+        /* net inatteignable avec les indemnités de la ligne : indemnité d'ajustement nécessaire (non soumise, non facturée) */
+        res.ajustement = r2(-res.ecart * r.D31);
+        res.alertes.push({ type: "net", texte: "net atteint " + res.net_atteint.toFixed(2) + " < cible : il manque " + res.ajustement.toFixed(2) + " € / semaine (ajustement ou indemnité à ajouter)" });
+      } else res.alertes.push({ type: "net", texte: "net atteint " + res.net_atteint.toFixed(2) + " > cible de " + res.ecart.toFixed(2) + " € / h (indemnités au-delà du besoin)" });
+    }
+    res.marge_pct = r2(r.H17); res.ca = r2(r.O60); res.cout = r2(r.O60 - r.O64); res.brut_semaine = r2(r.F42); res.net_semaine = r2(r.F90);
+    res.tarif_marge_cible = tarifPourMarge(entrees(P, l, 35, base), P.marge_cible, brut);
+    if (res.marge_pct < P.marge_cible - 0.05) res.alertes.push({ type: "marge", texte: "marge " + res.marge_pct.toFixed(1) + " % < cible " + P.marge_cible + " % (tarif nécessaire " + (res.tarif_marge_cible != null ? res.tarif_marge_cible.toFixed(2) + " € / h" : "—") + ")" });
+    if (minima && l.coefficient) {
+      const m = ((minima[l.region] || {}).taux || {})[l.coefficient];
+      if (m != null && brut < m - 0.001) res.alertes.push({ type: "minima", texte: "brut " + brut.toFixed(2) + " < minimum conventionnel du niveau " + l.coefficient + " (" + (+m).toFixed(2) + ")" });
+    }
+    /* Grand Compte : IGD réduite à participation identique → net et marge du client grand compte */
+    if (loge && l.igd_gc != null && +l.igd_gc > 0 && P.mode !== 2) {
+      const rg = calc(entrees(P, l, 35, { participation: res.participation, igd: +l.igd_gc }));
+      res.grand_compte = { igd: +l.igd_gc, net_atteint: r2(netH(rg)), marge_pct: r2(rg.H17) };
+    }
+    /* scénarios horaires : participation (ou IGD) figée à la valeur résolue à 35 h */
+    for (const h of P.heures) {
+      const rh = h === 35 ? r : calc(entrees(P, l, h, base));
+      res.scenarios.push({ heures: h, net: r2(netH(rh)), marge_pct: r2(rh.H17), ca: r2(rh.O60), cout: r2(rh.O60 - rh.O64), net_semaine: r2(rh.F90) });
+    }
+    return res;
+  }
+  /* Construction de plusieurs lignes ; onLigne(res, k, n) permet d'afficher la progression. */
+  function construire(P, lignes, minima, onLigne) {
+    const out = [];
+    for (let k = 0; k < lignes.length; k++) { const res = construireLigne(P, lignes[k], minima); out.push(res); if (onLigne) onLigne(res, k, lignes.length); }
+    return out;
+  }
+  /* Champs à reprendre dans une ligne de grille en brouillon. */
+  function versLigne(res) {
+    return { participation: res.participation, marge_pct: res.marge_pct, igd: res.mode === 2 && res.igd != null ? res.igd : undefined,
+             calcul: { mode: res.mode, tarif: res.tarif, logement: res.logement, net_atteint: res.net_atteint, ecart: res.ecart, ajustement: res.ajustement || 0,
+                       ca: res.ca, cout: res.cout, tarif_marge_cible: res.tarif_marge_cible, grand_compte: res.grand_compte || null, scenarios: res.scenarios, alertes: res.alertes } };
+  }
+  return { HEURES, BLOCS, LOGE, ETRANGER, PARAMS_DEFAUT, paramsComplets, tarifPour, logementPour, indemnitesDe, entrees, construireLigne, construire, versLigne, tarifPourMarge, resoudreParticipation, resoudreIGD };
+});
+</script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
@@ -188,7 +1423,7 @@ async function ouvrir(id, silencieux) {
   const regions = [...new Set(LIGNES.map(l => l.region))].sort(); const rv = $("sel-region").value;
   $("sel-region").innerHTML = regions.map(x => "<option>" + esc(x) + "</option>").join(""); if (rv && regions.includes(rv)) $("sel-region").value = rv;
   $("note-grille").textContent = G.statut === "brouillon" ? "Modifiez les cellules : chaque changement est enregistré aussitôt. IGD Grand Compte = valeur spécifique appliquée aux clients grands comptes (vide = valeur standard)." : "Grille " + ({ validee: "validée", archivee: "archivée" }[G.statut]) + " : lecture seule. Pour la faire évoluer, créez une nouvelle version depuis l'onglet Grilles.";
-  rendreParams(); rendreBlocs(); if (!silencieux) montrer("grille");
+  rendreParams(); rendreBlocs(); rendreConstruction(); if (!silencieux) montrer("grille");
 }
 $("sel-region").addEventListener("change", rendreBlocs);
 function rendreBlocs() {
@@ -232,6 +1467,110 @@ function rendreGC() {
 $("btn-gc-ajouter").addEventListener("click", async () => {
   const client = $("gc-client").value.trim(); if (!client) { $("msg-gc").className = "msg err"; $("msg-gc").textContent = "Nom du client requis."; return; }
   const r = await post("/api/grille-btp/grands-comptes", { client, region: $("gc-region").value }); $("msg-gc").className = r.ok ? "msg ok" : "msg err"; $("msg-gc").textContent = r.ok ? "Ajouté." : "Erreur : " + (r.erreur || "?"); if (r.ok) { $("gc-client").value = ""; chargerListe(); }
+});
+
+/* ---------- construction par le moteur ---------- */
+let CONS = { params: null, resultats: [] };
+const EFFECTIFS = ["50plus", "20-49", "11-19", "moins11"];
+function consParamsDepuisGrille() {
+  const D = GrilleMoteur.PARAMS_DEFAUT; const C = (G && G.params && G.params.construction) || {};
+  const P = GrilleMoteur.paramsComplets(Object.assign({}, C, { marge_cible: C.marge_cible != null ? C.marge_cible : (G && G.params && G.params.marge_cible != null ? G.params.marge_cible : D.marge_cible) }));
+  return P;
+}
+function rendreConstruction() {
+  if (!G) return; const P = CONS.params = consParamsDepuisGrille();
+  $("cons-grille").textContent = "— " + G.annee + " v" + G.version + (G.statut === "brouillon" ? "" : " (grille " + ({ validee: "validée", archivee: "archivée" }[G.statut]) + " : calcul possible, enregistrement dans une nouvelle version)");
+  $("c-mode").value = String(P.mode); $("c-marge").value = P.marge_cible; $("c-part2").value = P.participation_mode2 != null ? P.participation_mode2 : "";
+  $("c-ifm").value = P.ifm_iccp_direct !== false ? "1" : "0"; $("c-effectif").value = EFFECTIFS.includes(P.effectif) ? P.effectif : "50plus"; $("c-vm").value = P.vm_pct;
+  $("c-logdef").value = P.logement.defaut; $("c-logh").value = P.logement_heures; $("c-majo").value = P.majoration_logement.montant;
+  rendreTarifs(P.tarifs_paliers);
+  const regs = (LISTE.regions || []).map(r => r.region); const majo = P.majoration_logement.regions || [];
+  $("tbl-logement").innerHTML = "<tr><th>Région</th><th>Coût du logement (€ / semaine)</th><th>Secteur majoré</th></tr>" + regs.map(r => "<tr><td>" + esc(r) + "</td><td><input type='number' step='1' data-log=\"" + esc(r) + "\" value='" + (P.logement.regions[r] != null ? P.logement.regions[r] : "") + "' placeholder='" + P.logement.defaut + "'></td><td><input type='checkbox' data-majo=\"" + esc(r) + "\"" + (majo.includes(r) ? " checked" : "") + "></td></tr>").join("");
+  $("btn-cons-reprendre").disabled = true; $("cons-resultats").innerHTML = ""; $("cons-synthese").textContent = ""; CONS.resultats = [];
+}
+function rendreTarifs(pal) {
+  $("tbl-tarifs").innerHTML = "<tr><th>Net promis de</th><th>à (exclu)</th><th>Tarif € HT / h</th><th>Libellé</th><th></th></tr>" + pal.map((x, k) => "<tr><td><input type='number' step='0.5' data-tk='" + k + "' data-tf='netMin' value='" + x.netMin + "'></td><td><input type='number' step='0.5' data-tk='" + k + "' data-tf='netMax' value='" + x.netMax + "'></td><td><input type='number' step='0.5' data-tk='" + k + "' data-tf='tarif' value='" + x.tarif + "'></td><td><input data-tk='" + k + "' data-tf='libelle' value=\"" + esc(x.libelle || "") + "\" style='width:220px'></td><td><button class='btn s' data-tsup='" + k + "'>✕</button></td></tr>").join("");
+  $("tbl-tarifs").querySelectorAll("[data-tsup]").forEach(b => b.addEventListener("click", () => { const p = lireTarifs(); p.splice(+b.dataset.tsup, 1); rendreTarifs(p); }));
+}
+function lireTarifs() {
+  const rows = {}; $("tbl-tarifs").querySelectorAll("input[data-tk]").forEach(i => { (rows[i.dataset.tk] = rows[i.dataset.tk] || {})[i.dataset.tf] = i.dataset.tf === "libelle" ? i.value : parseFloat(i.value); });
+  return Object.keys(rows).sort((a, b) => a - b).map(k => rows[k]).filter(x => x.tarif > 0).sort((a, b) => a.netMin - b.netMin);
+}
+function lireHypotheses() {
+  const P = { mode: parseInt($("c-mode").value, 10) === 2 ? 2 : 1, marge_cible: parseFloat($("c-marge").value) || 20, participation_mode2: $("c-part2").value === "" ? null : parseFloat($("c-part2").value),
+    ifm_iccp_direct: $("c-ifm").value === "1", effectif: $("c-effectif").value, vm_pct: parseFloat($("c-vm").value) || 0,
+    logement: { defaut: parseFloat($("c-logdef").value) || 180, regions: {} }, logement_heures: parseFloat($("c-logh").value) || 43,
+    majoration_logement: { montant: parseFloat($("c-majo").value) || 0, regions: [] }, tarifs_paliers: lireTarifs(), heures: GrilleMoteur.HEURES };
+  $("tbl-logement").querySelectorAll("input[data-log]").forEach(i => { if (i.value !== "") P.logement.regions[i.dataset.log] = parseFloat(i.value); });
+  $("tbl-logement").querySelectorAll("input[data-majo]").forEach(i => { if (i.checked) P.majoration_logement.regions.push(i.dataset.majo); });
+  return P;
+}
+$("btn-tarif-plus").addEventListener("click", () => { const p = lireTarifs(); const last = p[p.length - 1]; p.push({ netMin: last ? last.netMax : 0, netMax: 99, tarif: last ? last.tarif + 2 : 31.5, libelle: "" }); rendreTarifs(p); });
+$("btn-tarif-grille").addEventListener("click", () => {
+  const F = LISTE.facturation; if (!F) { alert("Grille de facturation indisponible."); return; }
+  const pal = []; (F.categories || []).forEach((c, ci) => (c.paliers || []).forEach(p => { if (!pal.some(x => x.netMin === p.netMin && x.netMax === p.netMax)) pal.push({ netMin: p.netMin, netMax: p.netMax, tarif: p.tarif, libelle: p.libelle + " (" + (ci === 0 ? "catégorie 1" : "catégorie 2") + ")" }); }));
+  pal.sort((a, b) => a.netMin - b.netMin); if (pal.length) { pal[0].netMin = 0; pal[pal.length - 1].netMax = 99; } rendreTarifs(pal);
+  if (F.majorations && F.majorations.logement) $("c-majo").value = F.majorations.logement;
+});
+function consLigne(l) { return { region: l.region, bloc: l.bloc, profil: l.profil, net: l.net, brut: l.brut, coefficient: l.coefficient, igd: l.igd, igd_gc: l.igd_gc, igd_nb: l.igd_nb, repas_midi: l.repas_midi, repas_midi_nb: l.repas_midi_nb, repas_soir: l.repas_soir, repas_soir_nb: l.repas_soir_nb, transport: l.transport, transport_nb: l.transport_nb, trajet: l.trajet, trajet_nb: l.trajet_nb }; }
+async function calculer(toutes) {
+  if (!G) return; const P = lireHypotheses(); CONS.params = GrilleMoteur.paramsComplets(P);
+  const reg = $("sel-region").value; const lignes = LIGNES.filter(l => toutes || l.region === reg).map(consLigne);
+  if (!lignes.length) { $("msg-cons").className = "msg err"; $("msg-cons").textContent = "Aucune ligne à calculer."; return; }
+  $("msg-cons").className = "msg"; $("msg-cons").textContent = "Calcul de " + lignes.length + " ligne(s)…"; await new Promise(r => setTimeout(r, 30));
+  const t0 = Date.now(); const minima = (G.params || {}).minima || {};
+  CONS.resultats = GrilleMoteur.construire(P, lignes, minima);
+  $("msg-cons").className = "msg ok"; $("msg-cons").textContent = lignes.length + " ligne(s) calculées en " + ((Date.now() - t0) / 1000).toFixed(1) + " s (mode " + CONS.params.mode + ", objectif " + CONS.params.marge_cible + " %).";
+  rendreResultats(); $("btn-cons-reprendre").disabled = !(G.statut === "brouillon" && CONS.resultats.length);
+}
+function rendreResultats() {
+  const R = CONS.resultats; const P = CONS.params; if (!R.length) { $("cons-resultats").innerHTML = ""; return; }
+  const marges = R.map(r => r.marge_pct).filter(v => isFinite(v)); const moy = marges.reduce((s, v) => s + v, 0) / (marges.length || 1);
+  const sous = R.filter(r => r.marge_pct < P.marge_cible - 0.05).length, ecarts = R.filter(r => r.alertes.some(a => a.type === "net")).length, surPart = R.filter(r => r.alertes.some(a => a.type === "participation")).length, mini = R.filter(r => r.alertes.some(a => a.type === "minima")).length;
+  $("cons-synthese").innerHTML = "<b>" + R.length + " lignes</b> · marge brute au tarif de la grille : min <b>" + N2.format(Math.min(...marges)) + " %</b>, moyenne <b>" + N2.format(moy) + " %</b>, max <b>" + N2.format(Math.max(...marges)) + " %</b> · <b>" + sous + "</b> ligne(s) sous l'objectif de " + P.marge_cible + " % · " + ecarts + " écart(s) de net > " + N2.format(P.tolerance_net) + " €/h · " + surPart + " participation(s) au-dessus du coût du logement · " + mini + " brut(s) sous le minimum conventionnel.";
+  const regs = [...new Set(R.map(r => r.region))].sort(); const libBloc = Object.fromEntries(BLOCS.map(([bl, lib, cls]) => [bl, [lib, cls]]));
+  const hMax = P.heures[P.heures.length - 1];
+  let html = "";
+  for (const reg of regs) {
+    html += "<h3 style='font-size:14px; margin:12px 0 6px'>" + esc(reg) + "</h3><div class='blocs'>";
+    for (const [bl, lib, cls] of BLOCS) {
+      const rs = R.filter(r => r.region === reg && r.bloc === bl).sort((a, b) => a.net - b.net); if (!rs.length) continue;
+      const loge = GrilleMoteur.LOGE(bl);
+      html += "<div class='bloc " + cls + " cons'><h3>" + esc(lib) + "</h3><div class='tbl'><table><tr><th>Profil</th><th class='n'>Net</th><th class='n'>Brut</th><th class='n'>Coef</th><th class='n'>Tarif</th>" + (loge ? "<th class='n'>" + (P.mode === 2 ? "IGD résolue" : "Particip. / sem") + "</th>" : "") + "<th class='n'>Net atteint</th><th class='n'>Marge 35 h</th><th class='n'>Tarif pour " + P.marge_cible + " %</th><th class='n'>Marge " + hMax + " h</th>" + (loge ? "<th class='n'>Marge GC</th>" : "") + "<th>Alertes</th></tr>";
+      for (const r of rs) {
+        const bad = r.marge_pct < P.marge_cible - 0.05, warn = r.alertes.length > 0; const sc = r.scenarios[r.scenarios.length - 1] || {};
+        const id = [r.region, r.bloc, r.profil, r.net].join("|");
+        html += "<tr class='" + (bad ? "bad" : warn ? "warn" : "") + "' data-sc=\"" + esc(id) + "\" title='cliquer : scénarios horaires'><td>" + esc(r.profil) + "</td><td class='n k'>" + N2.format(r.net) + "</td><td class='n'>" + N2.format(r.brut) + "</td><td class='n'>" + (r.coefficient || "—") + "</td><td class='n'>" + N2.format(r.tarif) + "</td>" +
+          (loge ? "<td class='n k'>" + (P.mode === 2 ? (r.igd != null ? N2.format(r.igd) + " €/j" : "—") : N2.format(r.participation) + " €") + "</td>" : "") +
+          "<td class='n'>" + N2.format(r.net_atteint) + (Math.abs(r.ecart) > P.tolerance_net ? " <span class='note'>(" + (r.ecart > 0 ? "+" : "") + N2.format(r.ecart) + ")</span>" : "") + "</td><td class='n k'>" + N2.format(r.marge_pct) + " %</td><td class='n'>" + (r.tarif_marge_cible != null ? N2.format(r.tarif_marge_cible) : "—") + "</td><td class='n'>" + (sc.marge_pct != null ? N2.format(sc.marge_pct) + " %" : "—") + "</td>" +
+          (loge ? "<td class='n'>" + (r.grand_compte ? N2.format(r.grand_compte.marge_pct) + " % <span class='note'>(net " + N2.format(r.grand_compte.net_atteint) + ")</span>" : "—") + "</td>" : "") +
+          "<td class='al'>" + esc(r.alertes.map(a => a.texte).join(" · ")) + "</td></tr>";
+        html += "<tr class='sc' data-scid=\"" + esc(id) + "\" hidden><td colspan='13'><div class='sc'><table><tr><th>Heures</th>" + r.scenarios.map(s => "<th class='n'>" + s.heures + " h</th>").join("") + "</tr><tr><td>Net versé / h</td>" + r.scenarios.map(s => "<td class='n'>" + N2.format(s.net) + "</td>").join("") + "</tr><tr><td>Marge brute</td>" + r.scenarios.map(s => "<td class='n'>" + N2.format(s.marge_pct) + " %</td>").join("") + "</tr><tr><td>CA semaine</td>" + r.scenarios.map(s => "<td class='n'>" + N2.format(s.ca) + "</td>").join("") + "</tr><tr><td>Coût semaine</td>" + r.scenarios.map(s => "<td class='n'>" + N2.format(s.cout) + "</td>").join("") + "</tr></table>" +
+          "<div class='note'>" + (loge ? (P.mode === 2 ? "participation fixée " + N2.format(r.participation) + " € / semaine, IGD résolue " + N2.format(r.igd || 0) + " € / jour" : "participation logement résolue " + N2.format(r.participation) + " € / semaine (coût du logement " + N2.format(r.logement) + " €)") + " · " : "") + "CA 35 h " + N2.format(r.ca) + " € · coût complet " + N2.format(r.cout) + " € · brut semaine " + N2.format(r.brut_semaine || 0) + " € · net versé semaine " + N2.format(r.net_semaine || 0) + " €" + (r.ajustement ? " · ajustement nécessaire " + N2.format(r.ajustement) + " € / semaine" : "") + "</div></div></td></tr>";
+      }
+      html += "</table></div></div>";
+    }
+    html += "</div>";
+  }
+  $("cons-resultats").innerHTML = html;
+  $("cons-resultats").querySelectorAll("tr[data-sc]").forEach(tr => tr.addEventListener("click", () => { const d = $("cons-resultats").querySelector("tr[data-scid=\"" + tr.dataset.sc.replace(/"/g, '\\"') + "\"]"); if (d) d.hidden = !d.hidden; }));
+}
+$("btn-cons-region").addEventListener("click", () => calculer(false));
+$("btn-cons-tout").addEventListener("click", () => calculer(true));
+$("btn-cons-hyp").addEventListener("click", async () => {
+  if (!G) return; if (G.statut !== "brouillon") { $("msg-cons").className = "msg err"; $("msg-cons").textContent = "Grille " + ({ validee: "validée", archivee: "archivée" }[G.statut]) + " : les hypothèses s'enregistrent dans une nouvelle version (brouillon)."; return; }
+  const P = lireHypotheses(); const params = Object.assign({}, G.params || {}, { construction: P, marge_cible: P.marge_cible });
+  const r = await post("/api/grille-btp/grille", { id: G.id, params }); $("msg-cons").className = r.ok ? "msg ok" : "msg err"; $("msg-cons").textContent = r.ok ? "Hypothèses enregistrées." : "Erreur : " + (r.erreur || "?");
+  if (r.ok) { G.params = params; }
+});
+$("btn-cons-reprendre").addEventListener("click", async () => {
+  if (!G || G.statut !== "brouillon" || !CONS.resultats.length) return;
+  const P = CONS.params; const n = CONS.resultats.length;
+  if (!confirm("Reprendre " + n + " ligne(s) calculées dans le brouillon ? Participation, marge et détail du calcul seront écrits sur chaque ligne" + (P.mode === 2 ? ", ainsi que l'IGD résolue" : "") + ".")) return;
+  const lignes = CONS.resultats.map(r => Object.assign({ region: r.region, bloc: r.bloc, profil: r.profil, net: r.net }, GrilleMoteur.versLigne(r)));
+  const r = await post("/api/grille-btp/lignes", { grille_id: G.id, lignes, construction: lireHypotheses() }).catch(() => ({ erreur: "serveur" }));
+  $("msg-cons").className = r.ok ? "msg ok" : "msg err"; $("msg-cons").textContent = r.ok ? r.modifiees + " ligne(s) mises à jour dans le brouillon" + (r.ignorees ? " (" + r.ignorees + " ignorée(s))" : "") + "." : "Erreur : " + (r.erreur || "?");
+  if (r.ok) { await ouvrir(G.id, true); montrer("construction"); }
 });
 /* ---------- paramètres ---------- */
 function rendreParams() {
