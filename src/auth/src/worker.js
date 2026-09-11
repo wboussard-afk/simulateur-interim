@@ -1234,7 +1234,12 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       const champs = [], vals = [];
       if (corps.libelle != null) { champs.push("libelle = ?"); vals.push(String(corps.libelle).slice(0, 120)); }
       if (corps.application_du != null) { if (g.statut !== "brouillon") return json({ erreur: "grille_non_modifiable" }, 409); if (!dateISO(corps.application_du)) return json({ erreur: "date_invalide" }, 400); champs.push("application_du = ?"); vals.push(corps.application_du); }   // la date pilote la grille lue par la paie : figée avec la validation
-      if (corps.params != null) { if (g.statut !== "brouillon") return json({ erreur: "grille_non_modifiable" }, 409); champs.push("params = ?"); vals.push(JSON.stringify(corps.params).slice(0, 200000)); }
+      if (corps.params != null) {
+        if (g.statut !== "brouillon") return json({ erreur: "grille_non_modifiable" }, 409);
+        if (typeof corps.params !== "object" || Array.isArray(corps.params)) return json({ erreur: "params_invalides" }, 400);
+        const ps = JSON.stringify(corps.params); if (ps.length > 200000) return json({ erreur: "params_trop_volumineux" }, 413);
+        champs.push("params = ?"); vals.push(ps);
+      }
       if (!champs.length) return json({ erreur: "rien_a_modifier" }, 400);
       vals.push(g.id); await env.DB.prepare("UPDATE grilles_btp SET " + champs.join(", ") + " WHERE id = ?").bind(...vals).run();
       await journal(env, req, u, "grille_btp_modif", "#" + g.id + " " + champs.map(c => c.split(" ")[0]).join(", "));
@@ -1246,31 +1251,43 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       const N = v => (v === "" || v == null) ? null : (isFinite(parseFloat(String(v).replace(",", "."))) ? parseFloat(String(v).replace(",", ".")) : null);
       if (!BLOCS_BTP.includes(corps.bloc)) return json({ erreur: "bloc_invalide" }, 400);
       const net = N(corps.net); if (net == null) return json({ erreur: "net_invalide" }, 400);
-      if (corps.supprimer) { await env.DB.prepare("DELETE FROM grilles_btp_lignes WHERE grille_id = ? AND region = ? AND bloc = ? AND profil = ? AND ABS(net - ?) < 0.001").bind(g.id, String(corps.region), corps.bloc, String(corps.profil), net).run(); await journal(env, req, u, "grille_btp_ligne", "#" + g.id + " suppression " + corps.region + " · " + corps.bloc + " · " + corps.profil + " · " + net); return json({ ok: true }); }
-      await env.DB.prepare("INSERT INTO grilles_btp_lignes (grille_id, region, bloc, profil, net, heures, brut, coefficient, igd, igd_gc, igd_nb, repas_midi, repas_midi_nb, repas_soir, repas_soir_nb, transport, transport_nb, trajet, trajet_nb, participation, marge_pct, calcul) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(grille_id, region, bloc, profil, net) DO UPDATE SET heures = excluded.heures, brut = excluded.brut, coefficient = excluded.coefficient, igd = excluded.igd, igd_gc = excluded.igd_gc, igd_nb = excluded.igd_nb, repas_midi = excluded.repas_midi, repas_midi_nb = excluded.repas_midi_nb, repas_soir = excluded.repas_soir, repas_soir_nb = excluded.repas_soir_nb, transport = excluded.transport, transport_nb = excluded.transport_nb, trajet = excluded.trajet, trajet_nb = excluded.trajet_nb, participation = excluded.participation, marge_pct = excluded.marge_pct, calcul = excluded.calcul")
+      if (corps.supprimer) { await env.DB.prepare("DELETE FROM grilles_btp_lignes WHERE grille_id = ? AND region = ? AND bloc = ? AND profil = ? AND ABS(net - ?) < 0.001 AND EXISTS (SELECT 1 FROM grilles_btp WHERE id = ? AND statut = 'brouillon')").bind(g.id, String(corps.region), corps.bloc, String(corps.profil), net, g.id).run(); await journal(env, req, u, "grille_btp_ligne", "#" + g.id + " suppression " + corps.region + " · " + corps.bloc + " · " + corps.profil + " · " + net); return json({ ok: true }); }
+      await env.DB.prepare("INSERT INTO grilles_btp_lignes (grille_id, region, bloc, profil, net, heures, brut, coefficient, igd, igd_gc, igd_nb, repas_midi, repas_midi_nb, repas_soir, repas_soir_nb, transport, transport_nb, trajet, trajet_nb, participation, marge_pct, calcul) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(grille_id, region, bloc, profil, net) DO UPDATE SET heures = excluded.heures, brut = excluded.brut, coefficient = excluded.coefficient, igd = excluded.igd, igd_gc = excluded.igd_gc, igd_nb = excluded.igd_nb, repas_midi = excluded.repas_midi, repas_midi_nb = excluded.repas_midi_nb, repas_soir = excluded.repas_soir, repas_soir_nb = excluded.repas_soir_nb, transport = excluded.transport, transport_nb = excluded.transport_nb, trajet = excluded.trajet, trajet_nb = excluded.trajet_nb, participation = excluded.participation, marge_pct = NULL, calcul = NULL WHERE (SELECT statut FROM grilles_btp WHERE id = excluded.grille_id) = 'brouillon'")
         .bind(g.id, String(corps.region).slice(0, 60), corps.bloc, String(corps.profil).slice(0, 40), net, N(corps.heures) || 35, N(corps.brut), corps.coefficient == null || corps.coefficient === "" ? null : parseInt(corps.coefficient, 10) || null,
-              N(corps.igd), N(corps.igd_gc), N(corps.igd_nb), N(corps.repas_midi), N(corps.repas_midi_nb), N(corps.repas_soir), N(corps.repas_soir_nb), N(corps.transport), N(corps.transport_nb), N(corps.trajet), N(corps.trajet_nb), N(corps.participation), N(corps.marge_pct), corps.calcul ? JSON.stringify(corps.calcul).slice(0, 20000) : null).run();
-      await journal(env, req, u, "grille_btp_ligne", "#" + g.id + " " + corps.region + " · " + corps.bloc + " · " + corps.profil + " · " + net + (corps.marge_pct != null ? " (moteur)" : ""));
+              N(corps.igd), N(corps.igd_gc), N(corps.igd_nb), N(corps.repas_midi), N(corps.repas_midi_nb), N(corps.repas_soir), N(corps.repas_soir_nb), N(corps.transport), N(corps.transport_nb), N(corps.trajet), N(corps.trajet_nb), N(corps.participation), null, null).run();   // saisie manuelle : marge et calcul du moteur invalidés (à recalculer)
+      await journal(env, req, u, "grille_btp_ligne", "#" + g.id + " " + corps.region + " · " + corps.bloc + " · " + corps.profil + " · " + net + " (saisie)");
       return json({ ok: true });
     }
     if (op === "lignes" && req.method === "POST") {
       /* reprise des résultats du moteur dans le brouillon : mise à jour des seuls champs calculés, par lot */
       const g = await env.DB.prepare("SELECT * FROM grilles_btp WHERE id = ?").bind(corps.grille_id | 0).first(); if (!g) return json({ erreur: "grille_introuvable" }, 404);
       if (g.statut !== "brouillon") return json({ erreur: "grille_non_modifiable" }, 409);
-      const items = Array.isArray(corps.lignes) ? corps.lignes.slice(0, 1000) : [];
+      const items = Array.isArray(corps.lignes) ? corps.lignes : [];
       if (!items.length) return json({ erreur: "lignes_requises" }, 400);
+      if (items.length > 1000) return json({ erreur: "trop_de_lignes", max: 1000 }, 413);
+      if (corps.construction != null && (typeof corps.construction !== "object" || Array.isArray(corps.construction))) return json({ erreur: "hypotheses_invalides" }, 400);
       const N = v => (v === "" || v == null) ? null : (isFinite(parseFloat(String(v).replace(",", "."))) ? parseFloat(String(v).replace(",", ".")) : null);
-      const st = env.DB.prepare("UPDATE grilles_btp_lignes SET participation = ?, marge_pct = ?, calcul = ?, igd = COALESCE(?, igd) WHERE grille_id = ? AND region = ? AND bloc = ? AND profil = ? AND ABS(net - ?) < 0.001");
-      const lots = [];
+      const st = env.DB.prepare("UPDATE grilles_btp_lignes SET participation = ?, marge_pct = ?, calcul = ?, igd = COALESCE(?, igd), igd_nb = COALESCE(?, igd_nb) WHERE grille_id = ? AND region = ? AND bloc = ? AND profil = ? AND ABS(net - ?) < 0.001 AND EXISTS (SELECT 1 FROM grilles_btp WHERE id = ? AND statut = 'brouillon')");
+      const lots = []; let ignorees = 0;
       for (const it of items) {
-        if (!BLOCS_BTP.includes(it.bloc) || N(it.net) == null) continue;
-        lots.push(st.bind(N(it.participation), N(it.marge_pct), it.calcul ? JSON.stringify(it.calcul).slice(0, 20000) : null, N(it.igd), g.id, String(it.region).slice(0, 60), it.bloc, String(it.profil).slice(0, 40), N(it.net)));
+        if (!it || !BLOCS_BTP.includes(it.bloc) || N(it.net) == null || (it.calcul && Array.isArray(it.calcul.alertes) && it.calcul.alertes.some(a => a && a.type === "donnees"))) { ignorees++; continue; }
+        const calcul = it.calcul ? JSON.stringify(it.calcul) : null; if (calcul && calcul.length > 20000) { ignorees++; continue; }
+        lots.push(st.bind(N(it.participation), N(it.marge_pct), calcul, N(it.igd), N(it.igd_nb), g.id, String(it.region).slice(0, 60), it.bloc, String(it.profil).slice(0, 40), N(it.net), g.id));
       }
       let modifiees = 0;
-      for (let k = 0; k < lots.length; k += 50) { const rs = await env.DB.batch(lots.slice(k, k + 50)); rs.forEach(r => { modifiees += (r.meta && r.meta.changes) || 0; }); }
-      if (corps.construction != null) await env.DB.prepare("UPDATE grilles_btp SET params = ? WHERE id = ?").bind(JSON.stringify(Object.assign(params(g), { construction: corps.construction })).slice(0, 200000), g.id).run();
-      await journal(env, req, u, "grille_btp_moteur", "#" + g.id + " " + modifiees + " ligne(s) reprises du moteur" + (corps.construction ? " (hypothèses enregistrées)" : ""));
-      return json({ ok: true, modifiees, ignorees: items.length - lots.length });
+      try {
+        for (let k = 0; k < lots.length; k += 50) { const rs = await env.DB.batch(lots.slice(k, k + 50)); rs.forEach(r => { modifiees += (r.meta && r.meta.changes) || 0; }); }
+      } catch (err) {
+        await journal(env, req, u, "grille_btp_moteur", "#" + g.id + " ÉCHEC partiel : " + modifiees + " ligne(s) reprises avant l'erreur (" + String(err && err.message || err).slice(0, 120) + ")");
+        return json({ erreur: "lot_partiel", modifiees, ignorees }, 500);
+      }
+      if (corps.construction != null) {
+        const p = params(g); p.construction = corps.construction; if (isFinite(parseFloat(corps.construction.marge_cible))) p.marge_cible = parseFloat(corps.construction.marge_cible);
+        const ps = JSON.stringify(p); if (ps.length > 200000) return json({ ok: true, modifiees, ignorees, avertissement: "hypotheses_trop_volumineuses" });
+        await env.DB.prepare("UPDATE grilles_btp SET params = ? WHERE id = ?").bind(ps, g.id).run();
+      }
+      await journal(env, req, u, "grille_btp_moteur", "#" + g.id + " " + modifiees + " ligne(s) reprises du moteur" + (ignorees ? ", " + ignorees + " ignorée(s)" : "") + (corps.construction ? " (hypothèses enregistrées)" : ""));
+      return json({ ok: true, modifiees, ignorees });
     }
     if (op === "statut" && req.method === "POST") {
       const g = await env.DB.prepare("SELECT * FROM grilles_btp WHERE id = ?").bind(corps.id | 0).first(); if (!g) return json({ erreur: "grille_introuvable" }, 404);

@@ -11,7 +11,9 @@ geo = open(base + r"\app\geo.js", encoding='utf-8').read()
 # retire les données GOLDEN (tests uniquement) du fichier livré
 db_ship = re.sub(r"var GOLDEN_NEW = .*?;\n", "", db, flags=re.S)
 db_ship = re.sub(r"var GOLDEN_V1 = .*?;\n", "", db_ship, flags=re.S)
-db_ship = db_ship.replace("if (typeof module !== 'undefined') module.exports = { DB: DB, GOLDEN_NEW: GOLDEN_NEW, GOLDEN_V1: GOLDEN_V1 };\n", "")
+db_ship = re.sub(r"var GOLDEN_TARIFAIRE = .*?;\n", "", db_ship, flags=re.S)
+db_ship = re.sub(r"if \(typeof module !== 'undefined'\) module\.exports = \{[^\n]*\n?", "", db_ship)
+assert "GOLDEN_" not in db_ship and "module.exports" not in db_ship
 out = app.replace('<script src="db.js?r1"></script>', '<script>\n' + db_ship + '</script>')
 out = out.replace('<script src="engine.js?r1"></script>', '<script>\n' + eng + '</script>')
 out = out.replace('<script src="geo.js?r1"></script>', '<script>\n' + geo + '</script>')

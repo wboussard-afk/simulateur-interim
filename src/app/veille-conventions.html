@@ -685,7 +685,8 @@ function computeSheet(i, variant, hiddenAvance, f77Override) {
   S.D109 = CONST.SMIC_FIGE * S.D31 * 3.5;
 
   /* --- Assiette de cotisations (D62) --- */
-  S.D101 = S.F42 * cfg.dfsFactor;
+  /* DFS : i.dfsFactor (ex. 0,93 = DFS BTP 7 % en 2026, sortie progressive BOSS) prime sur le facteur du secteur (classeur : 0,9) */
+  S.D101 = S.F42 * ((i.dfsFactor != null && isFinite(+i.dfsFactor)) ? +i.dfsFactor : cfg.dfsFactor);
   S.D102 = (S.D24 * SMIC_C) + (S.D29 * SMIC_C * 1.5) +
            (S.D28 * SMIC_C * (S.E24 ? S.E28 / S.E24 : 0)) + S.F32 + S.F33;
   const dfsApplies = isMain ? cfg.dfsOnMain : true;
