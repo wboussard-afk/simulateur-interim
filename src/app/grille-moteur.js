@@ -9,8 +9,9 @@
      heures payées ; l'indemnité de TRAJET BTP est soumise à cotisations (prime, dans le brut) ;
    - une ligne est LOGÉE (grand déplacement, logement AB Service, participation) seulement si elle porte une IGD ;
    - l'AJUSTEMENT se fait par la PARTICIPATION logement (mode « participation ») ou par l'IGD (mode « igd »),
-     calculé automatiquement pour atteindre l'OBJECTIF DE MARGE BRUTE ; le même levier est aussi résolu pour
-     tenir exactement le NET PROMIS, et les deux valeurs sont comparées pour 35 h, 39 h et 43 h ;
+     calculé automatiquement pour tenir exactement le NET PROMIS de la ligne (de 11 à 16,50 € par pas de 0,50) :
+     il dépend du net promis et des heures (35 h, 39 h, 43 h) ; l'OBJECTIF DE MARGE BRUTE sert de contrôle
+     (marge obtenue au tarif du niveau, tarif nécessaire pour l'objectif) ;
    - l'offre BTP facture TOUTES les heures au tarif horaire (pas de majoration facturée jusqu'à 43 h) ;
    - le client GRAND COMPTE (IGD réduite de la ligne) se simule comme une grille à part entière ;
    - le taux AT-MP suit l'agence PALMA qui porte la région ; le versement mobilité est une moyenne paramétrable.
@@ -64,7 +65,6 @@
     mode: "participation",         // "participation" : indemnités fixées, participation logement ajustée ; "igd" : participation fixée, IGD ajustée
     client: "standard",            // "gc" : simulation grand compte (IGD réduite de la ligne)
     marge_cible: 20,               // objectif de marge brute (%)
-    priorite: "marge",             // valeur reprise dans la grille : "marge" = ajustement pour l'objectif de marge ; "net" = ajustement qui tient le net promis
     tarifs_profils: { "Aide métier": 31.5, "Ouvrier": 33.5, "Profil supérieur": 35.5 },   // € HT / heure travaillée, tout inclus, par niveau
     tarifs_paliers: [{ netMin: 0, netMax: 12, tarif: 31.5 }, { netMin: 12, netMax: 15, tarif: 33.5 }, { netMin: 15, netMax: 99, tarif: 35.5 }],   // secours si profil inconnu
     majoration_logement: { montant: 2.5, actif: false },   // + € HT / h facturés en secteur majoré (lignes logées)
@@ -85,7 +85,6 @@
     P = P || {}; const D = PARAMS_DEFAUT; const p = Object.assign({}, D, P);
     p.mode = (P.mode === "igd" || +P.mode === 2) ? "igd" : "participation";
     p.client = P.client === "gc" ? "gc" : "standard";
-    p.priorite = P.priorite === "net" ? "net" : "marge";
     p.marge_cible = num(p.marge_cible, D.marge_cible);
     p.tarifs_profils = Object.assign({}, D.tarifs_profils, P.tarifs_profils || {}); for (const k of Object.keys(p.tarifs_profils)) p.tarifs_profils[k] = num(p.tarifs_profils[k], D.tarifs_profils[k] || 0);
     p.tarifs_paliers = (P.tarifs_paliers && P.tarifs_paliers.length ? P.tarifs_paliers : D.tarifs_paliers).map(x => ({ netMin: num(x.netMin, 0), netMax: num(x.netMax, 99), tarif: num(x.tarif, 0) })).filter(x => x.tarif > 0).sort((a, b) => a.netMin - b.netMin);
@@ -154,22 +153,20 @@
   const calc = i => E.compute(i).main;
   const netH = r => r.D31 ? r.F90 / r.D31 : 0;
   const mesure = r => ({ net: r2(netH(r)), marge_pct: r2(r.H17), ca: r2(r.O60), cout: r2(r.O60 - r.O64), net_semaine: r2(r.F90), pas: r2(r.F43 || 0) });
-  /* Levier linéaire : net_semaine et coût sont affines en x (x = participation retenue, ou x = IGD par jour) ; le CA n'en dépend pas.
-     Deux évaluations donnent les pentes ; le résultat est recalculé au point retenu. */
+  /* Levier linéaire : le net de la semaine est affine en x (x = participation retenue, ou x = IGD par jour) ; le CA n'en dépend pas.
+     Deux évaluations donnent la pente ; le levier qui tient le NET PROMIS (net × heures) est recalculé au point retenu,
+     puis une itération de sécurité corrige toute non-linéarité résiduelle. Le tarif nécessaire pour l'objectif de marge est calculé à ce point. */
   function levier(P, l, h, mode, participationFixe, nb) {
     const at = x => mode === "igd" ? { participation: participationFixe, igd: x, igd_nb: nb } : { participation: x };
     const x1 = mode === "igd" ? 10 : 100;
     const r0 = calc(entrees(P, l, h, at(0))), r1 = calc(entrees(P, l, h, at(x1)));
-    const ca = r0.O60, c0 = r0.O60 - r0.O64, pc = ((r1.O60 - r1.O64) - c0) / x1, n0 = r0.F90, pn = (r1.F90 - n0) / x1;
+    const n0 = r0.F90, pn = (r1.F90 - n0) / x1;
     const xMax = mode === "igd" ? P.igd_max : Infinity;
     const borne = x => Math.max(0, Math.min(xMax, x));
-    const cCible = ca * (1 - P.marge_cible / 100); const xM = pc !== 0 ? (cCible - c0) / pc : 0;   // objectif de marge : coût cible = CA × (1 − m)
-    const xN = pn !== 0 ? (l.net * h - n0) / pn : 0;                                                   // net promis : net_semaine = net × h
-    const xm = borne(xM), xn = borne(xN);
-    const rm = calc(entrees(P, l, h, at(xm))), rn = (Math.abs(xn - xm) < 0.005) ? rm : calc(entrees(P, l, h, at(xn)));
-    return { heures: h, ca: r2(ca), cout0: r2(c0),
-      marge: Object.assign({ levier: r2(xm), plafonne: xM > xMax + 1e-9, nul: xM < -1e-9, ecart: r2(netH(rm) - l.net) }, mesure(rm)),
-      net: Object.assign({ levier: r2(xn), plafonne: xN > xMax + 1e-9, nul: xN < -1e-9 }, mesure(rn)) };
+    let xN = pn !== 0 ? (l.net * h - n0) / pn : 0; let xn = borne(xN); let rn = calc(entrees(P, l, h, at(xn)));
+    for (let k = 0; k < 3 && xn === xN && Math.abs(rn.F90 - l.net * h) > 0.01; k++) { xN = xn + (l.net * h - rn.F90) / pn; xn = borne(xN); rn = calc(entrees(P, l, h, at(xn))); }
+    const m = mesure(rn);
+    return Object.assign({ heures: h, levier: r2(xn), plafonne: xN > xMax + 1e-9, nul: xN < -1e-9, ecart: r2(m.net - l.net), tarif_marge_cible: tarifPourMarge(entrees(P, l, h, at(xn)), P.marge_cible, +l.brut) }, m);
   }
   /* Ligne non logée sous le net promis : indemnités exonérées aux plafonds URSSAF (panier de chantier, puis transport par tranche km), par jour et par semaine de 5 jours. */
   function proposer(P, l, h) {
@@ -208,17 +205,13 @@
     if (loge) {
       for (const h of P.heures) res.scenarios.push(levier(P, l, h, P.mode, res.participation_fixe, nb));
       const s35 = res.scenarios.find(s => s.heures === 35) || res.scenarios[0];
-      const choix = P.priorite === "net" ? s35.net : s35.marge;
-      res.retenu = { participation: P.mode === "igd" ? res.participation_fixe : choix.levier, igd: P.mode === "igd" ? choix.levier : res.igd_ligne, igd_nb: nb, net: choix.net, marge_pct: choix.marge_pct, base: P.priorite };
-      res.net_atteint = choix.net; res.ecart = r2(choix.net - res.net); res.marge_pct = choix.marge_pct; res.ca = s35.ca;
+      res.retenu = { participation: P.mode === "igd" ? res.participation_fixe : s35.levier, igd: P.mode === "igd" ? s35.levier : res.igd_ligne, igd_nb: nb, net: s35.net, marge_pct: s35.marge_pct, base: "net" };
+      res.net_atteint = s35.net; res.ecart = s35.ecart; res.marge_pct = s35.marge_pct; res.ca = s35.ca; res.tarif_marge_cible = s35.tarif_marge_cible;
       const lib = P.mode === "igd" ? "IGD" : "participation", unite = P.mode === "igd" ? " € / jour" : " € / semaine";
-      if (s35.marge.ecart < -P.tolerance_net) al(res, "net", "à l'objectif de marge (" + lib + " " + eur(s35.marge.levier) + unite + ") le net promis n'est pas tenu : " + eur(s35.marge.net) + " au lieu de " + eur(res.net) + " € / h — pour le tenir : " + lib + " " + eur(s35.net.levier) + unite + " → marge " + s35.net.marge_pct.toFixed(1) + " %");
-      else if (s35.marge.ecart > P.tolerance_net) al(res, "net", "à l'objectif de marge le net versé dépasse le net promis de " + eur(s35.marge.ecart) + " € / h (" + lib + " " + eur(s35.marge.levier) + unite + ") ; " + lib + " pour le net exact : " + eur(s35.net.levier) + unite + " → marge " + s35.net.marge_pct.toFixed(1) + " %", "info");
-      if (s35.marge.plafonne) al(res, "igd", "IGD plafonnée à " + eur(P.igd_max) + " € / jour (exonération) : objectif de marge non atteint (" + s35.marge.marge_pct.toFixed(1) + " %)");
-      if (s35.marge.nul && P.mode === "participation") al(res, "info", "objectif de marge dépassé même sans participation (" + s35.marge.marge_pct.toFixed(1) + " %)", "info");
-      if (s35.net.plafonne) al(res, "igd", "net promis inatteignable sous le plafond d'IGD " + eur(P.igd_max) + " € / jour (net " + eur(s35.net.net) + ")");
-      if (P.mode === "participation" && s35.marge.levier > P.logement + 0.005) al(res, "participation", "participation à l'objectif de marge " + eur(s35.marge.levier) + " € > coût du logement " + eur(P.logement) + " €", "info");
-      res.tarif_marge_cible = null;
+      if (s35.plafonne) al(res, "igd", "net promis inatteignable sous le plafond d'IGD " + eur(P.igd_max) + " € / jour : net " + eur(s35.net) + " au lieu de " + eur(res.net));
+      else if (s35.nul) al(res, "net", "net promis dépassé même sans " + lib + " : " + eur(s35.net) + " € / h (indemnités au-delà du besoin)", "info");
+      if (s35.marge_pct < P.marge_cible - 0.05) al(res, "marge", "marge " + s35.marge_pct.toFixed(1) + " % < objectif " + P.marge_cible + " % avec " + lib + " " + eur(s35.levier) + unite + " (tarif nécessaire " + (s35.tarif_marge_cible != null ? eur(s35.tarif_marge_cible) + " € / h" : "—") + ")");
+      if (P.mode === "participation" && s35.levier > P.logement + 0.005) al(res, "participation", "participation " + eur(s35.levier) + " € > coût du logement " + eur(P.logement) + " €", "info");
     } else {
       for (const h of P.heures) { const r = calc(entrees(P, l, h)); res.scenarios.push(Object.assign({ heures: h, tarif_marge_cible: tarifPourMarge(entrees(P, l, h), P.marge_cible, brut) }, mesure(r))); }
       const s35 = res.scenarios.find(s => s.heures === 35) || res.scenarios[0];
@@ -231,7 +224,7 @@
     return res;
   }
   function construire(P, lignes, minima, annee, onLigne) { const out = []; for (let k = 0; k < lignes.length; k++) { const res = construireLigne(P, lignes[k], minima, annee); out.push(res); if (onLigne) onLigne(res, k, lignes.length); } return out; }
-  function hypotheses(P) { P = paramsComplets(P); return { mode: P.mode, client: P.client, marge_cible: P.marge_cible, priorite: P.priorite, ifm_iccp_direct: P.ifm_iccp_direct, effectif: P.effectif, agence: P.agence, at_pct: P.at_pct, vm_pct: P.vm_pct, pas_mode: P.pas_mode, dfs_pct: P.dfs_pct, igd_max: P.igd_max, tarifs_profils: P.tarifs_profils, majoration_logement: P.majoration_logement, logement: P.logement, participation_fixe: P.participation_fixe, heures: P.heures }; }
+  function hypotheses(P) { P = paramsComplets(P); return { mode: P.mode, client: P.client, marge_cible: P.marge_cible, ifm_iccp_direct: P.ifm_iccp_direct, effectif: P.effectif, agence: P.agence, at_pct: P.at_pct, vm_pct: P.vm_pct, pas_mode: P.pas_mode, dfs_pct: P.dfs_pct, igd_max: P.igd_max, tarifs_profils: P.tarifs_profils, majoration_logement: P.majoration_logement, logement: P.logement, participation_fixe: P.participation_fixe, heures: P.heures }; }
   /* Champs repris dans une ligne de grille en brouillon (null = ligne non reprise : données manquantes ou simulation grand compte). */
   function versLigne(res, P) {
     if (res.alertes.some(a => a.type === "donnees") || res.client === "gc") return null;
