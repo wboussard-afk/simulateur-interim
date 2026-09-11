@@ -1166,7 +1166,7 @@ Si vous n'êtes pas à l'origine de ce changement, répondez immédiatement à c
       const push = (code, lib, montant, nb, extra) => { if (montant != null && montant > 0) rub.push(Object.assign({ code: code || "", libelle: lib, montant, nb: nb || null }, extra || {})); };
       const gcApplique = gc && x.igd_gc != null;
       push(r.igd, "IGD (indemnité de grand déplacement)", gcApplique ? x.igd_gc : x.igd, x.igd_nb, gcApplique ? { grand_compte: true } : null);
-      push(bloc.endsWith("_loge") ? r.repas_midi_loge : r.repas_midi_non_loge, "Repas midi", x.repas_midi, x.repas_midi_nb);
+      push((bloc === "etranger_loge" || bloc === "fr_loge") ? r.repas_midi_loge : r.repas_midi_non_loge, "Repas midi", x.repas_midi, x.repas_midi_nb);
       push(bloc.startsWith("fr") ? r.repas_soir_fr : r.repas_soir_etranger, "Repas soir", x.repas_soir, x.repas_soir_nb);
       push(r.transport, "Transport", x.transport, x.transport_nb);
       push(r.trajet, "Trajet", x.trajet, x.trajet_nb);
